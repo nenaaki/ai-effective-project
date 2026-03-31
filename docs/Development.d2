@@ -108,21 +108,23 @@ development {
             "静的モック" { class: ai-effective }
             "インタラクティブモック" { class: ai-effective }
           }
+          prototyping: "プロトタイピング" { class: ai-effective }
+          style-guide: "スタイルガイド"
 
           # design内の接続
           info_arch -> "デザイン/ワイヤーフレーム"
-          "デザイン/ワイヤーフレーム" -> "プロトタイピング"
-          "プロトタイピング" -> "スタイルガイド"
-          "スタイルガイド" -> "ユーザビリティテスト"
+          "デザイン/ワイヤーフレーム" -> prototyping
+          prototyping -> style-guide
+          style-guide -> "ユーザビリティテスト"
           mockup."静的モック" -> mockup."インタラクティブモック"
-          mockup <-> "プロトタイピング"
+          mockup <-> prototyping
       }
       ui-components {
         label: "UIコンポーネント"
         grid-columns: 3
         atoms: "Atoms\n(ボタン、入力フィールドなど)" { class: ai-effective }
         molecules: "Molecules\n(検索フォーム、カードなど)" { class: ai-effective }
-        organisms: "Organisms\n(ヘッダー、ナビゲーションなど)"
+        organisms: "Organisms\n(ヘッダー、ナビゲーションなど)" { class: ai-effective }
         templates: "Templates\n(ページレイアウト)" { class: ai-effective }
         pages: "Pages\n(実際のページ)" { class: ai-effective }
 
@@ -154,15 +156,16 @@ development {
     }
     api-client {
       label: "APIクライアント"
-      "RESTクライアント"
-      "GraphQLクライアント"
-      "WebSocketクライアント"
+      "RESTクライアント" { class: ai-effective }
+      "GraphQLクライアント" { class: ai-effective }
+      "WebSocketクライアント" { class: ai-effective }
     }
 
     "フロントエンドテスト" { class: ai-effective }
     "E2Eテスト" { class: ai-effective }
     "CI/CD" { class: ai-effective }
-    "フロントエンドビルド" { class: ai-effective }
+    "フロントエンドビルド" { class: command }
+    "開発環境（フロントエンド）デプロイ" { class: command }
 
     # フロントエンド内の依存関係
     frontend.ui-components -> api-client
@@ -173,7 +176,7 @@ development {
     api-client -> "E2Eテスト"
     "フロントエンドテスト" -> "CI/CD"
     "CI/CD" -> "フロントエンドビルド"
-    "CI/CD" -> "デプロイ"
+    "CI/CD" -> "開発環境（フロントエンド）デプロイ"
   }
 
   # バックエンド開発
@@ -219,8 +222,8 @@ development {
     
     backend-test: "バックエンドテスト" { class: ai-effective }
     ci: "CI/CD" { class: ai-effective }
-    deploy: "開発環境デプロイ"
-    "バックエンドビルド" { class: ai-effective }
+    deploy: "開発環境（バックエンド）デプロイ" { class: command }
+    "バックエンドビルド" { class: command }
 
     infrastructure {
       label: "インフラ/運用"
