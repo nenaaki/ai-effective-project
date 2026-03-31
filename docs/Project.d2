@@ -1,0 +1,221 @@
+direction: right
+
+classes: {
+  phase-header: { style: { fill: "#E3F2FD"; stroke: "#1565C0"; stroke-width: 2 } }
+  critical-highlight: { style: { fill: "#FFCDD2"; stroke: "#C62828"; stroke-width: 2 } }
+  row-management: { style: { fill: "#F3E5F5" } }
+  row-frontend: { style: { fill: "#FFF3E0" } }
+  row-security: { style: { fill: "#FFEBEE" } }
+  row-backend: { style: { fill: "#E8F5E9" } }
+  row-infra: { style: { fill: "#EFEBE9" } }
+}
+
+# 全体のコンテナ
+DevelopmentMatrix: {
+  grid-columns: 1
+  grid-gap: 30
+  # スタイルの共通設定
+  **.*.style: {
+    border-radius: 8
+    stroke: "#333333"
+    font-size: 14
+    stroke-width: 2
+  }
+
+  # --- ヘッダー行 (フェーズ) ---
+  HeaderRow: {
+    grid-columns: 5
+    h1: "① 定義 (Concept)\n要求・要件定義" {class: "phase-header"}
+    h2: "② 設計 (Design)\n仕様・アーキテクチャ" {class: "phase-header"}
+    h3: "③ 実装 (Build)\n開発・自動化" {class: "phase-header"}
+    h4: "④ 検証・運用 (Run)\nテスト・可観測性" {class: "phase-header"}
+  }
+
+  # --- 管理/プロセス行 ---
+  ManagementRow: {
+    grid-columns: 5
+    label: "管理/プロセス(PM/Scrum)"
+    m1: "ロードマップ/KPI" {
+      grid-columns: 1
+      goal: "ビジネスゴール"
+      kpi: "成功指標定義"
+    }
+    m2: "スプリント計画" {
+      grid-columns: 1
+      backlog: "バックログ作成"
+      estimate: "見積り/アサイン"
+    }
+    m3: "開発スプリント" {
+      grid-columns: 1
+      scrum: "デイリースクラム"
+      review: "コードレビュー"
+    }
+    m4: "リリース/振返り" {
+      grid-columns: 1
+      release: "デプロイ/公開"
+      retro: "レトロスペクティブ"
+    }
+    m1 -> m2 -> m3 -> m4
+    class: "row-management"
+  }
+
+  # --- フロントエンド行 ---
+  FrontendRow: {
+    grid-columns: 5
+    label: "フロントエンド(User/UI)"
+    f1: "UX/ビジネス要件" {
+      grid-columns: 1
+      persona: "ペルソナ/行動"
+      items: "表示項目定義"
+      mock: "モック作成/仕様合意形成" {class: critical-highlight}
+      wireframe: "ワイヤーフレーム作成"
+    }
+    f2: "UI設計" {
+      grid-columns: 1
+      comp: "デザインカンプ"
+      store: "状態管理(Store)設計"
+      api_types: "API型定義\n(TypeScript Interfaces)" {class: critical-highlight}
+      prototype: "プロトタイプ作成" {class: critical-highlight}
+      comp -> api_types
+      wireframe -> prototype
+    }
+    f3: "UI実装/ビルド" {
+      grid-columns: 1
+      env: "開発環境構築"
+      components: "コンポーネント実装" {
+        class: critical-highlight
+        reusable: "再利用可能コンポーネント設計"
+        unit_test: "ユニットテスト実装"
+        integration: "統合テスト"
+        accessibility: "アクセシビリティ対応"
+      }
+      view: "画面実装" {class: critical-highlight}
+      build: "ビルド最適化"
+      env -> components
+      components -> view
+    }
+    f4: "E2E/分析" {
+      grid-columns: 1
+      test: "動作確認" {class: critical-highlight}
+      rum: "RUM(実利用監視)"
+      analytics: "ユーザビリティ分析"
+    }
+    f1 -> f2 -> f3 -> f4
+    class: "row-frontend"
+  }
+
+  # --- セキュリティ行 ---
+  SecurityRow: {
+    grid-columns: 5
+    label: "セキュリティ(DevSecOps)"
+    s1: "セキュリティ要件" {
+      grid-columns: 1
+      threat: "脅威モデリング"
+      comp: "コンプライアンス定義"
+    }
+    s2: "防御設計" {
+      grid-columns: 1
+      auth: "認証/認可(OAuth)"
+      waf: "暗号化/WAF設計"
+    }
+    s3: "脆弱性診断(静的)" {
+      grid-columns: 1
+      sast: "SAST/依存関係スキャン" {class: critical-highlight}
+      secret: "シークレット検知"
+    }
+    s4: "動的診断/防御" {
+      grid-columns: 1
+      dast: "DAST/侵入テスト" {class: critical-highlight}
+      siem: "SIEM(ログ監視)"
+    }
+    s1 -> s2 -> s3 -> s4
+    class: "row-security"
+  }
+
+  # --- バックエンド行 ---
+  BackendRow: {
+    grid-columns: 5
+    label: "バックエンド(Logic/API)"
+    b1: "機能/ドメイン要件" {
+      grid-columns: 1
+      rule: "ビジネスルール"
+      ext: "外部連携定義"
+    }
+    b2: "API/ロジック設計" {
+      grid-columns: 1
+      api: "API設計/シーケンス図" {class: critical-highlight}
+      model: "ドメインモデル" {class: critical-highlight}
+      dto: "DTO定義\n(Request/Response)" {class: critical-highlight}
+      orm: "ORM定義\n(Entity/Model)" {class: critical-highlight}
+      model -> orm
+      api -> dto
+    }
+    b3: "実装/CI" {
+      grid-columns: 1
+      # API層: リクエスト処理とデータ変換
+      control: "コントローラー\n(APIエンドポイント定義)"
+      dto_impl: "DTO実装/バリデーション" {class: critical-highlight}
+      mapper: "Mapper (DTO↔Entity変換)\nデータ形式変換" {class: critical-highlight}
+      # ビジネス層: ロジック実装
+      service: "サービス実装\n(ビジネスロジック)" {class: critical-highlight}
+      # データ層: 永続化と最適化
+      repository: "Repository/DAO層\n(データアクセス)"
+      query: "クエリ最適化" {class: critical-highlight}
+      # CI/CD: 自動化テスト
+      ci: "単体テスト自動化" {class: critical-highlight}
+      control -> dto_impl -> mapper -> service -> repository
+    }
+    b4: "結合/可観測性" {
+      grid-columns: 1
+      it: "統合テスト" {class: critical-highlight}
+      trace: "分散トレーシング"
+    }
+    b1 -> b2 -> b3 -> b4
+    class: "row-backend"
+  }
+
+  # --- インフラ行 ---
+  InfraRow: {
+    grid-columns: 5
+    label: "インフラ(Data/Infra)"
+    i1: "非機能要件" {
+      grid-columns: 1
+      sla: "SLA/性能目標"
+      sec: "セキュリティ基準"
+    }
+    i2: "基盤/DB設計" {
+      grid-columns: 1
+      er: "ER図" {class: critical-highlight}
+      iac: "IaC設計(Terraform)"
+      orm_schema: "ORM Schema定義" {
+        class: critical-highlight
+        relationships: "- OneToOne/OneToMany\n- ManyToMany/Cascade"
+      }
+      er -> orm_schema
+    }
+    i3: "環境構築/自動化" {
+      grid-columns: 1
+      mig: "DBマイグレーション" {class: critical-highlight}
+      tool: "CDK/Terraform"
+    }
+    i4: "負荷試験/運用" {
+      grid-columns: 1
+      load: "k6/負荷テスト"
+      scale: "自動スケーリング"
+    }
+    i1 -> i2 -> i3 -> i4
+    class: "row-infra"
+  }
+
+  # --- 横断的な接続 (システム統合の可視化) ---
+  ManagementRow.m2.backlog -> FrontendRow.f1.persona: "要件具体化"
+  FrontendRow.f2.api_types -> BackendRow.b2.dto: "DTO仕様同期"
+  FrontendRow.f2.store -> BackendRow.b2.api: "API型定義同期"
+  BackendRow.b2.dto -> BackendRow.b3.dto_impl: "DTO実装"
+  BackendRow.b3.mapper -> BackendRow.b3.service: "Entity↔DTO変換"
+  SecurityRow.s2.auth -> BackendRow.b2.api: "認可ミドルウェア"
+  BackendRow.b3.ci -> ManagementRow.m3.review: "自動テスト結果"
+  InfraRow.i2.er -> BackendRow.b2.orm: "スキーママッピング"
+  BackendRow.b2.orm -> InfraRow.i3.mig: "マイグレーション実行"
+  InfraRow.i3.tool -> ManagementRow.m4.release: "自動デプロイ"
+}
