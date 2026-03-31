@@ -1,0 +1,375 @@
+classes: {
+  command: {
+    style: {
+      fill: "#ffff88"
+    }
+  }
+  ai-effective: {
+    style: {
+      fill: "#ff8888"
+    }
+  }
+  ai-fullauto: {
+    style: {
+      fill: "#cc0000"
+      stroke: "#990000"
+      stroke-width: 2
+    }
+  }
+}
+
+customer: {
+  shape: person
+  label: "顧客"
+}
+
+user: {
+  shape: person
+  label: "ユーザー"
+}
+
+operator: {
+  shape: person
+  label: "運用担当者"
+}
+
+development {
+  requirement-management {
+    label: "要求管理"
+    tracking: "要求追跡"
+    prioritization: "優先順位管理"
+    change-control: "変更管理"
+    
+    tracking -> prioritization
+    prioritization -> change-control
+  }
+  
+  request-development {
+    label: "要求開発"
+    
+    requirement-collection {
+      label: "要求収集"
+      stakeholder: "ステークホルダー分析"
+      interviews: "要件ヒアリング"
+      surveys: "アンケート調査"
+      
+      stakeholder -> interviews
+      interviews -> surveys
+    }
+    
+    requirement-definition {
+      label: "要件定義"
+      functional: "機能要件"
+      non-functional: "非機能要件"
+      prioritization: "優先順位付け"
+      
+      functional -> non-functional
+      non-functional -> prioritization
+    }
+    
+    specification {
+      label: "仕様定義"
+      use-cases: "ユースケース"
+      system-req: "システム要件"
+      detailed-spec: "詳細仕様"
+      
+      use-cases -> system-req
+      system-req -> detailed-spec
+    }
+    
+    validation {
+      label: "検証"
+      review: "要件レビュー"
+      approval: "合意形成"
+      
+      review -> approval
+    }
+    
+    # request-development内の接続
+    requirement-collection -> requirement-definition
+    requirement-definition -> specification
+    specification -> validation
+  }
+
+  frontend-development {
+    label: "フロントエンド開発"
+    frontend {
+      label: "フロントエンド"
+      design {
+          label: "デザイン"
+          info_arch {
+            label: "情報アーキテクチャ"
+            "サイト構造設計"
+            "ナビゲーション設計"
+            "コンテンツ整理"
+          }
+          mockup {
+            label: "モック作成"
+            "静的モック" { class: ai-effective }
+            "インタラクティブモック" { class: ai-effective }
+          }
+
+          # design内の接続
+          info_arch -> "デザイン/ワイヤーフレーム"
+          "デザイン/ワイヤーフレーム" -> "プロトタイピング"
+          "プロトタイピング" -> "スタイルガイド"
+          "スタイルガイド" -> "ユーザビリティテスト"
+          mockup."静的モック" -> mockup."インタラクティブモック"
+          mockup <-> "プロトタイピング"
+      }
+      ui-components {
+        label: "UIコンポーネント"
+        grid-columns: 3
+        atoms: "Atoms\n(ボタン、入力フィールドなど)" { class: ai-effective }
+        molecules: "Molecules\n(検索フォーム、カードなど)" { class: ai-effective }
+        organisms: "Organisms\n(ヘッダー、ナビゲーションなど)"
+        templates: "Templates\n(ページレイアウト)" { class: ai-effective }
+        pages: "Pages\n(実際のページ)" { class: ai-effective }
+
+        # ui-components内の接続
+        atoms -> molecules
+        molecules -> organisms
+        organisms -> templates
+        templates -> pages
+      }
+      state-management {
+        label: "状態管理"
+        "ローカル状態管理"
+        "グローバル状態管理"
+        "サーバー状態管理"
+
+        # state-management内の接続
+        "ローカル状態管理" -> "グローバル状態管理"
+        "ローカル状態管理" -> "サーバー状態管理"
+        "グローバル状態管理" -> "サーバー状態管理"
+      }
+      routing {
+        label: "ルーティング"
+      }
+
+      # 同階層の接続
+      design -> ui-components
+      ui-components -> state-management
+      state-management -> routing
+    }
+    api-client {
+      label: "APIクライアント"
+      "RESTクライアント"
+      "GraphQLクライアント"
+      "WebSocketクライアント"
+    }
+
+    "フロントエンドテスト" { class: ai-effective }
+    "E2Eテスト" { class: ai-effective }
+    "CI/CD" { class: ai-effective }
+    "フロントエンドビルド" { class: ai-effective }
+
+    # フロントエンド内の依存関係
+    frontend.ui-components -> api-client
+    api-client."RESTクライアント" -> api-client."GraphQLクライアント"
+    api-client."RESTクライアント" -> api-client."WebSocketクライアント"
+    api-client."GraphQLクライアント" -> api-client."WebSocketクライアント"
+    frontend -> "フロントエンドテスト"
+    api-client -> "E2Eテスト"
+    "フロントエンドテスト" -> "CI/CD"
+    "CI/CD" -> "フロントエンドビルド"
+    "CI/CD" -> "デプロイ"
+  }
+
+  # バックエンド開発
+  backend-development {
+    label: "バックエンド開発"
+    
+    backend {
+      label: "バックエンド"
+      
+      auth {
+        label: "認証/認可"
+        class: ai-effective
+        grid-columns: 2
+        "ユーザ管理" { class: ai-effective }
+        "セッション管理" { class: ai-effective }
+        "権限管理" { class: ai-effective }
+        "OAuth実装" { class: ai-effective }
+      }
+      api {
+        label: "APIエンドポイント"
+        class: ai-effective
+        endpoints: "エンドポイント\n(REST/GraphQL)" { class: ai-effective }
+        validation: "入力バリデーション\n(リクエスト/レスポンス)" { class: ai-effective }
+      }
+      service-definition {
+        label: "サービス"
+        grid-columns: 3
+        class: ai-effective
+        domain-model: "ドメインモデル定義" { class: ai-effective }
+        "ビジネスルール" { class: ai-effective }
+        "計算ロジック" { class: ai-effective }
+        "ワークフロー管理" { class: ai-effective }
+        "サービス層実装" { class: ai-effective }
+        "単体テスト" { class: ai-effective }
+        log-output: "ログ出力" { class: ai-effective }
+      }
+
+      # 同階層の接続
+      auth -> api
+      api -> service-definition
+      api.endpoints -> api.validation
+    }
+    
+    backend-test: "バックエンドテスト" { class: ai-effective }
+    ci: "CI/CD" { class: ai-effective }
+    deploy: "開発環境デプロイ"
+    "バックエンドビルド" { class: ai-effective }
+
+    infrastructure {
+      label: "インフラ/運用"
+
+      # 永続化グループ（DBアクセス関連）
+      persistence {
+        label: "データ永続化"
+        file-storage: "ファイルストレージ"
+        db-access: "DBアクセス" { class: ai-effective }
+        db-details {
+          class: ai-effective
+          label: "DBアクセス詳細"
+          orm: "ORMモデル定義\n(スキーマ記述)" { class: ai-effective }
+          db-migration: "DBマイグレーション" { class: command }
+          sql-query: "SQLクエリ" { class: command }
+          transaction: "トランザクション管理"
+
+          orm -> sql-query
+          orm -> db-migration
+        }
+      }
+
+      iac: "IaC\n(Infrastructure as Code)" { class: ai-effective }
+      deployment: "本番環境デプロイ"
+      cloud-provider: "クラウドプロバイダ"
+      server-management: "サーバー管理"
+      container-orchestration: "コンテナオーケストレーション"
+      scaling: "スケーリング"
+      db-management: "DB管理"
+      backup-restore: "バックアップ/リストア"
+      db: "データベース"
+    
+      iac -> deployment
+      deployment -> cloud-provider
+      cloud-provider -> server-management
+      cloud-provider -> container-orchestration
+      server-management -> scaling
+      container-orchestration -> scaling
+      db -> db-management
+      db-management -> backup-restore
+    }
+    
+    # バックエンド内の依存関係
+    backend.service-definition -> infrastructure.persistence
+    backend.service-definition -> backend-test
+    backend-test -> ci
+    ci -> deploy
+    ci -> "バックエンドビルド"
+    infrastructure.persistence.db-access -> infrastructure.persistence.db-details
+    infrastructure.persistence -> infrastructure.db
+  }
+
+  security-review: "セキュリティレビュー"
+  # 全体の依存関係
+  request-development.specification -> frontend-development.frontend.design.info_arch
+  request-development.specification -> backend-development.backend.service-definition
+  frontend-development.frontend.design.mockup -> request-development.requirement-definition
+  frontend-development.api-client -> backend-development.backend
+  security-review -> backend-development.backend.auth
+  security-review -> backend-development.backend.api
+  security-review -> backend-development.infrastructure
+}
+
+ops {
+  label: "運用/保守"
+  
+  monitoring {
+    label: "監視"
+    system: "システム監視"
+    application: "アプリケーションモニタリング"
+    performance: "パフォーマンス監視" { class: ai-effective }
+    
+    system -> application
+    application -> performance
+  }
+  
+  logging {
+    label: "ログ管理"
+    collection: "ログ収集" { class: ai-effective }
+    analysis: "ログ分析" { class: ai-effective }
+    storage: "ログ保管"
+    
+    collection -> analysis
+    analysis -> storage
+  }
+  
+  incident {
+    label: "障害対応"
+    management: "インシデント管理"
+    recovery: "復旧手順"
+    postmortem: "ポストモーテム"
+    
+    management -> recovery
+    recovery -> postmortem
+  }
+  
+  backup {
+    label: "バックアップ"
+    data: "データバックアップ"
+    test: "リストアテスト"
+    
+    data -> test
+  }
+  
+  security {
+    label: "セキュリティ運用"
+    patches: "パッチ管理"
+    scans: "脆弱性スキャン" { class: ai-effective }
+    
+    scans -> patches
+  }
+  
+  scaling {
+    label: "スケーリング"
+    auto: "自動スケーリング"
+    planning: "容量計画"
+    
+    auto -> planning
+  }
+  
+  maintenance {
+    label: "メンテナンス"
+    regular: "定期メンテナンス"
+    updates: "アップデート"
+    
+    regular -> updates
+  }
+  
+  feedback {
+    label: "ユーザー統計 & フィードバック"
+    user_stats: "ユーザー使用統計収集" { class: ai-effective }
+    analysis: "統計分析" { class: ai-effective }
+    dev_feedback: "開発フィードバック"
+    
+    user_stats -> analysis
+    analysis -> dev_feedback
+  }
+  
+  # ops内の依存関係
+  monitoring -> incident.management
+  logging -> monitoring.system
+  backup -> incident.recovery
+  security -> maintenance.regular
+  scaling -> monitoring.performance
+  monitoring.application -> feedback.user_stats
+  logging.analysis -> feedback.user_stats
+}
+
+development -> ops
+ops.feedback.dev_feedback -> development.requirement-management.tracking
+development.backend-development.backend.service-definition.log-output -> ops.logging.collection
+
