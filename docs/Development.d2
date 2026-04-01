@@ -4,12 +4,17 @@ classes: {
       fill: "#ffff88"
     }
   }
+  ai-effective-week: {
+    style: {
+      fill: "#ffcccc"
+    }
+  }
   ai-effective: {
     style: {
       fill: "#ff8888"
     }
   }
-  ai-fullauto: {
+  ai-effective-strong: {
     style: {
       fill: "#cc0000"
       stroke: "#990000"
@@ -34,21 +39,12 @@ operator: {
 }
 
 development {
-  requirement-management {
-    label: "要求管理"
-    tracking: "要求追跡"
-    prioritization: "優先順位管理"
-    change-control: "変更管理"
-    
-    tracking -> prioritization
-    prioritization -> change-control
-  }
-  
   request-development {
     label: "要求開発"
     
     requirement-collection {
       label: "要求収集"
+      grid-columns: 3
       stakeholder: "ステークホルダー分析"
       interviews: "要件ヒアリング"
       surveys: "アンケート調査"
@@ -59,6 +55,7 @@ development {
     
     requirement-definition {
       label: "要件定義"
+      grid-columns: 3
       functional: "機能要件"
       non-functional: "非機能要件"
       prioritization: "優先順位付け"
@@ -69,9 +66,27 @@ development {
     
     specification {
       label: "仕様定義"
+      grid-columns: 3
       use-cases: "ユースケース"
       system-req: "システム要件"
-      detailed-spec: "詳細仕様"
+      detailed-spec {
+        label: "詳細仕様"
+        logging-requirements: "ログ基準"
+        logging-events: "記録対象イベント(成功/失敗/例外)"
+        logging-format: "フォーマット(CSV/JSON/構造化)"
+        logging-retention: "保持期間・アーカイブ"
+
+        exception-handling: "例外処理"
+        business-exceptions: "ビジネス例外(バリデーション、業務ルール違反)"
+        retry-policy: "再試行・フォールバック"
+        log-alerts: "ログ連携アラート条件"
+
+        logging-requirements -> logging-events
+        logging-events -> logging-format
+        logging-format -> logging-retention
+        business-exceptions -> retry-policy
+        business-exceptions -> log-alerts
+      }
       
       use-cases -> system-req
       system-req -> detailed-spec
@@ -84,12 +99,35 @@ development {
       
       review -> approval
     }
+
+    request-management {
+      label: "要求管理"
+      tracking: "要求追跡"
+      prioritization: "優先順位管理"
+      change-control: "変更管理"
+      
+      tracking -> prioritization
+      prioritization -> change-control
+    }
     
+
     # request-development内の接続
     requirement-collection -> requirement-definition
     requirement-definition -> specification
+    requirement-definition <-> request-management
     specification -> validation
   }
+
+  dto-development {
+    label: "DTO開発"
+    class: ai-effective
+    dto-design: "DTO設計" { class: ai-effective }
+    dto-implementation: "DTO実装" { class: ai-effective-strong }
+
+    dto-design -> dto-implementation
+  }
+  frontend-development.api-client -> dto-development
+  backend-development.backend.api -> dto-development
 
   frontend-development {
     label: "フロントエンド開発"
@@ -103,21 +141,23 @@ development {
             "ナビゲーション設計"
             "コンテンツ整理"
           }
-          mockup {
-            label: "モック作成"
-            "静的モック" { class: ai-effective }
-            "インタラクティブモック" { class: ai-effective }
+          prototyping: { 
+            label: "プロトタイピング"
+            class: ai-effective
+            "ワイヤーフレーム"
+            mockup {
+              label: "モック作成"
+              class: ai-effective-week
+              "静的モック" { class: ai-effective }
+              "インタラクティブモック" { class: ai-effective }
+            }
           }
-          prototyping: "プロトタイピング" { class: ai-effective }
           style-guide: "スタイルガイド"
 
           # design内の接続
-          info_arch -> "デザイン/ワイヤーフレーム"
-          "デザイン/ワイヤーフレーム" -> prototyping
+          info_arch -> prototyping
           prototyping -> style-guide
           style-guide -> "ユーザビリティテスト"
-          mockup."静的モック" -> mockup."インタラクティブモック"
-          mockup <-> prototyping
       }
       ui-components {
         label: "UIコンポーネント"
@@ -156,6 +196,7 @@ development {
     }
     api-client {
       label: "APIクライアント"
+      grid-columns: 3
       "RESTクライアント" { class: ai-effective }
       "GraphQLクライアント" { class: ai-effective }
       "WebSocketクライアント" { class: ai-effective }
@@ -169,9 +210,6 @@ development {
 
     # フロントエンド内の依存関係
     frontend.ui-components -> api-client
-    api-client."RESTクライアント" -> api-client."GraphQLクライアント"
-    api-client."RESTクライアント" -> api-client."WebSocketクライアント"
-    api-client."GraphQLクライアント" -> api-client."WebSocketクライアント"
     frontend -> "フロントエンドテスト"
     api-client -> "E2Eテスト"
     "フロントエンドテスト" -> "CI/CD"
@@ -198,8 +236,8 @@ development {
       api {
         label: "APIエンドポイント"
         class: ai-effective
-        endpoints: "エンドポイント\n(REST/GraphQL)" { class: ai-effective }
-        validation: "入力バリデーション\n(リクエスト/レスポンス)" { class: ai-effective }
+        endpoints: "エンドポイント\n(REST/GraphQL)" { class: ai-effective-strong }
+        validation: "入力バリデーション\n(リクエスト/レスポンス)" { class: ai-effective-strong }
       }
       service-definition {
         label: "サービス"
@@ -209,14 +247,15 @@ development {
         "ビジネスルール" { class: ai-effective }
         "計算ロジック" { class: ai-effective }
         "ワークフロー管理" { class: ai-effective }
-        "サービス層実装" { class: ai-effective }
-        "単体テスト" { class: ai-effective }
+        "基盤クラス作成" { class: ai-effective-week }
         log-output: "ログ出力" { class: ai-effective }
       }
+      "単体テスト" { class: ai-effective }
 
       # 同階層の接続
       auth -> api
       api -> service-definition
+      service-definition -> "単体テスト"
       api.endpoints -> api.validation
     }
     
@@ -226,12 +265,12 @@ development {
     "バックエンドビルド" { class: command }
 
     infrastructure {
-      label: "インフラ/運用"
+      label: "インフラ"
 
       # 永続化グループ（DBアクセス関連）
       persistence {
         label: "データ永続化"
-        file-storage: "ファイルストレージ"
+        file-storage: "ファイルストレージ" { class: command }
         db-access: "DBアクセス" { class: ai-effective }
         db-details {
           class: ai-effective
@@ -239,7 +278,7 @@ development {
           orm: "ORMモデル定義\n(スキーマ記述)" { class: ai-effective }
           db-migration: "DBマイグレーション" { class: command }
           sql-query: "SQLクエリ" { class: command }
-          transaction: "トランザクション管理"
+          transaction: "トランザクション管理" { class: ai-effective-week }
 
           orm -> sql-query
           orm -> db-migration
@@ -247,27 +286,37 @@ development {
       }
 
       iac: "IaC\n(Infrastructure as Code)" { class: ai-effective }
-      deployment: "本番環境デプロイ"
-      cloud-provider: "クラウドプロバイダ"
-      server-management: "サーバー管理"
-      container-orchestration: "コンテナオーケストレーション"
-      scaling: "スケーリング"
-      db-management: "DB管理"
-      backup-restore: "バックアップ/リストア"
-      db: "データベース"
+      deployment: "本番環境デプロイ" { class: command }
+      cloud-provider: "クラウドプロバイダ" { class: command }
+      server-management: "サーバー管理" { class: command }
+      container-orchestration: "コンテナオーケストレーション" { class: command }
+      scaling: "スケーリング" { class: command }
+      db-management: "DB管理" { class: command }
+      backup-restore: "バックアップ/リストア" { class: command }
+      db: "データベース" { class: command }
     
       iac -> deployment
       deployment -> cloud-provider
+      cloud-provider -> db
       cloud-provider -> server-management
       cloud-provider -> container-orchestration
+      cloud-provider -> persistence.file-storage
       server-management -> scaling
       container-orchestration -> scaling
       db -> db-management
       db-management -> backup-restore
     }
+ 
+    security-review {
+      label: "セキュリティレビュー"
+      class: ai-effective
+    }
+    backend.auth -> security-review
+    backend.api -> security-review
+    infrastructure -> security-review
     
     # バックエンド内の依存関係
-    backend.service-definition -> infrastructure.persistence
+    backend.service-definition -> infrastructure.persistence.db-access
     backend.service-definition -> backend-test
     backend-test -> ci
     ci -> deploy
@@ -276,15 +325,11 @@ development {
     infrastructure.persistence -> infrastructure.db
   }
 
-  security-review: "セキュリティレビュー"
   # 全体の依存関係
-  request-development.specification -> frontend-development.frontend.design.info_arch
-  request-development.specification -> backend-development.backend.service-definition
-  frontend-development.frontend.design.mockup -> request-development.requirement-definition
+  request-development.requirement-definition -> frontend-development.frontend.design.info_arch
+  request-development.specification -> backend-development.backend
+  frontend-development.frontend.design.prototyping -> request-development.requirement-definition
   frontend-development.api-client -> backend-development.backend
-  security-review -> backend-development.backend.auth
-  security-review -> backend-development.backend.api
-  security-review -> backend-development.infrastructure
 }
 
 ops {
@@ -373,6 +418,6 @@ ops {
 }
 
 development -> ops
-ops.feedback.dev_feedback -> development.requirement-management.tracking
-development.backend-development.backend.service-definition.log-output -> ops.logging.collection
+ops.feedback.dev_feedback -> development.request-development.request-management.tracking
+development.backend-development.backend.service-definition -> ops.logging.collection
 
