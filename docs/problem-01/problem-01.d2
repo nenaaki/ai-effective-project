@@ -1,0 +1,132 @@
+classes: {
+  command: {
+    style: {
+      fill: "#ffff88"
+    }
+  }
+  ai-effective-weak: {
+    style: {
+      fill: "#ffcccc"
+    }
+  }
+  ai-effective: {
+    style: {
+      fill: "#ff8888"
+    }
+  }
+  ai-effective-strong: {
+    style: {
+      fill: "#cc0000"
+      stroke: "#990000"
+      stroke-width: 2
+    }
+  }
+}
+
+grid-columns: 2
+development {
+  label: "開発(AI活用の観点)"
+
+  # バックエンド開発
+  backend-development {
+    label: "バックエンド開発"
+
+    dto-development {
+      label: "DTO開発"
+      class: ai-effective
+      grid-columns: 1
+      dto-design: "DTO設計" { class: ai-effective }
+      dto-implementation: "DTO実装" { class: ai-effective-strong }
+
+      dto-design -> dto-implementation
+    }
+
+    backend {
+      label: "バックエンド"
+      
+      api {
+        label: "APIエンドポイント"
+        class: ai-effective
+        endpoints: "エンドポイント\n(REST/GraphQL)" { class: ai-effective-strong }
+        validation: "入力バリデーション\n(リクエスト/レスポンス)" { class: ai-effective-strong }
+      }
+      service-definition {
+        label: "サービス"
+        grid-columns: 3
+        class: ai-effective
+        crud: "CRUD処理" { class: ai-effective-strong }
+      }
+
+      # 同階層の接続
+      api -> service-definition
+    }
+    
+    infrastructure {
+      label: "インフラ"
+
+      # 永続化グループ（DBアクセス関連）
+      persistence {
+        label: "データ永続化"
+        db-access: {
+          class: ai-effective
+          label: "DBアクセス"
+          orm: "ORMモデル定義\n(スキーマ記述)" { class: ai-effective-strong }
+          db-migration: "DBマイグレーション" { class: command }
+          sql-query: "SQLクエリ" { class: command }
+          orm -> sql-query
+          orm -> db-migration
+        }
+      }
+    }
+     
+    # バックエンド内の依存関係
+    backend.service-definition -> infrastructure.persistence.db-access
+  }
+
+  # developmentの依存関係
+  frontend-development.api-client <-> backend-development.dto-development
+  backend-development.dto-development <-> backend-development.backend.api
+
+  frontend-development.api-client -> backend-development.backend
+}
+
+asis: |md
+## 重要なロジックが記述されている箇所
+
+|
+
+asis.shape: page
+asis.style: {
+  fill: "#ffcccc"
+}
+
+tobe: |md
+## 重要なロジックが記述されている箇所
+
+|
+
+tobe.shape: page
+tobe.style: {
+  fill: "#ccffcc"
+}
+
+
+# 点線でつなぐ（吹き出しの引き出し線風）
+development.backend-development.dto-development.dto-design <-> tobe: {
+  style: {
+    stroke-dash: 3
+  }
+}
+
+"凡例": {
+  label: "凡例"
+  style: {
+    fill: "#ffffff"
+    stroke: "#000000"
+    stroke-width: 0
+  }
+  grid-rows: 4
+    command: "コマンド運用、またはバッチ処理(AIを用いない)" { class: command }
+    ai-effective: "AIに指示を数回与えることで実現できるタスク(再現性が高い)" { class: ai-effective }
+    ai-effective-strong: "AIが確実に完遂できるタスク(再現性・効果が極めて高い)" { class: ai-effective-strong }
+}
