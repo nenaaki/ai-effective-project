@@ -23,7 +23,6 @@ classes: {
   }
 }
 
-grid-columns: 2
 development {
   label: "開発(AI活用の観点)"
 
@@ -90,6 +89,19 @@ development {
   frontend-development.api-client -> backend-development.backend
 }
 
+"凡例": {
+  label: "凡例"
+  style: {
+    fill: "#ffffff"
+    stroke: "#000000"
+    stroke-width: 0
+  }
+  grid-rows: 4
+    command: "コマンド運用、またはバッチ処理(AIを用いない)" { class: command }
+    ai-effective: "AIに指示を数回与えることで実現できるタスク(再現性が高い)" { class: ai-effective }
+    ai-effective-strong: "AIが確実に完遂できるタスク(再現性・効果が極めて高い)" { class: ai-effective-strong }
+}
+
 asis: |md
 ## 多くのプロジェクトにおけるAI以前の実装スタイル
 - DTO : 手書きで設計・実装
@@ -100,6 +112,7 @@ asis: |md
 - ORMモデル定義(スキーマ記述) : 手書きで設計・実装
   - SQL生成 : ORMに任せることが多い
   - DBマイグレーション : ORMに任せることが多いが、複雑な変更は手書きで実装することも多い
+- テストコード : 手書きで設計・実装
 
 ### 問題点
 - 総じて手書きであることに端を発する問題が多い
@@ -107,6 +120,7 @@ asis: |md
   - 仕様変更時も手書きで実装するため、バグの要因となる
 - 自動生成に寄せたライブラリもあるが、機能が固定的であることが多い
   - 例えば、CRUD以外の処理を自動実装するための柔軟性がない(本当に欲しいものが作られない)
+- DBの制約を誤認したサービスの実装が可能であるため、バグの混入が起こりやすい
 |
 
 asis.shape: page
@@ -116,25 +130,26 @@ asis.style: {
 
 tobe: |md
 ## 新たな実装スタイル
-- CLAUDE.md に標準的なDTO、スキーマ、APIの作りを定義している
+- CLAUDE.md に標準的な実装指針を記載する
   - CreatedAt、UpdatedAtなどのタイムスタンプの扱いを自動化する
   - IDの型を全体的に統一する(int,GUID,UUID,ULIDなど)
-  - Create
-    - 既存データがある場合、エラーにするか、上書きするかを選択できるようにする
-    - 論理削除されている場合、Createで復活させるか否か
-  - Read
-    - 論理削除されたアイテムの表示・非表示を選択できるようにする
-    - リレーションの自動展開の有無
-    - ヒストリー保持テーブルでは最新/全件/特定日時の選択
-  - Delete
-    - カスケード削除の有無
-    - 論理削除/物理削除
-      - 論理削除の場合、削除アイテムの表示・非表示を選択できるようにする
-    - 削除フラグ or 有効フラグ
-    - ヒストリー型のテーブルでは削除はロールバックになる
-  - Update
-    - ヒストリー保持のために新たなレコードをCreateするか、既存レコードをUpdateするかを選択できるようにする
-  - 適切なIndexの自動生成
+  - テーブル単位の属性を定義する
+    - Create
+      - upsert使用の有無
+      - 論理削除されている場合、Createで復活させるか否か
+    - Read
+      - 論理削除されたアイテムの表示・非表示を選択できるようにする
+      - リレーションの自動展開の有無
+      - ヒストリー保持テーブルでは最新/全件/特定日時の選択
+    - Delete
+      - カスケード削除の有無
+      - 論理削除/物理削除
+        - 論理削除の場合、削除アイテムの表示・非表示を選択できるようにする
+      - 削除フラグ or 有効フラグ
+      - ヒストリー型のテーブルでは削除はロールバックになる
+    - Update
+      - ヒストリー保持のために新たなレコードをCreateするか、既存レコードをUpdateするかを選択できるようにする
+  - 属性に応じた適切なIndexの自動生成
 - specification.md に扱いたいデータ構造を主にJSONで記載する
   - テーブル名
   - テーブルが保持する情報と、情報の型
@@ -155,6 +170,14 @@ tobe: |md
 - ORMモデル定義(スキーマ記述) : **AIが実装**
   - SQL生成 : ORMに任せることが多い
   - DBマイグレーション : ORMに任せることが多いが、 **複雑な変更はAIに実装させる**
+- テストコード : **AIが実装**
+
+### AI駆動が解決する問題
+- 手で実装するコードが最小限になる(日本語で論理的に表現できる内容はAIに実装させる)
+  - 実装指針に一貫性があるため、各レイヤーでの処理を間違えない
+- 本当に欲しい基本サービスが最初から生成される
+  - 例えば、CRUD処理だけでなく、リレーションの自動展開やヒストリー保持なども最初から生成されるため、仕様変更時にそれらを手で実装する必要がない
+- 仕様変更時もAIに渡した定義を変更するだけであるため、実装の変更に伴うバグが減る
 
 |
 
@@ -165,21 +188,14 @@ tobe.style: {
 
 
 # 点線でつなぐ（吹き出しの引き出し線風）
-development.backend-development.dto-development.dto-design <-> tobe: {
+development.backend-development <-> asis: {
+  style: {
+    stroke-dash: 3
+  }
+}
+development.backend-development <-> tobe: {
   style: {
     stroke-dash: 3
   }
 }
 
-"凡例": {
-  label: "凡例"
-  style: {
-    fill: "#ffffff"
-    stroke: "#000000"
-    stroke-width: 0
-  }
-  grid-rows: 4
-    command: "コマンド運用、またはバッチ処理(AIを用いない)" { class: command }
-    ai-effective: "AIに指示を数回与えることで実現できるタスク(再現性が高い)" { class: ai-effective }
-    ai-effective-strong: "AIが確実に完遂できるタスク(再現性・効果が極めて高い)" { class: ai-effective-strong }
-}
