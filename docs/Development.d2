@@ -78,9 +78,9 @@ development {
         grid-columns: 3
         user-stories: "ユーザーストーリー"
         features: "機能一覧" { class: ai-effective }
-        screen-transitions: "画面遷移・ナビゲーション" { class: ai-effective }
+        screen-transitions: "画面遷移・ナビゲーション" { class: ai-effective-weak }
         ui-ux-requirements: "UI/UX要件・デザインコンセプト"
-        interaction-design: "インタラクション設計\n(状態変化・フィードバック)" { class: ai-effective }
+        interaction-design: "インタラクション設計\n(状態変化・フィードバック)" { class: ai-effective-weak }
         business-rules: "業務ルール"
         data-flow: "データフロー"
         api-requirements: "API要件" { class: ai-effective }
@@ -117,30 +117,39 @@ development {
     specification {
       label: "仕様定義"
       grid-columns: 3
-      use-cases: "ユースケース" { class: ai-effective-strong }
-      system-req: "システム要件" { class: ai-effective }
+
+      use-cases: "ユースケース" { class: ai-effective-weak }
+      screen-def: "画面詳細仕様\n(レイアウト・入力項目定義)" { class: ai-effective-weak }
+      api-contract: "APIコントラクト\n(インターフェース定義)" { class: ai-effective-weak }
+
       detailed-spec {
         label: "詳細仕様"
-        class: ai-effective
-        logging-requirements: "ログ基準"
-        logging-events: "記録対象イベント(成功/失敗/例外)"
-        logging-format: "フォーマット(CSV/JSON/構造化)"
-        logging-retention: "保持期間・アーカイブ"
+        class: ai-effective-weak
 
-        exception-handling: "例外処理"
-        business-exceptions: "ビジネス例外(バリデーション、業務ルール違反)"
-        retry-policy: "再試行・フォールバック"
-        log-alerts: "ログ連携アラート条件"
+        ui-behavior: "UI制御・フロントエンド状態遷移" { class: ai-effective-weak }
+        business-logic: "業務ロジック・ドメインルール"
 
-        logging-requirements -> logging-events
-        logging-events -> logging-format
-        logging-format -> logging-retention
-        business-exceptions -> retry-policy
-        business-exceptions -> log-alerts
+        logging {
+          label: "ログ・監視基準"
+          class: ai-effective-weak
+          events: "記録対象イベント" { class: ai-effective-weak }
+          retention: "保持期間・アーカイブ"
+        }
+
+        error-management {
+          label: "例外・エラー制御"
+          class: ai-effective-weak
+          fallback: "再試行・フォールバック" { class: ai-effective-weak }
+          messages: "メッセージ定義(ユーザー通知・多言語)" { class: ai-effective-weak }
+        }
+
+        ui-behavior -> business-logic
+        logging -> error-management
       }
-      
-      use-cases -> system-req
-      system-req -> detailed-spec
+
+      use-cases -> screen-def
+      screen-def -> api-contract
+      api-contract -> detailed-spec
     }
     
     validation {
@@ -153,9 +162,9 @@ development {
 
     request-management {
       label: "要求管理"
-      tracking: "要求追跡" { class: command }
-      prioritization: "優先順位管理" { class: command }
-      change-control: "変更管理" { class: command }
+      tracking: "要求追跡" { class: ai-effective }
+      prioritization: "優先順位管理" { class: ai-effective }
+      change-control: "変更管理" { class: ai-effective-weak }
       
       tracking -> prioritization
       prioritization -> change-control
@@ -165,43 +174,47 @@ development {
     # request-development内の接続
     requirement-collection -> requirement-definition
     requirement-definition -> specification
-    requirement-definition <-> request-management
+    request-management -> requirement-definition
+    requirement-collection -> request-management
+    requirement-collection <- request-management
     specification -> validation
   }
 
   frontend-development {
     label: "フロントエンド開発"
+    design {
+      label: "デザイン"
+      info_arch {
+        label: "情報アーキテクチャ"
+        class: ai-effective-weak
+        "サイト構造設計" { class: ai-effective-weak }
+        "ナビゲーション設計" { class: ai-effective-weak }
+        "コンテンツ整理"
+      }
+      prototyping: { 
+        label: "プロトタイピング"
+        class: ai-effective
+        "ワイヤーフレーム" { class: ai-effective }
+        mockup {
+          label: "モック作成"
+          class: ai-effective
+          "静的モック" { class: ai-effective }
+          "インタラクティブモック" { class: ai-effective }
+        }
+      }
+      style-guide: "スタイルガイド" { class: ai-effective }
+
+      # design内の接続
+      info_arch -> prototyping
+      prototyping -> style-guide
+      style-guide -> "ユーザビリティテスト"
+    }
+
     frontend {
       label: "フロントエンド"
-      design {
-          label: "デザイン"
-          info_arch {
-            label: "情報アーキテクチャ"
-            class: ai-effective
-            "サイト構造設計"
-            "ナビゲーション設計"
-            "コンテンツ整理"
-          }
-          prototyping: { 
-            label: "プロトタイピング"
-            class: ai-effective
-            "ワイヤーフレーム"
-            mockup {
-              label: "モック作成"
-              class: ai-effective-weak
-              "静的モック" { class: ai-effective }
-              "インタラクティブモック" { class: ai-effective }
-            }
-          }
-          style-guide: "スタイルガイド" { class: ai-effective }
-
-          # design内の接続
-          info_arch -> prototyping
-          prototyping -> style-guide
-          style-guide -> "ユーザビリティテスト"
-      }
       ui-components {
         label: "UIコンポーネント"
+        class: ai-effective-weak
         grid-columns: 3
         atoms: "Atoms\n(ボタン、入力フィールドなど)" { class: ai-effective }
         molecules: "Molecules\n(検索フォーム、カードなど)" { class: ai-effective }
@@ -219,43 +232,63 @@ development {
         label: "状態管理"
         class: ai-effective-weak
         grid-columns: 3
-        "ローカル状態管理" { class: ai-effective-weak }
-        "グローバル状態管理" { class: ai-effective-weak }
+        local-state: "ローカル状態管理" { class: ai-effective-weak }
+        global-state: "グローバル状態管理" { class: ai-effective-weak }
         server-state: "サーバー状態管理" { class: ai-effective-weak }
       }
       routing {
         label: "ルーティング"
+        grid-columns: 1
         class: ai-effective-weak
         "ルート定義" { class: ai-effective-weak }
       }
+      ui-test: {
+        label: "UIテスト"
+        class: ai-effective-weak
+        grid-columns: 3
+        "Playwright自動テスト" { class: ai-effective-weak }
+        "コンポーネントテスト" { class: ai-effective-weak }
+        "スナップショットテスト" { class: ai-effective-weak }
+      }
 
       # 同階層の接続
-      design -> ui-components
       ui-components -> state-management
       state-management -> routing
     }
+
     api-client {
       label: "APIクライアント"
       grid-columns: 3
-      class: ai-effective
+      class: ai-effective-weak
       "RESTクライアント" { class: ai-effective }
       "GraphQLクライアント" { class: ai-effective }
       "WebSocketクライアント" { class: ai-effective }
+      "API通信のエラーハンドリング" { class: ai-effective }
+      "API通信のリトライ・フォールバック" { class: ai-effective-weak }
+      "ロギング/モニタリング" { class: ai-effective-weak }
     }
 
-    "フロントエンドテスト" { class: ai-effective }
-    "E2Eテスト" { class: ai-effective }
-    "CI/CD" { class: ai-effective }
-    "フロントエンドビルド" { class: command }
-    "開発環境（フロントエンド）デプロイ" { class: command }
+    testing: {
+      label: "テスト"
+      class: ai-effective-weak
+      grid-columns: 4
+      "単体テスト" { class: ai-effective }
+      "ユーザーフローのE2Eテスト" { class: ai-effective-weak }
+      "API連携のE2Eテスト" { class: ai-effective-weak }
+      "クロスブラウザテスト" { class: ai-effective-weak }
+    }
+    cicd: "CI/CD" { class: ai-effective-weak }
+    frontend-build: "フロントエンドビルド" { class: command }
+    frontend-deploy: "開発環境（フロントエンド）デプロイ" { class: command }
 
     # フロントエンド内の依存関係
+    design -> frontend
     frontend.ui-components -> api-client
-    frontend -> "フロントエンドテスト"
-    api-client -> "E2Eテスト"
-    "フロントエンドテスト" -> "CI/CD"
-    "CI/CD" -> "フロントエンドビルド"
-    "CI/CD" -> "開発環境（フロントエンド）デプロイ"
+    frontend -> cicd
+    api-client -> testing
+    cicd -> frontend-build
+    frontend-build -> testing
+    testing -> frontend-deploy
   }
 
   # バックエンド開発
@@ -276,12 +309,12 @@ development {
       
       auth {
         label: "認証/認可"
-        class: ai-effective
+        class: ai-effective-weak
         grid-columns: 2
         "ユーザ管理" { class: ai-effective }
-        "セッション管理" { class: ai-effective }
+        "セッション管理\n(REST-APIでは不要)" { class: ai-effective }
         "権限管理" { class: ai-effective }
-        "OAuth実装" { class: ai-effective }
+        "OAuth実装" { class: ai-effective-weak }
       }
       api {
         label: "APIエンドポイント"
@@ -300,19 +333,24 @@ development {
         "基盤クラス作成" { class: ai-effective-weak }
         log-output: "ログ出力" { class: ai-effective }
       }
-      "単体テスト" { class: ai-effective }
 
       # 同階層の接続
       auth -> api
       api -> service-definition
-      service-definition -> "単体テスト"
       api.endpoints -> api.validation
     }
     
-    backend-test: "バックエンドテスト" { class: ai-effective }
-    ci: "CI/CD" { class: ai-effective }
-    deploy: "開発環境（バックエンド）デプロイ" { class: command }
-    "バックエンドビルド" { class: command }
+    testing {
+      label: "テスト"
+      class: ai-effective
+      grid-columns: 3
+      unit: "単体テスト" { class: ai-effective }
+      integration: "結合テスト" { class: ai-effective-weak }
+      contract: "契約テスト" { class: ai-effective-weak }
+    }
+    cicd: "CI/CD" { class: ai-effective-weak }
+    backend-deploy: "開発環境（バックエンド）デプロイ" { class: command }
+    backend-build: "バックエンドビルド" { class: command }
 
     infrastructure {
       label: "インフラ"
@@ -321,10 +359,9 @@ development {
       persistence {
         label: "データ永続化"
         file-storage: "ファイルストレージ" { class: command }
-        db-access: "DBアクセス" { class: ai-effective }
-        db-details {
+        db-access: {
           class: ai-effective
-          label: "DBアクセス詳細"
+          label: "DBアクセス"
           orm: "ORMモデル定義\n(スキーマ記述)" { class: ai-effective }
           db-migration: "DBマイグレーション" { class: command }
           sql-query: "SQLクエリ" { class: ai-effective }
@@ -368,9 +405,10 @@ development {
     # バックエンド内の依存関係
     backend.service-definition -> infrastructure.persistence.db-access
     backend.service-definition -> backend-test
-    backend-test -> ci
-    ci -> deploy
-    ci -> "バックエンドビルド"
+    backend-test -> cicd
+    backend-build -> testing
+    cicd -> backend-build
+    testing -> backend-deploy
     infrastructure.persistence.db-access -> infrastructure.persistence.db-details
     infrastructure.persistence -> infrastructure.db
   }
@@ -378,10 +416,10 @@ development {
   # developmentの依存関係
   frontend-development.api-client <-> backend-development.dto-development
   backend-development.dto-development <-> backend-development.backend.api
+  request-development -> frontend-development
+  request-development -> backend-development
 
-  request-development.requirement-definition -> frontend-development.frontend.design.info_arch
-  request-development.specification -> backend-development.backend
-  frontend-development.frontend.design.prototyping -> request-development.requirement-definition
+  frontend-development.design.prototyping -> request-development.requirement-definition
   frontend-development.api-client -> backend-development.backend
 }
 
@@ -474,6 +512,19 @@ ops {
   logging.analysis -> feedback.user_stats
 }
 
+"凡例": {
+  label: "凡例"
+  style: {
+    fill: "#ffffff"
+    stroke: "#000000"
+    stroke-width: 0
+  }
+  grid-rows: 4
+    command: "コマンド運用、またはバッチ処理(AIを用いない)" { class: command }
+    ai-effective-weak: "AIに尋ねながら手作業するタスク(AI化するのは危険、または再現性が低い)" { class: ai-effective-weak }
+    ai-effective: "AIに指示を数回与えることで実現できるタスク(再現性が高い)" { class: ai-effective }
+    ai-effective-strong: "AIが確実に完遂できるタスク(再現性・効果が極めて高い)" { class: ai-effective-strong }
+}
 # development -> ops
 # ops.feedback.dev_feedback -> development.request-development.request-management.tracking
 # development.backend-development.backend.service-definition -> ops.logging.collection
