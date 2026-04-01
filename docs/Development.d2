@@ -45,21 +45,83 @@ development {
     requirement-collection {
       label: "要求収集"
       grid-columns: 3
-      stakeholder: "ステークホルダー分析" { class: ai-effective }
-      interviews: "要件ヒアリング"
-      surveys: "アンケート調査" { class: ai-effective }
+      stakeholder-analysis {
+        label: "ステークホルダー分析"
+        identification: "ステークホルダー識別"
+        prioritization: "優先順位付け"
+        communication: "コミュニケーション計画"
+        
+        identification -> prioritization
+        prioritization -> communication
+      }
+      interviews {
+        label: "要件ヒアリング"
+        user-interviews: "ユーザーインタビュー"
+        expert-interviews: "専門家インタビュー"
+        workshops: "ワークショップ"
+        
+        user-interviews -> expert-interviews
+        expert-interviews -> workshops
+      }
+      surveys {
+        label: "アンケート調査"
+        online-surveys: "オンラインアンケート"
+        feedback-collection: "フィードバック収集"
+        analysis: "アンケート分析" { class: ai-effective-strong }
+        
+        online-surveys -> feedback-collection
+        feedback-collection -> analysis
+      }
+      document-review: "ドキュメントレビュー"
+      observation: "観察・フィールドスタディ"
       
-      stakeholder -> interviews
+      stakeholder-analysis -> interviews
       interviews -> surveys
+      surveys -> document-review
+      document-review -> observation
     }
     
     requirement-definition {
       label: "要件定義"
-      class: ai-effective
       grid-columns: 3
-      functional: "機能要件" { class: ai-effective }
-      non-functional: "非機能要件" { class: ai-effective }
-      prioritization: "優先順位付け" { class: ai-effective }
+      functional {
+        label: "機能要件"
+        user-stories: "ユーザーストーリー" { class: ai-effective }
+        features: "機能一覧" { class: ai-effective }
+        business-rules: "業務ルール" { class: ai-effective }
+        data-flow: "データフロー" { class: ai-effective }
+        api-requirements: "API要件" { class: ai-effective }
+        validation: "入力・出力検証"
+        error-handling: "エラー処理"
+        reporting: "レポート機能"
+
+        user-stories -> features
+        features -> business-rules
+        business-rules -> validation
+        validation -> error-handling
+        error-handling -> reporting
+        reporting -> api-requirements
+      }
+      non-functional {
+        label: "非機能要件"
+        performance: "性能要件"
+        security: "セキュリティ要件"
+        usability: "ユーザビリティ"
+        scalability: "スケーラビリティ"
+        
+        performance -> security
+        security -> usability
+        usability -> scalability
+      }
+      prioritization {
+        label: "優先順位付け"
+        moscow: "MoSCoW法"
+        criteria: "評価基準"
+        ranking: "ランキング"
+        
+        moscow -> criteria
+        criteria -> ranking
+      }
       
       functional -> non-functional
       non-functional -> prioritization
