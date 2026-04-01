@@ -23,22 +23,11 @@ classes: {
   }
 }
 
-customer: {
-  shape: person
-  label: "顧客"
-}
-
-user: {
-  shape: person
-  label: "ユーザー"
-}
-
-operator: {
-  shape: person
-  label: "運用担当者"
-}
-
+grid-columns: 2
 development {
+  label: "開発"
+  grid-columns: 2
+
   request-development {
     label: "要求開発"
     
@@ -86,21 +75,19 @@ development {
       grid-columns: 3
       functional {
         label: "機能要件"
-        user-stories: "ユーザーストーリー" { class: ai-effective }
+        grid-columns: 3
+        user-stories: "ユーザーストーリー"
         features: "機能一覧" { class: ai-effective }
-        business-rules: "業務ルール" { class: ai-effective }
-        data-flow: "データフロー" { class: ai-effective }
+        screen-transitions: "画面遷移・ナビゲーション" { class: ai-effective }
+        ui-ux-requirements: "UI/UX要件・デザインコンセプト"
+        interaction-design: "インタラクション設計\n(状態変化・フィードバック)" { class: ai-effective }
+        business-rules: "業務ルール"
+        data-flow: "データフロー"
         api-requirements: "API要件" { class: ai-effective }
         validation: "入力・出力検証"
         error-handling: "エラー処理"
         reporting: "レポート機能"
-
-        user-stories -> features
-        features -> business-rules
-        business-rules -> validation
-        validation -> error-handling
-        error-handling -> reporting
-        reporting -> api-requirements
+        accessibility: "アクセシビリティ要件"
       }
       non-functional {
         label: "非機能要件"
@@ -181,17 +168,6 @@ development {
     requirement-definition <-> request-management
     specification -> validation
   }
-
-  dto-development {
-    label: "DTO開発"
-    class: ai-effective
-    dto-design: "DTO設計" { class: ai-effective }
-    dto-implementation: "DTO実装" { class: ai-effective-strong }
-
-    dto-design -> dto-implementation
-  }
-  frontend-development.api-client -> dto-development
-  backend-development.backend.api -> dto-development
 
   frontend-development {
     label: "フロントエンド開発"
@@ -285,7 +261,16 @@ development {
   # バックエンド開発
   backend-development {
     label: "バックエンド開発"
-    
+
+    dto-development {
+      label: "DTO開発"
+      class: ai-effective
+      dto-design: "DTO設計" { class: ai-effective }
+      dto-implementation: "DTO実装" { class: ai-effective-strong }
+
+      dto-design -> dto-implementation
+    }
+
     backend {
       label: "バックエンド"
       
@@ -390,7 +375,10 @@ development {
     infrastructure.persistence -> infrastructure.db
   }
 
-  # 全体の依存関係
+  # developmentの依存関係
+  frontend-development.api-client <-> backend-development.dto-development
+  backend-development.dto-development <-> backend-development.backend.api
+
   request-development.requirement-definition -> frontend-development.frontend.design.info_arch
   request-development.specification -> backend-development.backend
   frontend-development.frontend.design.prototyping -> request-development.requirement-definition
@@ -486,7 +474,6 @@ ops {
   logging.analysis -> feedback.user_stats
 }
 
-development -> ops
-ops.feedback.dev_feedback -> development.request-development.request-management.tracking
-development.backend-development.backend.service-definition -> ops.logging.collection
-
+# development -> ops
+# ops.feedback.dev_feedback -> development.request-development.request-management.tracking
+# development.backend-development.backend.service-definition -> ops.logging.collection
