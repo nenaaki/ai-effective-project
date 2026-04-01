@@ -4,7 +4,7 @@ classes: {
       fill: "#ffff88"
     }
   }
-  ai-effective-week: {
+  ai-effective-weak: {
     style: {
       fill: "#ffcccc"
     }
@@ -45,9 +45,9 @@ development {
     requirement-collection {
       label: "要求収集"
       grid-columns: 3
-      stakeholder: "ステークホルダー分析"
+      stakeholder: "ステークホルダー分析" { class: ai-effective }
       interviews: "要件ヒアリング"
-      surveys: "アンケート調査"
+      surveys: "アンケート調査" { class: ai-effective }
       
       stakeholder -> interviews
       interviews -> surveys
@@ -55,10 +55,11 @@ development {
     
     requirement-definition {
       label: "要件定義"
+      class: ai-effective
       grid-columns: 3
-      functional: "機能要件"
-      non-functional: "非機能要件"
-      prioritization: "優先順位付け"
+      functional: "機能要件" { class: ai-effective }
+      non-functional: "非機能要件" { class: ai-effective }
+      prioritization: "優先順位付け" { class: ai-effective }
       
       functional -> non-functional
       non-functional -> prioritization
@@ -67,10 +68,11 @@ development {
     specification {
       label: "仕様定義"
       grid-columns: 3
-      use-cases: "ユースケース"
-      system-req: "システム要件"
+      use-cases: "ユースケース" { class: ai-effective-strong }
+      system-req: "システム要件" { class: ai-effective }
       detailed-spec {
         label: "詳細仕様"
+        class: ai-effective
         logging-requirements: "ログ基準"
         logging-events: "記録対象イベント(成功/失敗/例外)"
         logging-format: "フォーマット(CSV/JSON/構造化)"
@@ -94,7 +96,7 @@ development {
     
     validation {
       label: "検証"
-      review: "要件レビュー"
+      review: "要件レビュー" { class: ai-effective }
       approval: "合意形成"
       
       review -> approval
@@ -102,9 +104,9 @@ development {
 
     request-management {
       label: "要求管理"
-      tracking: "要求追跡"
-      prioritization: "優先順位管理"
-      change-control: "変更管理"
+      tracking: "要求追跡" { class: command }
+      prioritization: "優先順位管理" { class: command }
+      change-control: "変更管理" { class: command }
       
       tracking -> prioritization
       prioritization -> change-control
@@ -137,6 +139,7 @@ development {
           label: "デザイン"
           info_arch {
             label: "情報アーキテクチャ"
+            class: ai-effective
             "サイト構造設計"
             "ナビゲーション設計"
             "コンテンツ整理"
@@ -147,12 +150,12 @@ development {
             "ワイヤーフレーム"
             mockup {
               label: "モック作成"
-              class: ai-effective-week
+              class: ai-effective-weak
               "静的モック" { class: ai-effective }
               "インタラクティブモック" { class: ai-effective }
             }
           }
-          style-guide: "スタイルガイド"
+          style-guide: "スタイルガイド" { class: ai-effective }
 
           # design内の接続
           info_arch -> prototyping
@@ -176,17 +179,16 @@ development {
       }
       state-management {
         label: "状態管理"
-        "ローカル状態管理"
-        "グローバル状態管理"
-        "サーバー状態管理"
-
-        # state-management内の接続
-        "ローカル状態管理" -> "グローバル状態管理"
-        "ローカル状態管理" -> "サーバー状態管理"
-        "グローバル状態管理" -> "サーバー状態管理"
+        class: ai-effective-weak
+        grid-columns: 3
+        "ローカル状態管理" { class: ai-effective-weak }
+        "グローバル状態管理" { class: ai-effective-weak }
+        server-state: "サーバー状態管理" { class: ai-effective-weak }
       }
       routing {
         label: "ルーティング"
+        class: ai-effective-weak
+        "ルート定義" { class: ai-effective-weak }
       }
 
       # 同階層の接続
@@ -197,6 +199,7 @@ development {
     api-client {
       label: "APIクライアント"
       grid-columns: 3
+      class: ai-effective
       "RESTクライアント" { class: ai-effective }
       "GraphQLクライアント" { class: ai-effective }
       "WebSocketクライアント" { class: ai-effective }
@@ -247,7 +250,7 @@ development {
         "ビジネスルール" { class: ai-effective }
         "計算ロジック" { class: ai-effective }
         "ワークフロー管理" { class: ai-effective }
-        "基盤クラス作成" { class: ai-effective-week }
+        "基盤クラス作成" { class: ai-effective-weak }
         log-output: "ログ出力" { class: ai-effective }
       }
       "単体テスト" { class: ai-effective }
@@ -277,8 +280,8 @@ development {
           label: "DBアクセス詳細"
           orm: "ORMモデル定義\n(スキーマ記述)" { class: ai-effective }
           db-migration: "DBマイグレーション" { class: command }
-          sql-query: "SQLクエリ" { class: command }
-          transaction: "トランザクション管理" { class: ai-effective-week }
+          sql-query: "SQLクエリ" { class: ai-effective }
+          transaction: "トランザクション管理" { class: ai-effective-weak }
 
           orm -> sql-query
           orm -> db-migration
@@ -337,6 +340,7 @@ ops {
   
   monitoring {
     label: "監視"
+    class: command
     system: "システム監視"
     application: "アプリケーションモニタリング"
     performance: "パフォーマンス監視" { class: ai-effective }
@@ -347,9 +351,9 @@ ops {
   
   logging {
     label: "ログ管理"
-    collection: "ログ収集" { class: ai-effective }
+    collection: "ログ収集" { class: command }
     analysis: "ログ分析" { class: ai-effective }
-    storage: "ログ保管"
+    storage: "ログ保管" { class: command }
     
     collection -> analysis
     analysis -> storage
@@ -357,9 +361,9 @@ ops {
   
   incident {
     label: "障害対応"
-    management: "インシデント管理"
-    recovery: "復旧手順"
-    postmortem: "ポストモーテム"
+    management: "インシデント管理" { class: command }
+    recovery: "復旧手順" { class: ai-effective }
+    postmortem: "ポストモーテム" { class: ai-effective }
     
     management -> recovery
     recovery -> postmortem
@@ -367,15 +371,16 @@ ops {
   
   backup {
     label: "バックアップ"
+    class: command
     data: "データバックアップ"
-    test: "リストアテスト"
+    test: "リストアテスト" { class: ai-effective }
     
     data -> test
   }
   
   security {
     label: "セキュリティ運用"
-    patches: "パッチ管理"
+    patches: "パッチ管理" { class: command }
     scans: "脆弱性スキャン" { class: ai-effective }
     
     scans -> patches
@@ -383,23 +388,25 @@ ops {
   
   scaling {
     label: "スケーリング"
+    class: command
     auto: "自動スケーリング"
-    planning: "容量計画"
+    planning: "容量計画" { class: ai-effective }
     
     auto -> planning
   }
   
   maintenance {
     label: "メンテナンス"
+    class: command
     regular: "定期メンテナンス"
-    updates: "アップデート"
+    updates: "アップデート" { class: ai-effective }
     
     regular -> updates
   }
   
   feedback {
     label: "ユーザー統計 & フィードバック"
-    user_stats: "ユーザー使用統計収集" { class: ai-effective }
+    user_stats: "ユーザー使用統計収集" { class: command }
     analysis: "統計分析" { class: ai-effective }
     dev_feedback: "開発フィードバック"
     
