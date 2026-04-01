@@ -362,9 +362,9 @@ development {
         db-access: {
           class: ai-effective
           label: "DBアクセス"
-          orm: "ORMモデル定義\n(スキーマ記述)" { class: ai-effective }
+          orm: "ORMモデル定義\n(スキーマ記述)" { class: ai-effective-strong }
           db-migration: "DBマイグレーション" { class: command }
-          sql-query: "SQLクエリ" { class: ai-effective }
+          sql-query: "SQLクエリ" { class: command }
           transaction: "トランザクション管理" { class: ai-effective-weak }
 
           orm -> sql-query
