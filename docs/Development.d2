@@ -404,8 +404,7 @@ development {
     
     # バックエンド内の依存関係
     backend.service-definition -> infrastructure.persistence.db-access
-    backend.service-definition -> backend-test
-    backend-test -> cicd
+    backend.service-definition -> cicd
     backend-build -> testing
     cicd -> backend-build
     testing -> backend-deploy
