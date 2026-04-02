@@ -36,8 +36,8 @@ development {
       grid-columns: 3
       stakeholder-analysis {
         label: "ステークホルダー分析"
-        identification: "ステークホルダー識別"
-        prioritization: "優先順位付け"
+        identification: "ステークホルダーの特定"
+        prioritization: "優先順位の決定"
         communication: "コミュニケーション計画"
         
         identification -> prioritization
@@ -56,7 +56,7 @@ development {
         label: "アンケート調査"
         online-surveys: "オンラインアンケート"
         feedback-collection: "フィードバック収集"
-        analysis: "アンケート分析" { class: ai-effective-strong }
+        analysis: "アンケート結果の分析" { class: ai-effective-strong }
         
         online-surveys -> feedback-collection
         feedback-collection -> analysis
@@ -101,7 +101,7 @@ development {
         usability -> scalability
       }
       prioritization {
-        label: "優先順位付け"
+        label: "優先順位の決定"
         moscow: "MoSCoW法"
         criteria: "評価基準"
         ranking: "ランキング"
@@ -132,7 +132,7 @@ development {
         logging {
           label: "ログ・監視基準"
           class: ai-effective-weak
-          events: "記録対象イベント" { class: ai-effective-weak }
+          events: "イベントの記録" { class: ai-effective-weak }
           retention: "保持期間・アーカイブ"
         }
 
@@ -140,7 +140,7 @@ development {
           label: "例外・エラー制御"
           class: ai-effective-weak
           fallback: "再試行・フォールバック" { class: ai-effective-weak }
-          messages: "メッセージ定義(ユーザー通知・多言語)" { class: ai-effective-weak }
+          messages: "メッセージの定義(ユーザー通知・多言語)" { class: ai-effective-weak }
         }
 
         ui-behavior -> business-logic
@@ -154,7 +154,7 @@ development {
     
     validation {
       label: "検証"
-      review: "要件レビュー" { class: ai-effective }
+      review: "要件のレビュー" { class: ai-effective }
       approval: "合意形成"
       
       review -> approval
@@ -162,9 +162,9 @@ development {
 
     request-management {
       label: "要求管理"
-      tracking: "要求追跡" { class: ai-effective }
-      prioritization: "優先順位管理" { class: ai-effective }
-      change-control: "変更管理" { class: ai-effective-weak }
+      tracking: "要求の追跡" { class: ai-effective }
+      prioritization: "優先順位の管理" { class: ai-effective }
+      change-control: "変更の管理" { class: ai-effective-weak }
       
       tracking -> prioritization
       prioritization -> change-control
@@ -232,9 +232,9 @@ development {
         label: "状態管理"
         class: ai-effective-weak
         grid-columns: 3
-        local-state: "ローカル状態管理" { class: ai-effective-weak }
-        global-state: "グローバル状態管理" { class: ai-effective-weak }
-        server-state: "サーバー状態管理" { class: ai-effective-weak }
+        local-state: "ローカル状態の管理" { class: ai-effective-weak }
+        global-state: "グローバル状態の管理" { class: ai-effective-weak }
+        server-state: "サーバー状態の管理" { class: ai-effective-weak }
       }
       routing {
         label: "ルーティング"

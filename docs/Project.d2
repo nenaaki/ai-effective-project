@@ -37,8 +37,8 @@ DevelopmentMatrix: {
     label: "管理/プロセス(PM/Scrum)"
     m1: "ロードマップ/KPI" {
       grid-columns: 1
-      goal: "ビジネスゴール"
-      kpi: "成功指標定義"
+      goal: "ビジネスゴールの設定"
+      kpi: "成功指標の定義"
     }
     m2: "スプリント計画" {
       grid-columns: 1
@@ -65,17 +65,17 @@ DevelopmentMatrix: {
     label: "フロントエンド(User/UI)"
     f1: "UX/ビジネス要件" {
       grid-columns: 1
-      persona: "ペルソナ/行動"
-      items: "表示項目定義"
-      mock: "モック作成/仕様合意形成" {class: critical-highlight}
-      wireframe: "ワイヤーフレーム作成"
+      persona: "ペルソナ/行動の定義"
+      items: "表示項目の定義"
+      mock: "モックの作成/仕様の合意形成" {class: critical-highlight}
+      wireframe: "ワイヤーフレームの作成"
     }
     f2: "UI設計" {
       grid-columns: 1
       comp: "デザインカンプ"
       store: "状態管理(Store)設計"
-      api_types: "API型定義\n(TypeScript Interfaces)" {class: critical-highlight}
-      prototype: "プロトタイプ作成" {class: critical-highlight}
+      api_types: "API型の定義\n(TypeScript Interfaces)" {class: critical-highlight}
+      prototype: "プロトタイプの作成" {class: critical-highlight}
       comp -> api_types
       wireframe -> prototype
     }
@@ -110,8 +110,8 @@ DevelopmentMatrix: {
     label: "セキュリティ(DevSecOps)"
     s1: "セキュリティ要件" {
       grid-columns: 1
-      threat: "脅威モデリング"
-      comp: "コンプライアンス定義"
+      threat: "脅威のモデリング"
+      comp: "コンプライアンスの定義"
     }
     s2: "防御設計" {
       grid-columns: 1
@@ -121,7 +121,7 @@ DevelopmentMatrix: {
     s3: "脆弱性診断(静的)" {
       grid-columns: 1
       sast: "SAST/依存関係スキャン" {class: critical-highlight}
-      secret: "シークレット検知"
+      secret: "シークレットの検知"
     }
     s4: "動的診断/防御" {
       grid-columns: 1
