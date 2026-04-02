@@ -1,0 +1,184 @@
+classes: {
+  command: {
+    style: {
+      fill: "#ffff88"
+    }
+  }
+  ai-effective-weak: {
+    style: {
+      fill: "#ffcccc"
+    }
+  }
+  ai-effective: {
+    style: {
+      fill: "#ff8888"
+    }
+  }
+  ai-effective-strong: {
+    style: {
+      fill: "#cc0000"
+      stroke: "#990000"
+      stroke-width: 2
+    }
+  }
+}
+
+development {
+  label: "開発"
+  frontend-development {
+    label: "フロントエンド開発"
+
+    ui-components {
+      label: "UIコンポーネント"
+      class: ai-effective-weak
+      pages: "Pages\n(実際のページ)" { class: ai-effective }
+
+    }
+    api-client {
+      label: "APIクライアント"
+      grid-columns: 3
+      class: ai-effective-weak
+      "RESTクライアント" { class: ai-effective }
+      "GraphQLクライアント" { class: ai-effective }
+      "WebSocketクライアント" { class: ai-effective }
+      "API通信のエラーハンドリング" { class: ai-effective }
+      "API通信のリトライ・フォールバック" { class: ai-effective-weak }
+      "ロギング/モニタリング" { class: ai-effective-weak }
+    }
+
+    ui-components <-> api-client: "サーバー側の呼び出し" 
+    ui-components <-> api-client: "ブラウザ側の呼び出し" 
+  }
+
+  # バックエンド開発
+  backend-development {
+    label: "バックエンド開発"
+
+    dto-development {
+      label: "DTO開発"
+      class: ai-effective
+      grid-columns: 1
+      dto-design: "DTO設計" { class: ai-effective }
+      dto-implementation: "DTO実装" { class: ai-effective-strong }
+
+      dto-design -> dto-implementation
+    }
+
+    backend {
+      label: "バックエンド"
+      
+      api {
+        label: "APIエンドポイント"
+        class: ai-effective
+        endpoints: "エンドポイント\n(REST/GraphQL)" { class: ai-effective-strong }
+        validation: "入力バリデーション\n(リクエスト/レスポンス)" { class: ai-effective-strong }
+      }
+      service-definition {
+        label: "サービス"
+        class: ai-effective
+      }
+    }
+  }
+
+  # developmentの依存関係
+  frontend-development.api-client <-> backend-development.dto-development
+  backend-development.dto-development <-> backend-development.backend.api
+
+  frontend-development.api-client -> backend-development.backend
+}
+
+"凡例": {
+  label: "凡例"
+  style: {
+    fill: "#ffffff"
+    stroke: "#000000"
+    stroke-width: 0
+  }
+  grid-rows: 4
+    command: "コマンド運用、またはバッチ処理(AIを用いない)" { class: command }
+    ai-effective-weak: "AIに尋ねながら手作業するタスク(AI化するのは危険、または再現性が低い)" { class: ai-effective-weak }
+    ai-effective: "AIに指示を数回与えることで実現できるタスク(再現性が高い)" { class: ai-effective }
+    ai-effective-strong: "AIが確実に完遂できるタスク(再現性・効果が極めて高い)" { class: ai-effective-strong }
+}
+
+asis: |md
+## 多くのプロジェクトにおけるAI以前の実装スタイル
+- DTO : バックエンドのDTOを共有、言語が異なる場合手書きで実装
+- APIクライアント : 手書きで設計・実装
+- ブラウザ側の呼び出しへの防御 : 手書きで設計・実装(セキュリティ診断対象)
+- 出力バリデーション : バックエンドの入力バリデーションを共有、言語が異なる場合手書きで設計・実装
+- リトライ・フォールバック : 手書きで設計・実装
+- APIエラーハンドリング : 手書きで設計・実装
+- ロギング・モニタリング : 手書きで設計・実装(共通化)
+- テストコード : 手書きで設計・実装
+
+### 問題点
+- 総じて手書きであることに端を発する問題が多い
+  - 工数が大きい
+  - バグの要因となりうる
+  - バックエンドとフロントエンドの言語が異なる場合の実装負荷が大きい
+|
+
+asis.shape: page
+asis.style: {
+  fill: "#ffcccc"
+}
+
+tobe: |md
+## 新たな実装スタイル
+- CLAUDE.md に標準的な実装指針を記載する( **全プロジェクト共通** )
+- specification.* に指示を記述する
+  - サービスのリゾルバの所在
+  - DTOの所在
+  - バックエンドとフロントエンドの実装言語
+  - エラーに対する共通の処理
+  - 認証認可に関する情報(cookieやtokenの扱い方)
+
+## AIが適切に実装できるタスク
+- DTO : バックエンドのDTOを共有している場合は何もしない。 **言語が異なる場合AIが実装**
+- APIクライアント : **AIが実装**
+- ブラウザ側の呼び出しへの防御 : **AIが実装** (セキュリティ診断対象)
+- 出力バリデーション : 言語が同じ場合バックエンドの入力バリデーションを共有しているので何もしない。**言語が異なる場合AIが設計・実装**
+- リトライ/フォールバック : **AIが実装**
+- APIエラーハンドリング : **AIが実装**
+- ロギング・モニタリング : **AIが実装**
+- テストコード : **AIが実装**
+- 仕様書・コメントの出力 : **AIが記述**
+
+### AI駆動が解決する問題
+- 大半をAIが出力するので、工数を大幅に削減する
+- 人力で実装するコードが最小限になるため、バグの混入原因の多くを回避できる -> 品質の向上・安定
+- 仕様変更時・追加時もspecification.*を変更してからAIに更新をだけであるため、上記のメリットを何度でも受けることができる
+|
+
+tobe.shape: page
+tobe.style: {
+  fill: "#ccffcc"
+}
+
+claude-md: |md
+### CLAUDE.mdに記載する内容の要点
+- バックエンドが公開しているすべてのAPIにアクセスできるAPIクライアントを作る
+- ブラウザ側の呼び出しAPIのみ外部経路を作ること
+  - サーバー内のみで使用しているAPIクライアントはブラウザから直接呼び出せない
+- cookieをJWT Bearerに置き換えること
+|
+
+claude-md.shape: page
+claude-md.style: {
+  fill: "#ccffcc"
+}
+
+
+# 点線でつなぐ（吹き出しの引き出し線風）
+development <-> asis: {
+  style: {
+    stroke-dash: 3
+  }
+}
+development <-> tobe: {
+  style: {
+    stroke-dash: 3
+  }
+}
+tobe -> claude-md
