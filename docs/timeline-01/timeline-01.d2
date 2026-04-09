@@ -346,90 +346,38 @@ design.api -> implementation.frontend.api-client
   }
 }
 ops {
+  direction: right
   label: "運用/保守"
   
   monitoring {
     label: "監視"
-    class: command
-    system: "システム監視"
-    application: "アプリケーションモニタリング"
-    performance: "パフォーマンス監視" { class: ai-effective-weak }
-    
-    system -> application
-    application -> performance
   }
   
   logging {
     label: "ログ管理"
-    collection: "ログ収集" { class: command }
-    analysis: "ログ分析" { class: ai-effective }
-    storage: "ログ保管" { class: command }
-    
-    collection -> analysis
-    analysis -> storage
   }
   
   incident {
     label: "障害対応"
-    management: "インシデント管理" { class: command }
-    recovery: "復旧手順" { class: ai-effective-weak }
-    postmortem: "ポストモーテム" { class: ai-effective-weak }
-    
-    management -> recovery
-    recovery -> postmortem
   }
   
   backup {
     label: "バックアップ"
-    class: command
-    data: "データバックアップ"
-    test: "リストアテスト"
-    
-    data -> test
   }
   
   security {
     label: "セキュリティ運用"
-    patches: "パッチ管理" { class: command }
-    scans: "脆弱性スキャン" { class: ai-effective-weak }
-    
-    scans -> patches
   }
   
   scaling {
     label: "スケーリング"
-    class: command
-    auto: "自動スケーリング"
-    planning: "容量計画" { class: ai-effective-weak }
-    
-    auto -> planning
   }
   
   maintenance {
     label: "メンテナンス"
-    class: command
-    regular: "定期メンテナンス"
-    updates: "アップデート"
-    
-    regular -> updates
   }
   
   feedback {
     label: "ユーザー統計 & フィードバック"
-    user_stats: "ユーザー使用統計収集" { class: command }
-    analysis: "統計分析" { class: ai-effective-weak }
-    dev_feedback: "開発フィードバック"
-    
-    user_stats -> analysis
-    analysis -> dev_feedback
   }
-  
-  # ops内の依存関係
-  monitoring -> incident.management
-  logging -> monitoring.system
-  backup -> incident.recovery
-  security -> maintenance.regular
-  scaling -> monitoring.performance
-  monitoring.application -> feedback.user_stats
-  logging.analysis -> feedback.user_stats
 }
