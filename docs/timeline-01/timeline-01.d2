@@ -16,7 +16,7 @@ classes: {
   }
   ai-effective-strong: {
     style: {
-      fill: "#cc0000"
+      fill: "#cc4444"
       stroke: "#990000"
       stroke-width: 2
     }
@@ -28,385 +28,322 @@ grid-columns: 8
 grid-gap: 0
 
 request: {
+  direction: right
   label: "要求"
   request-development {
     label: "要求開発"
-    
-    requirement-collection {
-      label: "要求収集"
-      stakeholder-analysis {
-        label: "ステークホルダー分析"
-        identification: "ステークホルダーの特定"
-        prioritization: "優先順位の決定"
-        communication: "コミュニケーション計画"
-        
-        identification -> prioritization
-        prioritization -> communication
-      }
-      interviews {
-        label: "要件ヒアリング"
-        user-interviews: "ユーザーインタビュー"
-        expert-interviews: "専門家インタビュー"
-        workshops: "ワークショップ"
-        
-        user-interviews -> expert-interviews
-        expert-interviews -> workshops
-      }
-      surveys {
-        label: "アンケート調査"
-        online-surveys: "オンラインアンケート"
-        feedback-collection: "フィードバック収集"
-        analysis: "アンケート結果の分析" { class: ai-effective-strong }
-        
-        online-surveys -> feedback-collection
-        feedback-collection -> analysis
-      }
-      document-review: "ドキュメントレビュー"
-      observation: "観察・フィールドスタディ"
-      
-      stakeholder-analysis -> interviews
-      interviews -> surveys
-      surveys -> document-review
-      document-review -> observation
-    }
   }
   request-management {
     label: "要求管理"
-    tracking: "要求の追跡" { class: ai-effective }
-    prioritization: "優先順位の管理" { class: ai-effective }
-    change-control: "変更の管理" { class: ai-effective-weak }
-    
-    tracking -> prioritization
-    prioritization -> change-control
   }
-  request-development <-> request-management
 }
 requirement-definition: {
+  direction: right
   label: "要件定義"
   functional {
     label: "機能要件"
-    grid-columns: 3
-    user-stories: "ユーザーストーリー"
-    features: "機能一覧" { class: ai-effective }
-    screen-transitions: "画面遷移・ナビゲーション" { class: ai-effective-weak }
-    ui-ux-requirements: "UI/UX要件・デザインコンセプト"
-    interaction-design: "インタラクション設計\n(状態変化・フィードバック)" { class: ai-effective-weak }
-    business-rules: "業務ルール"
-    data-flow: "データフロー"
-    api-requirements: "API要件" { class: ai-effective }
-    validation: "入力・出力検証"
-    error-handling: "エラー処理"
-    reporting: "レポート機能"
-    accessibility: "アクセシビリティ要件"
   }
   non-functional {
     label: "非機能要件"
-    performance: "性能要件"
-    security: "セキュリティ要件"
-    usability: "ユーザビリティ"
-    scalability: "スケーラビリティ"
-    
-    performance -> security
-    security -> usability
-    usability -> scalability
   }
   prioritization {
     label: "優先順位の決定"
-    moscow: "MoSCoW法"
-    criteria: "評価基準"
-    ranking: "ランキング"
-    
-    moscow -> criteria
-    criteria -> ranking
   }
   validation {
     label: "検証"
-    review: "要件のレビュー" { class: ai-effective }
-    approval: "合意形成"
-    
-    review -> approval
   }
-  
-  functional -> non-functional
-  non-functional -> prioritization
-  prioritization -> validation
 }
 specification: {
+  direction: right
+
   label: "仕様定義"
-  use-cases: "ユースケース" { class: ai-effective-weak }
-  screen-def: "画面詳細仕様\n(レイアウト・入力項目定義)" { class: ai-effective-weak }
-  api-contract: "APIコントラクト\n(インターフェース定義)" { class: ai-effective-weak }
+  use-cases: "ユースケース"
+  screen-def: "画面詳細仕様\n(レイアウト・入力項目定義)"
+  api-contract: "APIコントラクト\n(インターフェース定義)"
 
   detailed-spec {
     label: "詳細仕様"
-    class: ai-effective-weak
-
-    ui-behavior: "UI制御・フロントエンド状態遷移" { class: ai-effective-weak }
-    business-logic: "業務ロジック・ドメインルール"
-
-    logging {
-      label: "ログ・監視基準"
-      class: ai-effective-weak
-      events: "イベントの記録" { class: ai-effective-weak }
-      retention: "保持期間・アーカイブ"
-    }
-
-    error-management {
-      label: "例外・エラー制御"
-      class: ai-effective-weak
-      fallback: "再試行・フォールバック" { class: ai-effective-weak }
-      messages: "メッセージの定義(ユーザー通知・多言語)" { class: ai-effective-weak }
-    }
-
-    ui-behavior -> business-logic
-    logging -> error-management
   }
 
-  use-cases -> screen-def
-  screen-def -> api-contract
-  api-contract -> detailed-spec
+  prototyping: {
+    label: "プロトタイピング"
+  }
+}
+design: {
+  direction: right
+  label: "設計"
+  frontend {
+    label: "フロントエンド"
+    info_arch {
+      label: "情報アーキテクチャ"
+    }
+    ux-ui: "UX/UI"
+    style-guide: "スタイルガイド"
+  }
 
-}
-設計: {
-}
-実装・単体テスト: {
-    frontend-development {
-    label: "フロントエンド開発"
-    design {
-      label: "デザイン"
-      info_arch {
-        label: "情報アーキテクチャ"
+  model: {
+    label: "データモデル"
+    description: ||md
+      - AIが読みやすく人間が保守しやすい形式(.md / .json / .schema)で記述する
+        - 要求を簡潔に記述する
+        - 1つのドメイン内の情報をまとめ、ドメイン間は疎結合とする
+        - 物理削除、論理削除、履歴管理などについて明記する
+        - 認証認可に関して記述する
+          - 管理者、一般ユーザー、ゲストなどについて明記する
+        - AIの処理として全体に影響する共通事項は CLAUDE.md に記述する
+          - 命名規則など
+        
+      | | AsIs | ToBe |
+      |-|-|-|
+      | 対象 | 人間 | AIと人間 |
+      | メンテナンス | 放置されがち | 根幹の指示書であるため常に最新維持 |
+      | 更新時 | すべて手作業 | モデル情報のみ手作業で更新して、他はAIにテンプレート的な指示 |
+
+      ||
+  }
+
+  api {
+    label: "API"
+
+    endpoint {
+      label: "エンドポイント"
+      grid-rows: 2
+
+      description: ||md
+        - CRUD系の基礎的なAPIはAIがデータモデルに即して直接実装するため設計不要となる
+          - エンドポイントのDTO以外の設計コストの20%とする
+        - API側の複雑なビジネスロジック、サービスは従来通りのデザインをAI支援下で行う
+        - API側の決め事であるロギング、ヘルスチェックは従来通りのデザインをAI支援下で行う
+        - API呼び出し側のエラー処理、リトライ処理、モニタリング処理は従来通りのデザインをAI支援下で行う
+
+        | | AsIs | ToBe |
+        |-|-|-|
+        | CRUD設計 | 手作業 | 不要 |
+        | ビジネスロジック設計 | 手作業 | 手作業・AI支援 |
+        | サービス設計 | 手作業 | 手作業・AI支援 |
+        | ロギング仕様、ヘルスチェック仕様 | 手作業 | 手作業・AI支援 |
+        | 呼び出し側のエラー処理、リトライ処理、モニタリング処理 | 手作業 | 手作業・AI支援 |
+        | リファレンス出力 | Swagger | Swagger |
+
+        ||
+      dto {
+        label: "DTO"
         class: ai-effective-weak
-        "サイト構造設計" { class: ai-effective-weak }
-        "ナビゲーション設計" { class: ai-effective-weak }
-        "コンテンツ整理"
-      }
-      prototyping: { 
-        label: "プロトタイピング"
-        class: ai-effective
-        "ワイヤーフレーム" { class: ai-effective }
-        mockup {
-          label: "モック作成"
-          class: ai-effective
-          "静的モック" { class: ai-effective }
-          "インタラクティブモック" { class: ai-effective }
-        }
-      }
-      style-guide: "スタイルガイド" { class: ai-effective }
+        description: ||md
+          - データモデルからAIが実装するため、設計作業は不要となる
+          - DTOの設計コストはエンドポイント設計の10%とみなす
 
-      # design内の接続
-      info_arch -> prototyping
-      prototyping -> style-guide
-      style-guide -> "ユーザビリティテスト"
+          | | AsIs | ToBe |
+          |-|-|-|
+          | 作業内容 | APIの引数と戻り値の設計作業 | 不要 |
+          | リファレンス出力 | Swagger | Swagger |
+
+          ||
+      }
     }
 
-    frontend {
-      label: "フロントエンド"
-      ui-components {
-        label: "UIコンポーネント"
-        class: ai-effective-weak
-        grid-columns: 3
-        atoms: "Atoms\n(ボタン、入力フィールドなど)" { class: ai-effective }
-        molecules: "Molecules\n(検索フォーム、カードなど)" { class: ai-effective }
-        organisms: "Organisms\n(ヘッダー、ナビゲーションなど)" { class: ai-effective }
-        templates: "Templates\n(ページレイアウト)" { class: ai-effective }
-        pages: "Pages\n(実際のページ)" { class: ai-effective }
+    description: ||md
+      | 項目 | 割合 | 工数への影響 |
+      |-|-|-|
+      | エンドポイント | 90% | 20%減 |
+      | DTO | 10% | 100%減 |
+      | 合計 | - | 28%減 |
+    ||
+  }
 
-        # ui-components内の接続
-        atoms -> molecules
-        molecules -> organisms
-        organisms -> templates
-        templates -> pages
-      }
-      state-management {
-        label: "状態管理"
-        class: ai-effective-weak
-        grid-columns: 3
-        local-state: "ローカル状態の管理" { class: ai-effective-weak }
-        global-state: "グローバル状態の管理" { class: ai-effective-weak }
-        server-state: "サーバー状態の管理" { class: ai-effective-weak }
-      }
-      routing {
-        label: "ルーティング"
-        grid-columns: 1
-        class: ai-effective-weak
-        "ルート定義" { class: ai-effective-weak }
-      }
-      ui-test: {
-        label: "UIテスト"
-        class: ai-effective-weak
-        grid-columns: 3
-        "Playwright自動テスト" { class: ai-effective-weak }
-        "コンポーネントテスト" { class: ai-effective-weak }
-        "スナップショットテスト" { class: ai-effective-weak }
-      }
-
-      # 同階層の接続
-      ui-components -> state-management
-      state-management -> routing
+  model -> api.endpoint
+}
+implementation: {
+  direction: right
+  label: "実装・単体テスト"
+  frontend {
+    label: "フロントエンド"
+    view {
+      label: "画面"
+      description: ||md
+        - UIコンポーネント
+        - 状態管理
+        - ルーティング
+        - UIテスト
+      ||
     }
 
     api-client {
       label: "APIクライアント"
-      grid-columns: 3
       class: ai-effective-weak
-      "RESTクライアント" { class: ai-effective }
-      "GraphQLクライアント" { class: ai-effective }
-      "WebSocketクライアント" { class: ai-effective }
-      "API通信のエラーハンドリング" { class: ai-effective }
-      "API通信のリトライ・フォールバック" { class: ai-effective-weak }
-      "ロギング/モニタリング" { class: ai-effective-weak }
+      description: ||md
+        - データモデルから想定されるAPIはAIが実装する(プロトコルの種類には影響されない)
+        - エラー処理、リトライ処理、モニタリング処理は設計に従ってAIが実装する
+        - レビュー工数を10%残す
+
+        | | AsIs | ToBe | 工数への影響 |
+        |-|-|-|-|
+        | RESTクライアント | 手作業 | AIへのテンプレート的指示 | 90%減 |
+        | GraphQLクライアント | 手作業 | AIへのテンプレート的指示 | 90%減 |
+        | WebSocketクライアント | 手作業 | AIへのテンプレート的指示 | 90%減 |
+        | エラー処理 | 手作業 | AIへのテンプレート的指示 | 90%減 |
+        | リトライ処理 | 手作業 | AIへのテンプレート的指示 | 90%減 |
+        | モニタリング処理 | 手作業 | AIへのテンプレート的指示 | 90%減 |
+      ||
+      cost-cut: ||md
+        ### 工数への影響
+        90%削減
+      ||
     }
 
-    testing: {
-      label: "テスト"
-      class: ai-effective-weak
-      grid-columns: 4
-      "単体テスト" { class: ai-effective }
-      "ユーザーフローのE2Eテスト" { class: ai-effective-weak }
-      "API連携のE2Eテスト" { class: ai-effective-weak }
-      "クロスブラウザテスト" { class: ai-effective-weak }
+    testing: "単体テスト"
+    ci-cd: {
+      label: "CI/CD"
+      description: ||md
+        - フロントエンドビルド
+        - 開発環境（フロントエンド）デプロイ
+        - ユニットテスト
+      ||
     }
-    cicd: "CI/CD" { class: ai-effective-weak }
-    frontend-build: "フロントエンドビルド" { class: command }
-    frontend-deploy: "開発環境（フロントエンド）デプロイ" { class: command }
 
     # フロントエンド内の依存関係
-    design -> frontend
-    frontend.ui-components -> api-client
-    frontend -> cicd
-    api-client -> testing
-    cicd -> frontend-build
-    frontend-build -> testing
-    testing -> frontend-deploy
+    api-client -> ci-cd
+    view -> ci-cd
   }
 
-  # バックエンド開発
-  backend-development {
-    label: "バックエンド開発"
+  backend {
+    label: "バックエンド"
 
-    dto-development {
-      label: "DTO開発"
-      class: ai-effective
-      grid-columns: 1
-      dto-design: "DTO設計" { class: ai-effective }
-      dto-implementation: "DTO実装" { class: ai-effective-strong }
-
-      dto-design -> dto-implementation
-    }
-
-    backend {
-      label: "バックエンド"
+    services {
+      label: "サービス"
       
       auth {
         label: "認証/認可"
         class: ai-effective-weak
-        grid-columns: 2
-        "ユーザ管理" { class: ai-effective }
-        "セッション管理\n(REST-APIでは不要)" { class: ai-effective }
-        "権限管理" { class: ai-effective }
-        "OAuth実装" { class: ai-effective-weak }
+        description: ||md
+          - 認証の実装自体はAIに完全依存はできない(セキュリティリスク回避のため)
+          - ユーザーと権限の管理は極めて典型的な実装があるため、AIに任せた実装は容易
+          - セッション管理は要件定義の段階で要否を確認する（コラボレーション機能などがなければ一般に不要）
+          - AI生成のコードにはレビュー工数を10%残す
+
+          | | AsIs | ToBe |
+          |-|-|-|
+          | ユーザ管理 | 手作業 | AIへのテンプレート的指示 |
+          | 権限管理 | 手作業 | AIへのテンプレート的指示 |
+          | セッション管理 | 手作業 | 手作業・AI支援 |
+          | OAuth実装 | 手作業 | 手作業・AI支援 |
+        ||
       }
       api {
         label: "APIエンドポイント"
         class: ai-effective
-        endpoints: "エンドポイント\n(REST/GraphQL)" { class: ai-effective-strong }
-        validation: "入力バリデーション\n(リクエスト/レスポンス)" { class: ai-effective-strong }
+        description: ||md
+          - データモデルからほとんどの部分を生成することができる
+          - AI生成のコードにはレビュー工数を10%残す
+
+          | | AsIs | ToBe |
+          |-|-|-|
+          | DTO実装 | 手作業 | AIへのテンプレート的指示 |
+          | エンドポイント(REST/GraphQL/WebSocket) | 手作業 | AIへのテンプレート的指示 |
+          | 入力バリデーション(Request/Response) | 手作業 | AIへのテンプレート的指示 |
+          | ロギング | 手作業 | AIへのテンプレート的指示 |
+          | ヘルスチェック | 手作業 | AIへのテンプレート的指示 |
+        ||
       }
       service-definition {
         label: "サービス"
-        grid-columns: 3
-        class: ai-effective
-        domain-model: "ドメインモデル定義" { class: ai-effective }
-        "ビジネスルール" { class: ai-effective }
-        "計算ロジック" { class: ai-effective }
-        "ワークフロー管理" { class: ai-effective }
-        "基盤クラス作成" { class: ai-effective-weak }
-        log-output: "ログ出力" { class: ai-effective }
-        crud: "CRUD処理" { class: ai-effective-strong }
+        class: ai-effective-weak
+        description: ||md
+          - AI生成のコードにはレビュー工数を10%残す
+          | | AsIs | ToBe | 割合 |
+          |-|-|-|-|
+          | ドメインモデル(ビジネスルール、計算ロジック) | 手作業 | 手作業・AI支援 | 75% |
+          | 基盤クラス作成 | 手作業 | 手作業・AI支援 | 5% |
+          | CRUD処理 | 手作業 | AIへのテンプレート的指示 | 10% |
+          | ユニットテスト | 手作業 | AIへのテンプレート的指示 | 10% |
+        ||
       }
+    }
 
-      # 同階層の接続
-      auth -> api
-      api -> service-definition
-      api.endpoints -> api.validation
+    services-cost-cut: ||md
+      | 項目 | 割合 | 工数への影響 |
+      |-|-|-|
+      | 認証/認可 | 10% | 50%減 |
+      | APIエンドポイント | 20% | 90%減 |
+      | サービス | 70% | 18%減 |
+      | 合計 | - | 36%減 |
+    ||
+
+    services -> services-cost-cut
+
+    ci-cd: {
+      label: "CI/CD"
+      description: ||md
+        - 開発環境（バックエンド）デプロイ
+        - バックエンドビルド
+        - ユニットテスト
+      ||
     }
-    
-    testing {
-      label: "テスト"
-      class: ai-effective
-      grid-columns: 3
-      unit: "単体テスト" { class: ai-effective }
-      integration: "結合テスト" { class: ai-effective-weak }
-      contract: "契約テスト" { class: ai-effective-weak }
-    }
-    cicd: "CI/CD" { class: ai-effective-weak }
-    backend-deploy: "開発環境（バックエンド）デプロイ" { class: command }
-    backend-build: "バックエンドビルド" { class: command }
 
     infrastructure {
       label: "インフラ"
 
       # 永続化グループ（DBアクセス関連）
-      persistence {
-        label: "データ永続化"
-        file-storage: "ファイルストレージ" { class: command }
-        db-access: {
-          class: ai-effective
-          label: "DBアクセス"
-          orm: "ORMモデル定義\n(スキーマ記述)" { class: ai-effective-strong }
-          db-migration: "DBマイグレーション" { class: command }
-          sql-query: "SQLクエリ" { class: command }
-          transaction: "トランザクション管理" { class: ai-effective-weak }
-
-          orm -> sql-query
-          orm -> db-migration
-        }
+      db: {
+        class: ai-effective
+        label: "DBアクセス"
+        description: ||md
+          - AI生成のコードにはレビュー工数を10%残す
+          | | AsIs | ToBe | 割合 |
+          |-|-|-|-|
+          | ORMモデル定義(スキーマ記述) | 手作業 | AIへのテンプレート的指示 | 80% |
+          | * インデックス設定 | 手作業 | AIへのテンプレート的指示 | - |
+          | * カスケード削除設定 | 手作業 | AIへのテンプレート的指示 | - |
+          | DBマイグレーション | ORMからコマンド生成 | ORMからコマンド生成 | - |
+          | SQLクエリ | ORMからコマンド生成 | ORMからコマンド生成 | - |
+          | トランザクション管理 | 手作業 | 手作業・AI支援 | 20% |
+        ||
+        cost-cut: ||md
+          ### 工数への影響
+          72%削減
+        ||
       }
 
-      iac: "IaC\n(Infrastructure as Code)" { class: ai-effective }
-      deployment: "本番環境デプロイ" { class: command }
-      cloud-provider: "クラウドプロバイダ" { class: command }
-      server-management: "サーバー管理" { class: command }
-      container-orchestration: "コンテナオーケストレーション" { class: command }
-      scaling: "スケーリング" { class: command }
-      db-management: "DB管理" { class: command }
-      backup-restore: "バックアップ/リストア" { class: command }
-      db: "データベース" { class: command }
-    
-      iac -> deployment
-      deployment -> cloud-provider
-      cloud-provider -> db
-      cloud-provider -> server-management
-      cloud-provider -> container-orchestration
-      cloud-provider -> persistence.file-storage
-      server-management -> scaling
-      container-orchestration -> scaling
-      db -> db-management
-      db-management -> backup-restore
+      iac: {
+        label: "IaC(Infrastructure as Code)"
+        description: ||md
+          - 本番環境デプロイ
+          - クラウドプロバイダ
+          - コンテナオーケストレーション
+          - サーバー管理
+          - スケーリング
+          - DB管理
+          - バックアップ/リストア
+          - ファイルストレージ
+        ||
+      }
     }
- 
-    security-review {
-      label: "セキュリティレビュー"
-      class: ai-effective
-    }
-    backend.auth -> security-review
-    backend.api -> security-review
-    infrastructure -> security-review
-    
+
     # バックエンド内の依存関係
-    backend.service-definition -> infrastructure.persistence.db-access
-    backend.service-definition -> cicd
-    backend-build -> testing
-    cicd -> backend-build
-    testing -> backend-deploy
-    infrastructure.persistence.db-access -> infrastructure.persistence.db-details
-    infrastructure.persistence -> infrastructure.db
+    services.service-definition -> infrastructure.db
+    services -> ci-cd
   }
 }
+design.api -> implementation.frontend.api-client
+
+
 結合テスト: {
+  direction: right
+  "ユーザーフローのE2Eテスト"
+  "API連携のE2Eテスト"
+  "クロスブラウザテスト"
+
+  black-box: "ブラックボックステスト"
+  scenario: "シナリオテスト"
 }
 統合テスト: {
+  direction: right
+  contract: "契約テスト"
+  staging: "ステージング環境テスト"
+
+  security-review {
+    label: "セキュリティレビュー"
+  }
 }
 ops {
   label: "運用/保守"
