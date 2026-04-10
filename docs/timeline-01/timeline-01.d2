@@ -21,6 +21,12 @@ classes: {
       stroke-width: 2
     }
   }
+  cost-cut: {
+    style: {
+      stroke: "#990000"
+      stroke-width: 4
+    }
+  }
 }
 
 direction: right
@@ -170,7 +176,7 @@ implementation: {
 
     api-client {
       label: "APIクライアント"
-      class: ai-effective-weak
+      class: ai-effective
       description: ||md
         - データモデルから想定されるAPIはAIが実装する(プロトコルの種類には影響されない)
         - エラー処理、リトライ処理、モニタリング処理は設計に従ってAIが実装する
@@ -191,7 +197,6 @@ implementation: {
       ||
     }
 
-    testing: "単体テスト"
     ci-cd: {
       label: "CI/CD"
       description: ||md
@@ -260,16 +265,35 @@ implementation: {
       }
     }
 
-    services-cost-cut: ||md
-      | 項目 | 割合 | 工数への影響 |
-      |-|-|-|
-      | 認証/認可 | 10% | 50%減 |
-      | APIエンドポイント | 20% | 90%減 |
-      | サービス | 70% | 18%減 |
-      | 合計 | - | 36%減 |
-    ||
-
-    services -> services-cost-cut
+    services-cost-cut: {
+      label: "工数への影響"
+      class: cost-cut
+      description: ||md
+        ## 定量的に削減できる範囲（サービス層）
+        | 項目 | 割合 | 工数への影響 |
+        |-|-|-|
+        | 認証/認可 | 10% | 50%減 |
+        | APIエンドポイント | 20% | 90%減 |
+        | サービス | 70% | 18%減 |
+        | **割合×工数への影響の合計** | - | 36%減 |
+        ## 定量的に削減できる範囲（データベース）
+        | 項目 | 割合 | 工数への影響 |
+        |-|-|-|
+        | ORMモデル定義(スキーマ記述、インデックス管理、カスケード削除設定) | 80% | 90%減 |
+        | **割合×工数への影響の合計** | - | 72%減 |
+        ## 定量的ではないがAIアシストの効果がある部分
+        - サービス群
+          - 認証/認可
+            - セッション管理
+            - OAuth実装
+          - サービス
+            - ドメインモデル(ビジネスルール、計算ロジック)
+            - 基盤クラス作成
+        - インフラ僧
+          - データベース
+            - トランザクション管理
+      ||
+    }
 
     ci-cd: {
       label: "CI/CD"
@@ -286,14 +310,12 @@ implementation: {
       # 永続化グループ（DBアクセス関連）
       db: {
         class: ai-effective
-        label: "DBアクセス"
+        label: "データベース"
         description: ||md
           - AI生成のコードにはレビュー工数を10%残す
           | | AsIs | ToBe | 割合 |
           |-|-|-|-|
-          | ORMモデル定義(スキーマ記述) | 手作業 | AIへのテンプレート的指示 | 80% |
-          | * インデックス設定 | 手作業 | AIへのテンプレート的指示 | - |
-          | * カスケード削除設定 | 手作業 | AIへのテンプレート的指示 | - |
+          | ORMモデル定義(スキーマ記述、インデックス管理、カスケード削除設定) | 手作業 | AIへのテンプレート的指示 | 80% |
           | DBマイグレーション | ORMからコマンド生成 | ORMからコマンド生成 | - |
           | SQLクエリ | ORMからコマンド生成 | ORMからコマンド生成 | - |
           | トランザクション管理 | 手作業 | 手作業・AI支援 | 20% |
@@ -320,6 +342,8 @@ implementation: {
     }
 
     # バックエンド内の依存関係
+    services -> services-cost-cut
+    infrastructure -> services-cost-cut
     services.service-definition -> infrastructure.db
     services -> ci-cd
   }
