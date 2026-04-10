@@ -1,0 +1,474 @@
+classes: {
+  command: {
+    style: {
+      fill: "#ffff88"
+    }
+  }
+  ai-effective-weak: {
+    style: {
+      fill: "#ffcccc"
+    }
+  }
+  ai-effective: {
+    style: {
+      fill: "#ff8888"
+    }
+  }
+  ai-effective-strong: {
+    style: {
+      fill: "#cc4444"
+      stroke: "#990000"
+      stroke-width: 2
+    }
+  }
+  cost-cut: {
+    style: {
+      stroke: "#990000"
+      stroke-width: 4
+    }
+  }
+  ai: {
+    shape: person
+    style: {
+      stroke: "#6a1b9a"
+      fill: "#f3e5f5"
+    }
+  }
+}
+
+grid-rows: 2
+grid-columns: 8
+grid-gap: 0
+
+agents_a: {
+  label: ""
+}
+agents_b: {
+  label: ""
+}
+agents_specification: {
+  label: ""
+  orchestrator_ai: オーケストレーター {
+    class: ai
+  }
+}
+agents_design: {
+  label: ""
+  architect_ai: アーキテクト {
+    class: ai
+  }
+}
+agents_implementation: {
+  direction: right
+  label: ""
+  frontend_ai: フロントエンド {
+    class: ai
+  }
+  backend_ai: バックエンド {
+    class: ai
+  }
+  reviewer_ai: レビュワー {
+    class: ai
+  }
+  frontend_ai -> reviewer_ai
+  backend_ai -> reviewer_ai
+}
+agents_integration_test: {
+  label: ""
+  tester_ai: レビュワー {
+    class: ai
+  }
+}
+agents_g: {
+  label: ""
+}
+agents_h: {
+  label: ""
+}
+
+agents_specification.orchestrator_ai -> agents_design.architect_ai
+agents_design.architect_ai -> agents_implementation.frontend_ai
+agents_design.architect_ai -> agents_implementation.backend_ai
+
+any request: {
+  direction: right
+  label: "要求"
+  request-development {
+    label: "要求開発"
+  }
+  request-management {
+    label: "要求管理"
+  }
+}
+requirement-definition: {
+  direction: right
+  label: "要件定義"
+  functional {
+    label: "機能要件"
+  }
+  non-functional {
+    label: "非機能要件"
+  }
+  prioritization {
+    label: "優先順位の決定"
+  }
+  validation {
+    label: "検証"
+  }
+}
+specification: {
+  direction: right
+
+  label: "仕様定義"
+  use-cases: "ユースケース"
+  screen-def: "画面詳細仕様\n(レイアウト・入力項目定義)"
+  api-contract: "APIコントラクト\n(インターフェース定義)"
+
+  detailed-spec {
+    label: "詳細仕様"
+  }
+
+  prototyping: {
+    label: "プロトタイピング"
+  }
+}
+design: {
+  direction: right
+  label: "設計"
+  frontend {
+    label: "フロントエンド"
+    description: ||md
+      - 情報アーキテクチャ
+      - UX/UI
+        - ナビゲーション
+        - コンポーネント
+      - 状態管理・セッション管理
+      - スタイルガイド
+    ||
+  }
+
+  model: {
+    label: "データモデル"
+    description: ||md
+      - AIが読みやすくエンジニアが保守しやすい形式(.md / .json / .schema)で記述する
+        - 要求を簡潔に記述する
+        - 開発環境について明記する
+        - 1つのドメイン内の情報をまとめ、ドメイン間は疎結合とする
+        - 物理削除、論理削除、履歴管理などについて明記する
+        - 認証認可に関して記述する
+          - 管理者、一般ユーザー、ゲストなどについて明記する
+        - AIの処理として全体に影響する共通事項は CLAUDE.md に記述する
+          - 命名規則など
+      
+      ### 設計作業の変化 
+      | | 現在 | 変化 |
+      |-|-|-|
+      | 閲覧者 | エンジニア | AIとエンジニア |
+      | メンテナンス | 放置されがち | 根幹の指示書であるため常に最新維持 |
+      | 更新時 | 手作業 | 手作業またはAIのアシストを受けて更新、実装の更新をAIに指示する |
+
+      ||
+  }
+
+  api {
+    label: "API"
+
+    endpoint {
+      label: "エンドポイント"
+      class: ai-effective-weak
+
+      description: ||md
+        - DTOとCRUD系APIはAIがデータモデルに即して直接実装するため設計不要となる
+          - 実装時のレビューコストは残るが、設計はデータモデルの記述が終わった時点で完了している
+        - API側の複雑なビジネスロジック、サービスは従来通りのデザインをAI支援下で行う
+        - API側の決め事であるロギング、ヘルスチェックは従来通りのデザインをAI支援下で行う
+        - API呼び出し側のエラー処理、リトライ処理、モニタリング処理は従来通りのデザインをAI支援下で行う
+
+        | | AsIs | ToBe | 割合 |
+        |-|-|-|-|
+        | **DTO設計** | 手作業 | **不要** | 8% |
+        | **CRUD設計** | 手作業 | **不要** | 17% |
+        | ビジネスロジック設計 | 手作業 | 手作業・AI支援 | 35% |
+        | サービス設計 | 手作業 | 手作業・AI支援 | 30% |
+        | ロギング仕様、ヘルスチェック仕様 | 手作業 | 手作業・AI支援 | 5% |
+        | 呼び出し側のエラー処理、リトライ処理、モニタリング処理 | 手作業 | 手作業・AI支援 | 5% |
+        | リファレンス出力 | Swagger | Swagger | - |
+
+        ||
+      cost-cut: {
+        label: 工数への影響(API設計)
+        class: cost-cut
+        description: ||md
+          ## 定量的に削減できる工数
+          | 項目 | 割合 | 工数への影響 |
+          |-|-|-|
+          | DTO設計 | 8% | 100%減 |
+          | CRUD設計 | 17% | 100%減 |
+          | **割合×工数への影響の合計** | - | 25%減 |
+
+          ## 定量的ではないがAIアシストの効果がある部分
+
+          - エンドポイント設計
+            - ビジネスロジック設計
+            - サービス設計
+            - ロギング仕様、ヘルスチェック仕様
+            - 呼び出し側のエラー処理、リトライ処理、モニタリング処理
+        ||
+      }
+
+    }
+  }
+
+  model -> api.endpoint
+}
+implementation: {
+  direction: right
+  label: "実装・単体テスト"
+  frontend {
+    label: "フロントエンド"
+    view {
+      label: "画面"
+      description: ||md
+        - UIコンポーネント
+        - 状態管理
+        - ルーティング
+        - UIテスト
+      ||
+    }
+
+    api-client {
+      label: "APIクライアント"
+      class: ai-effective
+      description: ||md
+        - データモデルから想定されるAPIはAIが実装する(プロトコルの種類には影響されない)
+        - エラー処理、リトライ処理、モニタリング処理は設計に従ってAIが実装する
+        - AI生成のコードにはレビュー工数を10%残す
+
+        | | AsIs | ToBe | 工数への影響 |
+        |-|-|-|-|
+        | RESTクライアント | 手作業 | AIへのテンプレート的指示 | 90%減 |
+        | GraphQLクライアント | 手作業 | AIへのテンプレート的指示 | 90%減 |
+        | WebSocketクライアント | 手作業 | AIへのテンプレート的指示 | 90%減 |
+        | エラー処理 | 手作業 | AIへのテンプレート的指示 | 90%減 |
+        | リトライ処理 | 手作業 | AIへのテンプレート的指示 | 90%減 |
+        | モニタリング処理 | 手作業 | AIへのテンプレート的指示 | 90%減 |
+      ||
+    cost-cut: {
+      label: 工数への影響(APIクライアント実装)
+      class: cost-cut
+      description: ||md
+        ## 定量的に削減できる工数
+        | 項目 | 割合 | 工数への影響 |
+        |-|-|-|
+        | APIクライアント | 100% | 90%減 |
+        | **割合×工数への影響の合計** | - | 90%減 |
+      ||
+    }    }
+
+    ci-cd: {
+      label: "CI/CD"
+      description: ||md
+        - フロントエンドビルド
+        - 開発環境（フロントエンド）デプロイ
+        - ユニットテスト
+      ||
+    }
+
+    # フロントエンド内の依存関係
+    api-client -> ci-cd
+    view -> ci-cd
+  }
+
+  backend {
+    label: "バックエンド"
+
+    services {
+      label: "サービス層"
+      
+      auth {
+        label: "認証/認可"
+        class: ai-effective-weak
+        description: ||md
+          - 認証の実装自体はAIに完全依存はできない(セキュリティリスク回避のため)
+          - ユーザーと権限の管理は極めて典型的な実装があるため、AIに任せた実装は容易
+          - セッション管理は要件定義の段階で要否を確認する（コラボレーション機能などがなければ一般に不要）
+          - AI生成のコードにはレビュー工数を10%残す
+
+          | | AsIs | ToBe |
+          |-|-|-|
+          | **ユーザ管理** | 手作業 | **AIへのテンプレート的指示** |
+          | **権限管理** | 手作業 | **AIへのテンプレート的指示** |
+          | セッション管理 | 手作業 | 手作業・AI支援 |
+          | OAuth実装 | 手作業 | 手作業・AI支援 |
+        ||
+      }
+      api {
+        label: "APIエンドポイント"
+        class: ai-effective
+        description: ||md
+          - データモデルからほとんどの部分を生成することができる
+          - AI生成のコードにはレビュー工数を10%残す
+
+          | | AsIs | ToBe |
+          |-|-|-|
+          | DTO実装 | 手作業 | AIへのテンプレート的指示 |
+          | エンドポイント(REST/GraphQL/WebSocket) | 手作業 | AIへのテンプレート的指示 |
+          | 入力バリデーション(Request/Response) | 手作業 | AIへのテンプレート的指示 |
+          | ロギング | 手作業 | AIへのテンプレート的指示 |
+          | ヘルスチェック | 手作業 | AIへのテンプレート的指示 |
+        ||
+      }
+      service-definition {
+        label: "サービス"
+        class: ai-effective-weak
+        description: ||md
+          - AI生成のコードにはレビュー工数を10%残す
+          | | AsIs | ToBe | 割合 |
+          |-|-|-|-|
+          | ドメインモデル(ビジネスルール、計算ロジック) | 手作業 | 手作業・AI支援 | 75% |
+          | 基盤クラス作成 | 手作業 | 手作業・AI支援 | 5% |
+          | **CRUD処理** | 手作業 | **AIへのテンプレート的指示** | 10% |
+          | **ユニットテスト** | 手作業 | **AIへのテンプレート的指示** | 10% |
+        ||
+      }
+    }
+
+    services-cost-cut: {
+      label: "工数への影響"
+      class: cost-cut
+      description: ||md
+        - 「AIへのテンプレート的指示」とは
+          - 仕様の所在と作業内容・出力先を明示して、定型的な指示をする
+          - 更新時もほぼ同じだが「既存コードの動作の互換」を維持するかしないかを付記する
+        ## 定量的に削減できる範囲（サービス層）
+        | 項目 | 割合 | 工数への影響 |
+        |-|-|-|
+        | 認証/認可 | 10% | 50%減 |
+        | APIエンドポイント | 20% | 90%減 |
+        | サービス | 70% | 18%減 |
+        | **割合×工数への影響の合計** | - | 36%減 |
+        ## 定量的に削減できる範囲（データベース）
+        | 項目 | 割合 | 工数への影響 |
+        |-|-|-|
+        | ORMモデル定義(スキーマ記述、インデックス管理、カスケード削除設定) | 80% | 90%減 |
+        | **割合×工数への影響の合計** | - | 72%減 |
+        ## 定量的ではないがAIアシストの効果がある部分
+        - サービス群
+          - 認証/認可
+            - セッション管理
+            - OAuth実装
+          - サービス
+            - ドメインモデル(ビジネスルール、計算ロジック)
+            - 基盤クラス作成
+        - インフラ僧
+          - データベース
+            - トランザクション管理
+      ||
+    }
+
+    ci-cd: {
+      label: "CI/CD"
+      description: ||md
+        - 開発環境（バックエンド）デプロイ
+        - バックエンドビルド
+        - ユニットテスト
+      ||
+    }
+
+    infrastructure {
+      label: "インフラ層"
+
+      # 永続化グループ（DBアクセス関連）
+      db: {
+        class: ai-effective
+        label: "データベース"
+        description: ||md
+          - AI生成のコードにはレビュー工数を10%残す
+          | | AsIs | ToBe | 割合 |
+          |-|-|-|-|
+          | **ORMモデル定義(スキーマ記述、インデックス管理、カスケード削除設定)** | 手作業 | **AIへのテンプレート的指示** | 80% |
+          | DBマイグレーション | ORMからコマンド生成 | ORMからコマンド生成 | - |
+          | SQLクエリ | ORMからコマンド生成 | ORMからコマンド生成 | - |
+          | トランザクション管理 | 手作業 | 手作業・AI支援 | 20% |
+        ||
+      }
+
+      iac: {
+        label: "IaC(Infrastructure as Code)"
+        description: ||md
+          - 本番環境デプロイ
+          - クラウドプロバイダ
+          - コンテナオーケストレーション
+          - サーバー管理
+          - スケーリング
+          - DB管理
+          - バックアップ/リストア
+          - ファイルストレージ
+        ||
+      }
+    }
+
+    # バックエンド内の依存関係
+    services -> services-cost-cut
+    infrastructure -> services-cost-cut
+    services.service-definition -> infrastructure.db
+    services -> ci-cd
+  }
+}
+design.api -> implementation.frontend.api-client
+
+
+結合テスト: {
+  direction: right
+  "ユーザーフローのE2Eテスト"
+  "API連携のE2Eテスト"
+  "クロスブラウザテスト"
+
+  black-box: "ブラックボックステスト"
+  scenario: "シナリオテスト"
+}
+統合テスト: {
+  direction: right
+  contract: "契約テスト"
+  staging: "ステージング環境テスト"
+
+  security-review {
+    label: "セキュリティレビュー"
+  }
+}
+ops {
+  direction: right
+  label: "運用/保守"
+  
+  monitoring {
+    label: "監視"
+  }
+  
+  logging {
+    label: "ログ管理"
+  }
+  
+  incident {
+    label: "障害対応"
+  }
+  
+  backup {
+    label: "バックアップ"
+  }
+  
+  security {
+    label: "セキュリティ運用"
+  }
+  
+  scaling {
+    label: "スケーリング"
+  }
+  
+  maintenance {
+    label: "メンテナンス"
+  }
+  
+  feedback {
+    label: "ユーザー統計 & フィードバック"
+  }
+}
