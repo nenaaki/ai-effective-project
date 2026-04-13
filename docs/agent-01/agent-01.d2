@@ -55,46 +55,98 @@ classes: {
       fill: "#ffffff"
     }
   }
+
+  spec: {
+    style: {
+      fill: "#fef3c7"
+      stroke: "#d97706"
+      stroke-width: 2
+    }
+  }
+  agent: {
+    style: {
+      fill: "#e0e7ff"
+      stroke: "#4f46e5"
+      stroke-width: 2
+    }
+  }
+  output: {
+    style: {
+      fill: "#f0fdf4"
+      stroke: "#16a34a"
+      stroke-width: 2
+    }
+  }
+  human: {
+    style: {
+      fill: "#f1f5f9"
+      stroke: "#475569"
+    }
+  }
 }
 
 grid-rows: 2
 
-agents: {
-  class: ai-field
+agents: spec駆動開発 {
   direction: right
-  engineer: 開発者 {
-    class: person
+  # 人間系
+  UserZone: 人間系 {
+    style: {
+      stroke-dash: 5
+    }
+    U: プロダクトオーナー\nエンジニアなど {
+      shape: person
+      class: human
+    }
   }
-  orchestrator-ai: オーケストレーターAI {
-    class: ai
+
+  # 核となる仕様
+  spec: "核: 実行可能な仕様書\n(Spec as Single Source of Truth)" {
+    shape: cylinder
+    class: spec
   }
-  architect-ai: アーキテクトAI {
-    class: ai
+
+  # AI オーケストレーター
+  ai-orchestrator: AI オーケストレーター {
+    style: {
+      fill: "#f8fafc"
+    }
+    planner: AI planner / Agent { class: agent }
+    Coder: {
+      Schemer: Model Designer AI { class: agent }
+      Frontend: Frontend Code Generator AI { class: agent }
+      Backend: Backend Code Generator AI { class: agent }
+    }
+    Tester: Test Generator / Runner AI { class: agent }
+    Refiner: Refactoring AI { class: agent }
+
+    planner -> Coder: タスク分解
+    planner -> Tester: テストシナリオ作成
+    Coder -> Tester: 生成コード
+    Tester -> planner: フィードバック/エラー
+    Tester -> Refiner: 合格
+    Refiner -> Coder: 最適化
   }
-  ui-designer-ai: UXデザイナAI {
-    class: ai
+
+  # アウトプット (CI/CD)
+  cd-ci: アウトプット {
+    Prod: プロダクトコード { class: output }
+    Doc: 技術ドキュメント { class: output }
   }
-  frontend-ai: フロントエンドAI {
-    class: ai
+
+  # インタラクション（接続関係）
+  UserZone.U -> spec: 仕様定義/プロンプト
+  spec <-> ai-orchestrator.planner: コンテキスト参照/更新
+
+  ai-orchestrator.Refiner -> cd-ci.Prod: 最終コード
+  ai-orchestrator.Tester -> cd-ci.Doc: レポート
+
+  cd-ci.Prod -> UserZone: デプロイ {
+    style: { stroke-dash: 3 }
   }
-  backend-ai: バックエンドAI {
-    class: ai
+  cd-ci.Doc -> UserZone: レビュー {
+    style: { stroke-dash: 3 }
   }
-  reviewer-ai: レビュワーAI {
-    class: ai
-  }
-  tester-ai: テスト担当AI {
-    class: ai
-  }
-  orchestrator-ai -> architect-ai
-  orchestrator-ai -> ui-designer-ai
-  ui-designer-ai -> frontend-ai 
-  architect-ai -> backend-ai
-  frontend-ai -> reviewer-ai
-  backend-ai -> reviewer-ai
-  orchestrator-ai -> tester-ai
-  frontend-ai -> tester-ai
-  backend-ai -> tester-ai
 }
 
 dev: {
@@ -130,11 +182,17 @@ dev: {
   }
   specification: {
     direction: right
-
     label: "仕様定義"
+    description: ||md
+      - エピック、またはストーリーのレベルまでは人間の手で作成する必要がある
+      - AIのためのタスクに分割し、エージェントに割り当てるのは **AP planner** の作業となる
+    ||
+
     use-cases: "ユースケース"
     epic: "エピック"
-    story: "ストーリー"
+    story: {
+      label: "ストーリー"
+    }
     domain-model: "ドメインモデル"
 
     use-cases -> epic
@@ -147,33 +205,74 @@ dev: {
   design: {
     direction: right
     label: "設計"
-    task: "タスク"
+    task: {
+      label: "タスク"
+      class: ai-effective
+      description: ||md
+        - AI側にはスキーマ、フロントエンド、バックエンドのペルソナが存在する
+        ### AI導入による変化
+        | | AsIs | ToBe |
+        |-|-|-|
+        | 閲覧者 | エンジニア | AI |
+        | タスク化の単位 | 担当者ベース | 担当AI エージェントベース |
+      ||
+      cost-cut: {
+        class: cost-cut
+        label: "コストへの影響"
+        description: ||md
+          ## 定量的に削減できる工数
+          | 項目 | 割合 | 工数への影響 |
+          |-|-|-|
+          | タスク分割 | 100% | 100%減 |
+        ||
+      }
+    } 
     task -> frontend
 
     frontend {
       label: "フロントエンド"
       description: ||md
+        ### 工数削減できる範囲 
         - 情報アーキテクチャ
         - UX/UI
           - ナビゲーション
           - コンポーネント
         - 状態管理・セッション管理
-        - スタイルガイド
+        - スタイルガイド（典型的なものを使う限りにおいて）
       ||
+      cost-cut: {
+        class: cost-cut
+        label: "コストへの影響"
+        description: ||md
+          ## 定量的に削減できる工数
+          | 項目 | 割合 | 工数への影響 |
+          |-|-|-|
+          | コンポーネント | 50% | 50%減 |
+          | 合計 | - | 25%減 |
+        ||
+      }
+    }
+
+    backend {
+      label: "バックエンド"
+
     }
 
     model: {
       label: "データモデル"
       description: ||md
-        - AIが読みやすくエンジニアが保守しやすい形式(.md / .json / .schema)で記述する
-          - 要求を簡潔に記述する
+        ### AI:人間=2:8
+        - 詳細をエンジニアが決めるべきところ
           - 開発環境について明記する
-          - 1つのドメイン内の情報をまとめ、ドメイン間は疎結合とする
-          - 物理削除、論理削除、履歴管理などについて明記する
-          - 認証認可に関して記述する
-            - 管理者、一般ユーザー、ゲストなどについて明記する
-          - AIの処理として全体に影響する共通事項は CLAUDE.md に記述する
-            - 命名規則など
+          - AIが読みやすくエンジニアが保守しやすい形式(.md / .json / .schema)で記述する
+            - 要求を簡潔に記述する
+            - 1つのドメイン内の情報をまとめ、ドメイン間は疎結合とする
+            - 物理削除、論理削除、履歴管理などについて明記する
+            - 認証認可に関して記述する
+              - 管理者、一般ユーザー、ゲストなどについて明記する
+            - AIの処理として全体に影響する共通事項は CLAUDE.md に記述する
+              - 命名規則など
+        - AIに任せても問題ないところ
         
         ### 設計作業の変化 
         | | 現在 | 変化 |
