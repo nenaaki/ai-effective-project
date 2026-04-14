@@ -112,14 +112,14 @@ agents: spec駆動開発 {
     style: {
       fill: "#f8fafc"
     }
-    planner: AI planner / Agent { class: agent }
+    planner: プランニングAI { class: agent }
     Coder: {
-      Schemer: Model Designer AI { class: agent }
-      Frontend: Frontend Code Generator AI { class: agent }
-      Backend: Backend Code Generator AI { class: agent }
+      Schemer: モデルデザインAI { class: agent }
+      Frontend: フロントエンド実装AI { class: agent }
+      Backend: バックエンド実装AI { class: agent }
     }
-    Tester: Test Generator / Runner AI { class: agent }
-    Refiner: Refactoring AI { class: agent }
+    Tester: テスト実装・実行AI { class: agent }
+    Refiner: リファクタリングAI { class: agent }
 
     planner -> Coder: タスク分解
     planner -> Tester: テストシナリオ作成
@@ -152,56 +152,58 @@ agents: spec駆動開発 {
 
 dev: {
   class: field
-  grid-columns: 7
+  grid-columns: 6
   grid-gap: 0
 
-  request: {
+  requirement: {
     direction: right
-    label: "要求"
-    request-development {
+    label: "要求/要件定義"
+    development {
       label: "要求開発"
     }
-    request-management {
+    management {
       label: "要求管理"
     }
+    definition: {
+      direction: right
+      label: "要件定義"
+      functional {
+        label: "機能要件"
+      }
+      non-functional {
+        label: "非機能要件"
+      }
+      prioritization {
+        label: "優先順位の決定"
+      }
+      validation {
+        label: "検証"
+      }
+    }
   }
-  requirement-definition: {
-    direction: right
-    label: "要件定義"
-    functional {
-      label: "機能要件"
-    }
-    non-functional {
-      label: "非機能要件"
-    }
-    prioritization {
-      label: "優先順位の決定"
-    }
-    validation {
-      label: "検証"
-    }
-  }
+  requirement.definition -> specification.backlog: "ユーザーストーリーの構築"
+  requirement.definition -> specification.domain-model: "ドメイン分析"
   specification: {
     direction: right
     label: "仕様定義"
     description: ||md
       - エピック、またはストーリーのレベルまでは人間の手で作成する必要がある
+      - AIによる開発速度を考慮し、一部のエピックは1イテレーションで実装できる「ストーリー」となる。粒度が変化する
       - AIのためのタスクに分割し、エージェントに割り当てるのは **AP planner** の作業となる
     ||
 
-    use-cases: "ユースケース"
-    epic: "エピック"
-    story: {
-      label: "ストーリー"
+    backlog: "プロダクトバックログ" {
+      direction: down
+      epic: "エピック"
+      story: {
+        label: "ストーリー"
+      }
+      feature: "フィーチャー"
     }
     domain-model: "ドメインモデル"
-
-    use-cases -> epic
-    epic -> story
-    epic -> domain-model
   }
   specification.domain-model -> design.model
-  specification.story -> design.task
+  specification.backlog -> design.task: タスク分割
 
   design: {
     direction: right
@@ -210,12 +212,10 @@ dev: {
       label: "タスク"
       class: ai-effective
       description: ||md
-        - AI側にはスキーマ、フロントエンド、バックエンドの実装ペルソナが存在する
-        - 仕様定義の結果各実装ペルソナに向けてタスクを分割し、指示をする
         ### AI導入による変化
-        | | AsIs | ToBe |
+        | | 従来 | AI導入後 |
         |-|-|-|
-        | 閲覧者 | エンジニア | AI |
+        | タスク担当者 | エンジニア | AI |
         | タスク化の単位 | 担当者ベース | 担当AI エージェントベース |
       ||
       cost-cut: {
@@ -225,7 +225,7 @@ dev: {
           | 項目 | 割合 | 工数への影響 |
           |-|-|-|
           | タスク分割 | 100% | 100%減 |
-          | 合計 | - | 100%減 |
+          | **割合×工数への影響の合計** | - | 100%減 |
         ||
       }
     } 
@@ -235,13 +235,13 @@ dev: {
       label: "フロントエンド"
       class: ai-effective-weak
       description: ||md
-        ### 工数削減できる範囲 
-        - 情報アーキテクチャ
-        - UX/UI
-          - ナビゲーション
-          - コンポーネント
-        - 状態管理・セッション管理
-        - スタイルガイド
+        ### AI導入による変化
+        | | AsIs | ToBe | 割合 |
+        |-|-|-|-|
+        | 情報アーキテクチャ | 手作業 | AIエージェント(一部手作業) | 20% |
+        | UX(コンポーネント、ナビゲーション) | 手作業 | AIエージェント(一部手作業) | 40% |
+        | 状態管理・セッション管理 | 手作業 | AIエージェント(一部手作業) | 20% |
+        | スタイルガイド | 手作業 | AIエージェント(一部手作業) | 20% |
       ||
       cost-cut: {
         class: cost-cut
@@ -249,8 +249,8 @@ dev: {
           ## 定量的に削減できる工数
           | 項目 | 割合 | 工数への影響 |
           |-|-|-|
-          | コンポーネント | 50% | 50%減 |
-          | 合計 | - | 25%減 |
+          | AIエージェント(一部手作業) | 100% | 50%減 |
+          | **割合×工数への影響の合計** | - | 50%減 |
         ||
       }
     }
@@ -270,14 +270,14 @@ dev: {
             |-|-|-|
             | 環境設計 | 90% | 90%減 |
             | 開発環境導入 | 10% | 50%減 |
-            | 合計 | - | 86%減 |
+            | **割合×工数への影響の合計** | - | 86%減 |
         ||
       }
     }
 
     model: {
       label: "データモデル"
-      class: ai-effective
+      class: ai-effective-weak
       description: ||md
         ### AI:人間=2:8
         - エンジニアが決めるべきところ、実施すべきこと
@@ -305,7 +305,7 @@ dev: {
             | 項目 | 割合 | 工数への影響 |
             |-|-|-|
             | データモデル設計 | 100% | 80%減 |
-            | 合計 | - | 80%減 |
+            | **割合×工数への影響の合計** | - | 80%減 |
         ||
       }
     }
@@ -343,15 +343,7 @@ dev: {
             | DTO設計 / CRUD設計 | 25% | 100%減 |
             | AIエージェント(一部手作業)の範囲 | 65% | 80%減 |
             | AIエージェントの範囲 | 10% | 90%減 |
-            | **割合×工数への影響の合計** | - | ** 86%減 |
-
-            ## 定量的ではないがAIアシストの効果がある部分
-
-            - エンドポイント設計
-              - ビジネスロジック設計
-              - サービス設計
-              - ロギング仕様、ヘルスチェック仕様
-              - 呼び出し側のエラー処理、リトライ処理、モニタリング処理
+            | **割合×工数への影響の合計** | - | **86%減** |
           ||
         }
 
@@ -401,12 +393,12 @@ dev: {
 
           | | AsIs | ToBe | 工数への影響 |
           |-|-|-|-|
-          | RESTクライアント | 手作業 | AIへのテンプレート的指示 | 90%減 |
-          | GraphQLクライアント | 手作業 | AIへのテンプレート的指示 | 90%減 |
-          | WebSocketクライアント | 手作業 | AIへのテンプレート的指示 | 90%減 |
-          | エラー処理 | 手作業 | AIへのテンプレート的指示 | 90%減 |
-          | リトライ処理 | 手作業 | AIへのテンプレート的指示 | 90%減 |
-          | モニタリング処理 | 手作業 | AIへのテンプレート的指示 | 90%減 |
+          | RESTクライアント | 手作業 | AIエージェント | 90%減 |
+          | GraphQLクライアント | 手作業 | AIエージェント | 90%減 |
+          | WebSocketクライアント | 手作業 | AIエージェント | 90%減 |
+          | エラー処理 | 手作業 | AIエージェント | 90%減 |
+          | リトライ処理 | 手作業 | AIエージェント | 90%減 |
+          | モニタリング処理 | 手作業 | AIエージェント | 90%減 |
         ||
         cost-cut: {
           class: cost-cut
@@ -419,19 +411,6 @@ dev: {
           ||
         }
       }
-
-      ci-cd: {
-        label: "CI/CD"
-        description: ||md
-          - フロントエンドビルド
-          - 開発環境（フロントエンド）デプロイ
-          - ユニットテスト
-        ||
-      }
-
-      # フロントエンド内の依存関係
-      api-client -> ci-cd
-      view -> ci-cd
     }
 
     backend {
@@ -444,92 +423,77 @@ dev: {
           label: "認証/認可"
           class: ai-effective-weak
           description: ||md
-            - 認証の実装自体はAIに完全依存はできない(セキュリティリスク回避のため)
-            - ユーザーと権限の管理は極めて典型的な実装があるため、AIに任せた実装は容易
-            - セッション管理は要件定義の段階で要否を確認する（コラボレーション機能などがなければ一般に不要）
-            - AI生成のコードにはレビュー工数を10%残す
-
-            | | AsIs | ToBe |
-            |-|-|-|
-            | **ユーザ管理** | 手作業 | **AIへのテンプレート的指示** |
-            | **権限管理** | 手作業 | **AIへのテンプレート的指示** |
-            | セッション管理 | 手作業 | 手作業・AI支援 |
-            | OAuth実装 | 手作業 | 手作業・AI支援 |
+            | | AsIs | ToBe | 割合 |
+            |-|-|-|-|
+            | ユーザ管理 | 手作業 | AIエージェント | 25% |
+            | 権限管理 | 手作業 | AIエージェント | 25% |
+            | セッション管理 | 手作業 | AIエージェント(一部手作業) | 25% |
+            | OAuth実装 | 手作業 | AIエージェント(一部手作業) | 25% |
           ||
+
+          cost-cut: {
+            class: cost-cut
+            description: ||md
+              ## 定量的に削減できる範囲
+              | 項目 | 割合 | 工数への影響 |
+              |-|-|-|
+              | AI | 50% | 90%減 |
+              | AI+手作業 | 50% | 50%減 |
+              | **割合×工数への影響の合計** | - | 70%減 |
+            ||
+          }
         }
         api {
           label: "APIエンドポイント"
           class: ai-effective
           description: ||md
-            - データモデルからほとんどの部分を生成することができる
-            - AI生成のコードにはレビュー工数を10%残す
-
-            | | AsIs | ToBe |
-            |-|-|-|
-            | DTO実装 | 手作業 | AIへのテンプレート的指示 |
-            | エンドポイント(REST/GraphQL/WebSocket) | 手作業 | AIへのテンプレート的指示 |
-            | 入力バリデーション(Request/Response) | 手作業 | AIへのテンプレート的指示 |
-            | ロギング | 手作業 | AIへのテンプレート的指示 |
-            | ヘルスチェック | 手作業 | AIへのテンプレート的指示 |
+            ## 実装項目
+            - DTO実装
+            - エンドポイント(REST/GraphQL/WebSocket)
+            - 入力バリデーション(Request/Response)
+            - ロギング
+            - ヘルスチェック
+            | | AsIs | ToBe | 割合 |
+            |-|-|-|-|
+            | 実装作業 | 手作業 | AIエージェント | 100% |
           ||
+
+          cost-cut: {
+            class: cost-cut
+            description: ||md
+              ## 定量的に削減できる範囲
+              | 項目 | 割合 | 工数への影響 |
+              |-|-|-|
+              | AI | 100% | 90%減 |
+              | **割合×工数への影響の合計** | - | 90%減 |
+            ||
+          }
         }
         service-definition {
           label: "サービス"
           class: ai-effective-weak
           description: ||md
-            - AI生成のコードにはレビュー工数を10%残す
             | | AsIs | ToBe | 割合 |
             |-|-|-|-|
-            | ドメインモデル(ビジネスルール、計算ロジック) | 手作業 | 手作業・AI支援 | 75% |
-            | 基盤クラス作成 | 手作業 | 手作業・AI支援 | 5% |
-            | **CRUD処理** | 手作業 | **AIによる実装** | 10% |
-            | **ユニットテスト** | 手作業 | **AIによる実装** | 10% |
+            | ドメインモデル(ビジネスルール、計算ロジック) | 手作業 | AIエージェント(一部手作業) | 60% |
+            | 基盤クラス作成 | 手作業 | AIエージェント(一部手作業) | 10% |
+            | CRUD処理 | 手作業 | AIエージェント | 20% |
+            | ユニットテスト | 手作業 | AIエージェント | 10% |
           ||
+
+          cost-cut: {
+            class: cost-cut
+            description: ||md
+              ## 定量的に削減できる範囲
+              | 項目 | 割合 | 工数への影響 |
+              |-|-|-|
+              | AI | 30% | 90%減 |
+              | AI+手作業 | 70% | 50%減 |
+              | **割合×工数への影響の合計** | - | 62%減 |
+            ||
+          }
         }
       }
-
-      services-cost-cut: {
-        label: "工数への影響"
-        class: cost-cut
-        description: ||md
-          - 「AIへのテンプレート的指示」とは
-            - 仕様の所在と作業内容・出力先を明示して、定型的な指示をする
-            - 更新時もほぼ同じだが「既存コードの動作の互換」を維持するかしないかを付記する
-          ## 定量的に削減できる範囲（サービス層）
-          | 項目 | 割合 | 工数への影響 |
-          |-|-|-|
-          | 認証/認可 | 10% | 50%減 |
-          | APIエンドポイント | 20% | 90%減 |
-          | サービス | 70% | 18%減 |
-          | **割合×工数への影響の合計** | - | 36%減 |
-          ## 定量的に削減できる範囲（データベース）
-          | 項目 | 割合 | 工数への影響 |
-          |-|-|-|
-          | ORMモデル定義(スキーマ記述、インデックス管理、カスケード削除設定) | 80% | 90%減 |
-          | **割合×工数への影響の合計** | - | 72%減 |
-          ## 定量的ではないがAIアシストの効果がある部分
-          - サービス群
-            - 認証/認可
-              - セッション管理
-              - OAuth実装
-            - サービス
-              - ドメインモデル(ビジネスルール、計算ロジック)
-              - 基盤クラス作成
-          - インフラ僧
-            - データベース
-              - トランザクション管理
-        ||
-      }
-
-      ci-cd: {
-        label: "CI/CD"
-        description: ||md
-          - 開発環境（バックエンド）デプロイ
-          - バックエンドビルド
-          - ユニットテスト
-        ||
-      }
-
       infrastructure {
         label: "インフラ層"
 
@@ -537,20 +501,33 @@ dev: {
         db: {
           class: ai-effective
           label: "データベース"
+
           description: ||md
-            - AI生成のコードにはレビュー工数を10%残す
             | | AsIs | ToBe | 割合 |
             |-|-|-|-|
-            | **ORMモデル定義(スキーマ記述、インデックス管理、カスケード削除設定)** | 手作業 | **AIへのテンプレート的指示** | 80% |
-            | DBマイグレーション | ORMからコマンド生成 | ORMからコマンド生成 | - |
-            | SQLクエリ | ORMからコマンド生成 | ORMからコマンド生成 | - |
-            | トランザクション管理 | 手作業 | 手作業・AI支援 | 20% |
+            | ORMモデル定義(スキーマ記述、インデックス管理、カスケード削除設定) | 手作業 | AIエージェント | 80% |
+            | - DBマイグレーション | ORMからコマンド生成 | ORMからコマンド生成 | - |
+            | - SQLクエリ | ORMからコマンド生成 | ORMからコマンド生成 | - |
+            | トランザクション管理 | 手作業 | AIエージェント(一部手作業) | 20% |
           ||
-        }
 
+          cost-cut: {
+            class: cost-cut
+            description: ||md
+              ## 定量的に削減できる範囲
+              | 項目 | 割合 | 工数への影響 |
+              |-|-|-|
+              | ORMモデル定義(スキーマ記述、インデックス管理、カスケード削除設定) | 80% | 90%減 |
+              | トランザクション管理 | 20% | 50%減 |
+              | **割合×工数への影響の合計** | - | **82%減** |
+            ||
+          }
+        }
         iac: {
           label: "IaC(Infrastructure as Code)"
+          class: ai-effective
           description: ||md
+          ## 実装項目
             - 本番環境デプロイ
             - クラウドプロバイダ
             - コンテナオーケストレーション
@@ -560,15 +537,41 @@ dev: {
             - バックアップ/リストア
             - ファイルストレージ
           ||
+
+          cost-cut: {
+            class: cost-cut
+            description: ||md
+              ## 定量的に削減できる範囲
+              | 項目 | 割合 | 工数への影響 |
+              |-|-|-|
+              | 実装項目 | 100% | 90%減 |
+              | **割合×工数への影響の合計** | - | 90%減 |
+            ||
+          }
         }
       }
 
-      # バックエンド内の依存関係
-      services -> services-cost-cut
-      infrastructure -> services-cost-cut
-      services.service-definition -> infrastructure.db
-      services -> ci-cd
     }
+
+    ci-cd: {
+      label: "CI/CD"
+      setup: {
+        label: "構築"
+        class: ai-effective
+        cost-cut: {
+          class: cost-cut
+          description: ||md
+          ## 定量的に削減できる範囲
+          | 項目 | 割合 | 工数への影響 |
+          |-|-|-|
+          | 構築 | 100% | 90%減 |
+          | **割合×工数への影響の合計** | - | 90%減 |
+          ||
+        }
+      }
+    }
+    frontend -> ci-cd;
+    backend -> ci-cd
   }
   design.backend -> implementation.frontend.api-client
 
