@@ -90,14 +90,6 @@ grid-rows: 3
 
 description: ||md
   # spec駆動開発(設計～実装・単体テスト)の効果分析
-  
-  ### この後の作業メモ(4/15) 
-  - 要件から設計の前
-    - 詳細化（ユースケース）
-    - 見積もりを出すために必要な情報
-  - 推奨体制・人材（新人の場所）
-  - 機能種別と序列
-  - 品質・デリバリーのチェックポイント(QCDのQD)
 ||
 
 agents: spec駆動開発 {
@@ -220,11 +212,13 @@ dev: {
           }
 
           modeling: AI最適化モデル設計 {
-            domain_model: ドメインモデル (Schema/Context重視)
-            tooltip: ||md
-              AIがコード生成しやすい明確なデータ構造定義
-            ||
-            tooltip.near: center-right
+            domain_model: {
+              label: ""
+              description: ||md
+                ### ドメインモデル (Schema/Context重視)
+                - AIがコード生成しやすい明確なデータ構造定義
+              ||
+            }
           }
 
           hierarchy: 構造化 (AI-Ready) {
@@ -232,24 +226,40 @@ dev: {
               label: ""
               description: ||md
                 ### エピック (Epic)
-                - これ以上細分化不可能な機能
+                - 大きな構想・テーマ
+                - ビジネス面の目標となる機能群
               ||
             }
-            feature: フィーチャー (Feature)
-            story: ユーザーストーリー (AI Implementation Unit)
+            feature: {
+              label: ""
+              description: ||md
+                ### フィーチャー (Feature)
+                - 具体的な機能
+                - ユーザーに意味がある単一の機能
+              ||
+            }
+            story: {
+              label: ""
+              description: ||md
+                ### ユーザーストーリー (AI Implementation Unit)
+                - 最小の作業単位
+              ||
+            }
             epic-relation: {
               label: ""
               description: ||md
-                ### エピック依存関係
+                ### 依存関係
                 - 循環しない
-                - ダイヤモンド依存はOK"
+                - ダイヤモンド依存は許容
+                - 優先順位の判断基準
+                - 見積もり作成
               ||
             }
 
             tooltip: ||md
               AIが一度に生成・テスト可能な粒度に細分化
             ||
-            tooltip.near: center-right
+            tooltip.near: top-right
           }
 
           analysis.functional -> modeling.domain_model
@@ -257,6 +267,7 @@ dev: {
           hierarchy.epic -> hierarchy.feature
           hierarchy.feature -> hierarchy.story
           hierarchy.epic -> hierarchy.epic-relation
+          hierarchy.feature -> hierarchy.epic-relation
         }
 
         output: アウトプット {
