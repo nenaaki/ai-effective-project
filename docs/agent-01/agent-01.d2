@@ -86,7 +86,11 @@ classes: {
   }
 }
 
-grid-rows: 2
+grid-rows: 3
+
+description: ||md
+  # spec駆動開発(設計～実装・単体テスト)の効果分析
+  ||
 
 agents: spec駆動開発 {
   direction: right
@@ -96,12 +100,11 @@ agents: spec駆動開発 {
       # spec駆動開発の効果の計算(凡例)
       - 効果のレベルを5種類に区別する
         - **省略** : AIエージェントの導入により、省略される工程( **工数削減: 100%** )
-        - **AI(要レビュー)** : AIエージェントの導入により、レビューのみとなる工程( **工数削減: 90%**)
+        - **AI(要レビュー)** : AIエージェントの導入により、成果物に対するレビューのみ必要となるもの( **工数削減: 90%**)
         - **AI(対話)** : AIエージェントの導入により、エンジニアの手作業をほぼ肩代わりできるもの( **工数削減: 80%** )
         - **AI(一部手作業)** : AIエージェントの導入により、手作業はなくならないが工数を削減できるもの( **工数削減: 50%** )
         - (記載せず) : AIエージェント・AIアシスタントを導入してもエンジニアの工数が削減できないもの( **工数削減: 0%** )
       ||
-
   }
 
   # 人間系
@@ -196,15 +199,9 @@ dev: {
     }
   }
   requirement.definition -> specification.backlog: "ユーザーストーリーの構築"
-  requirement.definition -> specification.domain-model: "ドメイン分析"
   specification: {
     direction: right
     label: "仕様定義"
-    description: ||md
-      - エピック、またはストーリーのレベルまでは人間の手で作成する必要がある
-      - AIによる開発速度の向上により、一部の「エピック」は1イテレーションで実装できる「ストーリー」となる
-      - AIのためのタスクに分割し、エージェントに割り当てるのは **AI planner** の作業となる
-    ||
 
     backlog: "プロダクトバックログ" {
       direction: down
@@ -213,8 +210,19 @@ dev: {
         label: "ストーリー"
       }
       feature: "フィーチャー"
+      epic -> story
+      story -> feature
     }
-    domain-model: "ドメインモデル"
+    domain-model: {
+      label: "ドメインモデル"
+      class: ai-effective-weak
+    }
+    integration-test-design: {
+      label: "結合テスト設計"
+      class: ai-effective-weak
+    }
+    backlog -> integration-test-design
+    backlog -> domain-model
   }
 
   specification.domain-model -> design.model: 具体化
@@ -242,24 +250,27 @@ dev: {
     }
 
     task: {
-      label: "タスク"
-      class: ai-effective
-      cost-cut: {
-        class: cost-cut
-        description: ||md
-          ## 対象となる作業
-          - エピック、ストーリー、フィーチャーを個別のタスクにする
-            - 従来 : 担当エンジニアへの割り当て
-              - タスクをチケット化する
-            - 変化 : AIエージェントに向けたタスクとして切り出す
-              - リポジトリ上に一時的に出力して、タスクを終えたら削除する
-              - 永続的な文書はチケットに残す
-          ## 定量的に削減できる工数
-          | 項目 | 工数割合 | 削減効果 |
-          |-|-|-|
-          | 省略 | 100% | 100% |
-          | **割合×工数への影響の合計** | 100% | **100%減** |
-        ||
+      label: "設計・実装タスク管理"
+      task-detailed: {
+        label: "タスク"
+        class: ai-effective
+        cost-cut: {
+          class: cost-cut
+          description: ||md
+            ## 対象となる作業
+            - エピック、ストーリー、フィーチャーを個別のタスクにする
+              - 従来 : 担当エンジニアへの割り当て
+                - タスクをチケット化する
+              - 変化 : AIエージェントに向けたタスクとして切り出す
+                - リポジトリ上に一時的に出力して、タスクを終えたら削除する
+                - 永続的な文書はチケットに残す
+            ## 定量的に削減できる工数
+            | 項目 | 工数割合 | 削減効果 |
+            |-|-|-|
+            | 省略 | 100% | 100% |
+            | **割合×工数への影響の合計** | 100% | **100%減** |
+          ||
+        }
       }
     } 
     task -> frontend
@@ -672,17 +683,34 @@ dev: {
   integration-test: {
     label: "結合テスト"
     direction: right
-    "ユーザーフローのE2Eテスト"
-    "API連携のE2Eテスト"
-    "クロスブラウザテスト"
-
-    black-box: "ブラックボックステスト"
-    scenario: "シナリオテスト"
-    contract: "契約テスト"
-    staging: "ステージング環境テスト"
+    user-flow-e2e: {
+      label: "ユーザーフローのE2Eテスト"
+      class: ai-effective
+    }
+    contract: {
+      label: "契約テスト(サービス間API通信)"
+      class: ai-effective
+    }
+    cross-browser: {
+      label: "クロスブラウザテスト"
+      class: ai-effective-weak
+    }
+    black-box: {
+      label: "ブラックボックステスト\nモンキーテストなど"
+      class: ai-effective-weak
+    }
+    scenario: {
+      label: "シナリオテスト"
+      class: ai-effective-weak
+    } 
+    staging: {
+      label: "ステージング環境テスト"
+      class: ai-effective-weak
+    }
 
     security-review {
       label: "セキュリティレビュー"
+      class: ai-effective-weak
     }
   }
   ops {
