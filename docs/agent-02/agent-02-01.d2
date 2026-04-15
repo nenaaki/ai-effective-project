@@ -1,60 +1,105 @@
-memo: ||md
-  ### この後の作業メモ(4/15) 
-  - 要件から設計の前
-    - 詳細化（ユースケース）
-    - 見積もりを出すために必要な情報
-  - 推奨体制・人材（新人の場所）
-  - 機能種別と序列
-  - 品質・デリバリーのチェックポイント(QCDのQD)
-||
+input: インプット {
+  auth: 権限
+  use-case: ユースケース
+  scale: システム規模 (データ量/負荷)
+  budget: 予算制約
+}
 
-requirement: {
-  label: "要求/要件定義"
-  development {
-    label: "要求開発"
+definition: 要件定義プロセス {
+  analysis: 要求分析 {
+    functional: 機能要件
+    non_functional: 非機能要件 (AI性能/SLO含む)
   }
-  management {
-    label: "要求管理"
+
+  modeling: AI最適化モデル設計 {
+    domain_model: ドメインモデル (Schema/Context重視)
+    tooltip: ||md
+      AIがコード生成しやすい明確なデータ構造定義
+    ||
+    tooltip.near: center-right
   }
-  definition: {
-    direction: right
-    label: "要件定義"
-    functional {
-      label: "機能要件"
+
+  hierarchy: 構造化 (AI-Ready) {
+    epic: {
+      label: ""
+      description: ||md
+        ### エピック (Epic)
+        - これ以上細分化不可能な機能
+      ||
     }
-    non-functional {
-      label: "非機能要件"
+    feature: フィーチャー (Feature)
+    story: ユーザーストーリー (AI Implementation Unit)
+    epic-relation: {
+      label: ""
+      description: ||md
+        ### エピック依存関係
+        - 循環しない
+        - ダイヤモンド依存はOK"
+      ||
     }
-    prioritization {
-      label: "優先順位の決定"
-    }
-    validation {
-      label: "検証"
-    }
+
+    tooltip: ||md
+      AIが一度に生成・テスト可能な粒度に細分化
+    ||
+    tooltip.near: center-right
+  }
+
+  analysis.functional -> modeling.domain_model
+  modeling.domain_model -> hierarchy.epic
+  hierarchy.epic -> hierarchy.feature
+  hierarchy.feature -> hierarchy.story
+  hierarchy.epic -> hierarchy.epic-relation
+}
+
+output: アウトプット {
+  estimation: 見積書 (AI効率化反映)
+  priority: 実装優先順位
+  it_design: 結合テスト設計 (自動化前提)
+}
+
+# 接続関係
+input.auth -> definition.analysis.functional
+input.use-case -> definition.analysis.functional
+
+# 規模は非機能要件(負荷・パフォーマンス)に直結
+input.scale -> definition.analysis.non_functional
+input.scale -> output.estimation
+
+# 予算は見積に直結
+input.budget -> output.estimation
+
+definition.analysis.non_functional -> output.it_design
+definition.hierarchy.story -> output.priority
+definition.hierarchy.epic-relation -> output.estimation
+definition.modeling.domain_model -> output.it_design
+
+# AI駆動の影響線 (カスタム関係)
+definition.modeling.domain_model -> definition.hierarchy.story: AI用コンテキスト提供
+
+# スタイリング
+input: {
+  style: {
+    fill: "#e1f5fe"
   }
 }
-requirement.definition -> specification.backlog: "ユーザーストーリーの構築"
-specification: {
-  label: "仕様定義"
+definition: {
+  style: {
+    fill: "#fff3e0"
+  }
+}
+output: {
+  style: {
+    fill: "#e8f5e9"
+  }
+}
 
-  backlog: "プロダクトバックログ" {
-    direction: down
-    epic: "エピック"
-    story: {
-      label: "ストーリー"
-    }
-    feature: "フィーチャー"
-    epic -> story
-    story -> feature
-  }
-  domain-model: {
-    label: "ドメインモデル"
-    class: ai-effective-weak
-  }
-  integration-test-design: {
-    label: "結合テスト設計"
-    class: ai-effective-weak
-  }
-  backlog -> integration-test-design
-  backlog -> domain-model
+# 補足説明
+explanation: AI駆動開発のポイント {
+  text: ||md
+    ### AI駆動開発での変化
+    - **規模と非機能要件**: 負荷(scale)が非機能要件(応答性・インフラ構成)を規定し、それがAI活用の見積りに影響します。
+    - **AI最適化モデル**: ドメインモデルは、AIがコードを生成する際の「設計図」としてより厳密な型定義やスキーマが求められます。
+    - **エピック/ストーリー**: AIがコンテキストを保持できるサイズ(トークン制限内)でタスクを分割する思想が加わります。
+    - **見積**: AIによる生産性向上を織り込んだ工数算出が必要です。
+  ||
 }
