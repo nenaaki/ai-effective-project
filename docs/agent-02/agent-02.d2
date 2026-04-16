@@ -215,8 +215,10 @@ dev: {
             domain_model: {
               label: ""
               description: ||md
-                ### ドメインモデル (Schema/Context重視)
+                ## ドメインモデル
                 - AIがコード生成しやすい明確なデータ構造定義
+                  - Schema化しやすい表現
+                  - Context重視
               ||
             }
           }
@@ -225,7 +227,7 @@ dev: {
             epic: {
               label: ""
               description: ||md
-                ### エピック (Epic)
+                ## エピック (Epic)
                 - 大きな構想・テーマ
                 - ビジネス面の目標となる機能群
               ||
@@ -233,21 +235,9 @@ dev: {
             feature: {
               label: ""
               description: ||md
-                ### フィーチャー (Feature)
+                ## フィーチャー (Feature)
                 - 具体的な機能
                 - ユーザーに意味がある単一の機能
-              ||
-            }
-            story: {
-              label: ""
-              description: ||md
-                ### ユーザーストーリー (AI Implementation Unit)
-                - 最小の作業単位
-              ||
-            }
-            epic-relation: {
-              label: ""
-              description: ||md
                 ### 依存関係
                 - 循環しない
                 - ダイヤモンド依存は許容
@@ -255,9 +245,16 @@ dev: {
                 - 見積もり作成
               ||
             }
+            story: {
+              label: ""
+              description: ||md
+                ## ユーザーストーリー (AI Implementation Unit)
+                - 最小の作業単位
+              ||
+            }
 
             tooltip: ||md
-              AIが一度に生成・テスト可能な粒度に細分化
+              AIが一度に生成・テスト<br />可能な粒度に細分化
             ||
             tooltip.near: top-right
           }
@@ -266,14 +263,34 @@ dev: {
           modeling.domain_model -> hierarchy.epic
           hierarchy.epic -> hierarchy.feature
           hierarchy.feature -> hierarchy.story
-          hierarchy.epic -> hierarchy.epic-relation
-          hierarchy.feature -> hierarchy.epic-relation
         }
 
         output: アウトプット {
-          estimation: 見積書 (AI効率化反映)
-          priority: 実装優先順位
-          it_design: 結合テスト設計 (自動化前提)
+          estimation: {
+            label: ""
+            description: ||md
+              ## 見積書(AI駆動を反映した工数)
+              - 人員(スキル、ベテランの必要人数、初級者の許容人数)
+              - 納期・工数
+              - (AIの運用費)
+            ||
+          }
+          priority: {
+            label: ""
+            description: ||md
+              ## 実装優先順位
+              - エピック、フィーチャーの依存から見える優先順位
+              - 顧客要望とのすり合わせができる範囲
+            ||
+          }
+          it_design: {
+            label: ""
+            description: ||md
+              ## 結合テスト設計
+              - テスト自動化
+              - 品質確認のために手作業で確認を行う範囲
+            ||
+          }
         }
 
         # 接続関係
@@ -288,8 +305,8 @@ dev: {
         input.budget -> output.estimation
 
         definition.analysis.non_functional -> output.it_design
-        definition.hierarchy.story -> output.priority
-        definition.hierarchy.epic-relation -> output.estimation
+        definition.hierarchy -> output.priority
+        definition.hierarchy.feature -> output.estimation
         definition.modeling.domain_model -> output.it_design
 
         # AI駆動の影響線 (カスタム関係)
@@ -325,7 +342,8 @@ dev: {
       ||
     }
   }
-
+  specification.detail.ipo.definition.hierarchy -> design.task: タスク化
+  specification.detail.ipo.definition.modeling -> design.model: データモデル化
   design: {
     direction: right
     label: "設計"
@@ -352,6 +370,8 @@ dev: {
       task-detailed: {
         label: "タスク"
         class: ai-effective
+        tooltip: "自動化👑"
+        tooltip.near: top-right
         cost-cut: {
           class: cost-cut
           description: ||md
