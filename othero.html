@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>URL Othello</title>
+    <style>
+        body { font-family: monospace; background: #222; color: #fff; text-align: center; }
+        table { margin: 20px auto; border-collapse: collapse; background: #2e7d32; }
+        td { width: 40px; height: 40px; border: 1px solid #1b5e20; padding: 0; }
+        a { display: block; width: 100%; height: 100%; text-decoration: none; line-height: 40px; }
+        .B { background: #000; border-radius: 50%; width: 34px; height: 34px; margin: 3px; }
+        .W { background: #fff; border-radius: 50%; width: 34px; height: 34px; margin: 3px; }
+        .valid { background: rgba(255,255,255,0.1); }
+        .valid:hover { background: rgba(255,255,255,0.3); }
+        .info { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h2 id="turn"></h2>
+    <table id="board"></table>
+    <div class="info">
+        <div id="status"></div>
+        <a id="pass-link" style="display:none; color: #ffab00;">[ パスする ]</a>
+        <br><br>
+        <a href="?" style="color: #aaa;">[ リセット ]</a>
+    </div>
+
+<script>
+// URLセーフな64進法 (0-63)
+const CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+const PASS_CHAR = "~";
+
+const params = new URLSearchParams(window.location.search);
+const moveHistory = params.get('m') || "";
+
+// 盤面初期化 (0:空, 1:黒, 2:白)
+let board = Array(64).fill(0);
+board[27] = 2; board[28] = 1; board[35] = 1; board[36] = 2; // d4, e4, d5, e5
+
+let turn = 1; // 1:黒, 2:白
+
+// 履歴から盤面を再現
+function applyMoves() {
+    for (let char of moveHistory) {
+        if (char === PASS_CHAR) {
+            turn = 3 - turn;
+            continue;
+        }
+        const pos = CHARS.indexOf(char);
+        const flips = getFlips(pos, turn);
+        if (flips.length > 0) {
+            board[pos] = turn;
+            flips.forEach(p => board[p] = turn);
+            turn = 3 - turn;
+        }
+    }
+}
+
+function getFlips(pos, color) {
+    if (board[pos] !== 0) return [];
+    const opp = 3 - color;
+    const directions = [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
+    let allFlips = [];
+    const r = Math.floor(pos / 8), c = pos % 8;
+
+    for (let [dr, dc] of directions) {
+        let path = [];
+        let nr = r + dr, nc = c + dc;
+        while (nr >= 0 && nr < 8 && nc >= 0 && nc < 8 && board[nr * 8 + nc] === opp) {
+            path.push(nr * 8 + nc);
+            nr += dr; nc += dc;
+        }
+        if (path.length > 0 && nr >= 0 && nr < 8 && nc >= 0 && nc < 8 && board[nr * 8 + nc] === color) {
+            allFlips.push(...path);
+        }
+    }
+    return allFlips;
+}
+
+function render() {
+    const table = document.getElementById('board');
+    const validMoves = [];
+    for (let i = 0; i < 64; i++) {
+        if (getFlips(i, turn).length > 0) validMoves.push(i);
+    }
+
+    for (let r = 0; r < 8; r++) {
+        const tr = document.createElement('tr');
+        for (let c = 0; c < 8; c++) {
+            const td = document.createElement('td');
+            const pos = r * 8 + c;
+            if (board[pos] !== 0) {
+                const piece = document.createElement('div');
+                piece.className = board[pos] === 1 ? 'B' : 'W';
+                td.appendChild(piece);
+            } else if (validMoves.includes(pos)) {
+                const a = document.createElement('a');
+                a.className = 'valid';
+                a.href = `?m=${moveHistory + CHARS[pos]}`;
+                td.appendChild(a);
+            }
+            tr.appendChild(td);
+        }
+        table.appendChild(tr);
+    }
+
+    document.getElementById('turn').innerText = turn === 1 ? "黒の番 (Black)" : "白の番 (White)";
+    const bCount = board.filter(x => x === 1).length;
+    const wCount = board.filter(x => x === 2).length;
+    document.getElementById('status').innerText = `Black: ${bCount} | White: ${wCount}`;
+
+    if (validMoves.length === 0 && moveHistory.length < 64) {
+        const passLink = document.getElementById('pass-link');
+        passLink.style.display = 'inline';
+        passLink.href = `?m=${moveHistory + PASS_CHAR}`;
+        if (moveHistory.endsWith(PASS_CHAR)) {
+            document.getElementById('turn').innerText = "終局 (Game Over)";
+            passLink.style.display = 'none';
+        }
+    }
+}
+
+applyMoves();
+render();
+</script>
+</body>
+</html>
