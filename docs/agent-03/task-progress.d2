@@ -162,7 +162,7 @@ develop {
           - データモデル検査
           ### 出力
           - UX設計図
-          - 画面が扱う情報
+          - 画面が扱う情報のまとめ
         ||
       }
     }
@@ -239,7 +239,7 @@ develop {
       class: task
       label: ""
       description: ||md
-        ## 画面設計
+        ## フロントエンド設計
         ### 入力
         - DTO
         - API
@@ -280,13 +280,13 @@ develop {
       }
     }
     design -> component: "DTO(一部)、機能(一部)"
-    design -> implementation: "DTO、API、コンポーネント"
-    component -> implementation: "画面パーツ"
+    design -> implementation: "DTO、API"
+    component -> implementation: "コンポーネント"
     implementation: {
       class: task
       label: ""
       description: ||md
-        ## 画面実装
+        ## フロントエンド実装
         ### 入力
         - 
       ||
