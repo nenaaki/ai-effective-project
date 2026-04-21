@@ -1,7 +1,7 @@
 classes {
   task: {
-    icon: "https://icons.terrastruct.com/essentials%2F263-notepad.svg"
-    icon.near: outside-top-right
+    tooltip: "📝"
+    tooltip.near: top-right
     style: {
       fill: white
     }
@@ -15,32 +15,59 @@ classes {
   }
 }
 
-legend: {
-  label: "凡例"
-  style {
+grid {
+  grid-rows: 3
+  label: ""
+  style: {
     fill: white
+    stroke-width: 0
   }
-  task: {
-    class: task
+  near: center-left
+
+  pm: {
     label: ""
     description: ||md
-      ## タスク
+      ## プロジェクト管理者
+      - プロジェクト管理の方法は変化しません。
+      - 従来通りBacklog等のタスクのWBSの状況がそのままの進捗状況となります。
     ||
-    sdd: {
-      class: sdd
-      label: "spec駆動開発で変化する範囲"
+  }
+
+  legend: {
+    label: "凡例"
+    style {
+      fill: white
+    }
+    task: {
+      class: task
+      label: ""
+      description: ||md
+        ## タスク
+      ||
+      sdd: {
+        class: sdd
+        label: "spec駆動開発で変化する範囲"
+      }
     }
   }
-}
 
-pm: {
-  label: ""
-  description: ||md
-    ## プロジェクト管理者
-    - プロジェクト管理の方法は変化しません。
-    - 従来通りBacklog等のタスクのWBSの状況がそのままの進捗状況となります。
+  task-creation: ||md
+    ## 1つの画面・機能に対するタスクの区切り方
+    **全体としてモデルファーストでタスクを消化します**<br />
+    (AI作業の手戻りや試行錯誤を減らすために必要です)
+    - データモデルの設計・実装
+      - DBスキーマ
+      - DTO、バリデーション
+    - フロントエンド
+      - 設計
+      - 実装
+    - バックエンド(API)設計・実装
+    
+    機能の規模によっては、タスクをまとめるor分割することはOK
   ||
 }
+
+
 
 start: {
   label: "開発開始"
@@ -95,24 +122,10 @@ parent-tasks {
 parent-tasks.task -> data-model-design
 requirement-list.implementation-environment -> parent-tasks.setup
 
+
 data-model-design: {
   class: task
   label: ""
-  tooltip: ||md
-    ## 1つの画面・機能に対するタスクの区切り方
-    **全体としてモデルファーストでタスクを消化します**<br />
-    (AI作業の手戻りや試行錯誤を減らすために必要です)
-    - データモデルの設計・実装
-      - DBスキーマ
-      - DTO、バリデーション
-    - フロントエンド
-      - 設計
-      - 実装
-    - バックエンド(API)設計・実装
-    
-    機能の規模によっては、タスクをまとめるor分割することはOK
-  ||
-  tooltip.near: center-left
   description: ||md
     ## データモデルの設計・実装
     > **エンジニアとAIが対話してデータ構造を決定する**タスクです。<br />
