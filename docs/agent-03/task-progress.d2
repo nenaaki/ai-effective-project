@@ -1,0 +1,197 @@
+classes {
+  task: {
+    icon: "../../images/task.svg"
+    icon.near: outside-top-right
+    style: {
+      fill: white
+    }
+    grid-rows: 2
+    grid-gap: 8
+  }
+  sdd: {
+    style: {
+      fill: "#ddffdd"
+    }
+  }
+}
+
+legend: {
+  label: "凡例"
+  style {
+    fill: white
+  }
+  task: {
+    class: task
+    label: ""
+    description: ||md
+      ## タスク
+    ||
+    sdd: {
+      class: sdd
+      label: "spec駆動開発で変化する範囲"
+    }
+  }
+}
+
+pm: {
+  label: ""
+  description: ||md
+    ## プロジェクト管理者
+    - プロジェクト管理の方法は変化しません。
+    - 従来通りBacklog等のタスクのWBSの状況がそのままの進捗状況となります。
+  ||
+}
+
+start: {
+  label: "開発開始"
+  shape: circle
+}
+
+start -> parent-tasks
+
+requirement-list {
+  label: "要件一覧・仕様一覧"
+  view: "画面"
+  function: "機能"
+  implementation-environment: "実装環境"
+  requirement1: "..."
+  requirement2: "..."
+}
+
+requirement-list -> parent-tasks 
+requirement-list.view -> parent-tasks.task
+requirement-list.function -> parent-tasks.task
+parent-tasks {
+  label: "親タスク群"
+  setup: {
+    label: ""
+    class: task
+    grid-rows: 2
+    grid-gap: 8
+    description: ||md
+      ## 開発環境の立ち上げ
+      案件に合わせた開発環境を構築します。
+    ||
+    setup-sdd {
+      label: ""
+      class: sdd
+      description: ||md
+        ## spec駆動開発環境
+        - spec駆動開発ファイル群を組み込みます。
+          - skills/agents/mcpなどの設定します。
+        - CLAUDE.mdをプロジェクトに合わせて書き換えます。
+      ||
+    }
+  }
+
+  task: {
+    label: "画面・機能"
+    class: task
+  }
+  task1: "..." { class: task }
+  task2: "..." { class: task }
+}
+
+parent-tasks.task -> data-model-design
+requirement-list.implementation-environment -> parent-tasks.setup
+
+data-model-design: {
+  class: task
+  label: ""
+  tooltip: ||md
+    ## 1つの画面・機能に対するタスクの区切り方
+    **全体としてモデルファーストでタスクを消化します**<br />
+    (AI作業の手戻りや試行錯誤を減らすために必要です)
+    - データモデルの設計・実装
+      - DBスキーマ
+      - DTO、バリデーション
+    - フロントエンド
+      - 設計
+      - 実装
+    - バックエンド(API)設計・実装
+    
+    機能の規模によっては、タスクをまとめるor分割することはOK
+  ||
+  tooltip.near: center-left
+  description: ||md
+    ## データモデルの設計・実装
+    > **エンジニアとAIが対話してデータ構造を決定する**タスクです。<br />
+    > 同じデータを扱う複数の画面があるはずです。<br />
+    > 関連する画面の最初の1つを作るときに、データモデルの設計を行います。<br />
+    > 以降の工程をAI自動化するために必要な手順です。
+
+    ### 入力
+    - データの名称(例えばCustomer、Employee)
+      - フィールドの詳細
+        - 上限値・下限値
+        - 最大長
+        - NULL許容などを定める
+      - 論理削除型 or 物理削除型
+      - リレーションとカスケード削除
+  ||
+  output {
+    class: sdd
+    label: ""
+    description: ||md
+      ### 処理
+      - AIによるスキーマ設計
+      ### 出力
+      - 仕様(且つ実装)として保存
+        - DBのスキーマを決定(schema.prismaなど)
+        - DTOとバリデーションの決定(Zod、schema.graphqlなど)
+    ||
+  }  
+}
+
+data-model-design -> api-design-implementation: "DTO、DBスキーマ"
+data-model-design -> frontend-design: "DTO"
+frontend-design -> frontend-implementation: "DTO、API"
+api-design-implementation -> frontend-design: "API"
+
+data-model-design -> db-migration: "DBスキーマ"
+api-design-implementation -> db-migration: "完了"
+db-migration {
+  class: task
+  label: ""
+  description: ||md
+    ## DBマイグレーション
+  ||
+}
+api-design-implementation: {
+  class: task
+  label: ""
+  description: ||md
+    ## API設計・実装
+    - 入力
+      - DTO
+      - スキーマ
+  ||
+  sdd: {
+    label: ""
+    class: sdd
+    description: ||md
+      - 処理
+        - API設計
+        - テスト設計
+      - 出力
+        - リゾルバーの実装
+        - サービスの実装
+        - ユニットテストコード
+    ||
+  }
+}
+
+frontend-design: {
+  class: task
+  label: ""
+  description: ||md
+    ## 画面設計
+  ||
+}
+frontend-implementation: {
+  class: task
+  label: ""
+  description: ||md
+    ## 画面実装
+  ||
+}
