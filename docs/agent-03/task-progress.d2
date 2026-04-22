@@ -15,7 +15,7 @@ classes {
     }
   }
   task: {
-    icon: "https://icons.terrastruct.com/essentials%2F263-notepad.svg"
+    icon: "./list-check-solid-full.svg"
     icon.near: top-right
     style: {
       fill: white
@@ -92,17 +92,58 @@ develop {
 
   start -> parent-tasks
 
-  requirement-list {
+  requirements {
     label: "要件一覧・仕様一覧"
-    requirement: "画面・機能"
-    implementation-environment: "実装環境"
-    requirement1: "画面・機能..." { style.multiple: true }
+    agreement {
+      class: dash
+      label: "お客様と合意済みのもの"
+      excel {
+        label: "データ構造資料\n(エクセルファイルなど)"
+        icon: "https://res-1.cdn.office.net/files/fabric-cdn-prod_20251008.001/assets/brand-icons/product/svg/excel_48x1.svg"
+      }
+      power-point {
+        label: "ラフスケッチ\n(パワーポイントなど)"
+        icon: "https://res-1.cdn.office.net/files/fabric-cdn-prod_20251008.001/assets/brand-icons/product/svg/powerpoint_48x1.svg"
+      }
+    }
+    requirement: {
+      grid-columns: 2
+      label: "内部文書"
+      backlog: {
+        label: ""
+        shape: image
+        icon: "https://backlog.com/app/themes/backlog-child/assets/img/common/logo/logo_backlog.svg"
+      }
+      markdown: {
+        label: ""
+        shape: image
+        icon: "./markdown-brands-solid-full.svg"
+      }
+      environment: ||md
+      ## エンジニアが事前考慮した情報群
+      - 開発環境
+        - フレームワーク
+        - 言語
+      - 運用環境
+        - インフラ
+        - セキュリティ
+      ||
+    }
   }
 
-  requirement-list.requirement -> parent-tasks.task
-  requirement-list.requirement1 -> parent-tasks.task1
+  ai-process {
+      icon: "./claudecode-color.svg"
+      label: "AIによる分析\n(Claude Code)"
+  }
+  requirements.agreement.excel -> ai-process
+  requirements.agreement.power-point -> ai-process
+  requirements.requirement -> ai-process
+
+  ai-process -> parent-tasks.task
   parent-tasks {
     label: "親タスク群"
+    icon: "https://backlog.com/app/themes/backlog-child/assets/img/common/logo/logo_backlog.svg"
+    icon.near: top-left
     setup: {
       label: ""
       class: task
@@ -127,15 +168,11 @@ develop {
     task: {
       label: "親タスク(画面・機能)\nエピック or フィーチャー"
       class: task
-    }
-    task1: { 
-      label: "親タスク..."
-      class: task
       style.multiple: true
     }
   }
 
-  requirement-list.implementation-environment -> parent-tasks.setup
+  requirements.requirement -> parent-tasks.setup
 
   design: {
     class: dash
