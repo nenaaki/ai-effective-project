@@ -82,16 +82,23 @@ develop {
       class: dash
       label: "お客様と合意済みのもの"
       excel {
-        label: "データ構造資料\n(エクセルファイルなど)"
+        class: blank
+        label: "データ構造資料"
         icon: "https://res-1.cdn.office.net/files/fabric-cdn-prod_20251008.001/assets/brand-icons/product/svg/excel_48x1.svg"
       }
       power-point {
-        label: "ラフスケッチ\n(パワーポイントなど)"
+        class: blank
+        label: "ラフスケッチ"
         icon: "https://res-1.cdn.office.net/files/fabric-cdn-prod_20251008.001/assets/brand-icons/product/svg/powerpoint_48x1.svg"
+      }
+      design {
+        class: blank
+        label: "機能一覧"
+        icon: "https://res-1.cdn.office.net/files/fabric-cdn-prod_20251008.001/assets/brand-icons/product/svg/excel_48x1.svg"
       }
     }
     requirement: {
-      grid-columns: 2
+      grid-columns: 3
       label: "内部文書"
       backlog: {
         label: ""
@@ -112,6 +119,11 @@ develop {
         - インフラ
         - セキュリティ
       ||
+      api {
+        class: blank
+        label: "API・認証認可資料"
+        icon: "https://res-1.cdn.office.net/files/fabric-cdn-prod_20251008.001/assets/brand-icons/product/svg/excel_48x1.svg"
+      }
     }
   }
 
@@ -119,9 +131,10 @@ develop {
       icon: "./claudecode-color.svg"
       label: "AIによる分析\n(Claude Code)"
   }
-  requirements.agreement.excel -> ai-process
-  requirements.agreement.power-point -> ai-process
-  requirements.requirement -> ai-process
+  requirements.agreement.excel -> ai-process: MarkItDownによる変換
+  requirements.agreement.power-point -> ai-process: MarkItDownによる変換
+  requirements.agreement.design -> ai-process: MarkItDownによる変換
+  requirements.requirement -> ai-process: 必要に応じて\nMarkItDownによる変換
 
   ai-process -> parent-tasks.task
   parent-tasks {
