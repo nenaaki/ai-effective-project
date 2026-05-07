@@ -128,26 +128,51 @@ agents: spec駆動開発 {
     class: spec
   }
 
-  # AI オーケストレーター
-  ai-orchestrator: AI オーケストレーター {
+  # AIエージェント群
+  ai-orchestrator: AIエージェント群 {
     style: {
       fill: "#f8fafc"
     }
-    planner: プランニングAI { class: agent }
-    Coder: {
-      Schemer: データモデルデザインAI { class: agent }
-      Frontend: フロントエンド実装AI { class: agent }
-      Backend: バックエンド実装AI { class: agent }
-    }
-    Tester: テスト実装・実行AI { class: agent }
-    Refiner: リファクタリングAI { class: agent }
 
-    planner -> Coder: タスク分解
-    planner -> Tester: テストシナリオ作成
-    Coder -> Tester: 生成コード
-    Tester -> planner: フィードバック/エラー
-    Tester -> Refiner: 合格
-    Refiner -> Coder: 最適化
+    # 計画フェーズ
+    architect: アーキテクトAI { class: agent }
+    planner: プランナーAI { class: agent }
+
+    # 実行指揮
+    orchestrator: オーケストレーターAI { class: agent }
+
+    # 実装エージェント
+    Coder: 実装エージェント群 {
+      db-architect: DBアーキテクトAI { class: agent }
+      backend: バックエンドAI { class: agent }
+      frontend: フロントエンドAI { class: agent }
+    }
+
+    # レビュー・テスト
+    reviewer: バックエンドレビュワーAI { class: agent }
+    tester: テスターAI { class: agent }
+
+    # 計画フェーズ: 分析 → タスク化
+    architect -> planner: analysis.md
+
+    # 実行フェーズへの引き渡し
+    planner -> orchestrator: 親タスク (Backlog)
+    architect -> orchestrator: analysis.md
+
+    # オーケストレーターによる連鎖呼び出し
+    orchestrator -> Coder: 順次起動
+    orchestrator -> reviewer: レビュー依頼
+    orchestrator -> tester: テスト依頼
+
+    # 実装エージェント間のデータ受け渡し
+    Coder.db-architect -> Coder.backend: schema.prisma
+    Coder.backend -> Coder.frontend: API / DTO
+
+    # レビュー・テストループ
+    Coder.backend -> reviewer: 実装コード
+    reviewer -> Coder.backend: 指摘・差戻し
+    Coder -> tester: 実装一式
+    tester -> orchestrator: 結果 / 不具合レポート
   }
 
   # アウトプット (CI/CD)
