@@ -50,15 +50,31 @@ classes {
 grid-columns: 2
 
 grid {
-  grid-rows: 3
+  grid-rows: 4
   class: blank
+
+  agenda: {
+    label: ""
+    description: ||md
+      ## このフローの要点
+      - **AI駆動** (spec駆動) と **AI支援** (エンジニア主導) を変更内容に応じて使い分ける
+      - **8 AIエージェント** で役割分担 (タスク管理 / 実行指揮 / 分析 / DB / バックエンド / レビュー / フロント / テスト)
+      - **1親タスク = 1 PR**、子タスクは Backlog に上げず `plan.md` でローカル管理
+      - **schema.prisma** を中心に「仕様 = 実装」の連鎖を作る
+      - 標準 Skill: **`/plan-feature` → `/run-feature`** で人間介入を最小化 (起動とPRレビューのみ)
+          - 変更対応や不具合対応は、アーキテクトAIの分析結果が適切に落ち着くかで AI駆動 / AI支援 を選択する
+          - アーキテクトAIの分析が落ち着かない場合はエンジニアがスコープを切って専門AIに指示するか、手動で実装する
+    ||
+  }
 
   pm: {
     label: ""
     description: ||md
-      ## プロジェクト管理者
+      ## プロジェクト管理者の視点
       - プロジェクト管理の方法は変化しません。
       - 従来通りBacklog等のタスクのWBSの状況がそのままの進捗状況となります。
+      - 初期のタスクはプランナーAIが起票します。
+      - 変更管理のタスクはエンジニアが起票します。
     ||
   }
 
@@ -103,6 +119,24 @@ grid {
         - 粒度・順序を整えた **子タスク群**
         - チケット起票・関連付け
         - WBS上の進捗状態
+      ||
+    }
+
+    orchestrator: {
+      label: "オーケストレーターAI"
+      class: agent
+      description: ||md
+        **役割**: 実行指揮・連鎖実行
+        ### 入力
+        - 親タスク(Backlog)
+        - アーキテクトAIの分析結果
+        - 各専門AIの成果物(順次取得)
+        ### 出力
+        - **plan.md** (作業計画 + 進捗チェック)
+        - 専門AI への連鎖呼び出し
+        - PR ドラフト (結果サマリ付き)
+        ### 介入ポイント
+        - エラー時のみエンジニアへ報告 (リトライ/差戻しは事前ルール)
       ||
     }
 
@@ -190,43 +224,97 @@ grid {
       ||
     }
   }
+
+  operations: {
+    label: "運用パターン (skill / コマンド化)"
+    grid-rows: 2
+    grid-gap: 12
+
+    planning-skill: {
+      shape: page
+      label: "/plan-feature <task-id>"
+      style.fill: "#fff8e1"
+      description: ||md
+        ## プランニング Skill
+        **対象**: 通常開発の新機能 (変更管理ではない)
+
+        ### 内部フロー (ファイル媒介の順次実行)
+        1. **architect サブエージェント** 起動
+            - 入力: Backlog 親タスク仕様 + 顧客文書 + 内部文書
+            - 出力: `.work/<task-id>/analysis.md`
+            (責務分析・影響範囲・整合チェック・技術選定)
+        2. **planner サブエージェント** 起動 (analysis.md を渡す)
+            - 出力: 親タスク提案 (Markdown、まだ起票しない)
+        3. エンジニアが提案をレビュー → 承認
+        4. **planner** が Backlog API で親タスク群を起票
+
+        ### 介入ポイント
+        - レビュー承認 (Step 3)
+        - 抜け漏れ等で **architect への追加分析が必要な時のみ往復**
+
+        ### 重要決定の保存
+        - アーキ判断のうち恒久価値があるものは
+          `docs/adr/<連番>-<タイトル>.md` に書き出す (architect 判断)
+      ||
+    }
+
+    implementation-skill: {
+      shape: page
+      label: "/run-feature <task-id>"
+      style.fill: "#e3f2fd"
+      description: ||md
+        ## オーケストレーション Skill
+        **対象**: Backlog 親タスク → PR ドラフトまで
+
+        ### 内部フロー (orchestrator が司令)
+        1. **orchestrator** が `.work/<task-id>/plan.md` を作成
+          (analysis.md を読み込み、実装手順をチェックリスト化)
+        2. **db-architect** → schema.prisma 更新
+        3. **backend** → DTO/GraphQL/API 実装 (schema.prisma 参照)
+        4. **backend-reviewer** → 直前変更レビュー
+        5. **frontend** → 画面実装 (DTO 参照)
+        6. **tester** → 統合・E2E テスト
+        7. plan.md の進捗チェックを順次更新
+        8. 完了で **PR ドラフト作成** (description は plan.md から生成)
+        9. PR merge を契機に Backlog 親タスクを自動 close
+
+        ### 介入ポイント
+        - 起動時 (`/run-feature CUS-123`)
+        - PR レビュー時
+        - エラー時のみエンジニアへ報告
+
+        ### エラー時の事前ルール (例)
+        - テスト失敗 → 該当AIへ差戻し (最大3回)
+        - 仕様矛盾 → architect に振り戻し → analysis.md 更新
+        - schema 衝突 → エンジニアに即報告
+      ||
+    }
+  }
 }
 
 develop {
   class: blank
 
-  start: {
-    label: "開発開始"
-    shape: circle
-  }
-
-  start -> requirements
-
   requirements {
     label: "要件一覧・仕様一覧"
     agreement {
       class: dash
-      label: "お客様と合意済みのもの"
-      excel {
-        class: blank
-        label: "データ構造資料"
-        icon: "https://res-1.cdn.office.net/files/fabric-cdn-prod_20251008.001/assets/brand-icons/product/svg/excel_48x1.svg"
-      }
-      power-point {
-        class: blank
-        label: "ラフスケッチ"
-        icon: "https://res-1.cdn.office.net/files/fabric-cdn-prod_20251008.001/assets/brand-icons/product/svg/powerpoint_48x1.svg"
-      }
-      design {
-        class: blank
-        label: "機能一覧"
-        icon: "https://res-1.cdn.office.net/files/fabric-cdn-prod_20251008.001/assets/brand-icons/product/svg/excel_48x1.svg"
-      }
-      management: {
-        label: "変更管理"
+      label: "開発初期にお客様と合意したもの"
+      initial-docs: {
+        label: "初期資料"
         excel {
           class: blank
-          label: ""
+          label: "データ構造資料"
+          icon: "https://res-1.cdn.office.net/files/fabric-cdn-prod_20251008.001/assets/brand-icons/product/svg/excel_48x1.svg"
+        }
+        power-point {
+          class: blank
+          label: "ラフスケッチ"
+          icon: "https://res-1.cdn.office.net/files/fabric-cdn-prod_20251008.001/assets/brand-icons/product/svg/powerpoint_48x1.svg"
+        }
+        design {
+          class: blank
+          label: "機能一覧"
           icon: "https://res-1.cdn.office.net/files/fabric-cdn-prod_20251008.001/assets/brand-icons/product/svg/excel_48x1.svg"
         }
       }
@@ -249,6 +337,11 @@ develop {
         shape: image
         icon: "./images/github-brands-solid-full.svg"
       }
+      api {
+        label: "API・認証認可資料"
+        shape: image
+        icon: "https://res-1.cdn.office.net/files/fabric-cdn-prod_20251008.001/assets/brand-icons/product/svg/excel_48x1.svg"
+      }
       environment: ||md
       ## エンジニアが事前考慮した情報群
       - 開発環境
@@ -258,50 +351,27 @@ develop {
         - インフラ
         - セキュリティ
       ||
-      api {
-        class: blank
-        label: "API・認証認可資料"
+    }
+    change: {
+      label: "仕様変更・追加要件"
+      class: dash
+      management: {
+        label: "変更管理文書"
+        shape: image
         icon: "https://res-1.cdn.office.net/files/fabric-cdn-prod_20251008.001/assets/brand-icons/product/svg/excel_48x1.svg"
+      }
+    }
+    bug-fix: {
+      label: "不具合対応"
+      class: dash
+      management: {
+        label: "不具合修正チケット"
+        shape: image
+        icon: "https://backlog.com/app/themes/backlog-child/assets/img/common/logo/logo_backlog.svg"
       }
     }
   }
 
-  ai-process {
-    icon: "./images/claudecode-color.svg"
-    label: "要件・仕様の分析 → 親タスク化"
-    description: ||md
-      **担当**: アーキテクトAI + プランナーAI
-
-      ### 入力
-      - お客様合意済み資料 (データ構造資料 / ラフスケッチ / 機能一覧 / モックアップ)
-      - 内部文書 (Backlogチケット / wiki / GitHub / API・認証認可資料)
-      - エンジニアが事前考慮した情報群 (開発環境 / 運用環境)
-
-      ### 処理
-      - **アーキテクトAI**
-        - 要件・仕様の読解と整理
-        - 画面・機能の洗い出しと責務分析
-        - 既存実装・ドメインモデルとの整合チェック
-        - 技術選定・実装方針の検討
-        - 影響範囲・依存関係の整理
-      - **プランナーAI**
-        - 画面・機能を親タスク(エピック/フィーチャー)へ分解
-        - 親タスクの粒度・優先順位・順序の調整
-        - Backlog 上のチケット起票と関連付け
-
-      ### 出力
-      - 親タスク群 (画面・機能ごとに1つ)
-      - アーキテクチャ方針メモ
-      - 実装範囲・影響範囲の整理結果
-      - 子タスク起票のための前提情報
-    ||
-  }
-  requirements.agreement.excel -> ai-process: MarkItDownによる変換
-  requirements.agreement.power-point -> ai-process: MarkItDownによる変換
-  requirements.agreement.design -> ai-process: MarkItDownによる変換
-  requirements.requirement -> ai-process: 必要に応じて\nMarkItDownによる変換
-
-  ai-process -> parent-tasks.task
   parent-tasks {
     label: "親タスク群"
     icon: "https://backlog.com/app/themes/backlog-child/assets/img/common/logo/logo_backlog.svg"
@@ -311,12 +381,15 @@ develop {
       class: blank
       description: ||md
         ## タスクの区切り方と消化の仕方
-        - 1つの画面・機能 ≒ 1つの親タスクとします
-        - 子タスクはAIに起票させ、エンジニアが内容を精査して修正を加えます
-        - **「できる限り」モデルファーストでタスクを消化します**
-        - AIはタスクに記載された情報を最も信頼性の高いソースとして処理します
-        - 機能の規模によっては、タスクをまとめるor分割することはOK
-        - AI自動生成が困難なものは、AIアシストによって実施するタスクを作る
+        - **1画面・1機能 ≒ 1親タスク** (Backlog 起票)
+        - **1親タスク = 1 PR** に対応させる
+        - 子タスクは Backlog に上げず、`plan.md` (オーケストレーターAI 管理) で局所的に扱う
+        - 機能規模に応じて親タスクの **統合・分割** は柔軟にOK
+        - AI は **タスク仕様 → analysis.md → plan.md → コード** の順で参照する
+        - **「できる限り」モデルファーストで消化**:
+          - 通常開発 → `/plan-feature` → `/run-feature` で AI 主導
+          - 変更対応 → アーキテクト分析の結果次第で AI駆動 / AI支援 を選択
+        - AI に判断不能な箇所は **エンジニアがスコープを切る** (AI支援タスクへ切替)
       ||
     }
 
@@ -327,7 +400,8 @@ develop {
       grid-gap: 8
       description: ||md
         ## 開発環境の立ち上げ
-        案件に合わせた開発環境を構築します。
+        - 案件に合わせた開発環境を構築します。
+        - **自社標準環境を用いている場合はこの作業は不要です。**
       ||
       setup-sdd {
         label: ""
@@ -347,6 +421,23 @@ develop {
       label: "親タスク(画面・機能)\nエピック or フィーチャー"
       class: task
       style.multiple: true
+      ai-planning: {
+        class: sdd
+        label: "要件・仕様の分析"
+        description: ||md
+          **担当**: アーキテクトAI + プランナーAI<br />
+          **Skill**: `/plan-feature <task-id>` (詳細は運用パターン参照)
+
+          ### 流れ (ファイル媒介の順次実行)
+          - **アーキテクトAI**: 要件読解 → 責務分析 → 整合チェック → 技術選定 → `analysis.md` 出力
+          - **プランナーAI**: `analysis.md` を読んで親タスク提案 → エンジニア承認 → Backlog 起票
+
+          ### 出力
+          - **Backlog 親タスク群** (1画面・1機能 = 1タスク = 1 PR)
+          - `.work/<task-id>/analysis.md` (実装フェーズで専門AI が参照)
+          - `docs/adr/<連番>.md` (恒久価値のあるアーキ判断のみ)
+        ||
+      }
     }
 
     change-task: {
@@ -354,312 +445,230 @@ develop {
       class: task
       style.multiple: true
       description: ||md
-        ## 変更管理から発生するタスク
-        - 変更管理から出てきた仕様は、現時点では **AI駆動ではなく AI支援** で実装します
-        - 既存実装の文脈・影響範囲の把握が必要なため、エンジニア主導で進めます
-        - AIはコード生成・調査・テスト作成などの局所支援に留まります
+        ## 変更対応タスク
+        アーキテクトAI の分析結果が **適切に落ち着くか** で AI駆動 / **AI支援** を選択する。<br />
+        既存資産との整合や影響範囲が複雑で分析だけでは決め切れない時は AI支援 に切り替える。
       ||
       assist: {
         label: ""
         class: assist
         description: ||md
-          ## AI支援で実装
-          ### 進め方
-          - エンジニアが既存実装と仕様差分を読み解き、変更方針・スコープを決定
-          - **アーキテクトAI** が影響範囲分析・整合性チェックを支援
-          - スコープ確定後、専門AIにエンジニアが切り出した局所作業を依頼:
-            - **DBアーキテクトAI**: スキーマ差分・マイグレーション生成
-            - **バックエンドAI**: 該当エンドポイント・サービスの追加/修正
-            - **フロントエンドAI**: 画面・コンポーネントの局所修正
-            - **テスターAI**: 影響範囲のテスト追加・リグレッション確認
-          - プランナーAI は出番が少ない (タスク全体分解の信頼性が落ちるため)
-          ### spec駆動との違い
-          - 仕様→実装をAIに任せきりにしない
-          - 各専門AIは「エンジニアが切り出したスコープ内」で動作
-          - 既存資産との整合性確認が主作業
+          ## 進め方
+          1. エンジニアが変更スコープを決定
+          2. **アーキテクトAI** に仕様書差分を出させる → エンジニアがレビュー
+          3. **分岐判定**:
+             - 分析が適切に落ち着いた → **AI駆動**: オーケストレーション Skill (`/run-feature`) を起動
+             - 落ち着かない → **AI支援**: エンジニアが **専門AI ごとに指示書を書く**<br />
+              (→ develop 層下部の「専門AIへの指示書例」参照)
+          4. 各専門AI が作業を実施
+
+          ### AI支援を選ぶ判断基準
+          アーキテクトAI の分析だけで実装方針が一意に決まらないケース。<br />
+          このとき AI に任せきりにすると、影響範囲の解釈ミスが指示書経由で専門AIに伝播するため、エンジニアがスコープを切って指示する。
         ||
       }
     }
   }
 
-  requirements.agreement.management -> parent-tasks.change-task: "変更仕様"
-  requirements.requirement -> parent-tasks.setup
+  requirements.agreement.initial-docs -> parent-tasks.task: 詳細設計が必要な場合
+  requirements.requirement -> parent-tasks: 参照
+  requirements.change.management -> parent-tasks.change-task: "仕様変更"
+  requirements.bug-fix -> parent-tasks.change-task: "不具合対応"
 
-  design: {
-    class: dash
-    label: "設計"
-    ux: {
+  ux: {
+    label: ""
+    class: task
+    description: ||md
+      ## UX設計
+      > 画面の仕様を固めると同時に、**モックアップ作成** までをここで行います。
+
+      ### 入力
+      - 画面
+      - 機能
+      - ラフスケッチ
+      ### エンジニアによる処理
+      - AIが作るべきものの仕様書を記述
+      - 画面遷移
+    ||
+    sdd: {
       label: ""
-      class: task
+      class: sdd
       description: ||md
-        ## UX設計
-        ### 入力
-        - 画面
-        - 機能
-        ### エンジニアによる処理
-        - AIが作るべきものの仕様書を記述
-        - 画面遷移
+        **担当**: アーキテクトAI + フロントエンドAI
+        ### 処理
+        - アーキテクトAI: 画面・機能の責務精査、ドメイン整合チェック
+        - フロントエンドAI: **モックアップ作成**・プロトタイプ生成
+        ### 出力
+        - UX設計図
+        - **モックアップ** (静的な見た目)
+        - プロトタイプ (動的な挙動の試作)
+        - 画面が扱う情報のまとめ
       ||
-      sdd: {
-        label: ""
-        class: sdd
-        description: ||md
-          **担当**: アーキテクトAI + フロントエンドAI
-          ### 処理
-          - アーキテクトAI: 画面・機能の責務精査、ドメイン整合チェック
-          - フロントエンドAI: プロトタイプ生成
-          ### 出力
-          - UX設計図
-          - 画面が扱う情報のまとめ
-        ||
-      }
     }
+  }
 
-    data-model-design: {
-      class: task
+  data-model-design: {
+    class: task
+    label: ""
+    description: ||md
+      ## データモデル設計
+      画面・機能から **DBアーキテクトAI** がテーブル仕様を起こす。<br />
+      以降の実装(`schema.prisma`)を AI駆動できる粒度まで詰める。
+
+      ### 入力
+      - 画面・機能 (親タスク仕様)
+      - 顧客文書 (データ構造資料)
+      - `analysis.md` (アーキテクトAI の整合チェック結果)
+    ||
+    sdd: {
+      class: sdd
       label: ""
       description: ||md
-        ## データモデル設計
-        > **エンジニアとAIが対話してデータ構造を決定する** タスクです。<br />
-        > 関連する画面・機能に対するデータモデルを設計します。<br />
-        > 以降の工程をAI自動化するために必要な手順です。
-
-        ### 入力
-        - 画面・機能
-        - 顧客文書(データ構造資料)
-
-        ### エンジニアによる処理
-        - データの名称(例えばCustomer、Employee)
-          - フィールドの詳細
-            - 上限値・下限値
-            - 最大長
-            - NULL許容などを定める
-          - 論理削除型 or 物理削除型
-          - リレーションとカスケード削除
+        **担当**: DBアーキテクトAI
+        ### 処理
+        - 画面・機能から必要なエンティティを抽出
+        - フィールド・型・制約 (上下限 / 最大長 / NULL 許容)
+        - 論理 / 物理削除、リレーション、カスケード方針
+        - 既存ドメインモデルとの整合チェック
+        ### 出力
+        - **テーブル仕様** (フィールド・制約・リレーション)
+        ### エンジニア介入
+        - 仕様レビューと承認 (削除方針・複雑リレーションの最終判断)
       ||
-      assist: {
-        class: assist
-        label: ""
-        description: ||md
-          **担当**: エンジニア + DBアーキテクトAI(支援)
-          ### 処理
-          - エンジニア主導の設計対話を AI が支援
-          - 命名・整合性・抜け漏れの指摘
-          - 既存ドメインモデルとの突き合わせ
-          ### 出力
-          - **テーブル仕様** (フィールド・制約・リレーション)
-        ||
-      }
     }
+  }
 
+  frontend-design: {
+    class: task
+    label: "フロントエンド設計"
+    sdd: {
+      label: "アーキテクトAI\nフロントエンドAI"
+      class: sdd
+    }
   }
 
   data-model-impl: {
     class: task
-    label: ""
-    description: ||md
-      ## データモデル実装
-      > 設計成果(テーブル仕様)を受けて **AI駆動** で実装します。
-
-      ### 入力
-      - テーブル仕様
-    ||
+    label: "データモデル生成"
     output {
       class: sdd
-      label: ""
-      description: ||md
-        **担当**: DBアーキテクトAI
-        ### 処理
-        - schema.prisma を生成
-        - マイグレーションを生成
-        - インデックス・カスケード設定の反映
-        ### 出力
-        - **schema.prisma** (仕様 = 実装)
-        - DBマイグレーション
-      ||
+      label: "DBアーキテクトAI"
     }
   }
 
-  data-model-bulk: {
+  api-impl: {
     class: task
-    label: ""
-    description: ||md
-      ## データモデル一括生成 (ショートカット)
-      > データ構造資料が十分に整理されている場合に選択。<br />
-      > 設計工程を飛ばして DBアーキテクトAI が直接実装まで進めます。
-
-      ### 入力
-      - データ構造資料 (整理済み)
-
-      ### 適用条件
-      - フィールド・型・制約・リレーションが明示されている
-      - 命名規則が一貫している
-      - 論理/物理削除や NULL 許容方針が判別できる
-    ||
-    output {
-      class: sdd
-      label: ""
-      description: ||md
-        **担当**: DBアーキテクトAI
-        ### 処理
-        - 資料からテーブル定義を一括抽出
-        - schema.prisma を一括生成
-        - マイグレーションを一括生成
-        ### 出力
-        - **schema.prisma** (仕様 = 実装)
-        - DBマイグレーション
-      ||
-    }
-  }
-
-  design.ux -> frontend.design
-  parent-tasks.task -> design.ux: "画面・機能"
-  parent-tasks.task -> design.data-model-design: "画面・機能"
-
-  design.data-model-design -> data-model-impl: "テーブル仕様"
-  requirements.agreement.excel -> data-model-bulk: "整理済み資料"
-  data-model-impl -> api: "schema.prisma"
-  api -> frontend.design: "API、DTO"
-
-  api: {
-    class: task
-    label: ""
-    description: ||md
-      ## API設計・実装
-      DTO・GraphQLスキーマ・API・テストを一括で生成する
-      ### 入力
-      - schema.prisma
-      - 機能仕様(画面・機能)
-    ||
+    label: "API設計・実装(改修)"
     sdd: {
-      label: ""
       class: sdd
-      description: ||md
-        **担当**: バックエンドAI → バックエンドレビュワーAI → テスターAI
-        ### 処理
-        - バックエンドAI: API設計・実装、DTO/GraphQLスキーマ生成
-        - バックエンドレビュワーAI: コードレビュー・修正提案
-        - テスターAI: 統合テスト追加
-        ### 出力
-        - **DTO・バリデーション** (Zod等)
-        - **GraphQLスキーマ**
-        - リゾルバー・サービスの実装
-        - ユニットテスト + 統合テスト
-      ||
+      label: "バックエンドAI\nバックエンドレビュワーAI"
     }
   }
 
-  api-bulk: {
-    class: task
-    label: ""
-    description: ||md
-      ## API一括実装 (ショートカット)
-      > API・認証認可資料が十分に整理されている場合に選択。<br />
-      > 設計工程を飛ばして バックエンドAI が直接実装まで進めます。
+  data-model-impl -> api-impl: "schema-prisma"
 
-      ### 入力
-      - API・認証認可資料 (整理済み)
-      - schema.prisma
+  ux -> frontend-design
+  parent-tasks -> data-model-design: "画面・機能"
+  parent-tasks -> ux: "画面・機能"
 
-      ### 適用条件
-      - エンドポイント・パラメータ・レスポンスが明示されている
-      - 認証認可方針が決まっている
-      - エラー応答・ステータスコードが判別できる
-    ||
-    sdd: {
-      label: ""
-      class: sdd
-      description: ||md
-        **担当**: バックエンドAI → バックエンドレビュワーAI → テスターAI
-        ### 処理
-        - バックエンドAI: 資料からエンドポイントを一括抽出 → DTO/GraphQL/実装を一括生成
-        - バックエンドレビュワーAI: コードレビュー・修正提案
-        - テスターAI: 統合テスト追加
-        ### 出力
-        - **DTO・バリデーション** (Zod等)
-        - **GraphQLスキーマ**
-        - リゾルバー・サービスの実装
-        - ユニットテスト + 統合テスト
-      ||
-    }
-  }
-
-  data-model-bulk -> api-bulk: "schema.prisma"
-  api-bulk -> frontend.design: "API、DTO"
+  data-model-design -> data-model-impl: "テーブル仕様"
+  api-impl -> frontend-design: "API、DTO"
+  frontend-design -> frontend: "DTO、API"
 
   frontend {
     class: dash
-    design: {
-      class: task
-      label: ""
-      description: ||md
-        ## フロントエンド設計
-        ### 入力
-        - API + DTO (バックエンドAIの出力)
-        - UX設計図
-      ||
-      sdd: {
-        label: ""
-        class: sdd
-        description: ||md
-          **担当**: フロントエンドAI
-          ### 処理
-          - 画面側表示・処理設計
-          - 画面から呼び出すAPIの選定
-          - サーバー側処理(SSR等)の設計
-          ### 出力
-          - 画面実装設計
-        ||
-      }
-    }
+    label: "フロントエンド実装"
     component: {
       class: task
-      label: ""
-      description: ||md
-        ## コンポーネント設計・実装
-        ### 入力
-        - DTO(一部)
-        - 機能
-      ||
+      label: "コンポーネント実装"
       sdd: {
-        label: ""
+        label: "フロントエンドAI"
         class: sdd
-        description: ||md
-          **担当**: フロントエンドAI
-          ### 処理
-          - パラメーター設計
-          - 機能設計・実装
-          ### 出力
-          - 実装済みコンポーネント
-        ||
       }
     }
-    design -> component: "DTO(一部)、機能(一部)"
-    design -> implementation: "DTO、API"
-    component -> implementation: "コンポーネント"
+    component -> implementation: "DTO(一部)、機能(一部)"
     implementation: {
       class: task
-      label: ""
-      description: ||md
-        ## フロントエンド実装
-        ### 入力
-        - 画面実装設計
-        - 実装済みコンポーネント
-        - API + DTO
-      ||
+      label: "フロントエンド実装"
       sdd: {
-        label: ""
+        label: "フロントエンドAI"
         class: sdd
-        description: ||md
-          **担当**: フロントエンドAI → テスターAI
-          ### 処理
-          - フロントエンドAI: 画面の組み立て・API連携・状態管理
-          - テスターAI: E2Eテスト生成・実行
-          ### 出力
-          - 画面実装結果
-          - E2Eテスト
-        ||
       }
+    }
+  }
+
+  instruction-examples: {
+    label: "専門AIへの指示書例 (変更対応シナリオ: Customerテーブルに電話番号を追加)"
+    grid-columns: 5
+    grid-gap: 12
+
+    to-db-architect: {
+      shape: page
+      label: "→ DBアーキテクトAI"
+      style.fill: "#f5f5f5"
+      description: ||md
+        ## 依頼
+        Customer テーブルに `phoneNumber` を追加
+        ## 仕様
+        - 型: String / NULL 許容
+        - 既存行は NULL のまま
+        ## 出力
+        - schema.prisma 更新
+        - マイグレーション
+      ||
+    }
+
+    to-backend: {
+      shape: page
+      label: "→ バックエンドAI"
+      style.fill: "#f5f5f5"
+      description: ||md
+        ## 依頼
+        Customer 取得APIに `phoneNumber` を含める
+        ## 仕様
+        - CustomerDto に phoneNumber: string \| null
+        - GraphQL スキーマ更新
+        - サービス層は変更不要
+      ||
+    }
+
+    to-backend-reviewer: {
+      shape: page
+      label: "→ バックエンドレビュワーAI"
+      style.fill: "#f5f5f5"
+      description: ||md
+        ## 依頼
+        直前の変更をレビュー
+        (phoneNumber 追加, nullable)
+      ||
+    }
+
+    to-frontend: {
+      shape: page
+      label: "→ フロントエンドAI"
+      style.fill: "#f5f5f5"
+      description: ||md
+        ## 依頼
+        顧客詳細画面に電話番号を表示
+        ## 仕様
+        - NULL の場合「未登録」と表示
+        - 既存レイアウトを崩さない
+        - 編集UIは今回対象外
+      ||
+    }
+
+    to-tester: {
+      shape: page
+      label: "→ テスターAI"
+      style.fill: "#f5f5f5"
+      description: ||md
+        ## テスト対象
+        Customer 取得APIと顧客詳細画面
+        ## 観点
+        - phoneNumber の値あり/NULL
+        - 既存のCustomer取得テスト維持
+        - スナップショット更新
+      ||
     }
   }
 }
