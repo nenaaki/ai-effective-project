@@ -142,7 +142,7 @@ agents: spec駆動開発 {
     orchestrator: オーケストレーターAI { class: agent }
 
     # 実装エージェント
-    Coder: 実装エージェント群 {
+    coder: 実装エージェント群 {
       db-architect: DBアーキテクトAI { class: agent }
       backend: バックエンドAI { class: agent }
       frontend: フロントエンドAI { class: agent }
@@ -160,18 +160,18 @@ agents: spec駆動開発 {
     architect -> orchestrator: analysis.md
 
     # オーケストレーターによる連鎖呼び出し
-    orchestrator -> Coder: 順次起動
+    orchestrator -> coder: 順次起動
     orchestrator -> reviewer: レビュー依頼
     orchestrator -> tester: テスト依頼
 
     # 実装エージェント間のデータ受け渡し
-    Coder.db-architect -> Coder.backend: schema.prisma
-    Coder.backend -> Coder.frontend: API / DTO
+    coder.db-architect -> coder.backend: schema.prisma
+    coder.backend -> coder.frontend: API / DTO
 
     # レビュー・テストループ
-    Coder.backend -> reviewer: 実装コード
-    reviewer -> Coder.backend: 指摘・差戻し
-    Coder -> tester: 実装一式
+    coder.backend -> reviewer: 実装コード
+    reviewer -> coder.backend: 指摘・差戻し
+    coder -> tester: 実装一式
     tester -> orchestrator: 結果 / 不具合レポート
   }
 
@@ -184,8 +184,9 @@ agents: spec駆動開発 {
   # インタラクション（接続関係）
   UserZone.U -> spec: 仕様定義/プロンプト
   spec <-> ai-orchestrator.planner: コンテキスト参照/更新
+  spec <-> ai-orchestrator.architect: コンテキスト参照/更新
 
-  ai-orchestrator.Refiner -> cd-ci.Prod: 最終コード
+  ai-orchestrator.coder -> cd-ci.Prod: 最終コード
   ai-orchestrator.Tester -> cd-ci.Doc: レポート
 
   cd-ci.Prod -> UserZone: デプロイ {
@@ -227,159 +228,115 @@ dev: {
           fill: transparent
           stroke-width: 0
         }
-        input: インプット {
-          auth: 権限
-          use-case: ユースケース
-          scale: システム規模 (データ量/負荷)
-          budget: 予算制約
+
+        # 入力: 資料群
+        input: 入力資料 {
+          initial-docs: {
+            label: "初期資料 (60%)\n(データ構造資料 / ラフスケッチ / 機能一覧)\nAI(要レビュー) → 90%減"
+            class: ai-effective
+          }
+          change-docs: {
+            label: "変更管理文書 (25%)\nAI(一部手作業) → 50%減"
+            class: ai-effective-weak
+          }
+          defects: {
+            label: "不具合対応 (15%)\n(運用フィードバック / 障害レポート)\nAI(一部手作業) → 50%減"
+            class: ai-effective-weak
+          }
         }
 
-        definition: 要件定義プロセス {
-          analysis: 要求分析 {
-            functional: 機能要件
-            non_functional: 非機能要件 (AI性能/SLO含む)
+        # AIによる分析・タスク化
+        planning: 要件・仕様の分析 (AI駆動) {
+          architect: アーキテクトAI {
+            label: "アーキテクトAI\nドメインモデルを書き起こす\n責務分析 / 影響範囲 / 整合チェック / 技術選定"
+            class: agent
           }
-
-          modeling: AI最適化モデル設計 {
-            domain_model: {
-              label: ""
-              description: ||md
-                ## ドメインモデル
-                - AIがコード生成しやすい明確なデータ構造定義
-                  - Schema化しやすい表現
-                  - Context重視
-                - 要求についてAIと相談しながらドメインモデルを起こすことで<br />見積もりに必要な期間を短縮可能( **50-70%程度削減** )
-              ||
-            }
+          planner: プランナーAI {
+            label: "プランナーAI\nドメインモデルを基に\n親タスクを分解し Backlog 起票"
+            class: agent
           }
-
-          hierarchy: 構造化 (AI-Ready) {
-            epic: {
-              label: ""
-              description: ||md
-                ## エピック (Epic)
-                - 大きな構想・テーマ
-                - ビジネス面の目標となる機能群
-                - ユーザーが価値を理解できる単位
-              ||
-            }
-            feature: {
-              label: ""
-              description: ||md
-                ## フィーチャー (Feature)
-                - 具体的な機能
-                - ユーザーに意味がある単一の機能
-                ### 依存関係
-                - 循環しない
-                - ダイヤモンド依存は許容
-                - 優先順位の判断基準となる
-                ### 見積もり作成
-                - 人間: 1つのフィーチャーを1イテレーションでの設計・実装
-                - AI: 1つのフィーチャーを2-3日で設計・実装
-                - 内容によってAIと人間の担当按分を定める
-              ||
-            }
-            story: {
-              label: ""
-              description: ||md
-                ## ユーザーストーリー (AI Implementation Unit)
-                - 最小の作業単位
-                - (AIに指示する単位)
-              ||
-            }
-
-            tooltip: ||md
-              AIが一度に生成・テスト<br />可能な粒度に細分化
-            ||
-            tooltip.near: top-right
-          }
-
-          analysis.functional -> modeling.domain_model
-          modeling.domain_model -> hierarchy.epic
-          hierarchy.epic -> hierarchy.feature
-          hierarchy.feature -> hierarchy.story
+          architect -> planner: ドメインモデル / analysis.md
         }
 
+        # 出力 (マネージャ向け)
         output: アウトプット {
-          estimation: {
-            label: ""
-            description: ||md
-              ## 見積書(AI駆動を反映した工数)
-              - 人員(スキル、ベテランの必要人数、初級者の許容人数)
-              - 納期・工数
-              - (AIの運用費)
-            ||
+          domain-model: {
+            label: "ドメインモデル\n(機能・データ構造の全体像)"
           }
-          priority: {
-            label: ""
-            description: ||md
-              ## 実装優先順位
-              - エピック、フィーチャーの依存から見える優先順位
-              - 依存関係のない範囲では順序を選べる
-            ||
+          backlog: {
+            label: "Backlog 親タスク (WBS)\n機能一覧 + 依存・優先順位"
           }
-          it_design: {
-            label: ""
-            description: ||md
-              ## 結合テスト設計
-              - 自動化範囲
-              - 品質確認のために手作業で確認を行う範囲
-            ||
+          estimate: {
+            label: "見積り\n(期間 / コスト / AI運用費)"
           }
+          assignment: {
+            label: "体制 (担当配分)\nAI ↔ エンジニア\nベテラン ↔ 初級者"
+          }
+          risk: {
+            label: "前提・リスク\n(変更/不具合への対応方針)"
+          }
+        }
+
+        manual: {
+          label: "手動処理(AI支援)"
+          description: ||md
+            ## AI駆動が難しいケース
+            - 仕様の曖昧さや複雑さで AI が適切に分析できない場合
+            - 変更や不具合の影響範囲が複雑で、AIだけではスコープを切れない場合
+            - 変更内容が既存のタスクと部分的に重なっている場合、または乖離している場合
+
+            ## 対応方法
+            - エンジニアが AI に範囲調整や追加情報や制約を渡して再分析させる
+            - AIに「不明点リスト」を出させ、顧客や PO に質問してから再開
+            - エンジニアが手作業で整える
+          ||
+        }
+
+        cost-cut: {
+          class: cost-cut
+          label: 要件・仕様定義全体のコストへの影響
+          description: ||md
+            # 定量的に削減できる工数
+
+            ## 入力の物量的な割合
+            - **初期資料**: 60% (新規開発の主体、初期に集中)
+            - **変更管理**: 25% (継続的に発生)
+            - **不具合対応**: 15% (運用段階で発生)
+
+            ## AI 駆動 / AI 支援による工数影響
+            | 項目 | 割合 | AI効果種類 | 工数への影響 |
+            |-|-|-|-|
+            | 初期資料の分析・ドメインモデル化・タスク化 | 60% | AI(要レビュー) | 90%減 |
+            | 変更管理対応 (既存実装との整合確認が必要、AI支援寄り) | 25% | AI(一部手作業) | 50%減 |
+            | 不具合対応 (影響範囲特定が複雑、AI支援寄り) | 15% | AI(一部手作業) | 50%減 |
+            | **割合×工数への影響の合計** | 100% | - | **約 74%減** |
+
+            ### 注記
+            - 上記比率は一般的なプロジェクトを想定した概算
+            - プロジェクト特性 (新規開発比率 / 運用フェーズ比率) で大きく変動する
+          ||
         }
 
         # 接続関係
-        input.auth -> definition.analysis.functional
-        input.use-case -> definition.analysis.functional
+        input.initial-docs -> planning.architect
+        input.change-docs -> planning.architect: 変更発生時
+        input.defects -> planning.architect: 不具合発生時
 
-        # 規模は非機能要件(負荷・パフォーマンス)に直結
-        input.scale -> definition.analysis.non_functional
-        input.scale -> output.estimation
+        planning.architect -> output.domain-model
+        planning.planner -> output.backlog
+        planning.planner -> output.estimate
+        planning.planner -> output.assignment
+        planning.architect -> output.risk
 
-        # 予算は見積に直結
-        input.budget -> output.estimation
-
-        definition.analysis.non_functional -> output.it_design
-        definition.hierarchy -> output.priority
-        definition.hierarchy.feature -> output.estimation
-        definition.modeling.domain_model -> output.it_design
-
-        # AI駆動の影響線 (カスタム関係)
-        definition.modeling.domain_model -> definition.hierarchy.story: AI用コンテキスト提供
+        planning.architect -> manual
 
         # スタイリング
-        input: {
-          style: {
-            fill: "#e1f5fe"
-          }
-        }
-        definition: {
-          style: {
-            fill: "#fff3e0"
-          }
-        }
-        output: {
-          style: {
-            fill: "#e8f5e9"
-          }
-        }
-
+        input: { style.fill: "#e1f5fe" }
+        planning: { style.fill: "#fff3e0" }
+        output: { style.fill: "#e8f5e9" }
       }
-
-      # 補足説明
-      explanation: ||md
-        # spec駆動開発のポイント
-        ### spec駆動開発での変化
-        - **規模と非機能要件**: 負荷(scale)が非機能要件(応答性・インフラ構成)を規定し、それがAI活用の見積りに影響します。
-        - **AI最適化モデル**: ドメインモデルは、AIがコードを生成する際の「設計図」としてより厳密な型定義やスキーマが求められます。
-        - **エピック/ストーリー**: AIがコンテキストを保持できるサイズ(トークン制限内)でタスクを分割する思想が加わります。
-        - **見積**: AIによる生産性向上を織り込んだ工数算出が必要です。
-        - **人員**: プロダクト品質を維持するためにベテランのエンジニアによるレビューを必要とします。しかし多くの範囲を初級者が担当することができます。
-      ||
     }
   }
-  specification.detail.ipo.definition.hierarchy -> design.task: タスク化
-  specification.detail.ipo.definition.modeling -> design.model: データモデル化
   design: {
     direction: right
     label: "設計"
