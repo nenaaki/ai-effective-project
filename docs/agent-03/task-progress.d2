@@ -45,6 +45,13 @@ classes {
       fill: "#e6f0ff"
     }
   }
+  plan-agent: {
+    icon: "./images/claudecode-color.svg"
+    icon.near: top-left
+    style: {
+      fill: "#fff4dd"
+    }
+  }
 }
 
 grid-columns: 2
@@ -108,7 +115,7 @@ grid {
 
     planner: {
       label: "プランナーAI"
-      class: agent
+      class: plan-agent
       description: ||md
         **役割**: タスク・チケット管理
         ### 入力
@@ -142,7 +149,7 @@ grid {
 
     architect: {
       label: "アーキテクトAI"
-      class: agent
+      class: plan-agent
       description: ||md
         **役割**: 実装検討・責務分析
         ### 入力
@@ -393,32 +400,8 @@ develop {
       ||
     }
 
-    setup: {
-      label: ""
-      class: task
-      grid-rows: 2
-      grid-gap: 8
-      description: ||md
-        ## 開発環境の立ち上げ
-        - 案件に合わせた開発環境を構築します。
-        - **自社標準環境を用いている場合はこの作業は不要です。**
-      ||
-      setup-sdd {
-        label: ""
-        class: assist
-        description: ||md
-          ## spec駆動開発環境
-          **担当**: エンジニア (Claude Code支援)
-          - spec駆動開発ファイル群を組み込み
-            - skills / agents / mcp の設定
-          - CLAUDE.md をプロジェクトに合わせて記述
-          - 6エージェント(プランナー〜テスター)の起動準備
-        ||
-      }
-    }
-
     task: {
-      label: "親タスク(画面・機能)\nエピック or フィーチャー"
+      label: "spec駆動タスク"
       class: task
       style.multiple: true
       ai-planning: {
@@ -441,7 +424,7 @@ develop {
     }
 
     change-task: {
-      label: "変更対応タスク\n(改修・追加要件)"
+      label: "変更対応タスク(改修・追加要件) / 手動タスク"
       class: task
       style.multiple: true
       description: ||md
@@ -468,9 +451,11 @@ develop {
         ||
       }
     }
+
+    task -> change-task: "AIではタスクがうまく切れなかった部分"
   }
 
-  requirements.agreement.initial-docs -> parent-tasks.task: 詳細設計が必要な場合
+  requirements.agreement.initial-docs -> parent-tasks: "初期要件・仕様"
   requirements.requirement -> parent-tasks: 参照
   requirements.change.management -> parent-tasks.change-task: "仕様変更"
   requirements.bug-fix -> parent-tasks.change-task: "不具合対応"
@@ -480,30 +465,28 @@ develop {
     class: task
     description: ||md
       ## UX設計
-      > 画面の仕様を固めると同時に、**モックアップ作成** までをここで行います。
+      > 画面の仕様を固めると同時に、**モックアップ作成** までをここで行います。<br />
+      > モックアップが済んでいる場合、このタスクはスキップします。
 
       ### 入力
-      - 画面
-      - 機能
-      - ラフスケッチ
+      - プランニング時のタスク仕様
+      - 画面・機能・要件からアーキテクトAIの分析結果
       ### エンジニアによる処理
       - AIが作るべきものの仕様書を記述
       - 画面遷移
+      ### 出力
+      - UX設計図
+      - **モックアップ** (静的な見た目)
+      - プロトタイプ (動的な挙動の試作)
+      - 画面が扱う情報のまとめ
     ||
     sdd: {
-      label: ""
+      label: "フロントエンドAI"
       class: sdd
-      description: ||md
-        **担当**: アーキテクトAI + フロントエンドAI
-        ### 処理
-        - アーキテクトAI: 画面・機能の責務精査、ドメイン整合チェック
-        - フロントエンドAI: **モックアップ作成**・プロトタイプ生成
-        ### 出力
-        - UX設計図
-        - **モックアップ** (静的な見た目)
-        - プロトタイプ (動的な挙動の試作)
-        - 画面が扱う情報のまとめ
-      ||
+    }
+    assist: {
+      class: assist
+      label: "複雑な場合\n\nエンジニア主導\nフロントエンドAI"
     }
   }
 
@@ -522,7 +505,7 @@ develop {
     ||
     sdd: {
       class: sdd
-      label: ""
+      label: "DBアーキテクトAI"
       description: ||md
         **担当**: DBアーキテクトAI
         ### 処理
@@ -535,6 +518,10 @@ develop {
         ### エンジニア介入
         - 仕様レビューと承認 (削除方針・複雑リレーションの最終判断)
       ||
+      assist: {
+        class: assist
+        label: "複雑な部分\n\nエンジニア主導\nDBアーキテクトAI"
+      }
     }
   }
 
@@ -542,8 +529,12 @@ develop {
     class: task
     label: "フロントエンド設計"
     sdd: {
-      label: "アーキテクトAI\nフロントエンドAI"
+      label: "フロントエンドAI"
       class: sdd
+    }
+    assist: {
+      class: assist
+      label: "複雑な場合\n\nエンジニア主導\nフロントエンドAI"
     }
   }
 
@@ -561,15 +552,19 @@ develop {
     label: "API設計・実装(改修)"
     sdd: {
       class: sdd
-      label: "バックエンドAI\nバックエンドレビュワーAI"
+      label: "CRUD・単純API\n\nバックエンドAI\nバックエンドレビュワーAI"
+    }
+    assist: {
+      class: assist
+      label: "複雑なビジネスロジック\n\nエンジニア主導\nバックエンドAI\nバックエンドレビュワーAI"
     }
   }
 
   data-model-impl -> api-impl: "schema-prisma"
 
-  ux -> frontend-design
-  parent-tasks -> data-model-design: "画面・機能"
-  parent-tasks -> ux: "画面・機能"
+  ux -> frontend-design: "モックアップ・プロトタイプなど"
+  parent-tasks -> data-model-design: "タスク・機能仕様（関連範囲の情報）"
+  parent-tasks -> ux: "タスク・画面仕様（関連範囲の情報）"
 
   data-model-design -> data-model-impl: "テーブル仕様"
   api-impl -> frontend-design: "API、DTO"
@@ -585,14 +580,21 @@ develop {
         label: "フロントエンドAI"
         class: sdd
       }
+      assist: {
+        class: assist
+        label: "複雑な場合\n\nエンジニア主導\nフロントエンドAI"
+      }
     }
-    component -> implementation: "DTO(一部)、機能(一部)"
     implementation: {
       class: task
       label: "フロントエンド実装"
       sdd: {
         label: "フロントエンドAI"
         class: sdd
+      }
+      assist: {
+        class: assist
+        label: "複雑な場合\n\nエンジニア主導\nフロントエンドAI"
       }
     }
   }
