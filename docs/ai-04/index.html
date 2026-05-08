@@ -218,6 +218,31 @@
     color: #92400e;
     border-color: #fde68a;
   }
+
+  /* 横並びレイアウト (工数比較 + バグ数比較) */
+  .compare-grid {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 16px;
+  }
+  .compare-grid > .card { margin-bottom: 0; }
+  @media (max-width: 1000px) {
+    .compare-grid { grid-template-columns: 1fr; }
+  }
+
+  /* バグ数比較用の縦積みレイアウト (横幅が狭いため) */
+  .bug-block { margin-bottom: 14px; }
+  .bug-block:last-of-type { margin-bottom: 0; }
+  .bug-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 4px;
+    font-size: 13px;
+  }
+  .bug-head .left { font-weight: 600; }
+  .bug-head .total { font-variant-numeric: tabular-nums; font-weight: 700; }
+  .bug-head .total .rate { color: var(--sub); font-weight: 400; font-size: 11px; margin-left: 6px; }
   .reduction {
     color: var(--tobe);
     font-weight: 700;
@@ -266,17 +291,31 @@
     <div class="legend" id="legend"></div>
   </div>
 
-  <div class="card">
-    <h2>合計工数の比較 (横棒)</h2>
-    <div class="axis-row">
-      <div></div>
-      <div class="axis" id="axis"></div>
-      <div></div>
+  <div class="compare-grid">
+    <div class="card">
+      <h2>合計工数の比較 (横棒)</h2>
+      <div class="axis-row">
+        <div></div>
+        <div class="axis" id="axis"></div>
+        <div></div>
+      </div>
+      <div id="bars"></div>
+      <p class="notes" style="margin-top:12px;">
+        ※ 棒の長さは時間 (h) に比例。各セグメントの幅がその作業に費やす工数です。
+      </p>
     </div>
-    <div id="bars"></div>
-    <p class="notes" style="margin-top:12px;">
-      ※ 棒の長さは時間 (h) に比例。各セグメントの幅がその作業に費やす工数です。
-    </p>
+
+    <div class="card">
+      <h2>想定バグ数の比較 (実装コード量を同等とした場合)</h2>
+      <div id="bugs"></div>
+      <div class="legend" id="bug-legend" style="margin-top:8px;"></div>
+      <p class="notes" style="margin-top:10px;">
+        ※ 業界相場 (Capers Jones 等で「単体テスト後・統合前」概ね 5〜25件/KLOC) を踏まえ、
+        本シナリオでは人力 約10件/KLOC、AI駆動 約5件/KLOC を典型値として採用。
+        AI駆動では構文/型エラー・凡ミスは大きく減るが、
+        <strong>仕様の解釈ミス</strong>はむしろ起きやすい傾向 (暗黙の前提を読み取れないため)。
+      </p>
+    </div>
   </div>
 
   <div class="card">
@@ -301,18 +340,19 @@
 
 <script>
   // ====== データ (内部に全保持) ======
+  // loc: 概算コード量 (行)。null は新規コード生成なし (設計/レビュー/動作確認)。
   const tasks = [
-    { key: "data-design", label: "データモデル設計",        color: "var(--c-data-design)", asis: 2,   tobe: 0.5, agents: ["DBアーキテクトAI"] },
-    { key: "data-impl",   label: "データモデル実装",        color: "var(--c-data-impl)",   asis: 1,   tobe: 0.2, agents: ["DBアーキテクトAI"] },
-    { key: "api-impl",    label: "API設計・実装",            color: "var(--c-api-impl)",    asis: 6,   tobe: 1.0, agents: ["バックエンドAI", "バックエンドレビュワーAI"] },
-    { key: "api-test",    label: "API単体テスト",            color: "var(--c-api-test)",    asis: 4,   tobe: 0.5, agents: ["バックエンドAI"] },
-    { key: "api-review",  label: "APIレビュー (エンジニア)", color: "var(--c-eng-review)",  asis: 1.5, tobe: 1.5, agents: ["エンジニア"] },
-    { key: "ux",          label: "UX設計",                   color: "var(--c-ux)",          asis: 3,   tobe: 1.5, agents: ["アーキテクトAI", "フロントエンドAI"] },
-    { key: "fe-design",   label: "フロントエンド設計",      color: "var(--c-fe-design)",   asis: 3,   tobe: 0.5, agents: ["フロントエンドAI"] },
-    { key: "fe-impl",     label: "フロントエンド実装",      color: "var(--c-fe-impl)",     asis: 8,   tobe: 2.0, agents: ["フロントエンドAI", "フロントエンドレビュワーAI"] },
-    { key: "fe-test",     label: "フロントエンド単体テスト", color: "var(--c-fe-test)",    asis: 4,   tobe: 0.5, agents: ["フロントエンドAI"] },
-    { key: "fe-review",   label: "フロントエンドレビュー (エンジニア)", color: "var(--c-eng-review)", asis: 1.5, tobe: 1.5, agents: ["エンジニア"] },
-    { key: "verify",      label: "動作確認",                 color: "var(--c-verify)",      asis: 3,   tobe: 1.5, agents: ["テスターAI", "エンジニア(最終確認)"] },
+    { key: "data-design", label: "データモデル設計",        color: "var(--c-data-design)", loc: null, asis: 2,   tobe: 0.5, agents: ["DBアーキテクトAI"] },
+    { key: "data-impl",   label: "データモデル実装",        color: "var(--c-data-impl)",   loc: 30,   asis: 1,   tobe: 0.2, agents: ["DBアーキテクトAI"] },
+    { key: "api-impl",    label: "API設計・実装",            color: "var(--c-api-impl)",    loc: 200,  asis: 6,   tobe: 1.0, agents: ["バックエンドAI", "バックエンドレビュワーAI"] },
+    { key: "api-test",    label: "API単体テスト",            color: "var(--c-api-test)",    loc: 150,  asis: 4,   tobe: 0.5, agents: ["バックエンドAI"] },
+    { key: "api-review",  label: "APIレビュー (エンジニア)", color: "var(--c-eng-review)",  loc: null, asis: 1.5, tobe: 1.5, agents: ["エンジニア"] },
+    { key: "ux",          label: "UX設計",                   color: "var(--c-ux)",          loc: null, asis: 3,   tobe: 1.5, agents: ["アーキテクトAI", "フロントエンドAI"] },
+    { key: "fe-design",   label: "フロントエンド設計",      color: "var(--c-fe-design)",   loc: null, asis: 3,   tobe: 0.5, agents: ["フロントエンドAI"] },
+    { key: "fe-impl",     label: "フロントエンド実装",      color: "var(--c-fe-impl)",     loc: 350,  asis: 8,   tobe: 2.0, agents: ["フロントエンドAI", "フロントエンドレビュワーAI"] },
+    { key: "fe-test",     label: "フロントエンド単体テスト", color: "var(--c-fe-test)",    loc: 200,  asis: 4,   tobe: 0.5, agents: ["フロントエンドAI"] },
+    { key: "fe-review",   label: "フロントエンドレビュー (エンジニア)", color: "var(--c-eng-review)", loc: null, asis: 1.5, tobe: 1.5, agents: ["エンジニア"] },
+    { key: "verify",      label: "動作確認",                 color: "var(--c-verify)",      loc: null, asis: 3,   tobe: 1.5, agents: ["テスターAI", "エンジニア(最終確認)"] },
   ];
 
   const HOURS_PER_DAY = 8;
@@ -399,8 +439,62 @@
   document.getElementById("bars").innerHTML =
     buildBar("asis", totalAsis) + buildBar("tobe", totalTobe);
 
+  // ====== 想定バグ数の比較 ======
+  // 前提: 実装コード量は AsIs/ToBe で同等 (totalLoc 行)
+  // 業界相場 (Capers Jones, IBM 等) と Claude Code 知見の中間値:
+  //   人力        : 約10件/KLOC
+  //   AI駆動 (専門AI連鎖 + レビュワーAI + テスターAI + 最終エンジニアレビュー): 約5件/KLOC
+  const totalLocForBugs = tasks.reduce((a, t) => a + (t.loc || 0), 0);
+  const bugCategories = [
+    { key: "syntax",  label: "構文/型エラー",        color: "#ef4444", asis: 2, tobe: 0 },
+    { key: "logic",   label: "ロジックバグ",          color: "#f59e0b", asis: 3, tobe: 1 },
+    { key: "edge",    label: "エッジケース漏れ",      color: "#8b5cf6", asis: 2, tobe: 1 },
+    { key: "spec",    label: "仕様解釈ミス",          color: "#ec4899", asis: 1, tobe: 2 },
+    { key: "ui",      label: "UI細部の不整合",        color: "#06b6d4", asis: 2, tobe: 1 },
+  ];
+  const bugAsis = bugCategories.reduce((a, c) => a + c.asis, 0);
+  const bugTobe = bugCategories.reduce((a, c) => a + c.tobe, 0);
+  const bugMax  = Math.max(bugAsis, bugTobe);
+
+  function buildBugBlock(kind, total) {
+    const widthPct = (total / bugMax) * 100;
+    const ratePerKLOC = ((total / totalLocForBugs) * 1000).toFixed(1);
+    const segments = bugCategories.map(c => {
+      const n = c[kind];
+      if (!n) return "";
+      const segPct = (n / total) * 100;
+      const tinyClass = n < 1 ? " tiny" : "";
+      return `
+        <div class="bar-segment${tinyClass}"
+             style="flex: 0 0 ${segPct}%; background:${c.color};"
+             title="${c.label}: ${n}件">
+          ${n}件
+        </div>`;
+    }).join("");
+    return `
+      <div class="bug-block">
+        <div class="bug-head">
+          <span class="left"><span class="tag ${kind}">${kind === "asis" ? "AsIs" : "ToBe"}</span>${kind === "asis" ? "人力" : "AI駆動"}</span>
+          <span class="total">約${total}件<span class="rate">(${ratePerKLOC}件/KLOC)</span></span>
+        </div>
+        <div class="bar" style="width:${widthPct}%;">${segments}</div>
+      </div>
+    `;
+  }
+  document.getElementById("bugs").innerHTML =
+    buildBugBlock("asis", bugAsis) + buildBugBlock("tobe", bugTobe);
+
+  document.getElementById("bug-legend").innerHTML = bugCategories.map(c => `
+    <span class="legend-item">
+      <span class="legend-swatch" style="background:${c.color}"></span>${c.label}
+    </span>
+  `).join("");
+
   // ====== 内訳テーブル ======
   const breakdown = document.getElementById("breakdown");
+  const fmtLoc = (n) => (n == null ? "—" : `約${n}行`);
+  const totalLoc = tasks.reduce((a, t) => a + (t.loc || 0), 0);
+
   const rows = tasks.map(t => {
     const pct = t.asis > 0 ? Math.round((1 - t.tobe / t.asis) * 100) : 0;
     const agentChips = (t.agents || [])
@@ -411,6 +505,7 @@
     return `
       <tr>
         <td><span class="swatch" style="background:${t.color}"></span>${t.label}</td>
+        <td class="num">${fmtLoc(t.loc)}</td>
         <td class="num">${fmtH(t.asis)}</td>
         <td class="num">${fmtH(t.tobe)}</td>
         <td>${agentChips}</td>
@@ -423,6 +518,7 @@
     <thead>
       <tr>
         <th>作業</th>
+        <th class="num" style="text-align:right">概算コード量</th>
         <th class="num" style="text-align:right">AsIs (人力)</th>
         <th class="num" style="text-align:right">ToBe (AI駆動)</th>
         <th>担当</th>
@@ -433,6 +529,7 @@
       ${rows}
       <tr class="total">
         <td>合計</td>
+        <td class="num">約${totalLoc}行</td>
         <td class="num">${fmtH(totalAsis)}</td>
         <td class="num">${fmtH(totalTobe)}</td>
         <td></td>
