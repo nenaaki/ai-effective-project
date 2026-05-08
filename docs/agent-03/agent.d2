@@ -244,92 +244,63 @@ dev: {
         # 入力: 資料群
         input: 入力資料 {
           initial-docs: {
-            label: "初期資料 (60%)\n(データ構造資料 / ラフスケッチ / 機能一覧)\nAI(一部手作業) → 50%減"
-            class: ai-effective-weak
+            label: "初期資料\n\n(データ構造資料 / ラフスケッチ / 機能一覧)"
           }
           change-docs: {
-            label: "変更管理文書 (25%)\nAI(一部手作業) → 50%減"
-            class: ai-effective-weak
+            label: "変更管理文書"
           }
           defects: {
-            label: "不具合対応 (15%)\n(運用フィードバック / 障害レポート)\nAI(一部手作業) → 50%減"
-            class: ai-effective-weak
+            label: "不具合対応\n\n(運用フィードバック / 障害レポート)"
           }
+          memo: ||md
+            - 入力資料の準備については、従来の要件定義・仕様定義のプロセス・工数と何ら変わるところはない
+          ||
         }
 
         # AIによる分析・タスク化
-        planning: 要件・仕様の分析とタスク化を行うAIエージェント群 {
+        planning: {
+          label: プランニング系AIエージェントの処理
           architect: アーキテクトAI {
-            label: "アーキテクトAI\nドメインモデルを書き起こす\n責務分析 / 影響範囲 / 整合チェック / 技術選定"
             class: agent
           }
           planner: プランナーAI {
-            label: "プランナーAI\nドメインモデルを基に\n親タスクを分解し Backlog 起票"
             class: agent
-          }
-          architect -> planner: ドメインモデル / analysis.md
-          node: {
-            label: "タスク化のポイント"
             description: ||md
-              - タスクはAIエージェントが実装可能なレベルまで分解する
-              - タスクの粒度は、AIエージェントが1回の呼び出しで完了できる程度にする
-              - タスク間の依存関係や優先順位も明確にする
+              - 新規機能の場合は親タスクを起票する
+              - 既存タスクがある場合は更新する
+              - 変更管理・障害対応は個別のタスクを起票する
             ||
           }
+          architect -> planner: 仕様の分析結果
         }
 
         # 出力 (マネージャ向け)
         output: アウトプット {
-          domain-model: {
-            label: "ドメインモデル\n(機能・データ構造の全体像)"
-          }
           backlog: {
-            label: "Backlog 親タスク (WBS)\n機能一覧 + 依存・優先順位"
-          }
-          estimate: {
-            label: "見積り\n(期間 / コスト / AI運用費)"
-          }
-          assignment: {
-            label: "体制 (担当配分)\nAI ↔ エンジニア\nベテラン ↔ 初級者"
-          }
-          risk: {
-            label: "前提・リスク\n(変更/不具合への対応方針)"
+            label: "親タスク (WBS)\n機能一覧 + 依存・優先順位"
           }
         }
 
         manual: {
-          label: "どの範囲まではspec駆動開発にするかの判断"
+          label: "エンジニアの判断"
           description: ||md
-            ## 判定方法
-            - **プランナーAIが出力したタスクをエンジニアがレビューし、適切な分析が行われていない場合**
-
-            ### AI駆動が適切に機能しないケースの原因
-            - **アーキテクトAI** が適切に分析できない場合
-                - 仕様の複雑さや不明瞭さが原因で、ドメインモデルが不完全・不正確になっている
-            - **プランナーAI** が正しくスコープを切れない場合
-                - アーキテクトAIの分析が不明瞭であることが原因で、タスクの切り出しが不適切になっている
-            - 変更管理や不具合対応の内容が既存のタスクと部分的に重なっている場合、または乖離している（大きな仕様変更である）場合
-
-            ## 対応方法
-            - エンジニアが AI に範囲調整や追加情報や制約を渡して再分析させる
-                - AIに「不明点リスト」を出させ、顧客や PO に質問してから再開
-                - 全てspec駆動でやるのではなく、範囲を絞らせる
-            - spec駆動の適用を一時的・または部分的に見送り、従来の方法で要件・仕様定義を行う
-                - この場合もAI支援を受けて効率化を図る
+            - CRUD系のタスクは全てspec駆動にする
+            - それ以外はAI支援型の開発にする
           ||
         }
 
         sdd {
           label: "spec駆動開発"
           description: ||md
-            - オーケストレーションAI以降の実装系AIエージェントによってタスクの実装を自動化する
+            - 実装系AIエージェントによってタスクの実装を自動化する
           ||
         }
         ai-assist {
           label: "AI支援開発"
           description: ||md
-            - 個々のAIエージェントに可能なところをAIに任せる(オーケストレーションは手動)
-            - AIが得意なところはAIに任せるが、AIが苦手なところは人間が担うハイブリッドな開発スタイル
+            - AI支援ありの手動開発
+            - 個々のAIエージェントを利用することは可能
+            - タスクの粒度や内容をエンジニアが調整する
           ||
         }
         manual -> sdd: "spec駆動する範囲"
@@ -362,15 +333,11 @@ dev: {
         }
 
         # 接続関係
-        input.initial-docs -> planning.architect
+        input.initial-docs -> planning.architect: 初期資料投入時
         input.change-docs -> planning.architect: 変更発生時
         input.defects -> planning.architect: 不具合発生時
 
-        planning.architect -> output.domain-model
         planning.planner -> output.backlog
-        planning.planner -> output.estimate
-        planning.planner -> output.assignment
-        planning.architect -> output.risk
 
         output -> manual
 
