@@ -135,44 +135,56 @@ agents: spec駆動開発 {
     }
 
     # 計画フェーズ
-    architect: アーキテクトAI { class: agent }
-    planner: プランナーAI { class: agent }
+    planning: プランニング {
+      style: {
+        stroke-dash: 5
+      }
+      architect: アーキテクトAI { class: agent }
+      planner: プランナーAI { class: agent }
 
-    # 実行指揮
-    orchestrator: オーケストレーターAI { class: agent }
-
-    # 実装エージェント
-    coder: 実装エージェント群 {
-      db-architect: DBアーキテクトAI { class: agent }
-      backend: バックエンドAI { class: agent }
-      frontend: フロントエンドAI { class: agent }
+      # 計画フェーズ: 分析 → タスク化
+      architect -> planner: analysis.md
     }
 
-    # レビュー・テスト
-    reviewer: バックエンドレビュワーAI { class: agent }
-    tester: テスターAI { class: agent }
+    # 設計・実装フェーズ
+    build: 設計・実装 {
+      style: {
+        stroke-dash: 5
+      }
 
-    # 計画フェーズ: 分析 → タスク化
-    architect -> planner: analysis.md
+      # 実行指揮
+      orchestrator: オーケストレーターAI { class: agent }
+
+      # 実装エージェント
+      coder: 実装エージェント群 {
+        db-architect: DBアーキテクトAI { class: agent }
+        backend: バックエンドAI { class: agent }
+        frontend: フロントエンドAI { class: agent }
+      }
+
+      # レビュー・テスト
+      reviewer: バックエンドレビュワーAI { class: agent }
+      tester: テスターAI { class: agent }
+
+      # オーケストレーターによる連鎖呼び出し
+      orchestrator -> coder: 順次起動
+      orchestrator -> reviewer: レビュー依頼
+      orchestrator -> tester: テスト依頼
+
+      # 実装エージェント間のデータ受け渡し
+      coder.db-architect -> coder.backend: schema.prisma
+      coder.backend -> coder.frontend: API / DTO
+
+      # レビュー・テストループ
+      coder.backend -> reviewer: 実装コード
+      reviewer -> coder.backend: 指摘・差戻し
+      coder -> tester: 実装一式
+      tester -> orchestrator: 結果 / 不具合レポート
+    }
 
     # 実行フェーズへの引き渡し
-    planner -> orchestrator: 親タスク (Backlog)
-    architect -> orchestrator: analysis.md
-
-    # オーケストレーターによる連鎖呼び出し
-    orchestrator -> coder: 順次起動
-    orchestrator -> reviewer: レビュー依頼
-    orchestrator -> tester: テスト依頼
-
-    # 実装エージェント間のデータ受け渡し
-    coder.db-architect -> coder.backend: schema.prisma
-    coder.backend -> coder.frontend: API / DTO
-
-    # レビュー・テストループ
-    coder.backend -> reviewer: 実装コード
-    reviewer -> coder.backend: 指摘・差戻し
-    coder -> tester: 実装一式
-    tester -> orchestrator: 結果 / 不具合レポート
+    planning.planner -> build.orchestrator: 親タスク (Backlog)
+    planning.architect -> build.orchestrator: analysis.md
   }
 
   # アウトプット (CI/CD)
@@ -183,11 +195,11 @@ agents: spec駆動開発 {
 
   # インタラクション（接続関係）
   UserZone.U -> spec: 仕様定義/プロンプト
-  spec <-> ai-orchestrator.planner: コンテキスト参照/更新
-  spec <-> ai-orchestrator.architect: コンテキスト参照/更新
+  spec <-> ai-orchestrator.planning.planner: コンテキスト参照/更新
+  spec <-> ai-orchestrator.planning.architect: コンテキスト参照/更新
 
-  ai-orchestrator.coder -> cd-ci.Prod: 最終コード
-  ai-orchestrator.Tester -> cd-ci.Doc: レポート
+  ai-orchestrator.build.coder -> cd-ci.Prod: 最終コード
+  ai-orchestrator.build.tester -> cd-ci.Doc: レポート
 
   cd-ci.Prod -> UserZone: デプロイ {
     style: { stroke-dash: 3 }
@@ -246,7 +258,7 @@ dev: {
         }
 
         # AIによる分析・タスク化
-        planning: 要件・仕様の分析 (AI駆動) {
+        planning: 要件・仕様の分析とタスク化を行うAIエージェント群 {
           architect: アーキテクトAI {
             label: "アーキテクトAI\nドメインモデルを書き起こす\n責務分析 / 影響範囲 / 整合チェック / 技術選定"
             class: agent
@@ -256,6 +268,14 @@ dev: {
             class: agent
           }
           architect -> planner: ドメインモデル / analysis.md
+          node: {
+            label: "タスク化のポイント"
+            description: ||md
+              - タスクはAIエージェントが実装可能なレベルまで分解する
+              - タスクの粒度は、AIエージェントが1回の呼び出しで完了できる程度にする
+              - タスク間の依存関係や優先順位も明確にする
+            ||
+          }
         }
 
         # 出力 (マネージャ向け)
@@ -278,19 +298,42 @@ dev: {
         }
 
         manual: {
-          label: "手動処理(AI支援)"
+          label: "どの範囲まではspec駆動開発にするかの判断"
           description: ||md
-            ## AI駆動が難しいケース
-            - 仕様の曖昧さや複雑さで AI が適切に分析できない場合
-            - 変更や不具合の影響範囲が複雑で、AIだけではスコープを切れない場合
-            - 変更内容が既存のタスクと部分的に重なっている場合、または乖離している場合
+            ## 判定方法
+            - **プランナーAIが出力したタスクをエンジニアがレビューし、適切な分析が行われていない場合**
+
+            ### AI駆動が適切に機能しないケースの原因
+            - **アーキテクトAI** が適切に分析できない場合
+                - 仕様の複雑さや不明瞭さが原因で、ドメインモデルが不完全・不正確になっている
+            - **プランナーAI** が正しくスコープを切れない場合
+                - アーキテクトAIの分析が不明瞭であることが原因で、タスクの切り出しが不適切になっている
+            - 変更管理や不具合対応の内容が既存のタスクと部分的に重なっている場合、または乖離している（大きな仕様変更である）場合
 
             ## 対応方法
             - エンジニアが AI に範囲調整や追加情報や制約を渡して再分析させる
-            - AIに「不明点リスト」を出させ、顧客や PO に質問してから再開
-            - エンジニアが手作業で整える
+                - AIに「不明点リスト」を出させ、顧客や PO に質問してから再開
+                - 全てspec駆動でやるのではなく、範囲を絞らせる
+            - spec駆動の適用を一時的・または部分的に見送り、従来の方法で要件・仕様定義を行う
+                - この場合もAI支援を受けて効率化を図る
           ||
         }
+
+        sdd {
+          label: "spec駆動開発"
+          description: ||md
+            - オーケストレーションAI以降の実装系AIエージェントによってタスクの実装を自動化する
+          ||
+        }
+        ai-assist {
+          label: "AI支援開発"
+          description: ||md
+            - 個々のAIエージェントに可能なところをAIに任せる(オーケストレーションは手動)
+            - AIが得意なところはAIに任せるが、AIが苦手なところは人間が担うハイブリッドな開発スタイル
+          ||
+        }
+        manual -> sdd: "spec駆動する範囲"
+        manual -> ai-assist: "AI支援する範囲"
 
         cost-cut: {
           class: cost-cut
@@ -328,7 +371,7 @@ dev: {
         planning.planner -> output.assignment
         planning.architect -> output.risk
 
-        planning.architect -> manual
+        planning -> manual
 
         # スタイリング
         input: { style.fill: "#e1f5fe" }
