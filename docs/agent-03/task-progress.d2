@@ -347,6 +347,11 @@ develop {
         ## タスクの区切り方と消化の仕方
         - **1画面・1機能 ≒ 1親タスク** (Backlog 起票)
         - **1親タスク = 1 PR** (実装完了の粒度)
+        ## タスクに含まれる情報
+        - 画面上の表示項目
+        - 画面上の操作
+        - API で扱うデータの内容
+        - ゴール(タスクの終了条件)
       ||
     }
 
@@ -376,7 +381,7 @@ develop {
       style.multiple: true
       description: ||md
         ## 変更対応タスク
-        アーキテクトAIとプランナーAIをアシスタントとしてタスクを起票<br />
+        **アーキテクトAI**と**プランナーAI**をアシスタントとしてタスクを起票
       ||
       assist: {
         label: ""
@@ -425,35 +430,23 @@ develop {
   data-model-design: {
     class: task
     label: ""
-    description: ||md
-      ## データモデル設計
-      画面・機能から **DBアーキテクトAI** がテーブル仕様を起こす。<br />
-      以降の実装(`schema.prisma`)を AI駆動できる粒度まで詰める。
-
-      ### 入力
-      - 画面・機能 (親タスク仕様)
-      - 顧客文書 (データ構造資料)
-      - `analysis.md` (アーキテクトAI の整合チェック結果)
-    ||
     sdd: {
       class: sdd
-      label: "DBアーキテクトAI"
+      label: ""
       description: ||md
         **担当**: DBアーキテクトAI
+        ### 入力
+        - タスク（機能仕様）
         ### 処理
-        - 画面・機能から必要なエンティティを抽出
-        - フィールド・型・制約 (上下限 / 最大長 / NULL 許容)
-        - 論理 / 物理削除、リレーション、カスケード方針
-        - 既存ドメインモデルとの整合チェック
+        - 画面・機能から必要なデータを洗い出し、テーブル設計を行う
+        - 既存テーブルとのリレーションや整合性も考慮する
         ### 出力
         - **テーブル仕様** (フィールド・制約・リレーション)
-        ### エンジニア介入
-        - 仕様レビューと承認 (削除方針・複雑リレーションの最終判断)
       ||
-      assist: {
-        class: assist
-        label: "複雑な部分\n\nエンジニア主導\nDBアーキテクトAI"
-      }
+    }
+    assist: {
+      class: assist
+      label: "複雑な部分\n\nエンジニア主導\nDBアーキテクトAI"
     }
   }
 
@@ -494,8 +487,8 @@ develop {
 
   data-model-impl -> api-impl: "schema-prisma"
 
-  parent-tasks -> data-model-design: "タスク・機能仕様（関連範囲の情報）"
-  parent-tasks -> ux: "タスク・画面仕様（関連範囲の情報）"
+  parent-tasks -> data-model-design: "テーブル仕様(オーケストレーターAIが必要情報を抽出)"
+  parent-tasks -> ux: "機能仕様(オーケストレーターAIが必要情報を抽出)"
 
   ux -> frontend-design: "画面仕様(詳細)"
   data-model-design -> data-model-impl: "テーブル仕様"
