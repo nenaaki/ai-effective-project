@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<title>顧客一覧画面 開発工数比較 (AsIs vs ToBe)</title>
+<style>
+  :root {
+    --bg: #f7f8fa;
+    --card: #ffffff;
+    --text: #1f2937;
+    --sub: #6b7280;
+    --border: #e5e7eb;
+    --accent: #2563eb;
+    --asis: #ef4444;
+    --tobe: #10b981;
+
+    /* タスクごとの色 */
+    --c-data-design:  #4f46e5; /* データモデル設計 */
+    --c-data-impl:    #7c3aed; /* データモデル実装 */
+    --c-api-impl:     #2563eb; /* API設計・実装 */
+    --c-api-test:     #06b6d4; /* API単体テスト */
+    --c-ux:           #f59e0b; /* UX設計 */
+    --c-fe-design:    #f97316; /* フロントエンド設計 */
+    --c-fe-impl:      #ef4444; /* フロントエンド実装 */
+    --c-fe-test:      #ec4899; /* フロントエンド単体テスト */
+    --c-eng-review:   #475569; /* エンジニアレビュー */
+    --c-verify:       #6b7280; /* 動作確認 */
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Yu Gothic UI", "Hiragino Sans", "Meiryo", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    margin: 0;
+    padding: 32px 24px 64px;
+    line-height: 1.6;
+  }
+
+  .container { max-width: 1100px; margin: 0 auto; }
+
+  h1 {
+    font-size: 24px;
+    margin: 0 0 8px;
+    border-left: 6px solid var(--accent);
+    padding-left: 12px;
+  }
+  .lede {
+    color: var(--sub);
+    font-size: 14px;
+    margin: 0 0 24px;
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+  }
+
+  h2 {
+    font-size: 16px;
+    margin: 0 0 16px;
+    color: var(--text);
+  }
+
+  /* 凡例 */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    font-size: 12px;
+  }
+  .legend-item {
+    display: flex; align-items: center; gap: 6px;
+    color: var(--text);
+  }
+  .legend-swatch {
+    width: 14px; height: 14px; border-radius: 3px;
+    display: inline-block;
+  }
+
+  /* 比較バー */
+  .row {
+    display: grid;
+    grid-template-columns: 130px 1fr 110px;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  .row-label {
+    font-weight: 600;
+    font-size: 14px;
+  }
+  .row-label .tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    color: white;
+    font-size: 11px;
+    margin-right: 6px;
+  }
+  .row-label .tag.asis { background: var(--asis); }
+  .row-label .tag.tobe { background: var(--tobe); }
+  .row-total {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    font-size: 14px;
+  }
+  .row-total .days {
+    display: block;
+    color: var(--sub);
+    font-weight: 400;
+    font-size: 11px;
+  }
+
+  .bar {
+    position: relative;
+    display: flex;
+    height: 36px;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #f3f4f6;
+    border: 1px solid var(--border);
+  }
+  .bar-segment {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+    overflow: hidden;
+    white-space: nowrap;
+    transition: filter .15s;
+    cursor: default;
+  }
+  .bar-segment:hover { filter: brightness(1.1); }
+  .bar-segment.tiny { font-size: 0; }
+
+  /* 軸 (棒の本体と同じグリッドで配置して位置を揃える) */
+  .axis-row {
+    display: grid;
+    grid-template-columns: 130px 1fr 110px;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+  .axis {
+    position: relative;
+    height: 18px;
+    border-bottom: 1px solid var(--border);
+  }
+  .axis .tick {
+    position: absolute;
+    top: 0;
+    transform: translateX(-50%);
+    font-size: 10px;
+    color: var(--sub);
+  }
+  .axis .tick::after {
+    content: "";
+    display: block;
+    width: 1px; height: 4px;
+    background: var(--border);
+    margin: 0 auto;
+  }
+
+  /* 内訳テーブル */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  th, td {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+  }
+  th {
+    background: #f9fafb;
+    font-weight: 600;
+    font-size: 12px;
+    color: var(--sub);
+  }
+  td.num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  tr.total td {
+    font-weight: 700;
+    background: #f9fafb;
+  }
+  td .swatch {
+    display: inline-block;
+    width: 10px; height: 10px;
+    border-radius: 2px;
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+  .agent-chip {
+    display: inline-block;
+    padding: 2px 8px;
+    margin: 2px 4px 2px 0;
+    background: #eef2ff;
+    color: #3730a3;
+    border: 1px solid #c7d2fe;
+    border-radius: 999px;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+  .agent-chip.human {
+    background: #fef3c7;
+    color: #92400e;
+    border-color: #fde68a;
+  }
+  .reduction {
+    color: var(--tobe);
+    font-weight: 700;
+  }
+
+  .notes {
+    color: var(--sub);
+    font-size: 12px;
+  }
+  .notes ul { margin: 6px 0 0 18px; padding: 0; }
+  .notes li { margin-bottom: 4px; }
+
+  .summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .summary .stat {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .stat .k { font-size: 12px; color: var(--sub); margin-bottom: 4px; }
+  .stat .v { font-size: 22px; font-weight: 700; }
+  .stat .v.asis { color: var(--asis); }
+  .stat .v.tobe { color: var(--tobe); }
+  .stat .v.gain { color: var(--accent); }
+  .stat .sub { font-size: 11px; color: var(--sub); margin-top: 2px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <h1>顧客一覧画面 開発工数比較 (AsIs / ToBe)</h1>
+  <p class="lede">
+    要件定義済の状態から「顧客一覧を表示する画面」を作る場合の、設計〜実装〜単体動作確認までの工数を作業ごとに色分けして比較します。
+    工数は Claude Code の知見の範囲で見積もった値です。
+  </p>
+
+  <div class="summary" id="summary"></div>
+
+  <div class="card">
+    <h2>作業ごとの色分け (凡例)</h2>
+    <div class="legend" id="legend"></div>
+  </div>
+
+  <div class="card">
+    <h2>合計工数の比較 (横棒)</h2>
+    <div class="axis-row">
+      <div></div>
+      <div class="axis" id="axis"></div>
+      <div></div>
+    </div>
+    <div id="bars"></div>
+    <p class="notes" style="margin-top:12px;">
+      ※ 棒の長さは時間 (h) に比例。各セグメントの幅がその作業に費やす工数です。
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>作業内訳 (h)</h2>
+    <table id="breakdown"></table>
+  </div>
+
+  <div class="card">
+    <h2>前提と注意点</h2>
+    <div class="notes">
+      <ul>
+        <li>対象画面: 一覧表示・ページング・簡易検索を持つ典型的な顧客一覧 (CRUD の R 部分)。</li>
+        <li>AsIs: エンジニア 1 名が手動で実装する想定。レビュー・テスト記述・手戻りも含む。</li>
+        <li>ToBe: 本プロジェクトの「実装オーケストレーション」運用 (DB アーキテクト / バックエンド / バックエンドレビュワー / フロントエンド / テスターの各 AI による連鎖実行) に、エンジニアが要所で介入する前提。</li>
+        <li>ToBe では設計レビュー・仕様確定・最終動作確認はエンジニア工数として残るため、ゼロにはなりません。</li>
+        <li>UI が複雑/ドメイン固有のロジックが多い画面ほど、AI 駆動の効果は小さくなります。本見積りは標準的な一覧画面を想定。</li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // ====== データ (内部に全保持) ======
+  const tasks = [
+    { key: "data-design", label: "データモデル設計",        color: "var(--c-data-design)", asis: 2,   tobe: 0.5, agents: ["DBアーキテクトAI"] },
+    { key: "data-impl",   label: "データモデル実装",        color: "var(--c-data-impl)",   asis: 1,   tobe: 0.2, agents: ["DBアーキテクトAI"] },
+    { key: "api-impl",    label: "API設計・実装",            color: "var(--c-api-impl)",    asis: 6,   tobe: 1.0, agents: ["バックエンドAI", "バックエンドレビュワーAI"] },
+    { key: "api-test",    label: "API単体テスト",            color: "var(--c-api-test)",    asis: 4,   tobe: 0.5, agents: ["バックエンドAI"] },
+    { key: "api-review",  label: "APIレビュー (エンジニア)", color: "var(--c-eng-review)",  asis: 1.5, tobe: 1.5, agents: ["エンジニア"] },
+    { key: "ux",          label: "UX設計",                   color: "var(--c-ux)",          asis: 3,   tobe: 1.5, agents: ["アーキテクトAI", "フロントエンドAI"] },
+    { key: "fe-design",   label: "フロントエンド設計",      color: "var(--c-fe-design)",   asis: 3,   tobe: 0.5, agents: ["フロントエンドAI"] },
+    { key: "fe-impl",     label: "フロントエンド実装",      color: "var(--c-fe-impl)",     asis: 8,   tobe: 2.0, agents: ["フロントエンドAI"] },
+    { key: "fe-test",     label: "フロントエンド単体テスト", color: "var(--c-fe-test)",    asis: 4,   tobe: 0.5, agents: ["フロントエンドAI"] },
+    { key: "fe-review",   label: "フロントエンドレビュー (エンジニア)", color: "var(--c-eng-review)", asis: 1.5, tobe: 1.5, agents: ["エンジニア"] },
+    { key: "verify",      label: "動作確認",                 color: "var(--c-verify)",      asis: 3,   tobe: 1.5, agents: ["テスターAI", "エンジニア(最終確認)"] },
+  ];
+
+  const HOURS_PER_DAY = 8;
+  const sum = (arr, key) => arr.reduce((a, t) => a + t[key], 0);
+  const totalAsis = sum(tasks, "asis");
+  const totalTobe = sum(tasks, "tobe");
+  const maxTotal  = Math.max(totalAsis, totalTobe);
+  const reduction = (1 - totalTobe / totalAsis) * 100;
+
+  const fmtH = (h) => {
+    const r = Math.round(h * 10) / 10;
+    return Number.isInteger(r) ? `${r}h` : `${r.toFixed(1)}h`;
+  };
+  const fmtDays = (h) => `${(h / HOURS_PER_DAY).toFixed(1)}人日`;
+
+  // ====== サマリー ======
+  const summary = document.getElementById("summary");
+  summary.innerHTML = `
+    <div class="stat">
+      <div class="k">AsIs (人力) 合計</div>
+      <div class="v asis">${fmtH(totalAsis)}</div>
+      <div class="sub">${fmtDays(totalAsis)} (1人日=${HOURS_PER_DAY}h換算)</div>
+    </div>
+    <div class="stat">
+      <div class="k">ToBe (AI駆動) 合計</div>
+      <div class="v tobe">${fmtH(totalTobe)}</div>
+      <div class="sub">${fmtDays(totalTobe)}</div>
+    </div>
+    <div class="stat">
+      <div class="k">削減率</div>
+      <div class="v gain">${reduction.toFixed(0)}%</div>
+      <div class="sub">差分 ${fmtH(totalAsis - totalTobe)} 短縮</div>
+    </div>
+  `;
+
+  // ====== 凡例 ======
+  const legend = document.getElementById("legend");
+  legend.innerHTML = tasks.map(t => `
+    <span class="legend-item">
+      <span class="legend-swatch" style="background:${t.color}"></span>${t.label}
+    </span>
+  `).join("");
+
+  // ====== 軸 (0〜maxTotal を 5h 刻みで) ======
+  const axis = document.getElementById("axis");
+  const tickStep = 5;
+  const ticks = [];
+  for (let v = 0; v <= maxTotal; v += tickStep) ticks.push(v);
+  if (ticks[ticks.length - 1] !== maxTotal) ticks.push(maxTotal);
+  axis.innerHTML = ticks.map(v => `
+    <span class="tick" style="left:${(v / maxTotal) * 100}%">${v}h</span>
+  `).join("");
+
+  // ====== バー描画 ======
+  function buildBar(kind /* "asis" | "tobe" */, total) {
+    const widthPct = (total / maxTotal) * 100;
+    const segments = tasks.map(t => {
+      const h = t[kind];
+      if (!h) return "";
+      const segPct = (h / total) * 100;
+      const tinyClass = h < 1 ? " tiny" : "";
+      return `
+        <div class="bar-segment${tinyClass}"
+             style="flex: 0 0 ${segPct}%; background:${t.color};"
+             title="${t.label}: ${fmtH(h)}">
+          ${h >= 1 ? fmtH(h) : ""}
+        </div>`;
+    }).join("");
+
+    return `
+      <div class="row">
+        <div class="row-label"><span class="tag ${kind}">${kind === "asis" ? "AsIs" : "ToBe"}</span>${kind === "asis" ? "人力" : "AI駆動"}</div>
+        <div>
+          <div class="bar" style="width:${widthPct}%;">${segments}</div>
+        </div>
+        <div class="row-total">
+          ${fmtH(total)}
+          <span class="days">${fmtDays(total)}</span>
+        </div>
+      </div>
+    `;
+  }
+
+  document.getElementById("bars").innerHTML =
+    buildBar("asis", totalAsis) + buildBar("tobe", totalTobe);
+
+  // ====== 内訳テーブル ======
+  const breakdown = document.getElementById("breakdown");
+  const rows = tasks.map(t => {
+    const pct = t.asis > 0 ? Math.round((1 - t.tobe / t.asis) * 100) : 0;
+    const agentChips = (t.agents || [])
+      .map(a => {
+        const isHuman = a.startsWith("エンジニア");
+        return `<span class="agent-chip${isHuman ? " human" : ""}">${a}</span>`;
+      }).join("");
+    return `
+      <tr>
+        <td><span class="swatch" style="background:${t.color}"></span>${t.label}</td>
+        <td class="num">${fmtH(t.asis)}</td>
+        <td class="num">${fmtH(t.tobe)}</td>
+        <td>${agentChips}</td>
+        <td class="num reduction">-${pct}%</td>
+      </tr>
+    `;
+  }).join("");
+  const totalPct = Math.round(reduction);
+  breakdown.innerHTML = `
+    <thead>
+      <tr>
+        <th>作業</th>
+        <th class="num" style="text-align:right">AsIs (人力)</th>
+        <th class="num" style="text-align:right">ToBe (AI駆動)</th>
+        <th>担当</th>
+        <th class="num" style="text-align:right">削減率</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${rows}
+      <tr class="total">
+        <td>合計</td>
+        <td class="num">${fmtH(totalAsis)}</td>
+        <td class="num">${fmtH(totalTobe)}</td>
+        <td></td>
+        <td class="num reduction">-${totalPct}%</td>
+      </tr>
+    </tbody>
+  `;
+</script>
+</body>
+</html>
