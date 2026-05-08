@@ -123,7 +123,7 @@ agents: spec駆動開発 {
   }
 
   # 核となる仕様
-  spec: "核: 実行可能な仕様書\n(Spec as Single Source of Truth)" {
+  spec: "仕様書\n(プランニング処理にとってのSSOT)" {
     shape: cylinder
     class: spec
   }
@@ -145,6 +145,14 @@ agents: spec駆動開発 {
       # 計画フェーズ: 分析 → タスク化
       architect -> planner: analysis.md
     }
+
+    task: "タスク\n(実装処理にとってのSSOT" {
+      shape: cylinder
+      class: spec
+    }
+
+    planning.planner -> task: タスク化
+    task -> build: タスク引き渡し
 
     # 設計・実装フェーズ
     build: 設計・実装 {
@@ -277,7 +285,9 @@ dev: {
         # 出力 (マネージャ向け)
         output: アウトプット {
           backlog: {
-            label: "親タスク (WBS)\n機能一覧 + 依存・優先順位"
+            style.multiple: true
+
+            label: "親タスク群 (Backlog)"
           }
         }
 
