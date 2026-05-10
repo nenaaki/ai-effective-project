@@ -711,6 +711,7 @@
     const totalTobeAI  = totalTobe - totalTobeEng;
     const maxTotal     = Math.max(totalAsis, totalTobe);
     const reduction    = (1 - totalTobe / totalAsis) * 100;
+    const humanReduction = totalAsis > 0 ? (1 - totalTobeEng / totalAsis) * 100 : 0;
     const totalLoc     = tasks.reduce((a, t) => a + (t.loc || 0), 0);
     const engPct       = totalTobe > 0 ? Math.round((totalTobeEng / totalTobe) * 100) : 0;
 
@@ -731,6 +732,7 @@
         <div class="k">削減率</div>
         <div class="v gain">${reduction.toFixed(0)}%</div>
         <div class="sub">差分 ${fmtH(totalAsis - totalTobe)} 短縮</div>
+        <div class="sub eng-line">└ うちエンジニア -${humanReduction.toFixed(0)}% (${fmtH(totalAsis - totalTobeEng)} 短縮)</div>
       </div>
     `;
 
