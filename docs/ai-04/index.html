@@ -13,6 +13,7 @@
     --accent: #2563eb;
     --asis: #ef4444;
     --tobe: #10b981;
+    --c-engineer: var(--c-engineer);
 
     /* タスクごとの色 */
     --c-data-design:  #4f46e5;
@@ -106,7 +107,7 @@
   .legend-item { display: flex; align-items: center; gap: 6px; color: var(--text); }
   .legend-swatch { width: 14px; height: 14px; border-radius: 3px; display: inline-block; }
 
-  /* 比較バー */
+  /* 比較バー (主行) */
   .row {
     display: grid;
     grid-template-columns: 130px 1fr 110px;
@@ -114,20 +115,6 @@
     align-items: center;
     margin-bottom: 16px;
   }
-  /* ToBe バーの内訳サブ行 (AI / エンジニア) */
-  .row.sub {
-    margin-top: -8px;
-    margin-bottom: 6px;
-  }
-  .row.sub .row-label {
-    font-size: 12px;
-    color: var(--sub);
-    font-weight: 500;
-    padding-left: 18px;
-  }
-  .row.sub .bar { height: 22px; }
-  .row.sub .bar-segment { font-size: 10px; }
-  .row.sub .row-total { font-size: 12px; font-weight: 500; color: var(--sub); }
   .row-label { font-weight: 600; font-size: 14px; }
   .row-label .tag {
     display: inline-block;
@@ -151,6 +138,20 @@
     font-weight: 400;
     font-size: 11px;
   }
+  /* ToBe バーの内訳サブ行 (AI / エンジニア) — 主行のスタイルを上書き */
+  .row.sub {
+    margin-top: -8px;
+    margin-bottom: 6px;
+  }
+  .row.sub .row-label {
+    font-size: 12px;
+    color: var(--sub);
+    font-weight: 500;
+    padding-left: 18px;
+  }
+  .row.sub .bar { height: 22px; }
+  .row.sub .bar-segment { font-size: 10px; }
+  .row.sub .row-total { font-size: 12px; font-weight: 500; color: var(--sub); }
 
   .bar {
     position: relative;
@@ -246,7 +247,7 @@
   }
   .agent-chip.human {
     background: #fef3c7;
-    color: #92400e;
+    color: var(--c-engineer);
     border-color: #fde68a;
   }
 
@@ -288,7 +289,7 @@
   }
   .stat .sub.eng-line {
     margin-top: 4px;
-    color: #92400e;
+    color: var(--c-engineer);
     font-weight: 600;
   }
   .stat .sub.eng-line .frac { color: var(--sub); font-weight: 400; }
@@ -303,7 +304,7 @@
   .stat .v.asis { color: var(--asis); }
   .stat .v.tobe { color: var(--tobe); }
   .stat .v.gain { color: var(--accent); }
-  .stat .v.eng  { color: #92400e; }
+  .stat .v.eng  { color: var(--c-engineer); }
   .stat .sub { font-size: 11px; color: var(--sub); margin-top: 2px; }
 </style>
 </head>
@@ -564,6 +565,9 @@
     },
   };
 
+  // 「エンジニア」「エンジニア(最終確認)」等を判定する共通述語
+  function isEngineer(name) { return name.startsWith("エンジニア"); }
+
   // ====== 合計シナリオの動的生成 ======
   function buildTotalScenario(scenarios, keys) {
     const taskKeys   = ["data-design","data-impl","api-impl","api-test","api-review","ux","fe-design","fe-impl","fe-test","fe-review","verify"];
@@ -595,7 +599,7 @@
         if (t.loc != null) { loc += t.loc; hasLoc = true; }
         (t.agents || []).forEach(a => {
           // 合計タブでは「エンジニア(最終確認)」「エンジニア(複雑ロジック)」等を「エンジニア」に統一
-          agentSet.add(a.startsWith("エンジニア") ? "エンジニア" : a);
+          agentSet.add(isEngineer(a) ? "エンジニア" : a);
         });
       });
       return {
@@ -678,14 +682,15 @@
       if (k === "total")    cls.push("highlight");
       return `<button type="button" class="${cls.join(" ")}" data-key="${k}">${scenarios[k].tabLabel}</button>`;
     }).join("");
-    document.querySelectorAll(".tab").forEach(btn => {
-      btn.addEventListener("click", () => {
-        currentKey = btn.dataset.key;
-        renderTabs();
-        renderScenario();
-      });
-    });
   }
+  // クリックは初期化時に一度だけ委譲バインド
+  document.getElementById("tabs").addEventListener("click", e => {
+    const btn = e.target.closest(".tab");
+    if (!btn) return;
+    currentKey = btn.dataset.key;
+    renderTabs();
+    renderScenario();
+  });
 
   // ====== シナリオ全体描画 ======
   function renderScenario() {
@@ -757,44 +762,42 @@
         style="flex: 0 0 ${widthPct}%; background-color:${color};"
         title="${label}${isEng ? " (エンジニア)" : ""}: ${fmtH(hours)}">${hours >= 1 ? fmtH(hours) : ""}</div>`;
     }
-    function buildBar(kind, total) {
+    // バー1行の包み HTML (主バー / サブバーで共通)
+    function wrapBarRow(modifier, labelHTML, totalHTML, total, segmentsHTML) {
       const widthPct = (total / maxTotal) * 100;
+      return `
+        <div class="row${modifier}">
+          <div class="row-label">${labelHTML}</div>
+          <div><div class="bar" style="width:${widthPct}%;">${segmentsHTML}</div></div>
+          <div class="row-total">${totalHTML}</div>
+        </div>
+      `;
+    }
+    function buildBar(kind, total) {
       const segments = tasks.map(t => {
         const h = t[kind];
         if (!h) return "";
         if (kind === "tobe" && t.tobeEng > 0) {
           const aiH = Math.max(h - t.tobeEng, 0);
-          const engH = t.tobeEng;
           let out = "";
           if (aiH > 0) out += makeSeg((aiH / total) * 100, t.color, t.label, aiH, false);
-          out += makeSeg((engH / total) * 100, t.color, t.label, engH, true);
+          out += makeSeg((t.tobeEng / total) * 100, t.color, t.label, t.tobeEng, true);
           return out;
         }
         return makeSeg((h / total) * 100, t.color, t.label, h, false);
       }).join("");
-      return `
-        <div class="row">
-          <div class="row-label"><span class="tag ${kind}">${kind === "asis" ? "AsIs" : "ToBe"}</span>${kind === "asis" ? "人力" : "AI駆動"}</div>
-          <div><div class="bar" style="width:${widthPct}%;">${segments}</div></div>
-          <div class="row-total">${fmtH(total)}<span class="days">${fmtDays(total)}</span></div>
-        </div>
-      `;
+      const labelHTML = `<span class="tag ${kind}">${kind === "asis" ? "AsIs" : "ToBe"}</span>${kind === "asis" ? "人力" : "AI駆動"}`;
+      const totalHTML = `${fmtH(total)}<span class="days">${fmtDays(total)}</span>`;
+      return wrapBarRow("", labelHTML, totalHTML, total, segments);
     }
     // ToBe の内訳サブバー (AI のみ / エンジニアのみ)
     function buildSubBar(label, subTotal, isEng) {
-      const widthPct = (subTotal / maxTotal) * 100;
       const segments = tasks.map(t => {
         const h = isEng ? (t.tobeEng || 0) : Math.max((t.tobe || 0) - (t.tobeEng || 0), 0);
         if (h <= 0) return "";
         return makeSeg((h / subTotal) * 100, t.color, t.label, h, isEng);
       }).join("");
-      return `
-        <div class="row sub">
-          <div class="row-label">└ ${label}</div>
-          <div><div class="bar" style="width:${widthPct}%;">${segments}</div></div>
-          <div class="row-total">${fmtH(subTotal)}</div>
-        </div>
-      `;
+      return wrapBarRow(" sub", `└ ${label}`, fmtH(subTotal), subTotal, segments);
     }
 
     document.getElementById("bars").innerHTML =
@@ -818,7 +821,7 @@
         const tinyClass = n < 1 ? " tiny" : "";
         return `
           <div class="bar-segment${tinyClass}"
-               style="flex: 0 0 ${segPct}%; background:${c.color};"
+               style="flex: 0 0 ${segPct}%; background-color:${c.color};"
                title="${c.label}: ${n}件">
             ${n}件
           </div>`;
@@ -845,12 +848,11 @@
     // 内訳テーブル
     const rows = tasks.map(t => {
       const pct = t.asis > 0 ? Math.round((1 - t.tobe / t.asis) * 100) : 0;
-      const agentChips = (t.agents || []).map(a => {
-        const isHuman = a.startsWith("エンジニア");
-        return `<span class="agent-chip${isHuman ? " human" : ""}">${a}</span>`;
-      }).join("");
+      const agentChips = (t.agents || []).map(a =>
+        `<span class="agent-chip${isEngineer(a) ? " human" : ""}">${a}</span>`
+      ).join("");
       const eng = t.tobeEng || 0;
-      const engCell = eng > 0 ? `<span style="color:#92400e;font-weight:600">${fmtH(eng)}</span>` : "—";
+      const engCell = eng > 0 ? `<span style="color:var(--c-engineer);font-weight:600">${fmtH(eng)}</span>` : "—";
       return `
         <tr>
           <td><span class="swatch" style="background:${t.color}"></span>${t.label}</td>
@@ -882,7 +884,7 @@
           <td class="num">約${totalLoc}行</td>
           <td class="num">${fmtH(totalAsis)}</td>
           <td class="num">${fmtH(totalTobe)}</td>
-          <td class="num"><span style="color:#92400e">${fmtH(totalTobeEng)}</span></td>
+          <td class="num"><span style="color:var(--c-engineer)">${fmtH(totalTobeEng)}</span></td>
           <td></td>
           <td class="num reduction">-${Math.round(reduction)}%</td>
         </tr>
