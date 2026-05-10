@@ -69,10 +69,10 @@
   }
   .tab.highlight {
     margin-left: 12px;
-    color: var(--accent);
     font-weight: 700;
   }
-  .tab.highlight:hover { color: var(--accent); }
+  .tab.highlight:not(.active) { color: #7c3aed; }
+  .tab.highlight:not(.active):hover { color: #6d28d9; }
   .tab.highlight::before {
     content: "Σ ";
     font-weight: 700;
