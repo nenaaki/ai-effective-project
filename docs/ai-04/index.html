@@ -225,7 +225,8 @@
     text-align: left;
   }
   th { background: #f9fafb; font-weight: 600; font-size: 12px; color: var(--sub); }
-  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  td.num, th.num { text-align: right; }
+  td.num { font-variant-numeric: tabular-nums; }
   tr.total td { font-weight: 700; background: #f9fafb; }
   td .swatch {
     display: inline-block;
@@ -304,7 +305,6 @@
   .stat .v.asis { color: var(--asis); }
   .stat .v.tobe { color: var(--tobe); }
   .stat .v.gain { color: var(--accent); }
-  .stat .v.eng  { color: var(--c-engineer); }
   .stat .sub { font-size: 11px; color: var(--sub); margin-top: 2px; }
 </style>
 </head>
@@ -873,12 +873,12 @@
       <thead>
         <tr>
           <th>作業</th>
-          <th class="num" style="text-align:right">概算コード量</th>
-          <th class="num" style="text-align:right">AsIs (人力)</th>
-          <th class="num" style="text-align:right">ToBe 合計</th>
-          <th class="num" style="text-align:right">うちエンジニア</th>
+          <th class="num">概算コード量</th>
+          <th class="num">AsIs (人力)</th>
+          <th class="num">ToBe 合計</th>
+          <th class="num">うちエンジニア</th>
           <th>担当</th>
-          <th class="num" style="text-align:right">削減率</th>
+          <th class="num">削減率</th>
         </tr>
       </thead>
       <tbody>
