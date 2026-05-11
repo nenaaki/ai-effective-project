@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>AI導入による業務再編整理 v2</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: #fafaf7; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Yu Gothic UI", sans-serif; color: #1a1a1a; }
+  body { padding: 32px 40px; }
+  .container { max-width: 1480px; margin: 0 auto; }
+
+  /* Header */
+  .header { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid #d8dbe2; padding-bottom: 14px; margin-bottom: 32px; }
+  .header h1 { font-size: 22px; font-weight: 700; color: #1a1a1a; }
+  .header .meta { font-size: 13px; color: #666; }
+
+  /* Stage layout: left label + content area */
+  .stage { display: grid; grid-template-columns: 70px 1fr; gap: 16px; align-items: center; }
+  .stage-label { font-size: 22px; font-weight: 700; color: #444; }
+  .stage-content { width: 100%; }
+
+  /* Flow stage : AsIs + Sankey を1コンテナで合体 (リボンがノード下端から出るように) */
+  .flow-stage { display: grid; grid-template-columns: 70px 1fr; gap: 16px; align-items: start; margin-bottom: 0; }
+  .flow-stage .stage-label { padding-top: 75px; font-size: 22px; font-weight: 700; color: #444; }
+  .flow-content { position: relative; height: 356px; /* AsIs 176 + Sankey 180 */ }
+
+  /* Sankey ribbons: 背面レイヤ。AsIsエリアに重なってノード下端から出る */
+  .sankey-ribbons { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+
+  /* AsIs area: 中間レイヤ。boxes はリボンを覆い隠す */
+  .asis-area { position: relative; height: 176px; z-index: 1; }
+  .asis-connectors { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 3; overflow: visible; }
+  .asis-row { display: grid; grid-template-columns: repeat(8, 1fr); grid-template-rows: 80px 80px; gap: 16px 12px; position: relative; z-index: 2; }
+  /* AsIs は全部「人」なので全ノード白 (PDCAテキストの色で区別) */
+  .asis-box { position: relative; padding: 10px 6px 18px; background: #fff; border: 2px solid #d8dbe2; border-radius: 10px; text-align: center; font-size: 12px; line-height: 1.4; color: #2a2a2a; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+  .asis-box .name { font-weight: 600; }
+  .asis-box .hours { color: #888; font-size: 10px; margin-top: 2px; }
+
+  /* Grid placement */
+  .asis-box.b1  { grid-column: 1; grid-row: 1 / 3; align-self: center; }  /* データモデル設計 */
+  .asis-box.b2  { grid-column: 2; grid-row: 1 / 3; align-self: center; }  /* データモデル実装 */
+  .asis-box.b3  { grid-column: 3; grid-row: 1; }                          /* API設計・実装 */
+  .asis-box.b4  { grid-column: 4; grid-row: 1; }                          /* API単体テスト */
+  .asis-box.b5  { grid-column: 5; grid-row: 1; }                          /* APIレビュー */
+  .asis-box.b6  { grid-column: 3; grid-row: 2; }                          /* UX設計 */
+  .asis-box.b7  { grid-column: 4; grid-row: 2; }                          /* フロントエンド設計 */
+  .asis-box.b8  { grid-column: 5; grid-row: 2; }                          /* フロントエンド実装 */
+  .asis-box.b9  { grid-column: 6; grid-row: 2; }                          /* フロントエンド単体テスト */
+  .asis-box.b10 { grid-column: 7; grid-row: 2; }                          /* フロントエンドレビュー */
+  .asis-box.b11 { grid-column: 8; grid-row: 1 / 3; align-self: center; }  /* 動作確認 */
+
+  /* Sankey area */
+  .sankey-area { height: 180px; position: relative; }
+  .sankey-area svg { width: 100%; height: 100%; display: block; }
+
+  /* ToBe row : 設計 | AI Orchestration (D/A/F + Orchestrator + Reviewer) | コードレビュー | 動作確認 */
+  .tobe-row { display: grid; grid-template-columns: 1fr 3fr 1fr 1fr; gap: 22px; align-items: stretch; }
+
+  /* ToBe node 間の流れ矢印 (左→右) */
+  .tobe-row > .tobe-block.plan::after,
+  .tobe-row > .ai-orchestration::after,
+  .tobe-row > .tobe-block.review::after {
+    content: '▶';
+    position: absolute;
+    top: 50%;
+    right: -18px;
+    transform: translateY(-50%);
+    font-size: 14px;
+    color: #888;
+    z-index: 5;
+    line-height: 1;
+  }
+  /* AI Orchestration 内部の D → A → F 流れ矢印 */
+  .ai-blocks > .tobe-block.data::after,
+  .ai-blocks > .tobe-block.api::after {
+    content: '▶';
+    position: absolute;
+    top: 50%;
+    right: -13px;
+    transform: translateY(-50%);
+    font-size: 12px;
+    color: #5cb085;
+    z-index: 5;
+    line-height: 1;
+  }
+  .tobe-block { position: relative; padding: 36px 16px 12px; border-radius: 14px; min-height: 180px; display: flex; flex-direction: column; }
+  .tobe-block .small-label { position: absolute; top: 12px; left: 16px; font-size: 14px; font-weight: 700; letter-spacing: 0.02em; }
+  .tobe-block .items { margin-top: 8px; font-size: 13px; line-height: 1.7; }
+  .tobe-block .items div { padding: 4px 0; border-top: 1px dashed rgba(0,0,0,0.1); }
+  .tobe-block .items div:first-child { border-top: none; padding-top: 6px; }
+  .tobe-block .num-tag { display: inline-block; font-size: 11px; padding: 0 4px; margin-right: 6px; opacity: 0.75; }
+
+  /* PDCA text タグ (文字色のみ、各ノードの右下) */
+  .pdca-text { position: absolute; bottom: 6px; right: 10px; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; pointer-events: none; }
+  .pdca-text.plan { color: #6e68c2; }
+  .pdca-text.do { color: #2c8a5e; }
+  .pdca-text.check { color: #d69a3a; }
+  /* Plan + Check の "Check" 部分だけ橙 */
+  .pdca-text .check-part { color: #d69a3a; }
+  /* AsIs用は少し小さく */
+  .asis-box .pdca-text { font-size: 9px; bottom: 4px; right: 6px; }
+
+  /* 工数短縮表示 (各ToBeノード) */
+  .savings { margin-top: 10px; padding: 6px 8px; background: rgba(44, 138, 94, 0.08); border-radius: 6px; font-size: 11px; text-align: center; color: #444; line-height: 1.5; }
+  .savings .from { color: #999; text-decoration: line-through; text-decoration-color: rgba(0,0,0,0.3); }
+  .savings .arrow { margin: 0 4px; color: #666; }
+  .savings .to { font-weight: 700; color: #1e6042; }
+  .savings .reduction { display: inline-block; margin-left: 6px; color: #2c8a5e; font-weight: 700; }
+  .savings.no-change { background: rgba(214, 154, 58, 0.08); }
+  .savings.no-change .to { color: #888; }
+  .savings.no-change .reduction { color: #a05f1d; }
+
+  /* AI Orchestration の合計短縮 */
+  .ai-savings { position: absolute; bottom: 6px; left: 14px; font-size: 11px; color: #444; font-weight: 600; }
+  .ai-savings .from { color: #999; text-decoration: line-through; }
+  .ai-savings .to { color: #1e6042; font-weight: 700; margin-left: 2px; }
+  .ai-savings .reduction { color: #2c8a5e; font-weight: 700; margin-left: 4px; }
+
+  /* AI Orchestration container : 自動進行ゾーン */
+  .ai-orchestration { position: relative; background: rgba(165, 229, 199, 0.18); border: 2px solid #2c8a5e; border-radius: 14px; padding: 14px 14px 32px; display: flex; flex-direction: column; }
+  .ai-orchestration .ai-label { position: absolute; top: 0; left: 22px; transform: translateY(-50%); background: #fafaf7; padding: 2px 12px; font-size: 13px; font-weight: 700; color: #1e6042; letter-spacing: 0.02em; border-radius: 4px; }
+  .ai-orchestration .ai-blocks { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+  .ai-orchestration .tobe-block { min-height: 150px; background: #e8f7ee; border-color: #5cb085; }
+  .ai-orchestration .ai-arrows { width: 100%; height: 28px; margin-top: 6px; margin-bottom: 0; display: block; }
+  .ai-orchestration .ai-agents { margin-top: 4px; display: flex; gap: 14px; align-items: stretch; }
+
+  /* Orchestrator / Reviewer : 他のtobe-blockと同じスタイル (AIエージェントの「活動」を示す) */
+  .agent { background: #e8f7ee; border: 2px solid #5cb085; color: #1e6042; padding: 14px; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; line-height: 1.3; }
+  .agent .agent-label { font-size: 14px; font-weight: 700; letter-spacing: 0.02em; }
+  .agent .agent-sub { font-size: 11px; font-weight: 500; color: #4a6655; margin-top: 6px; line-height: 1.5; }
+  .agent.orchestrator { flex: 2; }
+  .agent.reviewer { flex: 1; }
+
+  /* Color variants */
+  .tobe-block.plan      { background: #e8e2f5; border: 2px solid #6e68c2; }
+  .tobe-block.plan      .small-label { color: #4d479e; }
+  .tobe-block.data      { background: #d4f0de; border: 2px solid #2c8a5e; }
+  .tobe-block.data      .small-label { color: #1e6042; }
+  .tobe-block.api       { background: #d4f0de; border: 2px solid #2c8a5e; }
+  .tobe-block.api       .small-label { color: #1e6042; }
+  .tobe-block.frontend  { background: #d4f0de; border: 2px solid #2c8a5e; }
+  .tobe-block.frontend  .small-label { color: #1e6042; }
+  /* ToBe 人ノード (Review, Validate) も白 (人 = 白) */
+  .tobe-block.review    { background: #fff; border: 2px solid #d8dbe2; }
+  .tobe-block.review    .small-label { color: #a05f1d; }
+  .tobe-block.validate  { background: #fff; border: 2px solid #d8dbe2; }
+  .tobe-block.validate  .small-label { color: #a05f1d; }
+
+  /* Legend */
+  .legend { display: flex; justify-content: center; gap: 32px; margin-top: 32px; padding-top: 24px; border-top: 1px solid #d8dbe2; }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #444; }
+  .legend-swatch { width: 18px; height: 18px; border-radius: 4px; }
+  .legend-swatch.plan { background: #e8e2f5; border: 1px solid #6e68c2; }
+  .legend-swatch.ai { background: #d4f0de; border: 1px solid #2c8a5e; }
+  .legend-swatch.review { background: #fff; border: 1px solid #d8dbe2; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header class="header">
+    <h1>AI導入による業務再編整理 — AsIs → ToBe</h1>
+    <div class="meta">対象：顧客一覧画面 ・ AsIs 37h → ToBe 12h ・ 約 67% 削減</div>
+  </header>
+
+  <!-- AsIs + Sankey 合体: リボンが AsIs ノードの bottom から出るように1つのコンテナに -->
+  <div class="flow-stage">
+    <div class="stage-label">AsIs</div>
+    <div class="flow-content">
+
+      <!-- 背面: サンキーリボン (ノード bottom から ToBe top へ流れる) -->
+      <svg class="sankey-ribbons" viewBox="0 0 1320 356" preserveAspectRatio="none">
+        <!--
+          ToBe grid (1fr 3fr 1fr 1fr, gap 14, total 1320):
+            Plan:     x  0–213,  center 106.5
+            AI box:   x 227–866 (3fr=639)
+              内部 D/A/F (padding 14, gap 14, block 194.33 each):
+                D: 241–435 center 338
+                A: 449–644 center 547
+                F: 658–852 center 755
+            Review:   x 880–1093, center 987
+            Validate: x 1107–1320, center 1214
+          ribbon source Y: top行=80, data/⑪=120, bottom行=176
+          ribbon dest Y = 356
+        -->
+
+        <!-- 紫 (P) : ①, ⑥, ⑦ を P で stack (dest 69-144, 各幅25) -->
+        <!-- ① → P 左 (dest 69–94) -->
+        <path d="M 63 120 C 63 238, 69 238, 69 356 L 94 356 C 94 238, 91 238, 91 120 Z"
+              fill="#b8b1e8" opacity="0.65"/>
+        <!-- ⑥ → P 中 (dest 94–119) -->
+        <path d="M 411 176 C 411 266, 94 266, 94 356 L 119 356 C 119 266, 439 266, 439 176 Z"
+              fill="#b8b1e8" opacity="0.65"/>
+        <!-- ⑦ → P 右 (dest 119–144) -->
+        <path d="M 578 176 C 578 266, 119 266, 119 356 L 144 356 C 144 266, 606 266, 606 176 Z"
+              fill="#b8b1e8" opacity="0.65"/>
+
+        <!-- 緑 (D) : ② (dest 324–352) -->
+        <path d="M 230 120 C 230 238, 324 238, 324 356 L 352 356 C 352 238, 258 238, 258 120 Z"
+              fill="#7ad0a3" opacity="0.65"/>
+
+        <!-- 緑 (A) : ③, ④ stack (dest 522-572) -->
+        <!-- ③ → A 左 (dest 522–547) -->
+        <path d="M 381 80 C 381 218, 522 218, 522 356 L 547 356 C 547 218, 409 218, 409 80 Z"
+              fill="#7ad0a3" opacity="0.65"/>
+        <!-- ④ → A 右 (dest 547–572) -->
+        <path d="M 548 80 C 548 218, 547 218, 547 356 L 572 356 C 572 218, 576 218, 576 80 Z"
+              fill="#7ad0a3" opacity="0.65"/>
+
+        <!-- 緑 (F) : ⑧, ⑨ stack (dest 730-780) -->
+        <!-- ⑧ → F 左 (dest 730–755) -->
+        <path d="M 744 176 C 744 266, 730 266, 730 356 L 755 356 C 755 266, 772 266, 772 176 Z"
+              fill="#7ad0a3" opacity="0.65"/>
+        <!-- ⑨ → F 右 (dest 755–780) -->
+        <path d="M 896 176 C 896 266, 755 266, 755 356 L 780 356 C 780 266, 924 266, 924 176 Z"
+              fill="#7ad0a3" opacity="0.65"/>
+
+        <!-- 橙 (R) : ⑤, ⑩ stack (dest 962-1012) -->
+        <!-- ⑤ → R 左 (dest 962–987) -->
+        <path d="M 714 80 C 714 218, 962 218, 962 356 L 987 356 C 987 218, 742 218, 742 80 Z"
+              fill="#f2c57a" opacity="0.65"/>
+        <!-- ⑩ → R 右 (dest 987–1012) -->
+        <path d="M 1062 176 C 1062 266, 987 266, 987 356 L 1012 356 C 1012 266, 1090 266, 1090 176 Z"
+              fill="#f2c57a" opacity="0.65"/>
+
+        <!-- 橙 (V) : ⑪ (dest 1200–1228) -->
+        <path d="M 1229 120 C 1229 238, 1200 238, 1200 356 L 1228 356 C 1228 238, 1257 238, 1257 120 Z"
+              fill="#f2c57a" opacity="0.65"/>
+      </svg>
+
+      <!-- 中間: AsIs (boxes + 内部接続線) -->
+      <div class="asis-area">
+        <div class="asis-row">
+          <div class="asis-box b1 cat-plan"><span class="name">データモデル設計</span><span class="hours">2h</span><span class="pdca-text plan">Plan + <span class="check-part">Check</span></span></div>
+          <div class="asis-box b2 cat-do"><span class="name">データモデル実装</span><span class="hours">1h</span><span class="pdca-text do">Do</span></div>
+          <div class="asis-box b3 cat-do"><span class="name">API設計・実装</span><span class="hours">6h</span><span class="pdca-text do">Do</span></div>
+          <div class="asis-box b4 cat-do"><span class="name">API単体テスト</span><span class="hours">4h</span><span class="pdca-text do">Do</span></div>
+          <div class="asis-box b5 cat-check"><span class="name">APIレビュー</span><span class="hours">1.5h</span><span class="pdca-text check">Check</span></div>
+          <div class="asis-box b6 cat-plan"><span class="name">UX設計</span><span class="hours">3h</span><span class="pdca-text plan">Plan + <span class="check-part">Check</span></span></div>
+          <div class="asis-box b7 cat-plan"><span class="name">フロントエンド設計</span><span class="hours">3h</span><span class="pdca-text plan">Plan + <span class="check-part">Check</span></span></div>
+          <div class="asis-box b8 cat-do"><span class="name">フロントエンド実装</span><span class="hours">8h</span><span class="pdca-text do">Do</span></div>
+          <div class="asis-box b9 cat-do"><span class="name">フロントエンド単体テスト</span><span class="hours">4h</span><span class="pdca-text do">Do</span></div>
+          <div class="asis-box b10 cat-check"><span class="name">フロントエンドレビュー</span><span class="hours">1.5h</span><span class="pdca-text check">Check</span></div>
+          <div class="asis-box b11 cat-check"><span class="name">動作確認</span><span class="hours">3h</span><span class="pdca-text check">Check</span></div>
+        </div>
+        <!-- 内部接続線 (z-index 2: boxの上に描画) -->
+        <svg class="asis-connectors" viewBox="0 0 1320 176" preserveAspectRatio="none">
+          <!--
+            8列 grid: col幅 ≈ 154.5px、gap = 12px
+            col 右辺/左辺 (X):
+              col1: 0–154,    col2: 167–321,
+              col3: 333–488,  col4: 500–654,
+              col5: 666–821,  col6: 833–987,
+              col7: 999–1154, col8: 1166–1320
+            row 1 中心 Y = 40, row 2 中心 Y = 136
+            データ/動作確認 縦中央 Y = 88
+          -->
+
+          <!-- データモデル設計 → データモデル実装 (中央, 横線) -->
+          <path d="M 154 88 L 167 88" stroke="#7a8190" stroke-width="3" fill="none" stroke-linecap="round"/>
+
+          <!-- データモデル実装 → API設計・実装 (分岐 上) / UX設計 (分岐 下) -->
+          <path d="M 321 88 L 327 88 L 327 40 L 333 40" stroke="#7a8190" stroke-width="3" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+          <path d="M 321 88 L 327 88 L 327 136 L 333 136" stroke="#7a8190" stroke-width="3" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+
+          <!-- API path 上の行 -->
+          <path d="M 488 40 L 500 40" stroke="#7a8190" stroke-width="3" fill="none" stroke-linecap="round"/>
+          <path d="M 654 40 L 666 40" stroke="#7a8190" stroke-width="3" fill="none" stroke-linecap="round"/>
+
+          <!-- FE path 下の行 -->
+          <path d="M 488 136 L 500 136" stroke="#7a8190" stroke-width="3" fill="none" stroke-linecap="round"/>
+          <path d="M 654 136 L 666 136" stroke="#7a8190" stroke-width="3" fill="none" stroke-linecap="round"/>
+          <path d="M 821 136 L 833 136" stroke="#7a8190" stroke-width="3" fill="none" stroke-linecap="round"/>
+          <path d="M 987 136 L 999 136" stroke="#7a8190" stroke-width="3" fill="none" stroke-linecap="round"/>
+
+          <!-- APIレビュー → 動作確認 (上→中央, 長いカーブ) -->
+          <path d="M 821 40 C 1080 40, 1100 88, 1166 88" stroke="#7a8190" stroke-width="3" fill="none" stroke-linecap="round"/>
+          <!-- フロントエンドレビュー → 動作確認 (下→中央, 短いカーブ) -->
+          <path d="M 1154 136 C 1160 136, 1160 88, 1166 88" stroke="#7a8190" stroke-width="3" fill="none" stroke-linecap="round"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- ToBe row -->
+  <div class="stage">
+    <div class="stage-label">ToBe</div>
+    <div class="stage-content">
+      <div class="tobe-row">
+
+        <!-- 設計 : Plan + Check -->
+        <div class="tobe-block plan">
+          <div class="small-label">設計</div>
+          <div class="items">
+            <div><span class="num-tag">①</span>データモデル設計</div>
+            <div><span class="num-tag">⑥</span>UX設計</div>
+            <div><span class="num-tag">⑦</span>フロントエンド設計</div>
+          </div>
+          <div class="savings">
+            <span class="from">8h</span><span class="arrow">→</span><span class="to">2.5h</span>
+            <span class="reduction">-69%</span>
+          </div>
+          <span class="pdca-text plan">Plan + <span class="check-part">Check</span></span>
+        </div>
+
+        <!-- AI Orchestration : 自動進行ゾーン (Data Model + API + Frontend + Orchestrator + Reviewer) -->
+        <div class="ai-orchestration">
+          <span class="ai-label">AIオーケストレーション（自動進行）</span>
+
+          <div class="ai-blocks">
+            <div class="tobe-block data">
+              <div class="small-label">Data Model</div>
+              <div class="items">
+                <div><span class="num-tag">②</span>データモデル実装</div>
+              </div>
+              <div class="savings">
+                <span class="from">1h</span><span class="arrow">→</span><span class="to">0.2h</span>
+                <span class="reduction">-80%</span>
+              </div>
+            </div>
+            <div class="tobe-block api">
+              <div class="small-label">API (Backend)</div>
+              <div class="items">
+                <div><span class="num-tag">③</span>API設計・実装</div>
+                <div><span class="num-tag">④</span>API単体テスト</div>
+              </div>
+              <div class="savings">
+                <span class="from">10h</span><span class="arrow">→</span><span class="to">1.5h</span>
+                <span class="reduction">-85%</span>
+              </div>
+            </div>
+            <div class="tobe-block frontend">
+              <div class="small-label">Frontend</div>
+              <div class="items">
+                <div><span class="num-tag">⑧</span>フロントエンド実装</div>
+                <div><span class="num-tag">⑨</span>フロントエンド単体テスト</div>
+              </div>
+              <div class="savings">
+                <span class="from">12h</span><span class="arrow">→</span><span class="to">2.5h</span>
+                <span class="reduction">-79%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Orchestrator → D/A/F の接続線 (上向き) -->
+          <svg class="ai-arrows" viewBox="0 0 600 28" preserveAspectRatio="none">
+            <defs>
+              <marker id="arrowhead" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+                <polygon points="0,0 10,5 0,10" fill="#2c8a5e"/>
+              </marker>
+            </defs>
+            <!-- Orchestrator中心 (x≈200) から D(100), A(300), F(500) へ -->
+            <path d="M 200 28 C 200 14, 100 14, 100 2" stroke="#2c8a5e" stroke-width="1.8" fill="none" marker-end="url(#arrowhead)"/>
+            <path d="M 200 28 L 300 2" stroke="#2c8a5e" stroke-width="1.8" fill="none" marker-end="url(#arrowhead)"/>
+            <path d="M 200 28 C 200 14, 500 14, 500 2" stroke="#2c8a5e" stroke-width="1.8" fill="none" marker-end="url(#arrowhead)"/>
+          </svg>
+
+          <div class="ai-agents">
+            <div class="agent orchestrator">
+              <span class="agent-label">Orchestrator</span>
+              <span class="agent-sub">指示生成・連鎖実行・PR作成</span>
+            </div>
+            <div class="agent reviewer">
+              <span class="agent-label">Reviewer</span>
+              <span class="agent-sub">AI内レビュー</span>
+            </div>
+          </div>
+
+          <span class="ai-savings">合計 <span class="from">23h</span> → <span class="to">4.2h</span><span class="reduction">-82%</span></span>
+          <span class="pdca-text do">Do</span>
+        </div>
+
+        <!-- コードレビュー : AI実装の Check -->
+        <div class="tobe-block review">
+          <div class="small-label">コードレビュー</div>
+          <div class="items">
+            <div><span class="num-tag">⑤</span>APIレビュー</div>
+            <div><span class="num-tag">⑩</span>フロントエンドレビュー</div>
+          </div>
+          <div class="savings no-change">
+            <span class="from">3h</span><span class="arrow">→</span><span class="to">3h</span>
+            <span class="reduction">変わらず</span>
+          </div>
+          <span class="pdca-text check">Check</span>
+        </div>
+
+        <!-- 動作確認 : 統合動作の Check (PRマージ前ゲート) -->
+        <div class="tobe-block validate">
+          <div class="small-label">動作確認</div>
+          <div class="items">
+            <div><span class="num-tag">⑪</span>動作確認</div>
+          </div>
+          <div class="savings">
+            <span class="from">3h</span><span class="arrow">→</span><span class="to">1.5h</span>
+            <span class="reduction">-50%</span>
+          </div>
+          <span class="pdca-text check">Check</span>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Legend -->
+  <div class="legend">
+    <div class="legend-item"><span class="legend-swatch plan"></span>人+AI</div>
+    <div class="legend-item"><span class="legend-swatch ai"></span>AI</div>
+    <div class="legend-item"><span class="legend-swatch review"></span>人</div>
+  </div>
+</div>
+</body>
+</html>
