@@ -33,6 +33,7 @@
   .asis-row { display: grid; grid-template-columns: repeat(8, 1fr); grid-template-rows: 80px 80px; gap: 16px 12px; position: relative; z-index: 2; }
   /* AsIs は全部「人」なので全ノード白 (PDCAテキストの色で区別) */
   .asis-box { position: relative; padding: 10px 6px 18px; background: #fff; border: 2px solid #d8dbe2; border-radius: 10px; text-align: center; font-size: 12px; line-height: 1.4; color: #2a2a2a; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+  .asis-box .num { font-size: 12px; font-weight: 700; color: #666; margin-bottom: 2px; }
   .asis-box .name { font-weight: 600; }
   .asis-box .hours { color: #888; font-size: 10px; margin-top: 2px; }
 
@@ -116,6 +117,19 @@
   .ai-savings .to { color: #1e6042; font-weight: 700; margin-left: 2px; }
   .ai-savings .reduction { color: #2c8a5e; font-weight: 700; margin-left: 4px; }
 
+  /* 設計のアウトプット仕様 (Plan ブロック内に配置 = 設計工程の成果物として表現) */
+  .input-spec { margin-top: 10px; padding: 8px 10px; background: rgba(255, 255, 255, 0.7); border: 1px dashed #6e68c2; border-radius: 8px; font-size: 11px; }
+  .input-spec-tag { font-weight: 700; color: #4d479e; font-size: 10px; display: block; margin-bottom: 6px; letter-spacing: 0.04em; }
+  .input-spec-items { display: flex; flex-direction: column; gap: 3px; }
+  .input-spec-items .spec { background: rgba(232, 226, 245, 0.8); padding: 2px 6px; border-radius: 4px; font-weight: 600; color: #4d479e; font-size: 10px; border: 1px solid #c8c2eb; line-height: 1.4; }
+
+  /* Check観点ワークパッケージ (Review / Validate ブロック内) */
+  .check-wp { margin-top: 10px; padding: 6px 8px; background: rgba(214, 154, 58, 0.08); border: 1px dashed #d69a3a; border-radius: 6px; font-size: 10px; }
+  .check-wp-tag { font-weight: 700; color: #a05f1d; font-size: 9px; display: block; margin-bottom: 4px; letter-spacing: 0.04em; }
+  .check-wp-items { display: flex; flex-direction: column; gap: 2px; }
+  .check-wp-items div { color: #555; line-height: 1.4; }
+  .check-wp-items div::before { content: "・"; color: #d69a3a; }
+
   /* AI Orchestration container : 自動進行ゾーン */
   .ai-orchestration { position: relative; background: rgba(165, 229, 199, 0.18); border: 2px solid #2c8a5e; border-radius: 14px; padding: 14px 14px 32px; display: flex; flex-direction: column; }
   .ai-orchestration .ai-label { position: absolute; top: 0; left: 22px; transform: translateY(-50%); background: #fafaf7; padding: 2px 12px; font-size: 13px; font-weight: 700; color: #1e6042; letter-spacing: 0.02em; border-radius: 4px; }
@@ -125,11 +139,41 @@
   .ai-orchestration .ai-agents { margin-top: 4px; display: flex; gap: 14px; align-items: stretch; }
 
   /* Orchestrator / Reviewer : 他のtobe-blockと同じスタイル (AIエージェントの「活動」を示す) */
-  .agent { background: #e8f7ee; border: 2px solid #5cb085; color: #1e6042; padding: 14px; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; line-height: 1.3; }
+  .agent { position: relative; background: #e8f7ee; border: 2px solid #5cb085; color: #1e6042; padding: 14px; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; line-height: 1.3; }
   .agent .agent-label { font-size: 14px; font-weight: 700; letter-spacing: 0.02em; }
   .agent .agent-sub { font-size: 11px; font-weight: 500; color: #4a6655; margin-top: 6px; line-height: 1.5; }
   .agent.orchestrator { flex: 2; }
   .agent.reviewer { flex: 1; }
+
+  /* Change 4 (v3): 旧 .human-op (Orchestrator/Reviewer 内側) - v4で削除 */
+
+  /* Change 3 (v4): 人タスク独立帯 (ToBe 全体の下に役割の変容を明示) */
+  .human-tasks-band { margin-top: 24px; padding: 14px 18px; background: #fdf1de; border: 2px solid #d69a3a; border-radius: 12px; }
+  .human-tasks-title { font-size: 13px; font-weight: 700; color: #a05f1d; letter-spacing: 0.04em; margin-bottom: 10px; }
+  .human-tasks-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .human-task { background: #fff; border: 1px solid #eebd6c; border-radius: 8px; padding: 10px 12px; }
+  .human-task-key { font-size: 11px; font-weight: 700; color: #a05f1d; margin-bottom: 4px; }
+  .human-task-body { font-size: 11px; color: #555; line-height: 1.5; }
+  @media (max-width: 1000px) {
+    .human-tasks-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* Change 4 (v4): エスカレーション経路 (失敗箇所→戻り先のマトリクス) */
+  .escalation { background: #fff; border: 1px solid #d8dbe2; border-radius: 12px; padding: 14px 18px; margin-top: 16px; }
+  .escalation-title { font-size: 13px; font-weight: 700; color: #444; margin-bottom: 4px; }
+  .escalation-sub { font-size: 11px; color: #777; margin-bottom: 10px; }
+  .escalation-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .escalation-table th, .escalation-table td { padding: 8px 10px; border-bottom: 1px solid #ececec; text-align: left; vertical-align: top; }
+  .escalation-table th { background: #f7f7f3; font-weight: 700; color: #555; font-size: 11px; }
+  .escalation-table .where { color: #444; line-height: 1.5; }
+  .escalation-table .action { color: #444; line-height: 1.5; }
+  /* ToBe フロー上のブロック名タグ (実際の図のノードと一致した色) */
+  .block-chip { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; margin: 0 2px; }
+  .block-chip.plan { background: #e8e2f5; color: #4d479e; border: 1px solid #6e68c2; }
+  .block-chip.ai-orch { background: #d4f0de; color: #1e6042; border: 1px solid #2c8a5e; }
+  .block-chip.review { background: #fff; color: #1a1a1a; border: 1px solid #1a1a1a; }
+  .block-chip.validate { background: #e8e2f5; color: #4d479e; border: 1px solid #6e68c2; }
+  .block-chip.human { background: #fdf1de; color: #a05f1d; border: 1px solid #eebd6c; }
 
   /* Color variants */
   .tobe-block.plan      { background: #e8e2f5; border: 2px solid #6e68c2; }
@@ -140,26 +184,40 @@
   .tobe-block.api       .small-label { color: #1e6042; }
   .tobe-block.frontend  { background: #d4f0de; border: 2px solid #2c8a5e; }
   .tobe-block.frontend  .small-label { color: #1e6042; }
-  /* ToBe 人ノード (Review, Validate) も白 (人 = 白) */
+  /* ToBe 人ノード (Review) は白 (人 = 白) */
   .tobe-block.review    { background: #fff; border: 2px solid #d8dbe2; }
   .tobe-block.review    .small-label { color: #a05f1d; }
-  .tobe-block.validate  { background: #fff; border: 2px solid #d8dbe2; }
-  .tobe-block.validate  .small-label { color: #a05f1d; }
+  /* Validate (動作確認) は人+AI なので Plan と同じ紫 */
+  .tobe-block.validate  { background: #e8e2f5; border: 2px solid #6e68c2; }
+  .tobe-block.validate  .small-label { color: #4d479e; }
 
-  /* Legend */
-  .legend { display: flex; justify-content: center; gap: 32px; margin-top: 32px; padding-top: 24px; border-top: 1px solid #d8dbe2; }
+  /* 画面種別 × ToBe ブロック マッピング表 (他案件への展開可能性) */
+  .mapping { margin-top: 32px; padding: 16px 20px; background: #fff; border: 1px solid #d8dbe2; border-radius: 12px; }
+  .mapping-title { font-size: 14px; font-weight: 700; color: #444; margin-bottom: 4px; }
+  .mapping-sub { font-size: 11px; color: #777; margin-bottom: 12px; }
+  .mapping-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .mapping-table th, .mapping-table td { padding: 8px 10px; border-bottom: 1px solid #ececec; text-align: center; }
+  .mapping-table th { background: #f7f7f3; font-weight: 700; color: #555; font-size: 11px; }
+  .mapping-table th:first-child, .mapping-table td:first-child { text-align: left; font-weight: 600; }
+  .mapping-table .high { color: #2c8a5e; font-weight: 700; }
+  .mapping-table .mid { color: #d69a3a; font-weight: 700; }
+  .mapping-table .low { color: #888; }
+  .mapping-table .note { color: #999; font-size: 10px; }
+
+  /* Legend (人タスク帯の下に移動) */
+  .legend { display: flex; justify-content: center; gap: 32px; margin-top: 14px; padding: 12px 18px; background: #fff; border: 1px solid #d8dbe2; border-radius: 12px; }
   .legend-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #444; }
   .legend-swatch { width: 18px; height: 18px; border-radius: 4px; }
   .legend-swatch.plan { background: #e8e2f5; border: 1px solid #6e68c2; }
   .legend-swatch.ai { background: #d4f0de; border: 1px solid #2c8a5e; }
-  .legend-swatch.review { background: #fff; border: 1px solid #d8dbe2; }
+  .legend-swatch.review { background: #fff; border: 1px solid #1a1a1a; }
 </style>
 </head>
 <body>
 <div class="container">
   <header class="header">
     <h1>AI導入による業務再編整理 — AsIs → ToBe</h1>
-    <div class="meta">対象：顧客一覧画面 ・ AsIs 37h → ToBe 12h ・ 約 67% 削減</div>
+    <div class="meta">対象：顧客一覧画面 ・ AsIs 37h → ToBe 11.2h ・ 約 70% 削減</div>
   </header>
 
   <!-- AsIs + Sankey 合体: リボンが AsIs ノードの bottom から出るように1つのコンテナに -->
@@ -214,33 +272,33 @@
         <path d="M 896 176 C 896 266, 755 266, 755 356 L 780 356 C 780 266, 924 266, 924 176 Z"
               fill="#7ad0a3" opacity="0.65"/>
 
-        <!-- 橙 (R) : ⑤, ⑩ stack (dest 962-1012) -->
-        <!-- ⑤ → R 左 (dest 962–987) -->
+        <!-- コードレビュー (人=白): ⑤, ⑩ stack (dest 962-1012)。白塗り+黒縁で「人」を表現 -->
+        <!-- ⑤ → コードレビュー 左 (dest 962–987) -->
         <path d="M 714 80 C 714 218, 962 218, 962 356 L 987 356 C 987 218, 742 218, 742 80 Z"
-              fill="#f2c57a" opacity="0.65"/>
-        <!-- ⑩ → R 右 (dest 987–1012) -->
+              fill="#ffffff" stroke="#333" stroke-width="1" opacity="0.85"/>
+        <!-- ⑩ → コードレビュー 右 (dest 987–1012) -->
         <path d="M 1062 176 C 1062 266, 987 266, 987 356 L 1012 356 C 1012 266, 1090 266, 1090 176 Z"
-              fill="#f2c57a" opacity="0.65"/>
+              fill="#ffffff" stroke="#333" stroke-width="1" opacity="0.85"/>
 
-        <!-- 橙 (V) : ⑪ (dest 1200–1228) -->
+        <!-- 動作確認 (人+AI=紫): ⑪ (dest 1200–1228) -->
         <path d="M 1229 120 C 1229 238, 1200 238, 1200 356 L 1228 356 C 1228 238, 1257 238, 1257 120 Z"
-              fill="#f2c57a" opacity="0.65"/>
+              fill="#b8b1e8" opacity="0.65"/>
       </svg>
 
       <!-- 中間: AsIs (boxes + 内部接続線) -->
       <div class="asis-area">
         <div class="asis-row">
-          <div class="asis-box b1 cat-plan"><span class="name">データモデル設計</span><span class="hours">2h</span><span class="pdca-text plan">Plan + <span class="check-part">Check</span></span></div>
-          <div class="asis-box b2 cat-do"><span class="name">データモデル実装</span><span class="hours">1h</span><span class="pdca-text do">Do</span></div>
-          <div class="asis-box b3 cat-do"><span class="name">API設計・実装</span><span class="hours">6h</span><span class="pdca-text do">Do</span></div>
-          <div class="asis-box b4 cat-do"><span class="name">API単体テスト</span><span class="hours">4h</span><span class="pdca-text do">Do</span></div>
-          <div class="asis-box b5 cat-check"><span class="name">APIレビュー</span><span class="hours">1.5h</span><span class="pdca-text check">Check</span></div>
-          <div class="asis-box b6 cat-plan"><span class="name">UX設計</span><span class="hours">3h</span><span class="pdca-text plan">Plan + <span class="check-part">Check</span></span></div>
-          <div class="asis-box b7 cat-plan"><span class="name">フロントエンド設計</span><span class="hours">3h</span><span class="pdca-text plan">Plan + <span class="check-part">Check</span></span></div>
-          <div class="asis-box b8 cat-do"><span class="name">フロントエンド実装</span><span class="hours">8h</span><span class="pdca-text do">Do</span></div>
-          <div class="asis-box b9 cat-do"><span class="name">フロントエンド単体テスト</span><span class="hours">4h</span><span class="pdca-text do">Do</span></div>
-          <div class="asis-box b10 cat-check"><span class="name">フロントエンドレビュー</span><span class="hours">1.5h</span><span class="pdca-text check">Check</span></div>
-          <div class="asis-box b11 cat-check"><span class="name">動作確認</span><span class="hours">3h</span><span class="pdca-text check">Check</span></div>
+          <div class="asis-box b1 cat-plan"><span class="num">①</span><span class="name">データモデル設計</span><span class="hours">2h</span><span class="pdca-text plan">Plan + <span class="check-part">Check</span></span></div>
+          <div class="asis-box b2 cat-do"><span class="num">②</span><span class="name">データモデル実装</span><span class="hours">1h</span><span class="pdca-text do">Do</span></div>
+          <div class="asis-box b3 cat-do"><span class="num">③</span><span class="name">API設計・実装</span><span class="hours">6h</span><span class="pdca-text do">Do</span></div>
+          <div class="asis-box b4 cat-do"><span class="num">④</span><span class="name">API単体テスト</span><span class="hours">4h</span><span class="pdca-text do">Do</span></div>
+          <div class="asis-box b5 cat-check"><span class="num">⑤</span><span class="name">APIレビュー</span><span class="hours">1.5h</span><span class="pdca-text check">Check</span></div>
+          <div class="asis-box b6 cat-plan"><span class="num">⑥</span><span class="name">UX設計</span><span class="hours">3h</span><span class="pdca-text plan">Plan + <span class="check-part">Check</span></span></div>
+          <div class="asis-box b7 cat-plan"><span class="num">⑦</span><span class="name">フロントエンド設計</span><span class="hours">3h</span><span class="pdca-text plan">Plan + <span class="check-part">Check</span></span></div>
+          <div class="asis-box b8 cat-do"><span class="num">⑧</span><span class="name">フロントエンド実装</span><span class="hours">8h</span><span class="pdca-text do">Do</span></div>
+          <div class="asis-box b9 cat-do"><span class="num">⑨</span><span class="name">フロントエンド単体テスト</span><span class="hours">4h</span><span class="pdca-text do">Do</span></div>
+          <div class="asis-box b10 cat-check"><span class="num">⑩</span><span class="name">フロントエンドレビュー</span><span class="hours">1.5h</span><span class="pdca-text check">Check</span></div>
+          <div class="asis-box b11 cat-check"><span class="num">⑪</span><span class="name">動作確認</span><span class="hours">3h</span><span class="pdca-text check">Check</span></div>
         </div>
         <!-- 内部接続線 (z-index 2: boxの上に描画) -->
         <svg class="asis-connectors" viewBox="0 0 1320 176" preserveAspectRatio="none">
@@ -294,6 +352,15 @@
             <div><span class="num-tag">①</span>データモデル設計</div>
             <div><span class="num-tag">⑥</span>UX設計</div>
             <div><span class="num-tag">⑦</span>フロントエンド設計</div>
+          </div>
+          <!-- Change 1 (v4): 設計のアウトプット仕様 = AI への正規化インプット -->
+          <div class="input-spec">
+            <span class="input-spec-tag">→ アウトプット仕様（AI への正規化インプット）</span>
+            <div class="input-spec-items">
+              <span class="spec">データモデル定義</span>
+              <span class="spec">UX仕様（ワイヤ＋振る舞い）</span>
+              <span class="spec">業務ロジック定義</span>
+            </div>
           </div>
           <div class="savings">
             <span class="from">8h</span><span class="arrow">→</span><span class="to">2.5h</span>
@@ -380,6 +447,16 @@
             <span class="from">3h</span><span class="arrow">→</span><span class="to">3h</span>
             <span class="reduction">変わらず</span>
           </div>
+          <!-- Change 2: Check観点ワークパッケージ -->
+          <div class="check-wp">
+            <span class="check-wp-tag">Check観点ワークパッケージ</span>
+            <div class="check-wp-items">
+              <div>仕様適合性</div>
+              <div>セキュリティ・認可</div>
+              <div>設計整合性</div>
+              <div>業務要件への適合</div>
+            </div>
+          </div>
           <span class="pdca-text check">Check</span>
         </div>
 
@@ -393,11 +470,172 @@
             <span class="from">3h</span><span class="arrow">→</span><span class="to">1.5h</span>
             <span class="reduction">-50%</span>
           </div>
+          <!-- Change 2: Check観点ワークパッケージ -->
+          <div class="check-wp">
+            <span class="check-wp-tag">Check観点ワークパッケージ</span>
+            <div class="check-wp-items">
+              <div>E2E動作（テスターAI）</div>
+              <div>実機UX確認</div>
+              <div>業務シナリオ通り動くか</div>
+              <div>PRマージ前ゲート判定</div>
+            </div>
+          </div>
           <span class="pdca-text check">Check</span>
         </div>
 
       </div>
     </div>
+  </div>
+
+  <!-- Change 3 (v4): 人タスク独立帯 (役割の変容を独立して明示) -->
+  <div class="human-tasks-band">
+    <div class="human-tasks-title">▲ 人タスク（エンジニアの役割：コードを書く人 → AIを操るオペレーションマネージャー）</div>
+    <div class="human-tasks-grid">
+      <div class="human-task">
+        <div class="human-task-key">設計フェーズ</div>
+        <div class="human-task-body">データモデル定義／UX仕様／業務ロジック定義<br><small>＝ AIへの正規化インプットを作る</small></div>
+      </div>
+      <div class="human-task">
+        <div class="human-task-key">Orchestrator 運用</div>
+        <div class="human-task-body">プロンプト・タスク投入／エラー時介入／PR最終承認</div>
+      </div>
+      <div class="human-task">
+        <div class="human-task-key">Reviewer 運用</div>
+        <div class="human-task-body">Check観点の追加・更新／例外承認</div>
+      </div>
+      <div class="human-task">
+        <div class="human-task-key">コードレビュー＋動作確認</div>
+        <div class="human-task-body">AI実装の最終 Check／PRマージ前ゲート判定<br><small>＝ 実装責任は人が持つ</small></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Change 3: 画面種別 × ToBe ブロック マッピング表 (他案件への展開可能性) -->
+  <div class="mapping">
+    <div class="mapping-title">画面シナリオ × ToBe ブロックへの適用度（他画面・他案件への展開可能性）</div>
+    <div class="mapping-sub">
+      別資料（タブ式工数比較）で見積もった 6 シナリオを並べて、AI が効く領域・効きにくい領域を比較。
+      <strong>** ＝ 高効果（80% 以上削減）／ * ＝ 中（50〜70%）／ △ ＝ 工夫が必要（30〜50%）</strong>。
+      <strong>コードレビュー列の「要」表記は「人作業として必要」の意味</strong>。
+    </div>
+    <table class="mapping-table">
+      <thead>
+        <tr>
+          <th>画面シナリオ</th>
+          <th>設計</th>
+          <th>Data Model</th>
+          <th>API (Backend)</th>
+          <th>Frontend</th>
+          <th>コードレビュー<br><span style="font-weight:500;font-size:9px;color:#888;">（人作業）</span></th>
+          <th>動作確認</th>
+          <th>シナリオ全体<br>削減率</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>顧客一覧画面</td>
+          <td class="high">**</td>
+          <td class="high">**</td>
+          <td class="high">**</td>
+          <td class="high">**</td>
+          <td class="note">要</td>
+          <td class="mid">*</td>
+          <td class="high">-70%</td>
+        </tr>
+        <tr>
+          <td>商品マスタ一覧</td>
+          <td class="high">**</td>
+          <td class="high">**</td>
+          <td class="high">**</td>
+          <td class="high">**</td>
+          <td class="note">要</td>
+          <td class="mid">*</td>
+          <td class="high">-79%</td>
+        </tr>
+        <tr>
+          <td>商品マスタ登録更新<br><span class="note">(DB/API 流用前提)</span></td>
+          <td class="high">**</td>
+          <td class="note">─</td>
+          <td class="note">─</td>
+          <td class="high">**</td>
+          <td class="note">要</td>
+          <td class="mid">*</td>
+          <td class="high">-75%</td>
+        </tr>
+        <tr>
+          <td>事業所登録画面</td>
+          <td class="high">**</td>
+          <td class="high">**</td>
+          <td class="high">**</td>
+          <td class="mid">*</td>
+          <td class="note">要</td>
+          <td class="mid">*</td>
+          <td class="mid">-69%</td>
+        </tr>
+        <tr>
+          <td>発注書 PDF 出力</td>
+          <td class="mid">*</td>
+          <td class="high">**</td>
+          <td class="mid">*</td>
+          <td class="mid">*</td>
+          <td class="note">要</td>
+          <td class="low">△</td>
+          <td class="mid">-59%</td>
+        </tr>
+        <tr>
+          <td>月次レポート CSV</td>
+          <td class="high">**</td>
+          <td class="high">**</td>
+          <td class="high">**</td>
+          <td class="high">**</td>
+          <td class="note">要</td>
+          <td class="mid">*</td>
+          <td class="high">-70%</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="mapping-sub" style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed #ececec;">
+      <strong>読み取れること:</strong>
+      AI のレバレッジが効く領域は「データモデル定義が明確 × 出力が構造化テキスト」の組み合わせ。
+      視覚的アウトプット（PDF レイアウト）やドメインロジックの厚い処理は人介入比率が上がる。
+      <strong>コードレビューは全シナリオで人作業として残る</strong>（AI実装の責任は人が持つ）。
+    </div>
+  </div>
+
+  <!-- Change 4 (v4): エスカレーション経路 (失敗箇所→戻り先のマトリクス) -->
+  <div class="escalation">
+    <div class="escalation-title">⚠ エスカレーション経路（ToBe フロー上のどこで失敗した時にどこへ戻すか）</div>
+    <div class="escalation-sub">ブロック名は上の ToBe フロー図のノードと一致</div>
+    <table class="escalation-table">
+      <thead>
+        <tr>
+          <th style="width: 50%;">失敗が発生したブロック・状況</th>
+          <th>差し戻し先・対応</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="where"><span class="block-chip ai-orch">AIオーケストレーション</span> 内で AI 内ループが収束しない</td>
+          <td class="action"><span class="block-chip ai-orch">AIオーケストレーション</span> Reviewer が Check 観点を追加して同ブロック内で再実装</td>
+        </tr>
+        <tr>
+          <td class="where"><span class="block-chip review">コードレビュー</span> で NG（設計整合性・セキュリティ等）</td>
+          <td class="action"><span class="block-chip ai-orch">AIオーケストレーション</span> に差し戻し（指摘観点を反映して再実装）</td>
+        </tr>
+        <tr>
+          <td class="where"><span class="block-chip validate">動作確認</span> で NG（実装起因：バグ・挙動ズレ）</td>
+          <td class="action"><span class="block-chip ai-orch">AIオーケストレーション</span> に差し戻し（失敗ケースを Check 観点に追加して再実装）</td>
+        </tr>
+        <tr>
+          <td class="where"><span class="block-chip validate">動作確認</span> で NG（仕様起因：要件解釈・業務ルール）</td>
+          <td class="action"><span class="block-chip plan">設計</span> に差し戻し（インプット仕様を更新 → 再度 AI に投入）</td>
+        </tr>
+        <tr>
+          <td class="where"><span class="block-chip ai-orch">AIオーケストレーション</span> で何度試しても収束しない（複雑ロジック等）</td>
+          <td class="action">人が当該タスクを<span class="block-chip human">直接実装（AI支援モード）</span>に切替</td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 
   <!-- Legend -->
