@@ -204,10 +204,25 @@
   .conductor-block .cb-sub { font-size: 11px; color: #555; line-height: 1.55; }
   .conductor-block.orch   { border-color: #2c8a5e; background: #e8f7ee; }
   .conductor-block.orch .cb-title { color: #1e6042; }
-  .conductor-block.trace  { border-color: #d69a3a; background: #fdf3e2; }
+  .conductor-block.trace  { border: 2px dashed #d69a3a; background: #fdf3e2; }
   .conductor-block.trace .cb-title { color: #a05f1d; }
-  .conductor-block.consistency { border-color: #6e68c2; background: #f1edfa; }
+  .conductor-block.consistency { border: 2px dashed #6e68c2; background: #f1edfa; }
   .conductor-block.consistency .cb-title { color: #4d479e; }
+
+  /* 後回し候補バッジ（低優先・将来追加） */
+  .defer-badge {
+    display: inline-block;
+    background: #fff;
+    color: #6b7280;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border: 1px dashed #9ca3af;
+    border-radius: 3px;
+    margin-left: 4px;
+    letter-spacing: 0.04em;
+    vertical-align: middle;
+  }
   .cb-agents { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 4px; }
 
   /* 人タスク帯 */
@@ -483,6 +498,7 @@
               <span class="out-tag pre-impl">機能間テスト仕様</span>
               <span class="out-tag pre-impl">負荷／可用性テスト</span>
               <span class="out-tag pre-impl">セキュリティテスト</span>
+              <span class="out-tag">システムテストコード／スクリプト</span>
               <span class="out-tag">実行レポート</span>
             </div>
           </div>
@@ -624,7 +640,7 @@
       </div>
 
       <div class="conductor-block trace">
-        <div class="cb-title">トレーサビリティAI<span class="new-badge">NEW</span></div>
+        <div class="cb-title">トレーサビリティAI<span class="new-badge">NEW</span><span class="defer-badge">後回し</span></div>
         <div class="cb-sub">
           要件ID ↔ 設計ID ↔ テストID ↔ 実行結果の<strong>双方向追跡マトリクス</strong>を維持。
           要件カバレッジ・テストカバレッジを常時可視化し、未対応要件・浮きテストを検出。
@@ -637,14 +653,14 @@
       </div>
 
       <div class="conductor-block consistency">
-        <div class="cb-title">仕様一貫性レビュワーAI<span class="new-badge">NEW</span></div>
+        <div class="cb-title">仕様一貫性レビュワーAI<span class="new-badge">NEW</span><span class="defer-badge">後回し</span></div>
         <div class="cb-sub">
           設計レーンの成果物とテストレーンの仕様が同一の業務ルール／用語で記述されているかを横断レビュー。
           層をまたいだ仕様ドリフトを早期検出する。<strong>最も価値が出るのは実装着手前</strong>。
         </div>
         <div class="cb-agents">
-          <span class="agent-chip deferred pre-impl">用語一致チェックAI（兼務）</span>
           <span class="agent-chip ai-new pre-impl">仕様ドリフト検出AI<span class="new-badge">NEW</span></span>
+          <span class="agent-chip deferred pre-impl">用語一致チェックAI（兼務）</span>
         </div>
       </div>
     </div>
