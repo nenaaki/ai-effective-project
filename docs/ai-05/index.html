@@ -288,6 +288,40 @@
     letter-spacing: 0.04em;
     vertical-align: middle;
   }
+
+  /* 実装開始前マーカー（テストの左シフトで先行確定できる成果物・AI） */
+  .out-tag.pre-impl::before,
+  .agent-chip.pre-impl::before {
+    content: "●";
+    color: #2c8a5e;
+    margin-right: 4px;
+    font-size: 9px;
+    vertical-align: middle;
+  }
+  .out-tag.pre-impl {
+    background: #e8f7ee !important;
+    color: #1e6042 !important;
+    border-color: #5cb085 !important;
+  }
+  .agent-chip.pre-impl {
+    box-shadow: inset 3px 0 0 #2c8a5e;
+    padding-left: 10px;
+  }
+
+  /* 先行マーカー解説 callout */
+  .pre-impl-callout {
+    margin: 0 0 14px;
+    padding: 10px 14px;
+    background: #e8f7ee;
+    border: 1px solid #5cb085;
+    border-left: 4px solid #2c8a5e;
+    border-radius: 8px;
+    font-size: 12px;
+    color: #1e6042;
+    line-height: 1.6;
+  }
+  .pre-impl-callout strong { color: #14512f; }
+  .pre-impl-callout .dot { color: #2c8a5e; font-weight: 700; }
 </style>
 </head>
 <body>
@@ -310,6 +344,13 @@
   <div class="section">
     <div class="section-title">V字モデル：設計レーン ↔ テストレーン と AI エージェント配置</div>
     <div class="section-sub">左列＝設計工程（成果物を生成する役割）／右列＝対応するテスト工程（仕様→実装→実行）／中央＝<strong>テスト仕様の派生</strong>経路</div>
+
+    <div class="pre-impl-callout">
+      <span class="dot">●</span> マーカー＝<strong>実装開始前に確定／稼働できるテストレーン要素</strong>。
+      V字モデルの中核価値である<strong>テストの左シフト</strong>を可視化したもので、
+      ここに含まれる仕様・AI は<strong>要件・設計が固まった時点で先行着手でき</strong>、トレーサビリティマトリクスを実装着手前に一度埋めきれる。
+      実行系（テスターAI／CIレポート／E2Eテストコード本体）はマーキング対象外（実装後に稼働）。
+    </div>
 
     <div class="vmodel">
 
@@ -370,16 +411,16 @@
             <span class="phase-stage">Level 1 / 業務シナリオ検証</span>
           </div>
           <div class="agents">
-            <span class="agent-chip ai-new">受入テスト設計AI<span class="new-badge">NEW</span></span>
-            <span class="agent-chip ai-new">業務シナリオAI<span class="new-badge">NEW</span></span>
+            <span class="agent-chip ai-new pre-impl">受入テスト設計AI<span class="new-badge">NEW</span></span>
+            <span class="agent-chip ai-new pre-impl">業務シナリオAI<span class="new-badge">NEW</span></span>
             <span class="agent-chip ai">E2EテスターAI</span>
-            <span class="agent-chip human">業務SME（承認）</span>
+            <span class="agent-chip human pre-impl">業務SME（承認）</span>
           </div>
           <div class="outputs">
             <span class="outputs-label">成果物</span>
             <div class="outputs-items">
-              <span class="out-tag">受入基準（Gherkin）</span>
-              <span class="out-tag">業務フローテスト</span>
+              <span class="out-tag pre-impl">受入基準（Gherkin）</span>
+              <span class="out-tag pre-impl">業務フローテスト</span>
               <span class="out-tag">E2Eテストコード</span>
               <span class="out-tag">実行レポート</span>
             </div>
@@ -425,17 +466,17 @@
             <span class="phase-stage">Level 2 / 機能間・非機能検証</span>
           </div>
           <div class="agents">
-            <span class="agent-chip ai-new">システムテスト設計AI<span class="new-badge">NEW</span></span>
-            <span class="agent-chip ai-new">非機能テスト設計AI<span class="new-badge">NEW</span></span>
+            <span class="agent-chip ai-new pre-impl">システムテスト設計AI<span class="new-badge">NEW</span></span>
+            <span class="agent-chip ai-new pre-impl">非機能テスト設計AI<span class="new-badge">NEW</span></span>
             <span class="agent-chip ai">テスト実装AI</span>
             <span class="agent-chip ai">テスターAI</span>
           </div>
           <div class="outputs">
             <span class="outputs-label">成果物</span>
             <div class="outputs-items">
-              <span class="out-tag">機能間テスト仕様</span>
-              <span class="out-tag">負荷／可用性テスト</span>
-              <span class="out-tag">セキュリティテスト</span>
+              <span class="out-tag pre-impl">機能間テスト仕様</span>
+              <span class="out-tag pre-impl">負荷／可用性テスト</span>
+              <span class="out-tag pre-impl">セキュリティテスト</span>
               <span class="out-tag">実行レポート</span>
             </div>
           </div>
@@ -480,16 +521,16 @@
             <span class="phase-stage">Level 3 / モジュール間検証</span>
           </div>
           <div class="agents">
-            <span class="agent-chip ai-new">結合テスト設計AI<span class="new-badge">NEW</span></span>
-            <span class="agent-chip ai-new">契約テストAI<span class="new-badge">NEW</span></span>
+            <span class="agent-chip ai-new pre-impl">結合テスト設計AI<span class="new-badge">NEW</span></span>
+            <span class="agent-chip ai-new pre-impl">契約テストAI<span class="new-badge">NEW</span></span>
             <span class="agent-chip ai">テスト実装AI</span>
             <span class="agent-chip ai">テスターAI</span>
           </div>
           <div class="outputs">
             <span class="outputs-label">成果物</span>
             <div class="outputs-items">
-              <span class="out-tag">API契約テスト</span>
-              <span class="out-tag">モジュール統合テスト</span>
+              <span class="out-tag pre-impl">API契約テスト</span>
+              <span class="out-tag pre-impl">モジュール統合テスト</span>
               <span class="out-tag">統合テストコード</span>
               <span class="out-tag">実行レポート</span>
             </div>
@@ -529,14 +570,14 @@
             <div class="apex-col test-side">
               <h4>単体テスト側（テストレーン → 自動実行）</h4>
               <div class="agents">
-                <span class="agent-chip ai-new">単体テスト設計AI<span class="new-badge">NEW</span></span>
+                <span class="agent-chip ai-new pre-impl">単体テスト設計AI<span class="new-badge">NEW</span></span>
                 <span class="agent-chip ai">単体テスト実装AI</span>
                 <span class="agent-chip ai">テスターAI（CI実行）</span>
               </div>
               <div class="outputs">
                 <span class="outputs-label">成果物</span>
                 <div class="outputs-items">
-                  <span class="out-tag">単体テストケース</span>
+                  <span class="out-tag pre-impl">単体テストケース</span>
                   <span class="out-tag">テストコード</span>
                   <span class="out-tag">CIレポート</span>
                 </div>
@@ -581,10 +622,11 @@
         <div class="cb-sub">
           要件ID ↔ 設計ID ↔ テストID ↔ 実行結果の<strong>双方向追跡マトリクス</strong>を維持。
           要件カバレッジ・テストカバレッジを常時可視化し、未対応要件・浮きテストを検出。
+          <strong>マトリクスの「要件↔テスト仕様」列は実装着手前に一度埋めきれる</strong>。
         </div>
         <div class="cb-agents">
-          <span class="agent-chip ai-new">トレースマトリクスAI<span class="new-badge">NEW</span></span>
-          <span class="agent-chip ai-new">カバレッジ監査AI<span class="new-badge">NEW</span></span>
+          <span class="agent-chip ai-new pre-impl">トレースマトリクスAI<span class="new-badge">NEW</span></span>
+          <span class="agent-chip ai-new pre-impl">カバレッジ監査AI<span class="new-badge">NEW</span></span>
         </div>
       </div>
 
@@ -592,11 +634,11 @@
         <div class="cb-title">仕様一貫性レビュワーAI<span class="new-badge">NEW</span></div>
         <div class="cb-sub">
           設計レーンの成果物とテストレーンの仕様が同一の業務ルール／用語で記述されているかを横断レビュー。
-          層をまたいだ仕様ドリフトを早期検出する。
+          層をまたいだ仕様ドリフトを早期検出する。<strong>最も価値が出るのは実装着手前</strong>。
         </div>
         <div class="cb-agents">
-          <span class="agent-chip ai-new">用語一致チェックAI<span class="new-badge">NEW</span></span>
-          <span class="agent-chip ai-new">仕様ドリフト検出AI<span class="new-badge">NEW</span></span>
+          <span class="agent-chip ai-new pre-impl">用語一致チェックAI<span class="new-badge">NEW</span></span>
+          <span class="agent-chip ai-new pre-impl">仕様ドリフト検出AI<span class="new-badge">NEW</span></span>
         </div>
       </div>
     </div>
@@ -684,6 +726,7 @@
     <div class="legend-item"><span class="legend-swatch ai"></span>既存AIエージェント（ai-04由来）</div>
     <div class="legend-item"><span class="legend-swatch new"></span>新規AIエージェント<span class="new-badge">NEW</span></div>
     <div class="legend-item"><span class="legend-swatch human"></span>人タスク</div>
+    <div class="legend-item"><span style="color:#2c8a5e;font-weight:700;">●</span>実装開始前に確定／稼働可（テストの左シフト）</div>
   </div>
 
 </div>
