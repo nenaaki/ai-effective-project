@@ -108,6 +108,7 @@
   }
   .agent-chip.ai { background: #e0f3e6; color: #1e6042; border: 1px solid #5cb085; }
   .agent-chip.ai-new { background: #fde9b8; color: #7a4a0a; border: 1px solid #d69a3a; }
+  .agent-chip.assist { background: #e0eaf5; color: #2c4d7d; border: 1px solid #6b8fc7; }
   .agent-chip.human { background: #fff; color: #444; border: 1px solid #888; }
 
   /* 出力物 */
@@ -243,6 +244,7 @@
   .legend-swatch.test { background: #fdf3e2; border: 1px solid #d69a3a; }
   .legend-swatch.ai { background: #e0f3e6; border: 1px solid #5cb085; }
   .legend-swatch.new { background: #fde9b8; border: 1px solid #d69a3a; }
+  .legend-swatch.assist { background: #e0eaf5; border: 1px solid #6b8fc7; }
   .legend-swatch.human { background: #fff; border: 1px solid #888; }
 
   /* エスカレーション */
@@ -289,22 +291,22 @@
     vertical-align: middle;
   }
 
-  /* 実装開始前マーカー（テストの左シフトで先行確定できる成果物・AI） */
+  /* 実装開始前マーカー（Plan 工程で派生・確定できる成果物・AI = 設計レーンと同じ紫） */
   .out-tag.pre-impl::before,
   .agent-chip.pre-impl::before {
     content: "●";
-    color: #2c8a5e;
+    color: #6e68c2;
     margin-right: 4px;
     font-size: 9px;
     vertical-align: middle;
   }
   .out-tag.pre-impl {
-    background: #e8f7ee !important;
-    color: #1e6042 !important;
-    border-color: #5cb085 !important;
+    background: #ede8f7 !important;
+    color: #3d3680 !important;
+    border-color: #6e68c2 !important;
   }
   .agent-chip.pre-impl {
-    box-shadow: inset 3px 0 0 #2c8a5e;
+    box-shadow: inset 3px 0 0 #6e68c2;
     padding-left: 10px;
   }
 
@@ -312,16 +314,16 @@
   .pre-impl-callout {
     margin: 0 0 14px;
     padding: 10px 14px;
-    background: #e8f7ee;
-    border: 1px solid #5cb085;
-    border-left: 4px solid #2c8a5e;
+    background: #f1edfa;
+    border: 1px solid #b6a7e1;
+    border-left: 4px solid #6e68c2;
     border-radius: 8px;
     font-size: 12px;
-    color: #1e6042;
+    color: #3d3680;
     line-height: 1.6;
   }
-  .pre-impl-callout strong { color: #14512f; }
-  .pre-impl-callout .dot { color: #2c8a5e; font-weight: 700; }
+  .pre-impl-callout strong { color: #2a235e; }
+  .pre-impl-callout .dot { color: #6e68c2; font-weight: 700; }
 </style>
 </head>
 <body>
@@ -346,10 +348,10 @@
     <div class="section-sub">左列＝設計工程（成果物を生成する役割）／右列＝対応するテスト工程（仕様→実装→実行）／中央＝<strong>テスト仕様の派生</strong>経路</div>
 
     <div class="pre-impl-callout">
-      <span class="dot">●</span> マーカー＝<strong>実装開始前に確定／稼働できるテストレーン要素</strong>。
+      <span class="dot">●</span> マーカー＝<strong>Plan 工程で派生／確定できるテストレーン要素</strong>（設計レーンと同じ紫）。
       V字モデルの中核価値である<strong>テストの左シフト</strong>を可視化したもので、
       ここに含まれる仕様・AI は<strong>要件・設計が固まった時点で先行着手でき</strong>、トレーサビリティマトリクスを実装着手前に一度埋めきれる。
-      実行系（テスターAI／CIレポート／E2Eテストコード本体）はマーキング対象外（実装後に稼働）。
+      実行系（テスターAI／CIレポート／E2Eテストコード本体）はマーキング対象外（Do 工程＝実装後に稼働）。
     </div>
 
     <div class="vmodel">
@@ -492,8 +494,8 @@
           </div>
           <div class="agents">
             <span class="agent-chip ai">DBアーキテクトAI</span>
-            <span class="agent-chip ai">API設計AI</span>
-            <span class="agent-chip ai">フロントエンド設計AI</span>
+            <span class="agent-chip ai">バックエンドAI</span>
+            <span class="agent-chip ai">フロントエンドAI</span>
           </div>
           <div class="outputs">
             <span class="outputs-label">成果物</span>
@@ -725,8 +727,9 @@
     <div class="legend-item"><span class="legend-swatch test"></span>テストレーン（Do + Check）</div>
     <div class="legend-item"><span class="legend-swatch ai"></span>既存AIエージェント（ai-04由来）</div>
     <div class="legend-item"><span class="legend-swatch new"></span>新規AIエージェント<span class="new-badge">NEW</span></div>
+    <div class="legend-item"><span class="legend-swatch assist"></span>AI支援（エージェント化せず人主導でAIをアシスト利用）</div>
     <div class="legend-item"><span class="legend-swatch human"></span>人タスク</div>
-    <div class="legend-item"><span style="color:#2c8a5e;font-weight:700;">●</span>実装開始前に確定／稼働可（テストの左シフト）</div>
+    <div class="legend-item"><span style="color:#6e68c2;font-weight:700;">●</span>Plan 工程で派生／確定可（テストの左シフト）</div>
   </div>
 
 </div>
