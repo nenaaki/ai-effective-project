@@ -109,6 +109,7 @@
   .agent-chip.ai { background: #e0f3e6; color: #1e6042; border: 1px solid #5cb085; }
   .agent-chip.ai-new { background: #fde9b8; color: #7a4a0a; border: 1px solid #d69a3a; }
   .agent-chip.assist { background: #e0eaf5; color: #2c4d7d; border: 1px solid #6b8fc7; }
+  .agent-chip.deferred { background: #f3f4f6; color: #6b7280; border: 1px dashed #9ca3af; }
   .agent-chip.human { background: #fff; color: #444; border: 1px solid #888; }
 
   /* 出力物 */
@@ -245,6 +246,7 @@
   .legend-swatch.ai { background: #e0f3e6; border: 1px solid #5cb085; }
   .legend-swatch.new { background: #fde9b8; border: 1px solid #d69a3a; }
   .legend-swatch.assist { background: #e0eaf5; border: 1px solid #6b8fc7; }
+  .legend-swatch.deferred { background: #f3f4f6; border: 1px dashed #9ca3af; }
   .legend-swatch.human { background: #fff; border: 1px solid #888; }
 
   /* エスカレーション */
@@ -526,7 +528,7 @@
           </div>
           <div class="agents">
             <span class="agent-chip assist pre-impl">結合テスト設計（AI支援）</span>
-            <span class="agent-chip ai-new pre-impl">契約テストAI<span class="new-badge">NEW</span></span>
+            <span class="agent-chip deferred pre-impl">契約テストAI（兼務）</span>
             <span class="agent-chip ai">テスト実装AI</span>
             <span class="agent-chip ai">テスターAI</span>
           </div>
@@ -574,8 +576,8 @@
             <div class="apex-col test-side">
               <h4>単体テスト側（テストレーン → 自動実行）</h4>
               <div class="agents">
-                <span class="agent-chip ai-new pre-impl">単体テスト設計AI<span class="new-badge">NEW</span></span>
-                <span class="agent-chip ai">単体テスト実装AI</span>
+                <span class="agent-chip deferred pre-impl">単体テスト設計AI（兼務）</span>
+                <span class="agent-chip deferred">単体テスト実装AI（兼務）</span>
                 <span class="agent-chip ai">テスターAI（CI実行）</span>
               </div>
               <div class="outputs">
@@ -630,7 +632,7 @@
         </div>
         <div class="cb-agents">
           <span class="agent-chip ai-new pre-impl">トレースマトリクスAI<span class="new-badge">NEW</span></span>
-          <span class="agent-chip ai-new pre-impl">カバレッジ監査AI<span class="new-badge">NEW</span></span>
+          <span class="agent-chip deferred pre-impl">カバレッジ監査AI（兼務）</span>
         </div>
       </div>
 
@@ -641,7 +643,7 @@
           層をまたいだ仕様ドリフトを早期検出する。<strong>最も価値が出るのは実装着手前</strong>。
         </div>
         <div class="cb-agents">
-          <span class="agent-chip ai-new pre-impl">用語一致チェックAI<span class="new-badge">NEW</span></span>
+          <span class="agent-chip deferred pre-impl">用語一致チェックAI（兼務）</span>
           <span class="agent-chip ai-new pre-impl">仕様ドリフト検出AI<span class="new-badge">NEW</span></span>
         </div>
       </div>
@@ -730,6 +732,7 @@
     <div class="legend-item"><span class="legend-swatch ai"></span>既存AIエージェント（ai-04由来）</div>
     <div class="legend-item"><span class="legend-swatch new"></span>新規AIエージェント<span class="new-badge">NEW</span></div>
     <div class="legend-item"><span class="legend-swatch assist"></span>AI支援（エージェント化せず人主導でAIをアシスト利用）</div>
+    <div class="legend-item"><span class="legend-swatch deferred"></span>低優先／他AIで兼務（独立エージェント化は保留）</div>
     <div class="legend-item"><span class="legend-swatch human"></span>人タスク</div>
     <div class="legend-item"><span style="color:#6e68c2;font-weight:700;">●</span>Plan 工程で派生／確定可（テストの左シフト）</div>
   </div>
