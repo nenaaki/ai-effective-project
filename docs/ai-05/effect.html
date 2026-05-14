@@ -564,6 +564,43 @@
     line-height: 1.65;
   }
   .inference-note strong { color: #2a235e; }
+  .inference-note.ai-meta {
+    background: #e8f7ee;
+    border: 1px solid #5cb085;
+    border-left: 4px solid #2c8a5e;
+    color: #1e6042;
+  }
+  .inference-note.ai-meta strong { color: #14543e; }
+
+  /* メタレバー(上流に AI を置く)行 - 緑系で区別 */
+  .levers-table tr.lever-meta td {
+    background: #f0faf3;
+    border-top: 2px solid #2c8a5e;
+  }
+  .levers-table tr.lever-meta td.lever-name {
+    color: #1e6042;
+    background: #d4f0de;
+    border-left: 4px solid #2c8a5e;
+  }
+  .levers-table tr.lever-meta td.lever-from { color: #b53737; }
+  .levers-table tr.lever-meta td.lever-to   { color: #1e6042; font-weight: 700; }
+  .levers-table tr.lever-meta td.lever-effect .effect-key {
+    background: #d4f0de;
+    color: #1e6042;
+    border-color: #5cb085;
+  }
+  .levers-table tr.lever-meta .meta-badge {
+    display: inline-block;
+    background: #2c8a5e;
+    color: #fff;
+    font-size: 9px;
+    font-weight: 800;
+    padding: 1px 5px;
+    border-radius: 3px;
+    margin-left: 4px;
+    letter-spacing: 0.04em;
+    vertical-align: middle;
+  }
 
   /* Footer link */
   .footer-link {
@@ -1467,6 +1504,16 @@
       <strong>テスト設計AIの効果は、AIモデルの性能よりも上流インプットの構造化度に支配される</strong>ことを示すための導線。
     </div>
 
+    <div class="inference-note ai-meta" style="margin-top: 0; margin-bottom: 12px;">
+      <strong>★ 2 種類のレバーがある：</strong>
+      下表の上段 6 行は <strong>人手で押し上げるレバー</strong>（章立て・DMN 化・SME 早期介入など）。
+      しかし「章立てや ID 規約を人手で守らせる」のはプロジェクト間で一貫性が出にくく、現実的に難しい。
+      そこで <span class="meta-badge">META</span> 行＝<strong>上流に AI エージェントを置いて自動化するメタ・レバー</strong>を追加した。
+      これは ai-05/index.html の「要件アナリスト（AI支援）」をエージェント化する案で、
+      <strong>受入テスト設計AI より実装は易しく（Claude Code subagent で 2〜3 日）</strong>、
+      ID 規約遵守問題を構造的に解消できる。
+    </div>
+
     <table class="levers-table">
       <thead>
         <tr>
@@ -1561,6 +1608,32 @@
           </td>
           <td class="lever-note">仕様一貫性レビュワーAI の検出結果を SME が確認するワークフローと併用すると効果増。<strong>5 軸すべてに効くオールラウンダー</strong>。</td>
         </tr>
+        <tr class="lever-meta">
+          <td class="lever-name">
+            要件構造化AIの導入<br>（上流補強）<span class="meta-badge">META</span>
+          </td>
+          <td class="lever-from">章立て・ID 付与を人手<br>プロジェクト間で粒度・規約バラツキ<br>規約遵守が現実的に困難</td>
+          <td class="lever-to">フリーテキスト→章立て化＋<br>原子要件分解＋ID 自動付与を<br>AI エージェントが実施</td>
+          <td class="lever-effect">
+            <span class="effect-key">A1</span><span class="delta">+15〜20pt</span>
+            <span class="effect-key">A2</span><span class="delta">+10〜15pt</span><br>
+            <span class="effect-key">B2</span><span class="delta">+15pt</span>
+            <span class="effect-key">B4</span><span class="delta">+10pt</span><br>
+            <span class="effect-key">C3</span><span class="delta">+15pt</span><br>
+            <span class="effect-key">D3</span><span class="delta">+15pt</span><br>
+            <span class="effect-key">E1</span><span class="delta">-15〜20pt</span>
+            <span class="effect-key">E2</span><span class="delta">-15〜20pt</span>
+            <span class="effect-key">E3</span><span class="delta">+20pt</span>
+          </td>
+          <td class="lever-note">
+            <strong>「人手レバーを AI で自動化する」メタ・レバー</strong>。
+            上記の <strong>3 番目「機能要件の粒度化」</strong>と <strong>5 番目「用語集の整備」</strong>を AI が肩代わりするほか、
+            影響マトリクス（③）の<strong>「業務要件の構造化度」レバー</strong>も同時に押し上がる
+            （人手では現実的に難しかった章立て・粒度統一を AI が代行）。
+            加えて<strong>ID 自動付与</strong>でトレーサビリティAI を完全自動化し、人手 ID 規約が不要に。
+            実装: Claude Code subagent で 2〜3 日。ai-05 の「要件アナリスト（AI支援）」を NEW エージェント化する案。
+          </td>
+        </tr>
       </tbody>
     </table>
 
@@ -1572,6 +1645,16 @@
       （C/D/E すべてに 3 つ以上の指標で強い影響を持つ 2 大レバー）に優先投資すれば、
       受入テスト設計AI の出力品質は中→高水準に到達し、<strong>C1 欠陥流出率 / C3 SME 時短 / C4 上流差し戻し</strong>
       といった ROI 直結指標が同時に改善する。
+    </div>
+
+    <div class="inference-note ai-meta">
+      <strong>META レバーの位置づけ：</strong>
+      章立て・ID 規約・用語の一貫性を「人手で守らせる」運用は、プロジェクト間のバラツキや SME の負担増を生みやすい。
+      上流に <strong>要件構造化AI（NEW）</strong>を置く案は、これらを<strong>構造的に解消する単発投資</strong>であり、
+      6 つの人手レバーのうち少なくとも 2 つ（「機能要件の粒度化」「用語集の整備」）と
+      影響マトリクス上の「業務要件の構造化度」レバーを同時に押し上げる。
+      実装コストは受入テスト設計AI 本体より小さく（2〜3 日）、<strong>トレーサビリティAI を実装する前提条件</strong>を整える効果もある。
+      AI エコシステム全体の ROI を最大化するには、本体エージェント群と<strong>同時か、むしろ先に</strong>導入を検討する価値がある。
     </div>
   </div>
 
