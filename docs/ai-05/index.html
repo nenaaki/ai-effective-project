@@ -209,6 +209,51 @@
   .conductor-block.consistency { border: 2px dashed #6e68c2; background: #f1edfa; }
   .conductor-block.consistency .cb-title { color: #4d479e; }
 
+  /* 外部インプット（フェーズの外で行われ、フェーズに入る情報） */
+  .ext-inputs {
+    padding: 5px 8px;
+    background: rgba(255,255,255,0.6);
+    border: 1px dashed #6b7280;
+    border-radius: 6px;
+    font-size: 10.5px;
+  }
+  .ext-inputs-label {
+    font-weight: 700;
+    color: #4b5563;
+    font-size: 10px;
+    display: block;
+    margin-bottom: 4px;
+    letter-spacing: 0.02em;
+  }
+  .ext-inputs-items { display: flex; flex-direction: column; gap: 3px; }
+  .ext-tag {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    background: #e5e7eb;
+    color: #374151;
+    border: 1px solid #9ca3af;
+    text-align: center;
+  }
+
+  /* 外部インプットを右側に並べるフェーズ用レイアウト */
+  .phase.with-ext .phase-body {
+    display: grid;
+    grid-template-columns: 1fr 130px;
+    gap: 10px;
+    flex: 1;
+  }
+  .phase.with-ext .phase-main {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+  }
+  .phase.with-ext .phase-main .outputs { margin-top: auto; }
+  .phase.with-ext .ext-inputs { align-self: start; }
+
   /* 後回し候補バッジ（低優先・将来追加） */
   .defer-badge {
     display: inline-block;
@@ -390,23 +435,33 @@
 
       <!-- Level 1: 要件定義 ↔ 受入テスト -->
       <div class="vrow lv1">
-        <div class="phase design">
+        <div class="phase design with-ext">
           <div class="phase-head">
             <span class="phase-title">① 要件定義</span>
             <span class="phase-stage">Level 1 / Plan</span>
           </div>
-          <div class="agents">
-            <span class="agent-chip assist">要件アナリスト（AI支援）</span>
-            <span class="agent-chip human">PM／業務SME</span>
-          </div>
-          <div class="outputs">
-            <span class="outputs-label">成果物</span>
-            <div class="outputs-items">
-              <span class="out-tag">業務要件</span>
-              <span class="out-tag">機能要件</span>
-              <span class="out-tag">非機能要件</span>
-              <span class="out-tag">業務ルール一覧</span>
-              <span class="out-tag">用語集</span>
+          <div class="phase-body">
+            <div class="phase-main">
+              <div class="agents">
+                <span class="agent-chip assist">要件アナリスト（AI支援）</span>
+                <span class="agent-chip human">PM／業務SME</span>
+              </div>
+              <div class="outputs">
+                <span class="outputs-label">成果物</span>
+                <div class="outputs-items">
+                  <span class="out-tag">業務要件</span>
+                  <span class="out-tag">機能要件</span>
+                  <span class="out-tag">非機能要件</span>
+                  <span class="out-tag">業務ルール一覧</span>
+                  <span class="out-tag">用語集</span>
+                </div>
+              </div>
+            </div>
+            <div class="ext-inputs">
+              <span class="ext-inputs-label">→ 外部インプット<br><small style="font-weight:500;color:#6b7280;">フェーズ外で実施・①に投入</small></span>
+              <div class="ext-inputs-items">
+                <span class="ext-tag">ユースケーステスト</span>
+              </div>
             </div>
           </div>
         </div>
@@ -438,7 +493,6 @@
             <span class="outputs-label">成果物</span>
             <div class="outputs-items">
               <span class="out-tag pre-impl">受入基準（Gherkin）</span>
-              <span class="out-tag pre-impl">業務フローテスト</span>
               <span class="out-tag">E2Eテストコード</span>
               <span class="out-tag">実行レポート</span>
             </div>
