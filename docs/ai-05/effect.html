@@ -1,0 +1,1586 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>受入テスト設計AI — インプット品質 × 出力効果の尺度</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: #fafaf7; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Yu Gothic UI", sans-serif; color: #1a1a1a; }
+  body { padding: 32px 40px 80px; }
+  .container { max-width: 1480px; margin: 0 auto; }
+
+  /* Header */
+  .header { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid #d8dbe2; padding-bottom: 14px; margin-bottom: 24px; }
+  .header h1 { font-size: 22px; font-weight: 700; color: #1a1a1a; }
+  .header .meta { font-size: 13px; color: #666; }
+  .header .meta a { color: #4d479e; }
+
+  .lede { color: #555; font-size: 13px; line-height: 1.7; margin-bottom: 22px; padding: 14px 18px; background: #fff; border: 1px solid #d8dbe2; border-radius: 12px; }
+  .lede strong { color: #1a1a1a; }
+  .lede .new-badge {
+    display: inline-block; background: #d69a3a; color: #fff;
+    font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 3px;
+    margin: 0 4px; letter-spacing: 0.04em; vertical-align: middle;
+  }
+
+  /* Section */
+  .section { margin-bottom: 28px; }
+  .section-title { font-size: 14px; font-weight: 700; color: #444; letter-spacing: 0.04em; margin-bottom: 8px; padding-left: 10px; border-left: 4px solid #6e68c2; }
+  .section-title.test { border-left-color: #d69a3a; }
+  .section-title.value { border-left-color: #2c8a5e; }
+  .section-sub { font-size: 12px; color: #777; margin-bottom: 14px; padding-left: 14px; line-height: 1.6; }
+  .section-sub strong { color: #444; }
+
+  /* ============ IO Flow (Input → AI → Output) ============ */
+  .io-flow {
+    display: grid;
+    grid-template-columns: 1.1fr 60px 0.95fr 60px 1fr;
+    gap: 10px;
+    align-items: stretch;
+    background: #fff;
+    border: 1px solid #d8dbe2;
+    border-radius: 14px;
+    padding: 18px;
+  }
+  .io-col {
+    display: flex; flex-direction: column; gap: 10px;
+    min-width: 0;
+  }
+  .io-card {
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 11.5px;
+    line-height: 1.5;
+  }
+  .io-card.input {
+    background: #f1edfa;
+    border: 2px solid #6e68c2;
+  }
+  .io-card.input-ext {
+    background: #fff;
+    border: 1px dashed #6b7280;
+  }
+  .io-card.ai {
+    background: linear-gradient(135deg, #e0f3e6 0%, #d4f0de 100%);
+    border: 2px solid #2c8a5e;
+    flex: 1;
+    display: flex; flex-direction: column; justify-content: center;
+    text-align: center;
+    padding: 14px;
+  }
+  .io-card.output {
+    background: #fdf3e2;
+    border: 2px solid #d69a3a;
+    flex: 1;
+  }
+  .io-head {
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    letter-spacing: 0.02em;
+  }
+  .io-card.input .io-head { color: #4d479e; }
+  .io-card.input-ext .io-head { color: #4b5563; }
+  .io-card.ai .io-head { color: #1e6042; font-size: 13.5px; }
+  .io-card.output .io-head { color: #a05f1d; }
+  .io-card ul { list-style: none; padding: 0; margin: 0; }
+  .io-card li {
+    padding: 1px 0;
+    font-size: 11px;
+    color: #1a1a1a;
+  }
+  .io-card li::before {
+    content: "▸ ";
+    color: #888;
+    font-weight: 700;
+  }
+  .io-card.input li::before { color: #6e68c2; }
+  .io-card.output li::before { color: #d69a3a; }
+
+  .io-arrow {
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; color: #888; font-weight: 700;
+  }
+  .ai-tagline {
+    margin-top: 8px;
+    font-size: 10.5px;
+    color: #1e6042;
+    line-height: 1.55;
+  }
+  .ai-chip {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: #fde9b8;
+    color: #7a4a0a;
+    border: 1px solid #d69a3a;
+    font-size: 11px;
+    font-weight: 700;
+    margin-top: 4px;
+  }
+  .new-badge {
+    display: inline-block; background: #d69a3a; color: #fff;
+    font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 3px;
+    margin-left: 4px; letter-spacing: 0.04em; vertical-align: middle;
+  }
+
+  /* ============ Impact Matrix ============ */
+  .matrix-wrap {
+    background: #fff;
+    border: 1px solid #d8dbe2;
+    border-radius: 14px;
+    padding: 18px;
+    overflow-x: auto;
+  }
+  .matrix {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+    font-size: 11.5px;
+  }
+  .matrix th, .matrix td {
+    padding: 8px 6px;
+    border-bottom: 1px solid #ececec;
+    text-align: center;
+    vertical-align: middle;
+  }
+  .matrix thead th {
+    background: #fdf3e2;
+    color: #a05f1d;
+    font-weight: 700;
+    font-size: 11px;
+    line-height: 1.35;
+    border-bottom: 2px solid #d69a3a;
+    padding: 10px 6px;
+    vertical-align: bottom;
+  }
+  .matrix thead th.corner {
+    background: #fff;
+    border-bottom: 2px solid #d8dbe2;
+    border-right: 2px solid #d8dbe2;
+  }
+  .matrix thead th.group-cov {
+    background: #fdebd0;
+    color: #7a4a0a;
+    font-size: 10.5px;
+    border-bottom: 1px solid #d69a3a;
+    padding: 6px;
+  }
+  .matrix thead th.group-acc {
+    background: #fde9b8;
+    color: #7a4a0a;
+    font-size: 10.5px;
+    border-bottom: 1px solid #d69a3a;
+    padding: 6px;
+  }
+  .matrix thead th.group-out {
+    background: #d4f0de;
+    color: #1e6042;
+    font-size: 10.5px;
+    border-bottom: 1px solid #2c8a5e;
+    padding: 6px;
+  }
+  .matrix thead th.group-des {
+    background: #e0eaf5;
+    color: #2c4d7d;
+    font-size: 10.5px;
+    border-bottom: 1px solid #6b8fc7;
+    padding: 6px;
+  }
+  .matrix thead th.group-trc {
+    background: #ede8f7;
+    color: #4d479e;
+    font-size: 10.5px;
+    border-bottom: 1px solid #6e68c2;
+    padding: 6px;
+  }
+  .matrix thead th:not(.corner) { min-width: 42px; }
+  .matrix thead th.corner { min-width: 220px; }
+  .matrix tbody th {
+    background: #f1edfa;
+    color: #4d479e;
+    font-weight: 700;
+    font-size: 11px;
+    text-align: left;
+    padding: 8px 10px;
+    border-right: 2px solid #6e68c2;
+    width: 230px;
+    line-height: 1.4;
+  }
+  .matrix tbody th .lever-sub {
+    display: block;
+    font-size: 10px;
+    color: #6b7280;
+    font-weight: 500;
+    margin-top: 2px;
+  }
+  .matrix tbody td.imp-strong {
+    background: #fde9b8;
+    color: #7a4a0a;
+    font-weight: 700;
+  }
+  .matrix tbody td.imp-mid {
+    background: #fdf3e2;
+    color: #a05f1d;
+    font-weight: 600;
+  }
+  .matrix tbody td.imp-weak {
+    background: #fdfaf2;
+    color: #b89464;
+  }
+  .matrix tbody td.imp-none {
+    color: #c5c5c5;
+  }
+  .matrix tbody tr:hover td { background-color: rgba(214,154,58,0.08); }
+  .matrix tbody tr:hover th { background-color: #ede5f7; }
+  .matrix-legend {
+    margin-top: 10px;
+    display: flex; flex-wrap: wrap; gap: 12px;
+    font-size: 11px; color: #555;
+  }
+  .matrix-legend .lg-mark {
+    display: inline-block;
+    min-width: 20px;
+    padding: 1px 6px;
+    border-radius: 4px;
+    margin-right: 5px;
+    font-weight: 700;
+    text-align: center;
+  }
+  .matrix-legend .lg-mark.strong { background: #fde9b8; color: #7a4a0a; }
+  .matrix-legend .lg-mark.mid    { background: #fdf3e2; color: #a05f1d; }
+  .matrix-legend .lg-mark.weak   { background: #fdfaf2; color: #b89464; border: 1px solid #f3e4c5; }
+
+  /* ============ Quality Definitions ============ */
+  .metric-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  .metric-block {
+    background: #fff;
+    border-radius: 12px;
+    padding: 16px 18px;
+    border: 1px solid #d8dbe2;
+  }
+  .metric-block.cov     { border-top: 4px solid #d69a3a; }
+  .metric-block.acc     { border-top: 4px solid #a05f1d; }
+  .metric-block.outcome { border-top: 4px solid #2c8a5e; }
+  .metric-block.design  { border-top: 4px solid #2c4d7d; }
+  .metric-block.trace   { border-top: 4px solid #4d479e; }
+  .metric-grid-secondary {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 14px;
+    margin-top: 14px;
+  }
+  .metric-block-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #a05f1d;
+    margin-bottom: 4px;
+  }
+  .metric-block.outcome .metric-block-title { color: #1e6042; }
+  .metric-block.design  .metric-block-title { color: #2c4d7d; }
+  .metric-block.trace   .metric-block-title { color: #4d479e; }
+  .metric-block.outcome .metric-item { background: #e8f7ee; border-left-color: #2c8a5e; }
+  .metric-block.design  .metric-item { background: #e0eaf5; border-left-color: #2c4d7d; }
+  .metric-block.trace   .metric-item { background: #ede8f7; border-left-color: #6e68c2; }
+  .metric-block.outcome .metric-name { color: #1e6042; }
+  .metric-block.design  .metric-name { color: #2c4d7d; }
+  .metric-block.trace   .metric-name { color: #4d479e; }
+  .metric-block-sub {
+    font-size: 11px;
+    color: #777;
+    margin-bottom: 12px;
+    line-height: 1.5;
+  }
+  .metric-item {
+    padding: 9px 10px;
+    border-radius: 8px;
+    margin-bottom: 7px;
+    background: #fdf3e2;
+    border-left: 3px solid #d69a3a;
+  }
+  .metric-block.acc .metric-item {
+    background: #fdf1de;
+    border-left-color: #a05f1d;
+  }
+  .metric-item:last-child { margin-bottom: 0; }
+  .metric-name {
+    font-size: 12px;
+    font-weight: 700;
+    color: #7a4a0a;
+    margin-bottom: 2px;
+  }
+  .metric-formula {
+    font-size: 10.5px;
+    color: #555;
+    font-family: ui-monospace, "SF Mono", Consolas, monospace;
+    background: rgba(255,255,255,0.7);
+    padding: 2px 6px;
+    border-radius: 4px;
+    display: inline-block;
+    margin-bottom: 3px;
+  }
+  .metric-desc {
+    font-size: 11px;
+    color: #555;
+    line-height: 1.55;
+  }
+  .metric-desc strong { color: #1a1a1a; }
+
+  /* ============ Simulation (Quality Levels) ============ */
+  .sim-wrap {
+    background: #fff;
+    border: 1px solid #d8dbe2;
+    border-radius: 14px;
+    padding: 18px;
+  }
+  .sim-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+  .sim-card {
+    border-radius: 12px;
+    padding: 14px 16px;
+    border: 2px solid;
+    background: #fff;
+  }
+  .sim-card.low  { border-color: #dc6262; background: #fdf2f2; }
+  .sim-card.mid  { border-color: #d69a3a; background: #fdf6e8; }
+  .sim-card.high { border-color: #2c8a5e; background: #ecf7ef; }
+  .sim-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding-bottom: 8px;
+    border-bottom: 1px dashed rgba(0,0,0,0.15);
+    margin-bottom: 10px;
+  }
+  .sim-title { font-size: 13.5px; font-weight: 700; }
+  .sim-card.low  .sim-title { color: #b53737; }
+  .sim-card.mid  .sim-title { color: #a05f1d; }
+  .sim-card.high .sim-title { color: #1e6042; }
+  .sim-badge {
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-weight: 700;
+  }
+  .sim-card.low  .sim-badge { background: #f4cccc; color: #8d2727; }
+  .sim-card.mid  .sim-badge { background: #f7e0b6; color: #7a4a0a; }
+  .sim-card.high .sim-badge { background: #c9ebd5; color: #1e6042; }
+
+  .sim-section { margin-bottom: 10px; }
+  .sim-section-title {
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #555;
+    letter-spacing: 0.04em;
+    margin-bottom: 5px;
+  }
+  .sim-input-list {
+    font-size: 10.5px;
+    color: #444;
+    line-height: 1.55;
+    padding-left: 16px;
+    margin: 0;
+  }
+  .sim-input-list li { margin-bottom: 2px; }
+
+  /* Output metric bar (sim) */
+  .sim-metric {
+    display: grid;
+    grid-template-columns: 105px 1fr 38px;
+    gap: 6px;
+    align-items: center;
+    margin-bottom: 4px;
+    font-size: 10.5px;
+  }
+  .sim-metric-name { color: #444; }
+  .sim-metric-bar {
+    position: relative;
+    height: 10px;
+    background: #f1f1f1;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .sim-metric-fill {
+    position: absolute; top: 0; left: 0; bottom: 0;
+    border-radius: 3px;
+  }
+  .sim-card.low  .sim-metric-fill { background: #dc6262; }
+  .sim-card.mid  .sim-metric-fill { background: #d69a3a; }
+  .sim-card.high .sim-metric-fill { background: #2c8a5e; }
+  .sim-metric-val { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; }
+  .sim-card.low  .sim-metric-val { color: #b53737; }
+  .sim-card.mid  .sim-metric-val { color: #a05f1d; }
+  .sim-card.high .sim-metric-val { color: #1e6042; }
+
+  /* ============ 「低いほど良い」指標の強調表示 ============ */
+  /* 指標定義カード(section ②) */
+  .metric-block .metric-item.inverted {
+    background: #fef2f2;
+    border-left-color: #dc6262;
+  }
+  .metric-block .metric-item.inverted .metric-name {
+    color: #b53737;
+  }
+  .metric-block .metric-item.inverted .metric-name::after {
+    content: "↓ 低い方が良";
+    display: inline-block;
+    background: #fee2e2;
+    color: #b53737;
+    border: 1px solid #fca5a5;
+    font-size: 9px;
+    font-weight: 800;
+    padding: 1px 6px;
+    border-radius: 3px;
+    margin-left: 8px;
+    vertical-align: middle;
+    letter-spacing: 0.04em;
+  }
+
+  /* シミュレーションバー(section ④) */
+  /* ※ inverted 行はグリッド列幅を壊さないよう padding は付けず、
+        box-shadow と background のみで強調 */
+  .sim-metric.inverted {
+    box-shadow: inset 3px 0 0 #dc6262;
+    background: rgba(220, 98, 98, 0.05);
+    border-radius: 3px;
+  }
+  .sim-metric.inverted .sim-metric-bar { background: #fcdede; }
+  .sim-card .sim-metric.inverted .sim-metric-fill { background: #dc6262; }
+  .sim-metric.inverted .sim-metric-name {
+    color: #8d3030;
+    font-weight: 700;
+  }
+  .sim-card .sim-metric.inverted .sim-metric-val { color: #b53737; }
+  .sim-metric.inverted .sim-metric-name::before {
+    content: "↓";
+    display: inline-block;
+    background: #dc6262;
+    color: #fff;
+    font-size: 9px;
+    font-weight: 800;
+    padding: 0 3px;
+    border-radius: 2px;
+    margin-right: 4px;
+    vertical-align: middle;
+  }
+
+  /* マトリクス見出し(section ③) */
+  .matrix thead th.inv {
+    background: #fef2f2;
+    color: #b53737;
+    border-bottom-color: #dc6262;
+  }
+
+  /* Group label inside sim-card */
+  .sim-metric-group {
+    font-size: 9.5px;
+    font-weight: 700;
+    color: #888;
+    margin-top: 7px;
+    margin-bottom: 3px;
+    letter-spacing: 0.04em;
+    border-bottom: 1px dashed rgba(0,0,0,0.08);
+    padding-bottom: 1px;
+  }
+  .sim-metric-group:first-child { margin-top: 0; }
+
+  .sim-summary {
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px dashed rgba(0,0,0,0.15);
+    font-size: 10.5px;
+    color: #555;
+    line-height: 1.55;
+  }
+  .sim-summary strong {
+    color: #1a1a1a;
+  }
+
+  /* ============ Levers (改善レバー) ============ */
+  .levers-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    background: #fff;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid #d8dbe2;
+  }
+  .levers-table th, .levers-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #ececec;
+    vertical-align: top;
+    line-height: 1.55;
+  }
+  .levers-table th {
+    background: #f1edfa;
+    color: #4d479e;
+    font-weight: 700;
+    font-size: 11.5px;
+    text-align: left;
+    letter-spacing: 0.02em;
+  }
+  .levers-table td.lever-name {
+    font-weight: 700;
+    color: #3d3680;
+    width: 22%;
+  }
+  .levers-table td.lever-from { width: 19%; color: #b53737; }
+  .levers-table td.lever-to   { width: 19%; color: #1e6042; font-weight: 600; }
+  .levers-table td.lever-effect { width: 22%; }
+  .levers-table td.lever-effect .effect-key {
+    display: inline-block;
+    font-size: 10.5px;
+    background: #fdf3e2;
+    color: #7a4a0a;
+    padding: 1px 6px;
+    border-radius: 4px;
+    margin-right: 3px;
+    margin-bottom: 2px;
+    border: 1px solid #e1ad59;
+  }
+  .levers-table td.lever-effect .delta {
+    color: #1e6042;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .levers-table td.lever-note { font-size: 11px; color: #555; }
+
+  /* ============ Inference note (callout) ============ */
+  .inference-note {
+    margin-top: 12px;
+    padding: 10px 14px;
+    background: #f1edfa;
+    border: 1px solid #b6a7e1;
+    border-left: 4px solid #6e68c2;
+    border-radius: 8px;
+    font-size: 11.5px;
+    color: #3d3680;
+    line-height: 1.65;
+  }
+  .inference-note strong { color: #2a235e; }
+
+  /* Footer link */
+  .footer-link {
+    margin-top: 18px;
+    text-align: right;
+    font-size: 11px;
+    color: #888;
+  }
+  .footer-link a { color: #4d479e; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header class="header">
+    <h1>受入テスト設計AI — インプット品質 × 出力効果の尺度</h1>
+    <div class="meta">対象: V字 ⑧受入テスト ／ <a href="./index.html">ai-05/index.html</a> の派生分析</div>
+  </header>
+
+  <div class="lede">
+    本資料は <a href="./index.html">ai-05/index.html</a> で示した V字モデル右上の
+    <strong>⑧受入テスト</strong> ブロックに配置された
+    <strong>受入テスト設計AI<span class="new-badge">NEW</span></strong>
+    に焦点を当て、要件定義成果物および外部インプットの<strong>品質次元</strong>が、
+    生成される受入基準（Gherkin）の<strong>5 軸の効果尺度</strong>
+    （<strong>A</strong> 網羅率 ／ <strong>B</strong> 正確性 ／ <strong>C</strong> 下流効果 ／ <strong>D</strong> 設計品質 ／ <strong>E</strong> トレーサビリティ）
+    にどう影響するかを推論・可視化する。
+    数値はベンチマークではなく、現状の生成AIの一般的挙動から導いた<strong>推定値</strong>であり、
+    トレーサビリティAI／仕様一貫性レビュワーAIによる継続計測の<strong>初期想定値</strong>として用いる前提。
+  </div>
+
+  <!-- ====================== ① I/O 概観 ====================== -->
+  <div class="section">
+    <div class="section-title">① 受入テスト設計AI の I/O 構造（誰から何を受け、何を出すか）</div>
+    <div class="section-sub">
+      左＝<strong>要件定義フェーズ成果物</strong>（① 要件定義 から派生）／中央＝<strong>受入テスト設計AI</strong>／右＝<strong>受入基準（Gherkin）</strong>
+      <br>※ 外部インプット「ユースケーステスト」はフェーズ外から要件定義に流入する一次資料で、シナリオ派生の<strong>骨格</strong>となる。
+    </div>
+
+    <div class="io-flow">
+      <!-- 左: 要件成果物 (5項目) -->
+      <div class="io-col">
+        <div class="io-card input">
+          <div class="io-head">▼ 要件定義成果物（① 要件定義より）</div>
+          <ul>
+            <li>業務要件</li>
+            <li>機能要件</li>
+            <li>非機能要件</li>
+            <li>業務ルール一覧</li>
+            <li>用語集</li>
+          </ul>
+        </div>
+        <div class="io-card input-ext">
+          <div class="io-head">▼ 外部インプット（要件定義に流入）</div>
+          <ul>
+            <li>ユースケーステスト</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="io-arrow">→</div>
+
+      <!-- 中央: AI -->
+      <div class="io-col">
+        <div class="io-card ai">
+          <div class="io-head">受入テスト設計AI</div>
+          <div class="ai-chip">NEW（V字テスト左シフトの主役）</div>
+          <div class="ai-tagline">
+            業務要件 × 業務ルール × ユースケースを構造化し、<br>
+            <strong>Gherkin 形式の受入基準</strong>を派生生成。<br>
+            業務SMEは「素案」を承認・修正する立場へ。
+          </div>
+        </div>
+      </div>
+
+      <div class="io-arrow">→</div>
+
+      <!-- 右: 成果物 -->
+      <div class="io-col">
+        <div class="io-card output">
+          <div class="io-head">▲ 出力（V字右上 ⑧受入テスト 成果物）</div>
+          <ul>
+            <li><strong>受入基準（Gherkin）</strong>
+              <br><span style="font-size:10px;color:#a05f1d;padding-left:14px;">Feature / Scenario / Given-When-Then</span></li>
+            <li>受入基準とユースケースの対応表（トレースマトリクス入力）</li>
+            <li>シナリオ別の業務ルール参照リンク</li>
+            <li>未充足要件レポート（曖昧さ／矛盾の検出結果）</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================== ② 出力の品質尺度 ====================== -->
+  <div class="section">
+    <div class="section-title value">② 出力の効果を測る品質尺度（網羅率 × 正確性）</div>
+    <div class="section-sub">
+      受入テスト設計AIの効果は <strong>5 軸</strong> で測る。
+      上段＝<strong>A 網羅率</strong>（要件のうちどれだけシナリオ化できたか）／<strong>B 正確性</strong>（業務的に正しい表現か）— "Gherkin そのもの" の品質。
+      下段＝<strong>C 下流効果</strong>（後工程・本番への効き）／<strong>D 設計品質</strong>（テスト技法・配分の質）／<strong>E トレーサビリティ</strong>（漏れ・浮き・層間ドリフトの可視化）— "受入テスト設計AIを置く意義" を示す指標群。
+    </div>
+
+    <div class="metric-grid">
+      <div class="metric-block cov">
+        <div class="metric-block-title">A. 網羅率（Coverage）— どこまで尽くせたか</div>
+        <div class="metric-block-sub">未対応要件・浮きシナリオを検出するための「量」の尺度。トレーサビリティAI が常時可視化する。</div>
+
+        <div class="metric-item">
+          <div class="metric-name">A1. 機能要件カバレッジ</div>
+          <div class="metric-formula">= シナリオで検証される機能要件数 / 機能要件総数</div>
+          <div class="metric-desc">機能要件一行一行に対し、最低1本の Gherkin シナリオが紐付くか。<strong>主インプット＝機能要件</strong>。</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-name">A2. 業務ルール網羅率</div>
+          <div class="metric-formula">= 検証された業務ルール数 / 業務ルール総数</div>
+          <div class="metric-desc">業務ルール一覧の各ルールが正常系/異常系シナリオで踏まれているか。<strong>主インプット＝業務ルール一覧</strong>。</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-name">A3. ユースケーストレース率</div>
+          <div class="metric-formula">= UC↔シナリオ対応数 / ユースケース総数</div>
+          <div class="metric-desc">外部インプット「ユースケーステスト」と Gherkin の対応関係。トレースマトリクスの埋まり方。</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-name">A4. 非機能要件カバレッジ</div>
+          <div class="metric-formula">= 性能/可用性/セキュリティ等の検証数 / 非機能要件項目数</div>
+          <div class="metric-desc">受入テストで検証可能な非機能（応答時間・同時接続等）に閾値ベースのシナリオが生成されたか。</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-name">A5. シナリオパターン網羅率</div>
+          <div class="metric-formula">= 各機能における (正常系 + 異常系 + 境界値) ÷ 3</div>
+          <div class="metric-desc">機能ごとに 3 パターンが揃っているか。<strong>異常系・境界値の漏れ</strong>を検出する指標。</div>
+        </div>
+      </div>
+
+      <div class="metric-block acc">
+        <div class="metric-block-title">B. 正確性（Accuracy）— どれだけ業務的に正しいか</div>
+        <div class="metric-block-sub">業務SMEの承認段階・E2E実装段階で発覚する手戻りの量から、生成内容の「質」を測る尺度。</div>
+
+        <div class="metric-item inverted">
+          <div class="metric-name">B1. 業務SME修正率</div>
+          <div class="metric-formula">= 修正されたシナリオ行数 / 生成シナリオ行数</div>
+          <div class="metric-desc">業務SME 承認時に書き換えられた割合。<strong>AI の業務理解度の総合指標</strong>。</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-name">B2. 用語整合率</div>
+          <div class="metric-formula">= 用語集に合致する語の出現数 / 専門語の総出現数</div>
+          <div class="metric-desc">用語集と Gherkin の用語が一致するか。揺れがあると下流（E2Eテスト実装AI）に伝播。</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-name">B3. シナリオ実行可能率</div>
+          <div class="metric-formula">= E2E化できたシナリオ数 / 生成シナリオ総数</div>
+          <div class="metric-desc">構文的に有効で、Given / When / Then が E2Eテスト実装AI で具象化できるか。</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-name">B4. 業務ルール再現率</div>
+          <div class="metric-formula">= ルール通り表現されたシナリオ数 / ルール参照シナリオ数</div>
+          <div class="metric-desc">業務ルールの条件分岐や閾値が、シナリオの Given/When に正しく落ちているか。</div>
+        </div>
+        <div class="metric-item inverted">
+          <div class="metric-name">B5. 偽陽性率</div>
+          <div class="metric-formula">= 要件外シナリオ数 / 生成シナリオ総数</div>
+          <div class="metric-desc">要件にない動作を勝手に検証してしまうシナリオ（AI 幻覚）の割合。</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="metric-grid-secondary">
+      <div class="metric-block outcome">
+        <div class="metric-block-title">C. 下流効果（Outcome）— 後工程・本番でどれだけ効いたか</div>
+        <div class="metric-block-sub">受入テスト設計AIを置く"経営的価値"を直接示す結果指標。A/B は中間指標、C は最終指標。</div>
+
+        <div class="metric-item inverted">
+          <div class="metric-name">C1. 欠陥流出率</div>
+          <div class="metric-formula">= UAT/本番で発見されたバグ数 / 全機能数</div>
+          <div class="metric-desc">受入基準ですり抜けて<strong>本番に出てしまった欠陥</strong>。受入テストの究極の存在価値。</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-name">C2. E2E実装AIへの引き渡し成功率</div>
+          <div class="metric-formula">= 修正不要で E2E化できたシナリオ / 全シナリオ</div>
+          <div class="metric-desc">B3 が「構文的に有効か」なのに対し、これは<strong>下流AIの実装視点から見て直接使えるか</strong>。</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-name">C3. SMEレビュー時間短縮率</div>
+          <div class="metric-formula">= 1 - (ToBe レビュー所要時間 / AsIs)</div>
+          <div class="metric-desc">業務SMEの工数削減量。ai-04 の工数比較と同じ思想で<strong>左シフトのリターン</strong>を測る。</div>
+        </div>
+        <div class="metric-item inverted">
+          <div class="metric-name">C4. 上流差し戻し率</div>
+          <div class="metric-formula">= 受入テスト→要件定義への差し戻し件数 / 全シナリオ</div>
+          <div class="metric-desc">⑧→① のエスカレーション発生頻度（<a href="./index.html">ai-05/index.html</a> エスカレーション表）。健全性指標。</div>
+        </div>
+      </div>
+
+      <div class="metric-block design">
+        <div class="metric-block-title">D. 設計品質（Design Quality）— "テスト技法"の質</div>
+        <div class="metric-block-sub">A5 の「3 パターン」を超えて、テスト設計の正統技法がどれだけ意識的に適用されたかを測る。</div>
+
+        <div class="metric-item">
+          <div class="metric-name">D1. テスト技法適用率</div>
+          <div class="metric-formula">= 適用された技法種類数 / 適用すべき技法数</div>
+          <div class="metric-desc">同値分割・境界値・状態遷移・デシジョンテーブル・ペアワイズ等が<strong>適切に使い分けられているか</strong>。</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-name">D2. リスクベース重み付け率</div>
+          <div class="metric-formula">= 高リスク領域の検証密度 / 低リスク領域の検証密度</div>
+          <div class="metric-desc">"量"ではなく"配分"の指標。重要な業務領域・データに検証が<strong>集中配分</strong>されているか。</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-name">D3. シナリオ独立性 / Step DRY 度</div>
+          <div class="metric-formula">= 共通Step利用率 = 再利用Step数 / 総Step数</div>
+          <div class="metric-desc">Gherkin の Background / 共通 Step が活用され、シナリオ間で重複していないか。<strong>保守性</strong>に直結。</div>
+        </div>
+      </div>
+
+      <div class="metric-block trace">
+        <div class="metric-block-title">E. トレーサビリティ — 漏れ・浮き・ドリフトの可視化</div>
+        <div class="metric-block-sub"><a href="./index.html">ai-05/index.html</a> の <strong>トレーサビリティAI</strong>／<strong>仕様一貫性レビュワーAI</strong> の主役指標。横断AIの存在意義を直接示す。</div>
+
+        <div class="metric-item inverted">
+          <div class="metric-name">E1. 浮きシナリオ率</div>
+          <div class="metric-formula">= 要件IDに紐付かないシナリオ数 / 全シナリオ</div>
+          <div class="metric-desc">AI が要件にない動作を勝手に生成した割合。B5 と類似だが、こちらは<strong>トレース不能</strong>に焦点。</div>
+        </div>
+        <div class="metric-item inverted">
+          <div class="metric-name">E2. 孤立要件率</div>
+          <div class="metric-formula">= シナリオが1本もない要件 / 全要件</div>
+          <div class="metric-desc">A1 と表裏だが、運用上は別指標として可視化したい：<strong>「未充足要件」のアラート</strong>軸。</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-name">E3. 層間整合率</div>
+          <div class="metric-formula">= 設計レーン↔テストレーンで整合確認された要素 / 全要素</div>
+          <div class="metric-desc">仕様一貫性レビュワーAIが<strong>用語／ルールのドリフトなし</strong>と判定した割合。実装着手前に高めたい。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================== ③ インプット品質 → 出力尺度 マトリクス ====================== -->
+  <div class="section">
+    <div class="section-title">③ インプット品質次元 × 出力尺度の影響マトリクス</div>
+    <div class="section-sub">
+      行＝<strong>インプット側のレバー</strong>（要件側で押し上げ可能な品質次元）／列＝<strong>出力尺度</strong>（前節 A/B）。
+      セル＝そのレバーが当該尺度に与える<strong>推論された影響強度</strong>（強／中／弱）。空欄＝原則影響なし。
+    </div>
+
+    <div class="matrix-wrap">
+      <table class="matrix">
+        <thead>
+          <tr>
+            <th class="corner" rowspan="2">インプット品質レバー（要件側で改善可能）</th>
+            <th class="group-cov" colspan="5">A. 網羅率</th>
+            <th class="group-acc" colspan="5">B. 正確性</th>
+            <th class="group-out" colspan="4">C. 下流効果</th>
+            <th class="group-des" colspan="3">D. 設計品質</th>
+            <th class="group-trc" colspan="3">E. トレース</th>
+          </tr>
+          <tr>
+            <th>A1<br>機能要件<br>Cov</th>
+            <th>A2<br>業務ルール<br>網羅</th>
+            <th>A3<br>UC<br>トレース</th>
+            <th>A4<br>非機能<br>Cov</th>
+            <th>A5<br>パターン<br>網羅</th>
+            <th class="inv">B1<br>SME<br>修正↓</th>
+            <th>B2<br>用語<br>整合</th>
+            <th>B3<br>実行<br>可能</th>
+            <th>B4<br>業務ルール<br>再現</th>
+            <th class="inv">B5<br>偽陽性↓</th>
+            <th class="inv">C1<br>欠陥<br>流出↓</th>
+            <th>C2<br>E2E<br>引渡</th>
+            <th>C3<br>SME<br>時短</th>
+            <th class="inv">C4<br>上流<br>戻し↓</th>
+            <th>D1<br>技法<br>適用</th>
+            <th>D2<br>リスク<br>重み</th>
+            <th>D3<br>DRY<br>度</th>
+            <th class="inv">E1<br>浮き<br>シナリオ↓</th>
+            <th class="inv">E2<br>孤立<br>要件↓</th>
+            <th>E3<br>層間<br>整合</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th>業務要件の構造化度<span class="lever-sub">フリーテキスト → 章立て → 構造化DSL</span></th>
+            <td class="imp-strong">●●●</td>
+            <td class="imp-mid">●●</td>
+            <td class="imp-mid">●●</td>
+            <td class="imp-weak">●</td>
+            <td class="imp-mid">●●</td>
+            <td class="imp-mid">●●</td>
+            <td class="imp-none">—</td>
+            <td class="imp-weak">●</td>
+            <td class="imp-mid">●●</td>
+            <td class="imp-mid">●●</td>
+            <td class="imp-mid">●●</td>
+            <td class="imp-weak">●</td>
+            <td class="imp-mid">●●</td>
+            <td class="imp-mid">●●</td>
+            <td class="imp-weak">●</td>
+            <td class="imp-weak">●</td>
+            <td class="imp-none">—</td>
+            <td class="imp-mid">●●</td>
+            <td class="imp-strong">●●●</td>
+            <td class="imp-mid">●●</td>
+          </tr>
+          <tr>
+            <th>機能要件の粒度<span class="lever-sub">高レベル → アクション×権限粒度</span></th>
+            <td class="imp-strong">●●●</td>
+            <td class="imp-weak">●</td>
+            <td class="imp-strong">●●●</td>
+            <td class="imp-none">—</td>
+            <td class="imp-strong">●●●</td>
+            <td class="imp-mid">●●</td>
+            <td class="imp-none">—</td>
+            <td class="imp-mid">●●</td>
+            <td class="imp-weak">●</td>
+            <td class="imp-mid">●●</td>
+            <td class="imp-mid">●●</td>
+            <td class="imp-mid">●●</td>
+            <td class="imp-mid">●●</td>
+            <td class="imp-weak">●</td>
+            <td class="imp-strong">●●●</td>
+            <td class="imp-mid">●●</td>
+            <td class="imp-mid">●●</td>
+            <td class="imp-mid">●●</td>
+            <td class="imp-strong">●●●</td>
+            <td class="imp-mid">●●</td>
+          </tr>
+          <tr>
+            <th>業務ルール一覧の形式<span class="lever-sub">散在記述 → 一覧表 → デシジョンテーブル/DMN</span></th>
+            <td class="imp-weak">●</td>
+            <td class="imp-strong">●●●</td>
+            <td class="imp-none">—</td>
+            <td class="imp-none">—</td>
+            <td class="imp-mid">●●</td>
+            <td class="imp-strong">●●●</td>
+            <td class="imp-weak">●</td>
+            <td class="imp-weak">●</td>
+            <td class="imp-strong">●●●</td>
+            <td class="imp-mid">●●</td>
+            <td class="imp-strong">●●●</td>
+            <td class="imp-mid">●●</td>
+            <td class="imp-mid">●●</td>
+            <td class="imp-strong">●●●</td>
+            <td class="imp-strong">●●●</td>
+            <td class="imp-mid">●●</td>
+            <td class="imp-mid">●●</td>
+            <td class="imp-mid">●●</td>
+            <td class="imp-mid">●●</td>
+            <td class="imp-strong">●●●</td>
+          </tr>
+          <tr>
+            <th>用語集の完成度<span class="lever-sub">未整備 → 主要語のみ → 全語＋同義語</span></th>
+            <td class="imp-none">—</td>
+            <td class="imp-weak">●</td>
+            <td class="imp-weak">●</td>
+            <td class="imp-none">—</td>
+            <td class="imp-none">—</td>
+            <td class="imp-mid">●●</td>
+            <td class="imp-strong">●●●</td>
+            <td class="imp-weak">●</td>
+            <td class="imp-mid">●●</td>
+            <td class="imp-weak">●</td>
+            <td class="imp-weak">●</td>
+            <td class="imp-mid">●●</td>
+            <td class="imp-weak">●</td>
+            <td class="imp-weak">●</td>
+            <td class="imp-none">—</td>
+            <td class="imp-none">—</td>
+            <td class="imp-weak">●</td>
+            <td class="imp-weak">●</td>
+            <td class="imp-weak">●</td>
+            <td class="imp-strong">●●●</td>
+          </tr>
+          <tr>
+            <th>ユースケーステストの粒度<span class="lever-sub">なし → 粗粒度 → 細粒度＋事前/事後条件</span></th>
+            <td class="imp-mid">●●</td>
+            <td class="imp-mid">●●</td>
+            <td class="imp-strong">●●●</td>
+            <td class="imp-none">—</td>
+            <td class="imp-strong">●●●</td>
+            <td class="imp-mid">●●</td>
+            <td class="imp-weak">●</td>
+            <td class="imp-mid">●●</td>
+            <td class="imp-mid">●●</td>
+            <td class="imp-mid">●●</td>
+            <td class="imp-mid">●●</td>
+            <td class="imp-mid">●●</td>
+            <td class="imp-mid">●●</td>
+            <td class="imp-mid">●●</td>
+            <td class="imp-mid">●●</td>
+            <td class="imp-weak">●</td>
+            <td class="imp-mid">●●</td>
+            <td class="imp-mid">●●</td>
+            <td class="imp-mid">●●</td>
+            <td class="imp-mid">●●</td>
+          </tr>
+          <tr>
+            <th>非機能要件の数値化<span class="lever-sub">定性記述 → 全項目に閾値・測定方法</span></th>
+            <td class="imp-none">—</td>
+            <td class="imp-none">—</td>
+            <td class="imp-none">—</td>
+            <td class="imp-strong">●●●</td>
+            <td class="imp-mid">●●</td>
+            <td class="imp-mid">●●</td>
+            <td class="imp-none">—</td>
+            <td class="imp-strong">●●●</td>
+            <td class="imp-weak">●</td>
+            <td class="imp-mid">●●</td>
+            <td class="imp-strong">●●●</td>
+            <td class="imp-mid">●●</td>
+            <td class="imp-weak">●</td>
+            <td class="imp-mid">●●</td>
+            <td class="imp-mid">●●</td>
+            <td class="imp-strong">●●●</td>
+            <td class="imp-weak">●</td>
+            <td class="imp-weak">●</td>
+            <td class="imp-mid">●●</td>
+            <td class="imp-mid">●●</td>
+          </tr>
+          <tr>
+            <th>業務SMEのレビュー早期介入<span class="lever-sub">承認のみ → Plan段階で誤解箇所フィードバック</span></th>
+            <td class="imp-weak">●</td>
+            <td class="imp-mid">●●</td>
+            <td class="imp-weak">●</td>
+            <td class="imp-weak">●</td>
+            <td class="imp-mid">●●</td>
+            <td class="imp-strong">●●●</td>
+            <td class="imp-mid">●●</td>
+            <td class="imp-none">—</td>
+            <td class="imp-strong">●●●</td>
+            <td class="imp-strong">●●●</td>
+            <td class="imp-strong">●●●</td>
+            <td class="imp-mid">●●</td>
+            <td class="imp-strong">●●●</td>
+            <td class="imp-strong">●●●</td>
+            <td class="imp-mid">●●</td>
+            <td class="imp-strong">●●●</td>
+            <td class="imp-weak">●</td>
+            <td class="imp-strong">●●●</td>
+            <td class="imp-mid">●●</td>
+            <td class="imp-strong">●●●</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="matrix-legend">
+        <span><span class="lg-mark strong">●●●</span>強い影響（一次要因）</span>
+        <span><span class="lg-mark mid">●●</span>中程度の影響（補強要因）</span>
+        <span><span class="lg-mark weak">●</span>弱い影響（周辺要因）</span>
+        <span>—：原則影響なし</span>
+      </div>
+    </div>
+
+    <div class="inference-note">
+      <strong>読み解きポイント：</strong>
+      <strong>A2 業務ルール網羅率 / B4 業務ルール再現率 / D1 技法適用 / E3 層間整合</strong> は「業務ルール一覧の形式」「業務SMEの早期介入」が支配的で、
+      これは <a href="./index.html">ai-05/index.html</a> の「最も価値が出るのは実装着手前」（仕様一貫性レビュワーAI）の主張と整合する。
+      <strong>A4 / C1 / D2</strong>（非機能・欠陥流出・リスク重み）は要件側で<strong>閾値を数値化</strong>しない限り受入テスト設計AIだけでは押し上げられず、
+      テックリードの非機能設計（V字②）との接続が必須。
+      <strong>C 列（下流効果）</strong>は「SMEの早期介入」と「業務ルールDMN化」の 2 レバーがほぼ全列に強く効くため、ROI 観点ではこの 2 つを最優先に押すべき。
+    </div>
+  </div>
+
+  <!-- ====================== ④ 品質レベル別 推論シミュレーション ====================== -->
+  <div class="section">
+    <div class="section-title test">④ インプット品質レベル別の推論シミュレーション（出力尺度の推定値）</div>
+    <div class="section-sub">
+      要件定義成果物のインプット品質を <strong>低 / 中 / 高</strong> の 3 段階で仮定し、
+      受入テスト設計AIが出力する受入基準（Gherkin）の<strong>5 軸 20 指標</strong>を推論。
+      数値は実測でなく、ai-04 の AI 駆動シナリオ別バグ傾向（仕様解釈ミス・エッジケース漏れ）と
+      生成AIの一般的挙動から導いた<strong>推定値</strong>。
+    </div>
+
+    <div class="sim-wrap">
+      <div class="sim-grid">
+
+        <!-- LOW -->
+        <div class="sim-card low">
+          <div class="sim-head">
+            <span class="sim-title">A. 低品質インプット</span>
+            <span class="sim-badge">期待値レンジ：低</span>
+          </div>
+
+          <div class="sim-section">
+            <div class="sim-section-title">▼ インプット状態</div>
+            <ul class="sim-input-list">
+              <li>業務要件：フリーテキスト中心</li>
+              <li>機能要件：高レベル（章単位）</li>
+              <li>業務ルール：本文中に散在</li>
+              <li>用語集：未整備 or 数語のみ</li>
+              <li>ユースケーステスト：なし or 章単位</li>
+              <li>非機能要件：定性記述（「速く」等）</li>
+            </ul>
+          </div>
+
+          <div class="sim-section">
+            <div class="sim-section-title">▼ 出力尺度（推定）</div>
+            <div class="sim-metric-group">A. 網羅率</div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">A1 機能要件Cov</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:55%"></div></div>
+              <span class="sim-metric-val">55%</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">A2 業務ルール網羅</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:40%"></div></div>
+              <span class="sim-metric-val">40%</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">A3 UCトレース</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:15%"></div></div>
+              <span class="sim-metric-val">15%</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">A4 非機能Cov</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:25%"></div></div>
+              <span class="sim-metric-val">25%</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">A5 パターン網羅</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:45%"></div></div>
+              <span class="sim-metric-val">45%</span>
+            </div>
+            <div class="sim-metric-group">B. 正確性</div>
+            <div class="sim-metric inverted">
+              <span class="sim-metric-name">B1 SME修正↓</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:65%"></div></div>
+              <span class="sim-metric-val">65%</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">B2 用語整合</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:50%"></div></div>
+              <span class="sim-metric-val">50%</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">B3 実行可能</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:65%"></div></div>
+              <span class="sim-metric-val">65%</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">B4 業務ルール再現</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:45%"></div></div>
+              <span class="sim-metric-val">45%</span>
+            </div>
+            <div class="sim-metric inverted">
+              <span class="sim-metric-name">B5 偽陽性↓</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:20%"></div></div>
+              <span class="sim-metric-val">20%</span>
+            </div>
+            <div class="sim-metric-group">C. 下流効果</div>
+            <div class="sim-metric inverted">
+              <span class="sim-metric-name">C1 欠陥流出↓</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:30%"></div></div>
+              <span class="sim-metric-val">30%</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">C2 E2E引渡</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:55%"></div></div>
+              <span class="sim-metric-val">55%</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">C3 SME時短率</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:20%"></div></div>
+              <span class="sim-metric-val">20%</span>
+            </div>
+            <div class="sim-metric inverted">
+              <span class="sim-metric-name">C4 上流戻し↓</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:35%"></div></div>
+              <span class="sim-metric-val">35%</span>
+            </div>
+            <div class="sim-metric-group">D. 設計品質</div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">D1 技法適用</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:25%"></div></div>
+              <span class="sim-metric-val">25%</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">D2 リスク重み</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:20%"></div></div>
+              <span class="sim-metric-val">20%</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">D3 DRY度</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:45%"></div></div>
+              <span class="sim-metric-val">45%</span>
+            </div>
+            <div class="sim-metric-group">E. トレーサビリティ</div>
+            <div class="sim-metric inverted">
+              <span class="sim-metric-name">E1 浮きシナリオ↓</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:30%"></div></div>
+              <span class="sim-metric-val">30%</span>
+            </div>
+            <div class="sim-metric inverted">
+              <span class="sim-metric-name">E2 孤立要件↓</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:45%"></div></div>
+              <span class="sim-metric-val">45%</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">E3 層間整合</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:50%"></div></div>
+              <span class="sim-metric-val">50%</span>
+            </div>
+          </div>
+
+          <div class="sim-summary">
+            <strong>総合所見：</strong>「素案として読み流す」段階。SME 修正率が 6 割を超え、
+            <strong>欠陥流出 30% / 上流差し戻し 35%</strong> と<strong>本番リスクと手戻りコストが両方残る</strong>。
+            技法適用も 25% にとどまり、テスト設計の質より「素案の整形」程度の効果に留まる。
+            実装着手前にトレーサビリティを埋めきれず、<strong>テスト左シフトの恩恵は限定的</strong>。
+          </div>
+        </div>
+
+        <!-- MID -->
+        <div class="sim-card mid">
+          <div class="sim-head">
+            <span class="sim-title">B. 中品質インプット</span>
+            <span class="sim-badge">期待値レンジ：標準</span>
+          </div>
+
+          <div class="sim-section">
+            <div class="sim-section-title">▼ インプット状態</div>
+            <ul class="sim-input-list">
+              <li>業務要件：章立てで構造化</li>
+              <li>機能要件：機能単位＋入出力例</li>
+              <li>業務ルール：一覧表化（条件と結果）</li>
+              <li>用語集：主要語＋同義語の一部</li>
+              <li>ユースケーステスト：粗粒度であり</li>
+              <li>非機能要件：主要項目に閾値あり</li>
+            </ul>
+          </div>
+
+          <div class="sim-section">
+            <div class="sim-section-title">▼ 出力尺度（推定）</div>
+            <div class="sim-metric-group">A. 網羅率</div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">A1 機能要件Cov</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:80%"></div></div>
+              <span class="sim-metric-val">80%</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">A2 業務ルール網羅</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:70%"></div></div>
+              <span class="sim-metric-val">70%</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">A3 UCトレース</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:70%"></div></div>
+              <span class="sim-metric-val">70%</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">A4 非機能Cov</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:60%"></div></div>
+              <span class="sim-metric-val">60%</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">A5 パターン網羅</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:75%"></div></div>
+              <span class="sim-metric-val">75%</span>
+            </div>
+            <div class="sim-metric-group">B. 正確性</div>
+            <div class="sim-metric inverted">
+              <span class="sim-metric-name">B1 SME修正↓</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:35%"></div></div>
+              <span class="sim-metric-val">35%</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">B2 用語整合</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:80%"></div></div>
+              <span class="sim-metric-val">80%</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">B3 実行可能</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:88%"></div></div>
+              <span class="sim-metric-val">88%</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">B4 業務ルール再現</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:75%"></div></div>
+              <span class="sim-metric-val">75%</span>
+            </div>
+            <div class="sim-metric inverted">
+              <span class="sim-metric-name">B5 偽陽性↓</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:10%"></div></div>
+              <span class="sim-metric-val">10%</span>
+            </div>
+            <div class="sim-metric-group">C. 下流効果</div>
+            <div class="sim-metric inverted">
+              <span class="sim-metric-name">C1 欠陥流出↓</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:12%"></div></div>
+              <span class="sim-metric-val">12%</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">C2 E2E引渡</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:80%"></div></div>
+              <span class="sim-metric-val">80%</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">C3 SME時短率</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:55%"></div></div>
+              <span class="sim-metric-val">55%</span>
+            </div>
+            <div class="sim-metric inverted">
+              <span class="sim-metric-name">C4 上流戻し↓</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:15%"></div></div>
+              <span class="sim-metric-val">15%</span>
+            </div>
+            <div class="sim-metric-group">D. 設計品質</div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">D1 技法適用</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:55%"></div></div>
+              <span class="sim-metric-val">55%</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">D2 リスク重み</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:50%"></div></div>
+              <span class="sim-metric-val">50%</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">D3 DRY度</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:70%"></div></div>
+              <span class="sim-metric-val">70%</span>
+            </div>
+            <div class="sim-metric-group">E. トレーサビリティ</div>
+            <div class="sim-metric inverted">
+              <span class="sim-metric-name">E1 浮きシナリオ↓</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:12%"></div></div>
+              <span class="sim-metric-val">12%</span>
+            </div>
+            <div class="sim-metric inverted">
+              <span class="sim-metric-name">E2 孤立要件↓</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:20%"></div></div>
+              <span class="sim-metric-val">20%</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">E3 層間整合</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:80%"></div></div>
+              <span class="sim-metric-val">80%</span>
+            </div>
+          </div>
+
+          <div class="sim-summary">
+            <strong>総合所見：</strong>受入テスト設計AI が <strong>実用ライン</strong>に乗る水準。
+            SME はレビュー＋部分修正で済み（<strong>時短率 55%</strong>）、E2E実装AI への引き渡しも 80% 通る。
+            残る損失は <strong>業務ルールの暗黙知</strong>（A2／B4／D1 が伸び切らない）と
+            <strong>D2 リスク配分の粗さ</strong>。業務ルールを DMN 化すれば次の段階に上がる。
+          </div>
+        </div>
+
+        <!-- HIGH -->
+        <div class="sim-card high">
+          <div class="sim-head">
+            <span class="sim-title">C. 高品質インプット</span>
+            <span class="sim-badge">期待値レンジ：高</span>
+          </div>
+
+          <div class="sim-section">
+            <div class="sim-section-title">▼ インプット状態</div>
+            <ul class="sim-input-list">
+              <li>業務要件：構造化＋関係性（DSL/モデル）</li>
+              <li>機能要件：アクション×権限粒度</li>
+              <li>業務ルール：デシジョンテーブル/DMN</li>
+              <li>用語集：全語＋同義語＋例文</li>
+              <li>ユースケーステスト：細粒度＋事前/事後条件</li>
+              <li>非機能要件：全項目に閾値・測定方法</li>
+            </ul>
+          </div>
+
+          <div class="sim-section">
+            <div class="sim-section-title">▼ 出力尺度（推定）</div>
+            <div class="sim-metric-group">A. 網羅率</div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">A1 機能要件Cov</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:95%"></div></div>
+              <span class="sim-metric-val">95%</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">A2 業務ルール網羅</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:95%"></div></div>
+              <span class="sim-metric-val">95%</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">A3 UCトレース</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:97%"></div></div>
+              <span class="sim-metric-val">97%</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">A4 非機能Cov</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:90%"></div></div>
+              <span class="sim-metric-val">90%</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">A5 パターン網羅</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:92%"></div></div>
+              <span class="sim-metric-val">92%</span>
+            </div>
+            <div class="sim-metric-group">B. 正確性</div>
+            <div class="sim-metric inverted">
+              <span class="sim-metric-name">B1 SME修正↓</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:12%"></div></div>
+              <span class="sim-metric-val">12%</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">B2 用語整合</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:97%"></div></div>
+              <span class="sim-metric-val">97%</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">B3 実行可能</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:97%"></div></div>
+              <span class="sim-metric-val">97%</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">B4 業務ルール再現</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:92%"></div></div>
+              <span class="sim-metric-val">92%</span>
+            </div>
+            <div class="sim-metric inverted">
+              <span class="sim-metric-name">B5 偽陽性↓</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:4%"></div></div>
+              <span class="sim-metric-val">4%</span>
+            </div>
+            <div class="sim-metric-group">C. 下流効果</div>
+            <div class="sim-metric inverted">
+              <span class="sim-metric-name">C1 欠陥流出↓</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:4%"></div></div>
+              <span class="sim-metric-val">4%</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">C2 E2E引渡</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:95%"></div></div>
+              <span class="sim-metric-val">95%</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">C3 SME時短率</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:75%"></div></div>
+              <span class="sim-metric-val">75%</span>
+            </div>
+            <div class="sim-metric inverted">
+              <span class="sim-metric-name">C4 上流戻し↓</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:5%"></div></div>
+              <span class="sim-metric-val">5%</span>
+            </div>
+            <div class="sim-metric-group">D. 設計品質</div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">D1 技法適用</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:85%"></div></div>
+              <span class="sim-metric-val">85%</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">D2 リスク重み</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:80%"></div></div>
+              <span class="sim-metric-val">80%</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">D3 DRY度</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:90%"></div></div>
+              <span class="sim-metric-val">90%</span>
+            </div>
+            <div class="sim-metric-group">E. トレーサビリティ</div>
+            <div class="sim-metric inverted">
+              <span class="sim-metric-name">E1 浮きシナリオ↓</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:3%"></div></div>
+              <span class="sim-metric-val">3%</span>
+            </div>
+            <div class="sim-metric inverted">
+              <span class="sim-metric-name">E2 孤立要件↓</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:5%"></div></div>
+              <span class="sim-metric-val">5%</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">E3 層間整合</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:95%"></div></div>
+              <span class="sim-metric-val">95%</span>
+            </div>
+          </div>
+
+          <div class="sim-summary">
+            <strong>総合所見：</strong>テスト左シフトの効果が最大化する水準。
+            <strong>SME 時短 75% / 欠陥流出 4% / 層間整合 95%</strong> と、5 軸すべてが揃う。
+            SME は「承認者」に専念でき、ai-05 図中の「Plan 工程で派生・確定可」（紫●マーカー）の前提が成立する。
+            ROI 観点では、この水準を維持するために<strong>業務ルール DMN 化＋SME 早期介入</strong>を制度化する価値がある。
+          </div>
+        </div>
+
+      </div>
+
+      <div class="inference-note" style="margin-top:14px;">
+        <strong>感度の方向性（推定）：</strong>
+        中→高への遷移で最も効くのは <strong>業務ルールの DMN/デシジョンテーブル化</strong>（A2 +25pt／B4 +17pt／D1 +30pt／C1 -8pt）と
+        <strong>ユースケーステストの細粒度化</strong>（A3 +27pt／A5 +17pt／C2 +15pt）。
+        低→中への遷移で最も効くのは <strong>機能要件の粒度化</strong> と <strong>業務ルールの一覧表化</strong>。
+        逆に「用語集の整備」単独では B2／E3 以外に大きく波及しないため、<strong>業務ルールと組み合わせて整備</strong>するのが投資効率が高い。
+        <strong>C 列の値（欠陥流出・SME 時短・上流戻し）は中→高への移行効果が最大</strong>になる軸なので、ROI 評価はここを最重視するのが推奨。
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================== ⑤ 改善レバー: どこを押すと何が伸びるか ====================== -->
+  <div class="section">
+    <div class="section-title">⑤ 改善レバー — 「どこに投資すると、どの尺度が、どれだけ伸びるか」</div>
+    <div class="section-sub">
+      要件定義側の改善アクション（左）に対し、影響する主要尺度（右）と推定改善幅をまとめる。
+      <strong>テスト設計AIの効果は、AIモデルの性能よりも上流インプットの構造化度に支配される</strong>ことを示すための導線。
+    </div>
+
+    <table class="levers-table">
+      <thead>
+        <tr>
+          <th>レバー（要件定義側のアクション）</th>
+          <th>Before（典型的な状態）</th>
+          <th>After（推奨する状態）</th>
+          <th>影響する主要尺度（推定改善幅）</th>
+          <th>備考</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="lever-name">業務ルールの<br>デシジョンテーブル化</td>
+          <td class="lever-from">本文に散在<br>箇条書きで粒度バラバラ</td>
+          <td class="lever-to">条件×結果のテーブル<br>または DMN 形式</td>
+          <td class="lever-effect">
+            <span class="effect-key">A2</span><span class="delta">+25〜35pt</span><br>
+            <span class="effect-key">B4</span><span class="delta">+15〜20pt</span><br>
+            <span class="effect-key">B1</span><span class="delta">-20pt</span><br>
+            <span class="effect-key">C1</span><span class="delta">-15pt</span>
+            <span class="effect-key">C4</span><span class="delta">-20pt</span><br>
+            <span class="effect-key">D1</span><span class="delta">+30pt</span>
+            <span class="effect-key">E3</span><span class="delta">+20pt</span>
+          </td>
+          <td class="lever-note">最も効果の大きいレバー。境界値・例外も網羅されやすくなり、欠陥流出も大きく抑制。</td>
+        </tr>
+        <tr>
+          <td class="lever-name">ユースケーステストの<br>細粒度化＋pre/post条件</td>
+          <td class="lever-from">章単位の物語形式<br>主要シナリオのみ</td>
+          <td class="lever-to">アクション粒度<br>事前/事後条件・例外フロー記述</td>
+          <td class="lever-effect">
+            <span class="effect-key">A3</span><span class="delta">+25〜30pt</span><br>
+            <span class="effect-key">A5</span><span class="delta">+15pt</span><br>
+            <span class="effect-key">B3</span><span class="delta">+10pt</span><br>
+            <span class="effect-key">C2</span><span class="delta">+15pt</span><br>
+            <span class="effect-key">D1</span><span class="delta">+15pt</span>
+            <span class="effect-key">E2</span><span class="delta">-15pt</span>
+          </td>
+          <td class="lever-note">外部インプットのため、業務側との連携で整備する必要がある。E2E実装AIへの引き渡しも改善。</td>
+        </tr>
+        <tr>
+          <td class="lever-name">機能要件の<br>アクション×権限粒度化</td>
+          <td class="lever-from">「商品マスタを管理できる」等<br>抽象的</td>
+          <td class="lever-to">「業務担当が商品を新規登録」<br>「管理者が承認」のレベル</td>
+          <td class="lever-effect">
+            <span class="effect-key">A1</span><span class="delta">+20〜25pt</span><br>
+            <span class="effect-key">A5</span><span class="delta">+20pt</span><br>
+            <span class="effect-key">B1</span><span class="delta">-10pt</span><br>
+            <span class="effect-key">C2</span><span class="delta">+15pt</span><br>
+            <span class="effect-key">D1</span><span class="delta">+25pt</span>
+            <span class="effect-key">E2</span><span class="delta">-20pt</span>
+          </td>
+          <td class="lever-note">機能要件＝ Gherkin の Feature 単位に直接マッピングでき、技法（同値分割等）も適切に効くようになる。</td>
+        </tr>
+        <tr>
+          <td class="lever-name">非機能要件の<br>閾値・測定方法の明文化</td>
+          <td class="lever-from">「快適に」「高速に」<br>定性記述のみ</td>
+          <td class="lever-to">「95%tileで500ms以内」<br>「同時 100 ユーザ」等</td>
+          <td class="lever-effect">
+            <span class="effect-key">A4</span><span class="delta">+30〜40pt</span><br>
+            <span class="effect-key">B3</span><span class="delta">+20pt</span><br>
+            <span class="effect-key">C1</span><span class="delta">-15pt</span><br>
+            <span class="effect-key">D2</span><span class="delta">+30pt</span>
+          </td>
+          <td class="lever-note">テックリードの非機能設計（V字②）と接続させる必要がある。性能・可用性領域のリスク重み付けに直接効く。</td>
+        </tr>
+        <tr>
+          <td class="lever-name">用語集の整備<br>（同義語・例文込み）</td>
+          <td class="lever-from">未整備 or 数語のみ</td>
+          <td class="lever-to">全専門語＋同義語＋例文</td>
+          <td class="lever-effect">
+            <span class="effect-key">B2</span><span class="delta">+25〜30pt</span><br>
+            <span class="effect-key">B4</span><span class="delta">+10pt</span><br>
+            <span class="effect-key">E3</span><span class="delta">+15pt</span>
+          </td>
+          <td class="lever-note">単独効果は限定的だが、業務ルール DMN 化と組合せると相乗効果。層間ドリフトの主因（用語揺れ）を消す。</td>
+        </tr>
+        <tr>
+          <td class="lever-name">業務SMEの<br>Plan段階レビュー導入</td>
+          <td class="lever-from">最終承認時のみ介入</td>
+          <td class="lever-to">受入基準ドラフト段階で<br>誤解箇所をフィードバック</td>
+          <td class="lever-effect">
+            <span class="effect-key">B1</span><span class="delta">-25pt</span><br>
+            <span class="effect-key">B4</span><span class="delta">+15pt</span><br>
+            <span class="effect-key">B5</span><span class="delta">-10pt</span><br>
+            <span class="effect-key">C1</span><span class="delta">-15pt</span>
+            <span class="effect-key">C3</span><span class="delta">+20pt</span>
+            <span class="effect-key">C4</span><span class="delta">-20pt</span><br>
+            <span class="effect-key">D2</span><span class="delta">+20pt</span><br>
+            <span class="effect-key">E1</span><span class="delta">-15pt</span>
+            <span class="effect-key">E3</span><span class="delta">+15pt</span>
+          </td>
+          <td class="lever-note">仕様一貫性レビュワーAI の検出結果を SME が確認するワークフローと併用すると効果増。<strong>5 軸すべてに効くオールラウンダー</strong>。</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="inference-note">
+      <strong>運用上の推奨：</strong>
+      上記の各レバーは <a href="./index.html">ai-05/index.html</a> の <strong>トレーサビリティAI</strong> と
+      <strong>仕様一貫性レビュワーAI</strong> によって継続計測される 5 軸 20 指標（A1〜E3）の改善幅として可視化される。
+      新規プロジェクト立ち上げ時は <strong>業務ルール DMN 化 ＋ 業務SME の Plan 段階レビュー導入</strong>
+      （C/D/E すべてに 3 つ以上の指標で強い影響を持つ 2 大レバー）に優先投資すれば、
+      受入テスト設計AI の出力品質は中→高水準に到達し、<strong>C1 欠陥流出率 / C3 SME 時短 / C4 上流差し戻し</strong>
+      といった ROI 直結指標が同時に改善する。
+    </div>
+  </div>
+
+  <div class="footer-link">
+    参照: <a href="./index.html">ai-05/index.html</a> ／
+    <a href="../ai-04/index.html">ai-04/index.html</a> ／
+    <a href="../ai-04/ai_dd_process.html">ai-04/ai_dd_process.html</a>
+  </div>
+
+</div>
+</body>
+</html>
