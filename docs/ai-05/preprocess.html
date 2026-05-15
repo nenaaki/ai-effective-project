@@ -1,0 +1,1249 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>要件整備プリプロセス AsIs/ToBe — 人間 × AI エージェントの分担設計</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: #fafaf7; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Yu Gothic UI", sans-serif; color: #1a1a1a; }
+  body { padding: 32px 40px 80px; }
+  .container { max-width: 1480px; margin: 0 auto; }
+
+  /* ===== Header ===== */
+  .header { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid #d8dbe2; padding-bottom: 14px; margin-bottom: 24px; }
+  .header h1 { font-size: 22px; font-weight: 700; color: #1a1a1a; }
+  .header .meta { font-size: 13px; color: #666; }
+  .header .meta a { color: #4d479e; }
+
+  .lede { color: #555; font-size: 13px; line-height: 1.7; margin-bottom: 22px; padding: 14px 18px; background: #fff; border: 1px solid #d8dbe2; border-radius: 12px; }
+  .lede strong { color: #1a1a1a; }
+  .lede a { color: #4d479e; }
+
+  /* ===== Section ===== */
+  .section { margin-bottom: 32px; }
+  .section-title { font-size: 14px; font-weight: 700; color: #444; letter-spacing: 0.04em; margin-bottom: 8px; padding-left: 10px; border-left: 4px solid #6e68c2; }
+  .section-title.ai    { border-left-color: #2c8a5e; }
+  .section-title.asis  { border-left-color: #c95151; }
+  .section-title.tobe  { border-left-color: #2c8a5e; }
+  .section-title.value { border-left-color: #d69a3a; }
+  .section-sub { font-size: 12px; color: #777; margin-bottom: 14px; padding-left: 14px; line-height: 1.6; }
+  .section-sub strong { color: #444; }
+
+  /* ===== Caveat callout ===== */
+  .caveat {
+    margin-bottom: 24px;
+    padding: 12px 16px;
+    background: #fef9e7;
+    border: 1px solid #e6c989;
+    border-left: 4px solid #d69a3a;
+    border-radius: 8px;
+    font-size: 12.5px;
+    color: #7a4a0a;
+    line-height: 1.65;
+  }
+  .caveat strong { color: #5a3508; }
+
+  /* ===== ① 9 ステップ Overview ===== */
+  .steps-overview {
+    background: #fff;
+    border: 1px solid #d8dbe2;
+    border-radius: 14px;
+    padding: 18px;
+  }
+  .steps-grid {
+    display: grid;
+    grid-template-columns: repeat(9, 1fr);
+    gap: 8px;
+  }
+  .step-card {
+    border-radius: 10px;
+    padding: 10px 8px;
+    border: 2px solid;
+    background: #fff;
+    text-align: center;
+    position: relative;
+  }
+  .step-num {
+    display: inline-block;
+    background: #1a1a1a;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 999px;
+    margin-bottom: 6px;
+  }
+  .step-name {
+    font-size: 11px;
+    font-weight: 700;
+    color: #1a1a1a;
+    line-height: 1.35;
+    margin-bottom: 6px;
+    min-height: 30px;
+  }
+  .step-level-tag {
+    display: inline-block;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 3px;
+    letter-spacing: 0.02em;
+    margin-top: 2px;
+  }
+  /* AI 化レベル: 完全自動／素案+判断／人間専担 */
+  .step-card.lv-auto  { border-color: #2c8a5e; background: #ecf7ef; }
+  .step-card.lv-mixed { border-color: #2c4d7d; background: #e0eaf5; }
+  .step-card.lv-human { border-color: #6e68c2; background: #f1edfa; }
+  .step-card.lv-auto  .step-level-tag { background: #2c8a5e; color: #fff; }
+  .step-card.lv-mixed .step-level-tag { background: #2c4d7d; color: #fff; }
+  .step-card.lv-human .step-level-tag { background: #6e68c2; color: #fff; }
+
+  .steps-legend {
+    display: flex; gap: 18px; flex-wrap: wrap; justify-content: center;
+    margin-top: 14px;
+    font-size: 11.5px; color: #555;
+  }
+  .steps-legend .lg-item { display: flex; align-items: center; gap: 6px; }
+  .steps-legend .lg-swatch {
+    width: 14px; height: 14px; border-radius: 3px;
+    display: inline-block; border: 2px solid;
+  }
+  .lg-swatch.lv-auto  { background: #ecf7ef; border-color: #2c8a5e; }
+  .lg-swatch.lv-mixed { background: #e0eaf5; border-color: #2c4d7d; }
+  .lg-swatch.lv-human { background: #f1edfa; border-color: #6e68c2; }
+
+  /* ===== ② AsIs / ToBe 詳細比較テーブル ===== */
+  .compare-table-wrap {
+    background: #fff;
+    border: 1px solid #d8dbe2;
+    border-radius: 14px;
+    padding: 18px;
+    overflow-x: auto;
+  }
+  .compare-table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 12px;
+  }
+  .compare-table th, .compare-table td {
+    padding: 9px 10px;
+    border-bottom: 1px solid #ececec;
+    vertical-align: top;
+    line-height: 1.55;
+  }
+  .compare-table th {
+    background: #f7f7f3;
+    font-weight: 700;
+    color: #555;
+    font-size: 11px;
+    text-align: left;
+  }
+  .compare-table th.asis-col { background: #fef2f2; color: #b53737; }
+  .compare-table th.tobe-col { background: #ecf7ef; color: #1e6042; }
+  .compare-table th.task-col { width: 16%; }
+  .compare-table th.asis-col { width: 28%; }
+  .compare-table th.tobe-col { width: 28%; }
+  .compare-table th.agent-col { width: 16%; }
+  .compare-table th.delta-col { width: 12%; text-align: right; }
+
+  .compare-table td.task {
+    font-weight: 700;
+    color: #1a1a1a;
+  }
+  .compare-table td.task .lv-tag {
+    display: inline-block;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 3px;
+    margin-left: 4px;
+    vertical-align: middle;
+  }
+  .compare-table td.task .lv-tag.lv-auto  { background: #2c8a5e; color: #fff; }
+  .compare-table td.task .lv-tag.lv-mixed { background: #2c4d7d; color: #fff; }
+  .compare-table td.task .lv-tag.lv-human { background: #6e68c2; color: #fff; }
+
+  .compare-table td.asis-cell { background: #fffafa; }
+  .compare-table td.tobe-cell { background: #f9fcf9; }
+
+  .work-line {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 4px;
+  }
+  .work-actor {
+    display: inline-block;
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 3px;
+    min-width: 50px;
+    text-align: center;
+  }
+  .work-actor.human { background: #fff; border: 1px solid #888; color: #444; }
+  .work-actor.ai    { background: #e0f3e6; border: 1px solid #5cb085; color: #1e6042; }
+  .work-time {
+    font-size: 11px;
+    font-weight: 700;
+    color: #1a1a1a;
+    font-variant-numeric: tabular-nums;
+    min-width: 40px;
+  }
+  .work-desc { font-size: 11px; color: #555; flex: 1; }
+
+  .compare-table td.agent {
+    font-size: 10.5px;
+    color: #555;
+    line-height: 1.5;
+  }
+  .agent-chip {
+    display: inline-block;
+    padding: 2px 6px;
+    background: #e0f3e6;
+    color: #1e6042;
+    border: 1px solid #5cb085;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 700;
+    margin: 1px 2px 1px 0;
+  }
+  .agent-chip.new {
+    background: #fde9b8;
+    color: #7a4a0a;
+    border-color: #d69a3a;
+  }
+
+  .compare-table td.delta {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+  }
+  .compare-table td.delta .total {
+    color: #1e6042;
+    font-size: 13px;
+  }
+  .compare-table td.delta .sub {
+    color: #888;
+    font-size: 10px;
+    font-weight: 500;
+    margin-top: 2px;
+  }
+
+  .compare-table tr.total-row td {
+    background: #f7f7f3;
+    font-weight: 700;
+    border-top: 2px solid #d8dbe2;
+  }
+  .compare-table tr.total-row td.delta .total {
+    font-size: 16px;
+    color: #1e6042;
+  }
+
+  /* ===== ③ 工数比較バー ===== */
+  .bar-section {
+    background: #fff;
+    border: 1px solid #d8dbe2;
+    border-radius: 14px;
+    padding: 18px;
+  }
+  .bar-summary {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+  .stat-card {
+    border: 1px solid #d8dbe2;
+    border-radius: 10px;
+    padding: 12px 14px;
+    background: #fafaf7;
+  }
+  .stat-card .stat-k { font-size: 11px; color: #777; margin-bottom: 4px; }
+  .stat-card .stat-v { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat-card.asis .stat-v { color: #b53737; }
+  .stat-card.tobe .stat-v { color: #1e6042; }
+  .stat-card.delta .stat-v { color: #2c4d7d; }
+  .stat-card.human .stat-v { color: #6e68c2; }
+  .stat-card .stat-sub { font-size: 10.5px; color: #888; margin-top: 4px; }
+
+  .bar-row {
+    display: grid;
+    grid-template-columns: 110px 1fr 100px;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+  .bar-row.sub { margin-top: -8px; margin-bottom: 6px; }
+  .bar-label {
+    font-size: 12.5px;
+    font-weight: 700;
+  }
+  .bar-label .tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    color: white;
+    font-size: 11px;
+    margin-right: 6px;
+  }
+  .bar-label .tag.asis { background: #c95151; }
+  .bar-label .tag.tobe { background: #2c8a5e; }
+  .bar-row.sub .bar-label { font-size: 11px; color: #555; font-weight: 500; padding-left: 18px; }
+  .bar-row.sub .bar { height: 22px; }
+  .bar-row.sub .bar-segment { font-size: 10px; }
+  .bar {
+    position: relative;
+    display: flex;
+    height: 32px;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #f3f4f6;
+    border: 1px solid #d8dbe2;
+  }
+  .bar-segment {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .bar-segment.tiny { font-size: 0; }
+  .bar-segment.human {
+    background-image: repeating-linear-gradient(
+      -45deg,
+      rgba(255,255,255,0.55) 0,
+      rgba(255,255,255,0.55) 3px,
+      transparent 3px,
+      transparent 7px
+    );
+    border-left: 1px solid rgba(0,0,0,0.15);
+  }
+  .bar-segment.human:first-child { border-left: none; }
+  .bar-total {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    font-size: 14px;
+  }
+  .bar-total .days {
+    display: block;
+    color: #888;
+    font-size: 10px;
+    font-weight: 500;
+  }
+  .bar-axis {
+    display: grid;
+    grid-template-columns: 110px 1fr 100px;
+    gap: 12px;
+    margin-bottom: 6px;
+  }
+  .axis-track {
+    position: relative;
+    height: 16px;
+    border-bottom: 1px solid #d8dbe2;
+  }
+  .axis-tick {
+    position: absolute;
+    top: 0;
+    transform: translateX(-50%);
+    font-size: 10px;
+    color: #888;
+  }
+  .axis-tick::after {
+    content: "";
+    display: block;
+    width: 1px; height: 4px;
+    background: #d8dbe2;
+    margin: 0 auto;
+  }
+  .bar-note {
+    font-size: 11px;
+    color: #777;
+    line-height: 1.55;
+    margin-top: 8px;
+  }
+
+  /* ===== ④ AI エージェント一覧 ===== */
+  .agents-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .agent-card {
+    background: #fff;
+    border: 2px solid #5cb085;
+    border-radius: 10px;
+    padding: 12px 14px;
+  }
+  .agent-card.new {
+    border-color: #d69a3a;
+    background: #fff;
+  }
+  .agent-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 6px;
+    padding-bottom: 6px;
+    border-bottom: 1px dashed rgba(0,0,0,0.12);
+  }
+  .agent-card-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: #1e6042;
+  }
+  .agent-card.new .agent-card-name { color: #7a4a0a; }
+  .new-badge {
+    display: inline-block;
+    background: #d69a3a;
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 3px;
+    letter-spacing: 0.04em;
+    vertical-align: middle;
+  }
+  .agent-card-role {
+    font-size: 11px;
+    color: #444;
+    line-height: 1.5;
+    margin-bottom: 6px;
+  }
+  .agent-card-meta {
+    font-size: 10.5px;
+    color: #777;
+    line-height: 1.5;
+  }
+  .agent-card-meta .ms-label { font-weight: 700; color: #555; }
+  .agent-card-meta strong { color: #1a1a1a; }
+
+  /* ===== ⑤ Limits + effect.html impact ===== */
+  .limits-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 14px;
+  }
+  .info-block {
+    background: #fff;
+    border: 1px solid #d8dbe2;
+    border-radius: 12px;
+    padding: 14px 16px;
+  }
+  .info-block-title {
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px dashed rgba(0,0,0,0.12);
+  }
+  .info-block.limits { border-left: 4px solid #d69a3a; }
+  .info-block.limits .info-block-title { color: #7a4a0a; }
+  .info-block.impact { border-left: 4px solid #2c8a5e; }
+  .info-block.impact .info-block-title { color: #1e6042; }
+  .info-block ul { padding-left: 18px; font-size: 11.5px; line-height: 1.7; color: #444; }
+  .info-block li { margin-bottom: 4px; }
+  .info-block li strong { color: #1a1a1a; }
+
+  .impact-metric {
+    display: grid;
+    grid-template-columns: 80px 1fr 65px;
+    gap: 8px;
+    align-items: center;
+    font-size: 11px;
+    padding: 4px 0;
+    border-bottom: 1px dashed rgba(0,0,0,0.08);
+  }
+  .impact-metric:last-child { border-bottom: none; }
+  .impact-metric .imp-name { font-weight: 700; color: #444; }
+  .impact-metric .imp-bar {
+    height: 8px;
+    background: #ecf7ef;
+    border-radius: 2px;
+    position: relative;
+    overflow: hidden;
+  }
+  .impact-metric .imp-bar-fill {
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    background: #2c8a5e;
+  }
+  .impact-metric .imp-delta {
+    text-align: right;
+    color: #1e6042;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Footer link */
+  .footer-link {
+    margin-top: 18px;
+    text-align: right;
+    font-size: 11px;
+    color: #888;
+  }
+  .footer-link a { color: #4d479e; }
+
+  @media (max-width: 1200px) {
+    .agents-grid { grid-template-columns: repeat(2, 1fr); }
+    .bar-summary { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header class="header">
+    <h1>要件整備プリプロセスの AsIs / ToBe — 人間 × AI エージェントの分担設計</h1>
+    <div class="meta">派生資料 from <a href="./effect.html">effect.html</a> ／ META レバー（要件構造化AI）の掘り下げ</div>
+  </header>
+
+  <div class="lede">
+    <a href="./effect.html">effect.html</a> で示した <strong>META レバー（要件構造化AI の導入）</strong>は、
+    要件定義工程の "人手プリプロセス" を AI エージェントに置き換えるという発想だった。
+    本資料ではその中身を分解し、<strong>要件整備プロセスの 9 ステップ</strong>のうち
+    どこを AI に肩代わりさせられるか、人間は何に集中すべきかを明らかにする。
+    そして <strong>商品マスタ画面 + 業務フロー定義</strong>の規模感を例に、AsIs / ToBe の工数を比較する。
+  </div>
+
+  <div class="caveat">
+    <strong>★ 前提：</strong> 最終的な要件品質は <strong>人間が出した情報量と判断の正確性</strong>に支配される。
+    AI は<strong>無から要件を作るわけではなく</strong>、人間が用意した素材を構造化・整形・索引化して
+    "人間が修正するだけで済む状態" に持ち込む役割。
+    つまり本資料の AsIs/ToBe の<strong>削減量は工数削減であって、品質を AI が代替するものではない</strong>。
+    AI に置き換え可能なのは<strong>"形式・構造・整合性の整備作業"</strong>に限る、という前提で読んでほしい。
+  </div>
+
+  <!-- ====================== ① 全体像 9 ステップ ====================== -->
+  <div class="section">
+    <div class="section-title">① 要件整備プロセスの 9 ステップ ＋ AI 化可能性</div>
+    <div class="section-sub">
+      要件定義フェーズ（ai-05 ① 要件定義）の中で人間が実際に行っている作業を 9 つに分解。
+      各ステップの<strong>AI 化可能性</strong>を 3 段階で色分け：
+      <strong style="color:#1e6042">緑＝完全自動化可能</strong>（人間は確認のみ）／
+      <strong style="color:#2c4d7d">青＝AI 素案 + 人間判断</strong>／
+      <strong style="color:#4d479e">紫＝人間専担</strong>（AI は参考情報のみ）。
+    </div>
+
+    <div class="steps-overview">
+      <div class="steps-grid">
+
+        <div class="step-card lv-mixed">
+          <div class="step-num">①</div>
+          <div class="step-name">ヒアリング・<br>要件メモ収集</div>
+          <span class="step-level-tag">素案+判断</span>
+        </div>
+
+        <div class="step-card lv-auto">
+          <div class="step-num">②</div>
+          <div class="step-name">章立て・<br>構造化</div>
+          <span class="step-level-tag">完全自動</span>
+        </div>
+
+        <div class="step-card lv-auto">
+          <div class="step-num">③</div>
+          <div class="step-name">アトミック<br>要件分解</div>
+          <span class="step-level-tag">完全自動</span>
+        </div>
+
+        <div class="step-card lv-mixed">
+          <div class="step-num">④</div>
+          <div class="step-name">業務ルール<br>抽出・整理</div>
+          <span class="step-level-tag">素案+判断</span>
+        </div>
+
+        <div class="step-card lv-auto">
+          <div class="step-num">⑤</div>
+          <div class="step-name">用語集<br>作成・維持</div>
+          <span class="step-level-tag">完全自動</span>
+        </div>
+
+        <div class="step-card lv-mixed">
+          <div class="step-num">⑥</div>
+          <div class="step-name">ユースケース<br>テスト記述</div>
+          <span class="step-level-tag">素案+判断</span>
+        </div>
+
+        <div class="step-card lv-human">
+          <div class="step-num">⑦</div>
+          <div class="step-name">非機能要件の<br>閾値決定</div>
+          <span class="step-level-tag">人間専担</span>
+        </div>
+
+        <div class="step-card lv-auto">
+          <div class="step-num">⑧</div>
+          <div class="step-name">ID 付与・<br>整合性確認</div>
+          <span class="step-level-tag">完全自動</span>
+        </div>
+
+        <div class="step-card lv-human">
+          <div class="step-num">⑨</div>
+          <div class="step-name">レビュー・<br>最終承認</div>
+          <span class="step-level-tag">人間専担</span>
+        </div>
+
+      </div>
+
+      <div class="steps-legend">
+        <div class="lg-item"><span class="lg-swatch lv-auto"></span><strong>完全自動化可能</strong>：AI が出力し、人間は確認のみ（②③⑤⑧）</div>
+        <div class="lg-item"><span class="lg-swatch lv-mixed"></span><strong>AI 素案 + 人間判断</strong>：AI が下書きを作り、人間が業務的判断（①④⑥）</div>
+        <div class="lg-item"><span class="lg-swatch lv-human"></span><strong>人間専担</strong>：業務的・組織的判断のため AI 代替不能（⑦⑨）</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================== ② AsIs / ToBe 詳細比較 ====================== -->
+  <div class="section">
+    <div class="section-title tobe">② AsIs / ToBe — 各ステップの作業内訳</div>
+    <div class="section-sub">
+      左＝<strong>AsIs（現状）</strong>：すべて人間が実行／右＝<strong>ToBe（AI 導入後）</strong>：AI が素案・整形を担当、人間は判断・修正のみ。
+      <strong>対象規模＝商品マスタ画面 + その業務フロー定義</strong>を 1 機能として算定。
+      <span style="background:#fff; padding:1px 4px; border:1px solid #888; border-radius:3px; font-size:10px;">人</span>＝人間 ／
+      <span style="background:#e0f3e6; padding:1px 4px; border:1px solid #5cb085; border-radius:3px; font-size:10px; color:#1e6042;">AI</span>＝AI エージェント
+    </div>
+
+    <div class="compare-table-wrap">
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th class="task-col">ステップ</th>
+            <th class="asis-col">AsIs（現状：人間のみ）</th>
+            <th class="tobe-col">ToBe（AI プリプロセス + 人間判断）</th>
+            <th class="agent-col">担当 AI</th>
+            <th class="delta-col">削減</th>
+          </tr>
+        </thead>
+        <tbody>
+
+          <!-- Step 1 -->
+          <tr>
+            <td class="task">① ヒアリング・<br>要件メモ収集<span class="lv-tag lv-mixed">素案+判断</span></td>
+            <td class="asis-cell">
+              <div class="work-line">
+                <span class="work-actor human">人</span>
+                <span class="work-time">4.0h</span>
+                <span class="work-desc">会議参加 3h + 議事録作成 + 要点整理 1h</span>
+              </div>
+            </td>
+            <td class="tobe-cell">
+              <div class="work-line">
+                <span class="work-actor human">人</span>
+                <span class="work-time">3.0h</span>
+                <span class="work-desc">会議参加（同上、不可避）</span>
+              </div>
+              <div class="work-line">
+                <span class="work-actor ai">AI</span>
+                <span class="work-time">0.3h</span>
+                <span class="work-desc">録音/メモ自動要約・論点抽出</span>
+              </div>
+              <div class="work-line">
+                <span class="work-actor human">人</span>
+                <span class="work-time">0.3h</span>
+                <span class="work-desc">要約の事実誤認チェック</span>
+              </div>
+            </td>
+            <td class="agent">
+              <span class="agent-chip new">議事録要約AI<span class="new-badge">NEW</span></span>
+            </td>
+            <td class="delta">
+              <div class="total">-0.4h</div>
+              <div class="sub">（-10%）</div>
+            </td>
+          </tr>
+
+          <!-- Step 2 -->
+          <tr>
+            <td class="task">② 章立て・<br>構造化<span class="lv-tag lv-auto">完全自動</span></td>
+            <td class="asis-cell">
+              <div class="work-line">
+                <span class="work-actor human">人</span>
+                <span class="work-time">3.0h</span>
+                <span class="work-desc">章立て規約決定 + フリーテキスト整理 + Markdown 化</span>
+              </div>
+            </td>
+            <td class="tobe-cell">
+              <div class="work-line">
+                <span class="work-actor ai">AI</span>
+                <span class="work-time">0.2h</span>
+                <span class="work-desc">フリーテキスト → 章立て Markdown 自動生成</span>
+              </div>
+              <div class="work-line">
+                <span class="work-actor human">人</span>
+                <span class="work-time">0.5h</span>
+                <span class="work-desc">章構造の妥当性レビュー・補正</span>
+              </div>
+            </td>
+            <td class="agent">
+              <span class="agent-chip new">要件構造化AI<span class="new-badge">NEW</span></span>
+            </td>
+            <td class="delta">
+              <div class="total">-2.3h</div>
+              <div class="sub">（-77%）</div>
+            </td>
+          </tr>
+
+          <!-- Step 3 -->
+          <tr>
+            <td class="task">③ アトミック<br>要件分解<span class="lv-tag lv-auto">完全自動</span></td>
+            <td class="asis-cell">
+              <div class="work-line">
+                <span class="work-actor human">人</span>
+                <span class="work-time">2.0h</span>
+                <span class="work-desc">1 要件 1 主張に分解、文として整える</span>
+              </div>
+            </td>
+            <td class="tobe-cell">
+              <div class="work-line">
+                <span class="work-actor ai">AI</span>
+                <span class="work-time">0.2h</span>
+                <span class="work-desc">原子化（複合文 → 単独要件文に分解）</span>
+              </div>
+              <div class="work-line">
+                <span class="work-actor human">人</span>
+                <span class="work-time">0.3h</span>
+                <span class="work-desc">分解粒度の確認・統合判断</span>
+              </div>
+            </td>
+            <td class="agent">
+              <span class="agent-chip new">要件構造化AI</span>
+            </td>
+            <td class="delta">
+              <div class="total">-1.5h</div>
+              <div class="sub">（-75%）</div>
+            </td>
+          </tr>
+
+          <!-- Step 4 -->
+          <tr>
+            <td class="task">④ 業務ルール<br>抽出・整理<span class="lv-tag lv-mixed">素案+判断</span></td>
+            <td class="asis-cell">
+              <div class="work-line">
+                <span class="work-actor human">人</span>
+                <span class="work-time">3.0h</span>
+                <span class="work-desc">商品コード規則・カテゴリ階層・ステータス遷移を一覧化</span>
+              </div>
+            </td>
+            <td class="tobe-cell">
+              <div class="work-line">
+                <span class="work-actor ai">AI</span>
+                <span class="work-time">0.3h</span>
+                <span class="work-desc">文中の業務ルール候補を抽出 → デシジョンテーブル素案生成</span>
+              </div>
+              <div class="work-line">
+                <span class="work-actor human">人</span>
+                <span class="work-time">0.7h</span>
+                <span class="work-desc">業務的妥当性判断・欠落ルールの追記</span>
+              </div>
+            </td>
+            <td class="agent">
+              <span class="agent-chip new">業務ルール抽出AI<span class="new-badge">NEW</span></span>
+            </td>
+            <td class="delta">
+              <div class="total">-2.0h</div>
+              <div class="sub">（-67%）</div>
+            </td>
+          </tr>
+
+          <!-- Step 5 -->
+          <tr>
+            <td class="task">⑤ 用語集<br>作成・維持<span class="lv-tag lv-auto">完全自動</span></td>
+            <td class="asis-cell">
+              <div class="work-line">
+                <span class="work-actor human">人</span>
+                <span class="work-time">2.0h</span>
+                <span class="work-desc">専門用語の抽出 + 定義文の作成 + 同義語整理</span>
+              </div>
+            </td>
+            <td class="tobe-cell">
+              <div class="work-line">
+                <span class="work-actor ai">AI</span>
+                <span class="work-time">0.2h</span>
+                <span class="work-desc">全文書から専門用語を抽出 + 定義素案生成</span>
+              </div>
+              <div class="work-line">
+                <span class="work-actor human">人</span>
+                <span class="work-time">0.3h</span>
+                <span class="work-desc">定義の妥当性確認・業務固有語の補足</span>
+              </div>
+            </td>
+            <td class="agent">
+              <span class="agent-chip new">用語抽出AI<span class="new-badge">NEW</span></span>
+            </td>
+            <td class="delta">
+              <div class="total">-1.5h</div>
+              <div class="sub">（-75%）</div>
+            </td>
+          </tr>
+
+          <!-- Step 6 -->
+          <tr>
+            <td class="task">⑥ ユースケース<br>テスト記述<span class="lv-tag lv-mixed">素案+判断</span></td>
+            <td class="asis-cell">
+              <div class="work-line">
+                <span class="work-actor human">人</span>
+                <span class="work-time">3.0h</span>
+                <span class="work-desc">登録/更新/削除/一覧/検索の 5 シナリオを業務文脈で記述</span>
+              </div>
+            </td>
+            <td class="tobe-cell">
+              <div class="work-line">
+                <span class="work-actor ai">AI</span>
+                <span class="work-time">0.5h</span>
+                <span class="work-desc">機能要件 + 業務ルールから UC 素案を生成</span>
+              </div>
+              <div class="work-line">
+                <span class="work-actor human">人</span>
+                <span class="work-time">1.0h</span>
+                <span class="work-desc">業務文脈の補強・例外フロー追記</span>
+              </div>
+            </td>
+            <td class="agent">
+              <span class="agent-chip new">ユースケース整形AI<span class="new-badge">NEW</span></span>
+            </td>
+            <td class="delta">
+              <div class="total">-1.5h</div>
+              <div class="sub">（-50%）</div>
+            </td>
+          </tr>
+
+          <!-- Step 7 -->
+          <tr>
+            <td class="task">⑦ 非機能要件<br>閾値決定<span class="lv-tag lv-human">人間専担</span></td>
+            <td class="asis-cell">
+              <div class="work-line">
+                <span class="work-actor human">人</span>
+                <span class="work-time">1.5h</span>
+                <span class="work-desc">性能・可用性・セキュリティの閾値をテックリードが判断</span>
+              </div>
+            </td>
+            <td class="tobe-cell">
+              <div class="work-line">
+                <span class="work-actor ai">AI</span>
+                <span class="work-time">0.2h</span>
+                <span class="work-desc">業界標準値・類似プロジェクト値を候補提示</span>
+              </div>
+              <div class="work-line">
+                <span class="work-actor human">人</span>
+                <span class="work-time">1.0h</span>
+                <span class="work-desc">候補からの選定・組織方針との整合判断</span>
+              </div>
+            </td>
+            <td class="agent">
+              <span class="agent-chip">非機能候補提示（AI支援）</span>
+            </td>
+            <td class="delta">
+              <div class="total">-0.3h</div>
+              <div class="sub">（-20%）</div>
+            </td>
+          </tr>
+
+          <!-- Step 8 -->
+          <tr>
+            <td class="task">⑧ ID 付与・<br>整合性確認<span class="lv-tag lv-auto">完全自動</span></td>
+            <td class="asis-cell">
+              <div class="work-line">
+                <span class="work-actor human">人</span>
+                <span class="work-time">1.5h</span>
+                <span class="work-desc">ID 規約決定 + 各要件への手動付与 + 重複チェック</span>
+              </div>
+            </td>
+            <td class="tobe-cell">
+              <div class="work-line">
+                <span class="work-actor ai">AI</span>
+                <span class="work-time">0.1h</span>
+                <span class="work-desc">章立て構造から決定論的に ID 自動生成（スクリプト）</span>
+              </div>
+              <div class="work-line">
+                <span class="work-actor human">人</span>
+                <span class="work-time">0.0h</span>
+                <span class="work-desc">原則レビュー不要（規約破綻がない）</span>
+              </div>
+            </td>
+            <td class="agent">
+              <span class="agent-chip new">ID 付与エンジン<span class="new-badge">NEW</span></span>
+            </td>
+            <td class="delta">
+              <div class="total">-1.4h</div>
+              <div class="sub">（-93%）</div>
+            </td>
+          </tr>
+
+          <!-- Step 9 -->
+          <tr>
+            <td class="task">⑨ レビュー・<br>最終承認<span class="lv-tag lv-human">人間専担</span></td>
+            <td class="asis-cell">
+              <div class="work-line">
+                <span class="work-actor human">人</span>
+                <span class="work-time">2.0h</span>
+                <span class="work-desc">PM/SME による全体読み合わせ・修正指示・承認</span>
+              </div>
+            </td>
+            <td class="tobe-cell">
+              <div class="work-line">
+                <span class="work-actor ai">AI</span>
+                <span class="work-time">0.2h</span>
+                <span class="work-desc">不整合・用語揺れ・未充足要件を事前検出してレポート</span>
+              </div>
+              <div class="work-line">
+                <span class="work-actor human">人</span>
+                <span class="work-time">1.5h</span>
+                <span class="work-desc">業務判断・最終承認（AI 検出箇所を優先的にレビュー）</span>
+              </div>
+            </td>
+            <td class="agent">
+              <span class="agent-chip">仕様一貫性レビュワーAI</span>
+            </td>
+            <td class="delta">
+              <div class="total">-0.3h</div>
+              <div class="sub">（-15%）</div>
+            </td>
+          </tr>
+
+          <!-- Total -->
+          <tr class="total-row">
+            <td class="task">合計</td>
+            <td class="asis-cell"><strong>22.0h</strong>（人間 22.0h）</td>
+            <td class="tobe-cell"><strong>10.8h</strong>（AI 2.2h ＋ 人間 8.6h）</td>
+            <td class="agent">7 種類の AI が分担</td>
+            <td class="delta">
+              <div class="total">-11.2h</div>
+              <div class="sub">（-51%）</div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ====================== ③ 工数比較バー ====================== -->
+  <div class="section">
+    <div class="section-title value">③ 工数比較バー（AsIs vs ToBe）</div>
+    <div class="section-sub">
+      上記合計を視覚化。ToBe バーの<strong>斜線部分</strong>がエンジニア/SME の工数（判断・確認・最終承認）。
+      <strong>人間の工数は 22h → 8.6h（-61%）</strong>と特に大きく減り、業務判断に集中できるようになる。
+    </div>
+
+    <div class="bar-section">
+      <div class="bar-summary">
+        <div class="stat-card asis">
+          <div class="stat-k">AsIs（人手のみ）</div>
+          <div class="stat-v">22.0h</div>
+          <div class="stat-sub">2.75 人日（1人日=8h 換算）</div>
+        </div>
+        <div class="stat-card tobe">
+          <div class="stat-k">ToBe（AI 駆動）</div>
+          <div class="stat-v">10.8h</div>
+          <div class="stat-sub">AI 2.2h / 人間 8.6h</div>
+        </div>
+        <div class="stat-card delta">
+          <div class="stat-k">削減率（総工数）</div>
+          <div class="stat-v">-51%</div>
+          <div class="stat-sub">-11.2h 短縮</div>
+        </div>
+        <div class="stat-card human">
+          <div class="stat-k">削減率（人間工数のみ）</div>
+          <div class="stat-v">-61%</div>
+          <div class="stat-sub">人間負担は 22h → 8.6h</div>
+        </div>
+      </div>
+
+      <div class="bar-axis">
+        <div></div>
+        <div class="axis-track">
+          <span class="axis-tick" style="left:0">0h</span>
+          <span class="axis-tick" style="left:22.7%">5h</span>
+          <span class="axis-tick" style="left:45.5%">10h</span>
+          <span class="axis-tick" style="left:68.2%">15h</span>
+          <span class="axis-tick" style="left:90.9%">20h</span>
+          <span class="axis-tick" style="left:100%">22h</span>
+        </div>
+        <div></div>
+      </div>
+
+      <!-- AsIs Bar -->
+      <div class="bar-row">
+        <div class="bar-label"><span class="tag asis">AsIs</span>人手</div>
+        <div>
+          <div class="bar" style="width: 100%;">
+            <div class="bar-segment" style="flex: 0 0 18.2%; background:#6e68c2;" title="① 4h">4h</div>
+            <div class="bar-segment" style="flex: 0 0 13.6%; background:#7c75d8;" title="② 3h">3h</div>
+            <div class="bar-segment" style="flex: 0 0 9.1%; background:#8a82e3;" title="③ 2h">2h</div>
+            <div class="bar-segment" style="flex: 0 0 13.6%; background:#6e68c2;" title="④ 3h">3h</div>
+            <div class="bar-segment" style="flex: 0 0 9.1%; background:#8a82e3;" title="⑤ 2h">2h</div>
+            <div class="bar-segment" style="flex: 0 0 13.6%; background:#7c75d8;" title="⑥ 3h">3h</div>
+            <div class="bar-segment" style="flex: 0 0 6.8%; background:#a399eb;" title="⑦ 1.5h">1.5h</div>
+            <div class="bar-segment" style="flex: 0 0 6.8%; background:#8a82e3;" title="⑧ 1.5h">1.5h</div>
+            <div class="bar-segment" style="flex: 0 0 9.1%; background:#6e68c2;" title="⑨ 2h">2h</div>
+          </div>
+        </div>
+        <div class="bar-total">22.0h<span class="days">2.75 人日</span></div>
+      </div>
+
+      <!-- ToBe Bar -->
+      <div class="bar-row">
+        <div class="bar-label"><span class="tag tobe">ToBe</span>AI 駆動</div>
+        <div>
+          <div class="bar" style="width: 49.1%;">
+            <!-- Step 1: AI 0.3 + Human 3.3 -->
+            <div class="bar-segment" style="flex: 0 0 2.78%; background:#2c8a5e;" title="① AI 0.3h">.3</div>
+            <div class="bar-segment human" style="flex: 0 0 30.56%; background:#2c8a5e;" title="① 人 3.3h">3.3</div>
+            <!-- Step 2: AI 0.2 + Human 0.5 -->
+            <div class="bar-segment" style="flex: 0 0 1.85%; background:#5cb085;" title="② AI 0.2h">.2</div>
+            <div class="bar-segment human" style="flex: 0 0 4.63%; background:#5cb085;" title="② 人 0.5h">.5</div>
+            <!-- Step 3: AI 0.2 + Human 0.3 -->
+            <div class="bar-segment" style="flex: 0 0 1.85%; background:#2c8a5e;" title="③ AI 0.2h">.2</div>
+            <div class="bar-segment human" style="flex: 0 0 2.78%; background:#2c8a5e;" title="③ 人 0.3h">.3</div>
+            <!-- Step 4: AI 0.3 + Human 0.7 -->
+            <div class="bar-segment" style="flex: 0 0 2.78%; background:#5cb085;" title="④ AI 0.3h">.3</div>
+            <div class="bar-segment human" style="flex: 0 0 6.48%; background:#5cb085;" title="④ 人 0.7h">.7</div>
+            <!-- Step 5: AI 0.2 + Human 0.3 -->
+            <div class="bar-segment" style="flex: 0 0 1.85%; background:#2c8a5e;" title="⑤ AI 0.2h">.2</div>
+            <div class="bar-segment human" style="flex: 0 0 2.78%; background:#2c8a5e;" title="⑤ 人 0.3h">.3</div>
+            <!-- Step 6: AI 0.5 + Human 1.0 -->
+            <div class="bar-segment" style="flex: 0 0 4.63%; background:#5cb085;" title="⑥ AI 0.5h">.5</div>
+            <div class="bar-segment human" style="flex: 0 0 9.26%; background:#5cb085;" title="⑥ 人 1.0h">1.0</div>
+            <!-- Step 7: AI 0.2 + Human 1.0 -->
+            <div class="bar-segment" style="flex: 0 0 1.85%; background:#2c8a5e;" title="⑦ AI 0.2h">.2</div>
+            <div class="bar-segment human" style="flex: 0 0 9.26%; background:#5cb085;" title="⑦ 人 1.0h">1.0</div>
+            <!-- Step 8: AI 0.1 + Human 0.0 -->
+            <div class="bar-segment" style="flex: 0 0 0.93%; background:#2c8a5e;" title="⑧ AI 0.1h">.1</div>
+            <!-- Step 9: AI 0.2 + Human 1.5 -->
+            <div class="bar-segment" style="flex: 0 0 1.85%; background:#5cb085;" title="⑨ AI 0.2h">.2</div>
+            <div class="bar-segment human" style="flex: 0 0 13.89%; background:#5cb085;" title="⑨ 人 1.5h">1.5</div>
+          </div>
+        </div>
+        <div class="bar-total">10.8h<span class="days">1.35 人日</span></div>
+      </div>
+
+      <!-- Sub: AI のみ -->
+      <div class="bar-row sub">
+        <div class="bar-label">└ うち AI</div>
+        <div>
+          <div class="bar" style="width: 10.0%;">
+            <div class="bar-segment" style="flex: 1; background:#2c8a5e;" title="AI 合計 2.2h">2.2h</div>
+          </div>
+        </div>
+        <div class="bar-total" style="font-size:12px;">2.2h</div>
+      </div>
+
+      <!-- Sub: 人間のみ -->
+      <div class="bar-row sub">
+        <div class="bar-label">└ うち人間</div>
+        <div>
+          <div class="bar" style="width: 39.1%;">
+            <div class="bar-segment human" style="flex: 1; background:#6e68c2;" title="人間 合計 8.6h">8.6h</div>
+          </div>
+        </div>
+        <div class="bar-total" style="font-size:12px;">8.6h</div>
+      </div>
+
+      <div class="bar-note">
+        ※ バー長は時間 (h) に比例。各セグメントは 9 ステップに対応（番号順）。<strong>斜線部</strong>＝人間工数。
+        <strong>① ヒアリングは AI でも人間 3h が不可避</strong>（会議への物理参加）のため、人間工数の主成分はここ。
+        <strong>⑧ ID 付与はほぼ完全自動化</strong>（人間レビュー 0h）。
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================== ④ 導入する AI エージェント ====================== -->
+  <div class="section">
+    <div class="section-title ai">④ 導入する AI エージェント一覧（7 種類）</div>
+    <div class="section-sub">
+      上記で登場した AI エージェントを整理。<strong>すべて Claude Code subagent で実装可能</strong>な規模で、
+      初期実装はそれぞれ 1〜3 日のオーダー。<span class="new-badge">NEW</span> は本資料で新規提案。
+    </div>
+
+    <div class="agents-grid">
+      <div class="agent-card new">
+        <div class="agent-card-head">
+          <div class="agent-card-name">議事録要約AI<span class="new-badge">NEW</span></div>
+        </div>
+        <div class="agent-card-role">
+          会議録音・チャットログ・メモから論点を抽出し、構造化された議事録ドラフトを生成。
+        </div>
+        <div class="agent-card-meta">
+          <span class="ms-label">使用ステップ:</span> ①ヒアリング<br>
+          <span class="ms-label">実装規模:</span> <strong>1〜2 日</strong><br>
+          <span class="ms-label">人間チェック:</span> 事実誤認の確認のみ
+        </div>
+      </div>
+
+      <div class="agent-card new">
+        <div class="agent-card-head">
+          <div class="agent-card-name">要件構造化AI<span class="new-badge">NEW</span></div>
+        </div>
+        <div class="agent-card-role">
+          フリーテキストの要件メモから章立て構造・アトミック要件分解を自動生成。
+          ID 付与の前提となる<strong>セマンティック階層</strong>を作る。
+        </div>
+        <div class="agent-card-meta">
+          <span class="ms-label">使用ステップ:</span> ②章立て、③要件分解<br>
+          <span class="ms-label">実装規模:</span> <strong>2〜3 日</strong>（最重要）<br>
+          <span class="ms-label">人間チェック:</span> 章構造の妥当性レビュー
+        </div>
+      </div>
+
+      <div class="agent-card new">
+        <div class="agent-card-head">
+          <div class="agent-card-name">業務ルール抽出AI<span class="new-badge">NEW</span></div>
+        </div>
+        <div class="agent-card-role">
+          要件文中の業務ルール（条件分岐・閾値・状態遷移）を抽出し、デシジョンテーブル素案を生成。
+        </div>
+        <div class="agent-card-meta">
+          <span class="ms-label">使用ステップ:</span> ④業務ルール抽出<br>
+          <span class="ms-label">実装規模:</span> <strong>2 日</strong><br>
+          <span class="ms-label">人間チェック:</span> 業務的妥当性・欠落確認
+        </div>
+      </div>
+
+      <div class="agent-card new">
+        <div class="agent-card-head">
+          <div class="agent-card-name">用語抽出AI<span class="new-badge">NEW</span></div>
+        </div>
+        <div class="agent-card-role">
+          全文書から専門用語を抽出し、定義素案と同義語候補を生成。用語集を自動メンテナンス。
+        </div>
+        <div class="agent-card-meta">
+          <span class="ms-label">使用ステップ:</span> ⑤用語集<br>
+          <span class="ms-label">実装規模:</span> <strong>1〜2 日</strong><br>
+          <span class="ms-label">人間チェック:</span> 業務固有語の定義補強
+        </div>
+      </div>
+
+      <div class="agent-card new">
+        <div class="agent-card-head">
+          <div class="agent-card-name">ユースケース整形AI<span class="new-badge">NEW</span></div>
+        </div>
+        <div class="agent-card-role">
+          機能要件 + 業務ルールから、登録・更新・検索などの UC 素案（事前/事後条件付き）を生成。
+        </div>
+        <div class="agent-card-meta">
+          <span class="ms-label">使用ステップ:</span> ⑥UC 記述<br>
+          <span class="ms-label">実装規模:</span> <strong>2〜3 日</strong><br>
+          <span class="ms-label">人間チェック:</span> 業務文脈の補強・例外フロー
+        </div>
+      </div>
+
+      <div class="agent-card new">
+        <div class="agent-card-head">
+          <div class="agent-card-name">ID 付与エンジン<span class="new-badge">NEW</span></div>
+        </div>
+        <div class="agent-card-role">
+          章立て構造から決定論的に安定 ID を自動生成。<strong>大部分はスクリプト</strong>、AI は曖昧解決のみ。
+        </div>
+        <div class="agent-card-meta">
+          <span class="ms-label">使用ステップ:</span> ⑧ID 付与<br>
+          <span class="ms-label">実装規模:</span> <strong>1 日</strong>（最も簡単）<br>
+          <span class="ms-label">人間チェック:</span> 原則不要
+        </div>
+      </div>
+
+      <div class="agent-card">
+        <div class="agent-card-head">
+          <div class="agent-card-name">仕様一貫性レビュワーAI</div>
+        </div>
+        <div class="agent-card-role">
+          <a href="./index.html">ai-05/index.html</a> の既存エージェント。
+          要件↔設計↔テスト間の用語揺れ・ルール矛盾を事前検出。
+        </div>
+        <div class="agent-card-meta">
+          <span class="ms-label">使用ステップ:</span> ⑨レビュー<br>
+          <span class="ms-label">実装規模:</span> <strong>2〜3 日</strong><br>
+          <span class="ms-label">人間チェック:</span> 検出箇所の業務判断
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================== ⑤ 限界・前提 + effect.html 波及 ====================== -->
+  <div class="section">
+    <div class="section-title value">⑤ 限界・前提 と effect.html 指標への波及</div>
+    <div class="section-sub">
+      AI プリプロセスが効くのは "形式・構造・整合性" の整備作業のみ。<strong>業務的妥当性は人間の責任</strong>のまま残る。
+      その上で <a href="./effect.html">effect.html</a> の 5 軸指標にどう波及するかを推定する。
+    </div>
+
+    <div class="limits-grid">
+      <div class="info-block limits">
+        <div class="info-block-title">▼ AI に置き換え"できない"こと</div>
+        <ul>
+          <li><strong>業務的妥当性の判断</strong>：「このルールは業務上正しいか」は人間SMEのみ。</li>
+          <li><strong>ステークホルダー間の優先度調整</strong>：政治・組織判断は AI 不能。</li>
+          <li><strong>非機能要件の閾値決定</strong>：性能/可用性の目標は組織ポリシーに依存。</li>
+          <li><strong>法令・コンプライアンス判断</strong>：誤判定リスクが高すぎる領域は人間専担。</li>
+          <li><strong>最終承認</strong>：責任の所在として人間が判子を押す必要がある。</li>
+        </ul>
+        <div style="margin-top:8px; padding-top:8px; border-top:1px dashed rgba(0,0,0,0.12); font-size:11px; color:#7a4a0a;">
+          ★ 言い換えると：AI は "上手な秘書" であり、"上司" にはならない。
+          人間が出した情報量を超える要件は AI からは出てこない。
+        </div>
+      </div>
+
+      <div class="info-block impact">
+        <div class="info-block-title">▼ effect.html 指標への波及（推定）</div>
+        <div class="impact-metric">
+          <span class="imp-name">A1 機能要件Cov</span>
+          <div class="imp-bar"><div class="imp-bar-fill" style="width:60%"></div></div>
+          <span class="imp-delta">+15〜20pt</span>
+        </div>
+        <div class="impact-metric">
+          <span class="imp-name">A2 業務ルール網羅</span>
+          <div class="imp-bar"><div class="imp-bar-fill" style="width:55%"></div></div>
+          <span class="imp-delta">+15pt</span>
+        </div>
+        <div class="impact-metric">
+          <span class="imp-name">B2 用語整合</span>
+          <div class="imp-bar"><div class="imp-bar-fill" style="width:75%"></div></div>
+          <span class="imp-delta">+20〜25pt</span>
+        </div>
+        <div class="impact-metric">
+          <span class="imp-name">C3 SME 時短</span>
+          <div class="imp-bar"><div class="imp-bar-fill" style="width:70%"></div></div>
+          <span class="imp-delta">+20〜25pt</span>
+        </div>
+        <div class="impact-metric">
+          <span class="imp-name">D3 DRY 度</span>
+          <div class="imp-bar"><div class="imp-bar-fill" style="width:55%"></div></div>
+          <span class="imp-delta">+15pt</span>
+        </div>
+        <div class="impact-metric">
+          <span class="imp-name">E1 浮きシナリオ↓</span>
+          <div class="imp-bar"><div class="imp-bar-fill" style="width:65%"></div></div>
+          <span class="imp-delta">-15〜20pt</span>
+        </div>
+        <div class="impact-metric">
+          <span class="imp-name">E2 孤立要件↓</span>
+          <div class="imp-bar"><div class="imp-bar-fill" style="width:65%"></div></div>
+          <span class="imp-delta">-15〜20pt</span>
+        </div>
+        <div class="impact-metric">
+          <span class="imp-name">E3 層間整合</span>
+          <div class="imp-bar"><div class="imp-bar-fill" style="width:75%"></div></div>
+          <span class="imp-delta">+20pt</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="caveat" style="margin-top:14px;">
+      <strong>結論：</strong>
+      要件整備プリプロセスの AI 化は、<strong>工数を約半減（特に人間工数は 61% 減）</strong>させると同時に、
+      <a href="./effect.html">effect.html</a> の E 軸（トレーサビリティ）と B2 用語整合・C3 SME 時短に大きく波及する。
+      <strong>ai-05/index.html の「要件アナリスト（AI支援）」を 7 種類のサブエージェントに分解</strong>することで、
+      上流プリプロセスの自動化が実現する。最も重要なのは "ステップ⑧ ID 付与" の完全自動化で、
+      これにより人手 ID 規約の負担なしにトレーサビリティAI が機能する前提が整う。
+    </div>
+  </div>
+
+  <div class="footer-link">
+    参照: <a href="./effect.html">ai-05/effect.html</a> ／
+    <a href="./index.html">ai-05/index.html</a> ／
+    <a href="../ai-04/index.html">ai-04/index.html</a>
+  </div>
+
+</div>
+</body>
+</html>
