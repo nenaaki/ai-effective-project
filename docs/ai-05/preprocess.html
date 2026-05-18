@@ -849,35 +849,23 @@
   </header>
 
   <div class="lede">
-    <a href="./effect.html">effect.html</a> で示した <strong>META レバー（要件構造化AI の導入）</strong>は、
-    要件定義工程の "人手プリプロセス" を AI エージェントに置き換えるという発想だった。
-    本資料ではその中身を分解し、<strong>ヒアリング完了後の要件整備〜受入テスト設計 7 ステップ</strong>
-    （<a href="./agents.html">agents.html</a> に実装した 8 エージェントの実行順序に揃え、Step 4a・4b は並列実行）のうち
-    どこを AI に肩代わりさせられるか、人間は何に集中すべきかを明らかにする。
-    そして <strong>商品マスタ画面 + 業務フロー定義</strong>の規模感を例に、AsIs / ToBe の工数を比較する。
-    <br>※ 起点となる<strong>初期情報セット</strong>（要件仕様書（書式不定）／ユースケース情報／機能一覧／データ構造／非機能要件閾値）は
-    人間が用意した状態からスタートする前提。AI はこれらを<strong>分析・構造化・整合性確保</strong>する役割。
+    <a href="./effect.html">effect.html</a> の <strong>META レバー（要件構造化AI）</strong>を分解し、
+    要件整備〜受入テスト設計の <strong>7 ステップ</strong>
+    （<a href="./agents.html">agents.html</a> 実装の 8 エージェント、Step 4a・4b は並列）の AI／人間分担と、
+    <strong>商品マスタ画面 + 業務フロー定義</strong>規模での AsIs / ToBe 工数を示す。
+    <br>※ 起点となる<strong>初期情報セット</strong>（要件仕様書／UC 情報／機能一覧／データ構造／非機能要件閾値）は人間が用意した状態が前提。
   </div>
 
   <div class="caveat">
-    <strong>★ 前提：</strong> 最終的な要件品質は <strong>人間が出した情報量と判断の正確性</strong>に支配される。
-    AI は<strong>無から要件を作るわけではなく</strong>、人間が用意した素材を構造化・整形・索引化して
-    "人間が修正するだけで済む状態" に持ち込む役割。
-    つまり本資料の AsIs/ToBe の<strong>削減量は工数削減であって、品質を AI が代替するものではない</strong>。
-    AI に置き換え可能なのは<strong>"形式・構造・整合性の整備作業"</strong>に限る、という前提で読んでほしい。
+    <strong>★ 前提：</strong> AI は無から要件を作らず、人間が用意した素材を<strong>構造化・整形・索引化</strong>する役割。
+    本資料の AsIs/ToBe は<strong>工数削減のみ</strong>を示し、品質を AI が代替するものではない（AI が担うのは "形式・構造・整合性" のみ）。
   </div>
 
   <!-- ====================== ① 全体パイプライン処理フロー ====================== -->
   <div class="section">
     <div class="section-title">① 要件整備〜受入テスト設計パイプライン — 依存関係と並列実行</div>
     <div class="section-sub">
-      <strong>★ 入力（分析対象）</strong>：要件仕様書（書式不定）・ユースケース情報・機能一覧・データ構造・非機能要件閾値の 5 種類が
-      人間によって用意されている前提。AI はこれらを統合して分析・構造化する。
-      <strong>処理は左→右に進行</strong>。Step 番号と並びは <a href="./agents.html">agents.html</a> の実装に揃えた。
-      破線で囲った領域は<strong>並列実行可能</strong>。
-      各ステップの<strong>AI 化可能性</strong>を 2 段階で色分け：
-      <strong style="color:#1e6042">緑＝完全自動化可能</strong>（人間は確認のみ）／
-      <strong style="color:#2c4d7d">青＝AI 素案 + 人間判断</strong>（業務的妥当性判断あり／横断レビュー含む）。
+      Step 番号と並びは <a href="./agents.html">agents.html</a> の実装に準拠。
     </div>
 
     <div class="steps-overview">
@@ -987,21 +975,11 @@
 
       <div class="flow-note">
         <strong>入力の使われ方：</strong>
-        5 種類の入力は <strong>Step 1 章立て構造化</strong>で統合され、後続工程で参照される。
-        <strong>機能一覧・データ構造</strong>は <strong>Step 4a 業務ルール抽出</strong>のソース、
-        <strong>UC 情報・データ構造</strong>は <strong>Step 4b 用語集生成</strong>の主要ソース。
-        <strong>非機能要件閾値</strong>は別工程で確定済みのため、ここでは入力として参照するのみ。
+        Step 1 で統合し後続が参照。<strong>機能一覧・データ構造</strong>は Step 4a の主ソース、<strong>UC 情報・データ構造</strong>は Step 4b の主ソース。非機能要件閾値は参照のみ。
         <br><strong>依存関係：</strong>
-        <strong>Step 1→2</strong>（章立てが固まってから章節 ID を採番）／
-        <strong>Step 2→3</strong>（ID を持つ要件をアトミック化）／
-        <strong>Step 3→4a・4b</strong>（原子要件が揃えば 2 工程は<strong>独立に並列実行可能</strong>）／
-        <strong>Step 4a・4b→5</strong>（業務ルール・用語が揃ってから UC を整形）／
-        <strong>Step 5→6</strong>（UC が固まってから受入テスト Gherkin を生成）／
-        <strong>Step 7 仕様一貫性レビュー</strong>は<strong>横断</strong>：
-        <a href="./agents.html">agents.html</a> 推奨フローでは <strong>Step 5 UC 整形後と Step 6 Gherkin 生成後の 2 回稼働</strong>させ、UC 段階の矛盾を Gherkin 生成前に解消する。
-        <br><strong>並列実行の意味：</strong>
-        <strong>Step 4a 業務ルール抽出</strong>と <strong>Step 4b 用語集生成</strong>は互いに独立して進められる。
-        異なる AI エージェントが同時稼働するため、<strong>カレンダー上の所要日数</strong>が短縮される（工数の総和は不変だが、ボトルネック工程が短くなる）。
+        Step 1→2→3→[4a‖4b]→5→6。
+        <strong>Step 7（横断レビュー）</strong>は <a href="./agents.html">agents.html</a> 推奨では <strong>Step 5 後・Step 6 後の 2 回稼働</strong>し、UC 段階の矛盾を Gherkin 生成前に解消する。
+        <br><strong>並列実行：</strong>Step 4a・4b は独立稼働できるため、工数総和は不変だが<strong>カレンダー上の所要日数</strong>が短縮される。
       </div>
     </div>
   </div>
@@ -1010,11 +988,7 @@
   <div class="section">
     <div class="section-title tobe">② AsIs / ToBe — 各ステップの作業内訳</div>
     <div class="section-sub">
-      左＝<strong>AsIs（現状）</strong>：すべて人間が実行／右＝<strong>ToBe（AI 導入後）</strong>：AI が素案・整形を担当、人間は判断・修正のみ。
-      <strong>対象規模＝商品マスタ画面 + その業務フロー定義</strong>を 1 機能として算定。
-      Step 番号は <a href="./agents.html">agents.html</a> の実装順序に揃えた。
-      <span style="background:#fff; padding:1px 4px; border:1px solid #888; border-radius:3px; font-size:10px;">人</span>＝人間 ／
-      <span style="background:#e0f3e6; padding:1px 4px; border:1px solid #5cb085; border-radius:3px; font-size:10px; color:#1e6042;">AI</span>＝AI エージェント
+      対象＝<strong>商品マスタ画面 + 業務フロー定義</strong>の 1 機能規模。
     </div>
 
     <div class="compare-table-wrap">
@@ -1298,8 +1272,7 @@
   <div class="section">
     <div class="section-title value">③ 工数比較バー（AsIs vs ToBe）</div>
     <div class="section-sub">
-      上記合計を視覚化。ToBe バーの<strong>斜線部分</strong>がエンジニア/SME の工数（判断・確認・最終承認）。
-      <strong>人間の工数は 20.0h → 4.4h（-78%）</strong>と大きく減り、業務判断（レビュー）に集中できるようになる。
+      <strong>人間工数 20.0h → 4.4h（-78%）</strong>で、業務判断に集中できる。
     </div>
 
     <div class="bar-section">
@@ -1412,9 +1385,8 @@
       </div>
 
       <div class="bar-note">
-        ※ バー長は時間 (h) に比例。各セグメントは 8 ステップに対応（Step 番号順、4a・4b は並列実行）。<strong>斜線部</strong>＝人間工数。
-        <strong>Step 2 ID 付与はほぼ完全自動化</strong>（人間レビュー 0h）。
-        人間工数のほぼすべては <strong>Step 7 仕様一貫性レビュー（業務判断・最終承認）</strong>と <strong>Step 4a 業務ルール抽出（業務的妥当性判断）</strong>に集中し、AI 工程の人間チェック分はわずか。
+        ※ バー長＝時間 (h)。Step 番号順（4a・4b は並列）。<strong>斜線部</strong>＝人間工数。<strong>Step 2 は人間レビュー 0h</strong>。
+        人間工数の大半は <strong>Step 7（レビュー）</strong>と <strong>Step 4a（業務的妥当性判断）</strong>に集中。
       </div>
     </div>
   </div>
@@ -1423,9 +1395,7 @@
   <div class="section">
     <div class="section-title ai">④ 導入する AI エージェント一覧（8 種類）</div>
     <div class="section-sub">
-      <a href="./agents.html">agents.html</a> に整理した<strong>実装済み 8 エージェント</strong>。すべて Claude Code subagent で実装可能な規模で、
-      初期実装はそれぞれ 1〜3 日のオーダー。Step 番号は <a href="./agents.html">agents.html</a> の実行順序、
-      <span class="new-badge">NEW</span> は本資料で新規提案、実測出力は実装後のパイロット実行値。
+      <a href="./agents.html">agents.html</a> の<strong>実装済み 8 エージェント</strong>。各 1〜3 日で Claude Code subagent として実装可能。
     </div>
 
     <div class="agents-grid">
@@ -1439,8 +1409,7 @@
         </div>
         <div class="agent-card-id">chapter-structuring-ai</div>
         <div class="agent-card-role">
-          要件仕様書（書式不定）から章・節構造を自動抽出。
-          ID 付与・分解の前提となる<strong>セマンティック階層</strong>を作る。
+          書式不定の要件仕様書から章・節構造を抽出し、後続工程の前提となる<strong>セマンティック階層</strong>を作る。
         </div>
         <div class="agent-card-meta">
           <span class="ms-label">使用ステップ:</span> ① 章立て<br>
@@ -1474,8 +1443,7 @@
         </div>
         <div class="agent-card-id">atomic-requirement-ai</div>
         <div class="agent-card-role">
-          複合的に書かれた要件文を <strong>1 要件 1 主張</strong>のアトミック単位に分解。
-          受入テスト設計AI が個別シナリオを生成するための前提を整える。
+          複合的な要件文を <strong>1 要件 1 主張</strong>に分解。Step 6 で個別シナリオ生成の前提となる。
         </div>
         <div class="agent-card-meta">
           <span class="ms-label">使用ステップ:</span> ③ 要件分解<br>
@@ -1510,7 +1478,7 @@
         </div>
         <div class="agent-card-id">glossary-generation-ai</div>
         <div class="agent-card-role">
-          全文書からドメイン用語を抽出し、<strong>定義素案＋同義語クラスタ</strong>を生成。用語集を自動メンテナンス。
+          全文書からドメイン用語を抽出し、<strong>定義素案＋同義語クラスタ</strong>を自動生成。
         </div>
         <span class="agent-card-parallel">⚡ Step 4a・4b 並列実行可</span>
         <div class="agent-card-meta">
@@ -1530,8 +1498,7 @@
         </div>
         <div class="agent-card-id">usecase-formatting-ai</div>
         <div class="agent-card-role">
-          要件・業務ルール・用語集から UC 定義を構築。<strong>Given-When-Then の出力は禁止</strong>（責務分離）し、
-          UC 段階で REQ／BR カバレッジを担保する。
+          要件・業務ルール・用語集から UC 定義を構築。<strong>Gherkin 出力は禁止</strong>（責務分離）、UC 段階で REQ／BR カバレッジを担保。
         </div>
         <div class="agent-card-meta">
           <span class="ms-label">使用ステップ:</span> ⑤ UC 整形<br>
@@ -1550,8 +1517,7 @@
         </div>
         <div class="agent-card-id">acceptance-test-design-ai</div>
         <div class="agent-card-role">
-          <a href="./index.html">ai-05/index.html</a> ／ <a href="./effect.html">effect.html</a> の主役エージェント。
-          UC 定義から <strong>Gherkin 形式の受入テストシナリオ</strong>を生成。
+          <a href="./index.html">index.html</a> ／ <a href="./effect.html">effect.html</a> の主役。UC 定義から <strong>Gherkin 受入テストシナリオ</strong>を生成。
         </div>
         <div class="agent-card-meta">
           <span class="ms-label">使用ステップ:</span> ⑥ 受入テスト設計<br>
@@ -1570,9 +1536,8 @@
         </div>
         <div class="agent-card-id">spec-consistency-reviewer-ai</div>
         <div class="agent-card-role">
-          <a href="./index.html">ai-05/index.html</a> の既存エージェント。
-          要件↔設計↔テスト間の<strong>ルール矛盾・用語揺れ・構造問題</strong>を横断検出。
-          <a href="./agents.html">agents.html</a> の推奨フローでは <strong>UC 整形後と Gherkin 生成後の 2 回稼働</strong>。
+          <a href="./index.html">index.html</a> の既存エージェント。要件↔設計↔テスト間の<strong>ルール矛盾・用語揺れ・構造問題</strong>を横断検出。
+          <a href="./agents.html">agents.html</a> 推奨フローでは <strong>Step 5 後・Step 6 後の 2 回稼働</strong>。
         </div>
         <div class="agent-card-meta">
           <span class="ms-label">使用ステップ:</span> ⑦ 横断レビュー<br>
@@ -1588,23 +1553,22 @@
   <div class="section">
     <div class="section-title value">⑤ 限界・前提 と effect.html 指標への波及</div>
     <div class="section-sub">
-      AI プリプロセスが効くのは "形式・構造・整合性" の整備作業のみ。<strong>業務的妥当性は人間の責任</strong>のまま残る。
-      その上で <a href="./effect.html">effect.html</a> の 5 軸指標にどう波及するかを推定する。
+      AI が担うのは "形式・構造・整合性" のみで、<strong>業務的妥当性は人間の責任</strong>。
+      <a href="./effect.html">effect.html</a> の 5 軸指標への波及を推定する。
     </div>
 
     <div class="limits-grid">
       <div class="info-block limits">
         <div class="info-block-title">▼ AI に置き換え"できない"こと</div>
         <ul>
-          <li><strong>業務的妥当性の判断</strong>：「このルールは業務上正しいか」は人間SMEのみ。</li>
-          <li><strong>ステークホルダー間の優先度調整</strong>：政治・組織判断は AI 不能。</li>
-          <li><strong>非機能要件の閾値決定</strong>：性能/可用性の目標は組織ポリシーに依存。</li>
-          <li><strong>法令・コンプライアンス判断</strong>：誤判定リスクが高すぎる領域は人間専担。</li>
-          <li><strong>最終承認</strong>：責任の所在として人間が判子を押す必要がある。</li>
+          <li><strong>業務的妥当性</strong>：ルールが業務上正しいかは人間SMEのみ判断可能。</li>
+          <li><strong>優先度調整</strong>：ステークホルダー間の政治・組織判断は AI 不能。</li>
+          <li><strong>非機能閾値</strong>：性能/可用性目標は組織ポリシー依存。</li>
+          <li><strong>法令・コンプライアンス</strong>：誤判定リスクが高く人間専担。</li>
+          <li><strong>最終承認</strong>：責任の所在として人間が押印する。</li>
         </ul>
         <div style="margin-top:8px; padding-top:8px; border-top:1px dashed rgba(0,0,0,0.12); font-size:11px; color:#7a4a0a;">
-          ★ 言い換えると：AI は "上手な秘書" であり、"上司" にはならない。
-          人間が出した情報量を超える要件は AI からは出てこない。
+          ★ AI は "秘書" であり "上司" にはならない。人間が出した情報量を超える要件は AI からは出ない。
         </div>
       </div>
 
@@ -1655,11 +1619,9 @@
 
     <div class="caveat" style="margin-top:14px;">
       <strong>結論：</strong>
-      ヒアリング後の要件整備〜受入テスト設計パイプラインを AI 化することで、<strong>総工数は 68.5% 減・人間工数は 78% 減</strong>し、
-      <a href="./effect.html">effect.html</a> の E 軸（トレーサビリティ）と B2 用語整合・C3 SME 時短に大きく波及する。
-      <strong>ai-05/index.html の「要件アナリスト（AI支援）」を <a href="./agents.html">agents.html</a> の 8 種類のサブエージェントに分解</strong>することで、
-      上流プリプロセスから受入テスト設計までの自動化が実現する。最も重要なのは "Step 2 ID 付与" の完全自動化で、
-      これにより人手 ID 規約の負担なしにトレーサビリティAI が機能する前提が整う。
+      パイプライン AI 化で<strong>総工数 -68.5%・人間工数 -78%</strong>。<a href="./effect.html">effect.html</a> の E 軸（トレーサビリティ）・B2 用語整合・C3 SME 時短に大きく波及。
+      「要件アナリスト（AI支援）」を <a href="./agents.html">agents.html</a> の 8 サブエージェントに分解。
+      中核は <strong>Step 2 ID 付与の完全自動化</strong>で、人手 ID 規約の負担なしにトレーサビリティAI が機能する前提が整う。
     </div>
   </div>
 
@@ -1667,11 +1629,8 @@
   <div class="section">
     <div class="section-title ai">⑥ プリプロセスAI 導入後の推論シミュレーション（A・B・C 軸）</div>
     <div class="section-sub">
-      <a href="./effect.html">effect.html ④ 章</a>の「インプット品質レベル別の推論シミュレーション」に、
-      本資料で検討した <strong>8 種類のサブエージェント</strong>（章立て構造化AI／ID 付与エンジン／アトミック要件分解AI／業務ルール抽出AI／用語集生成AI／ユースケース整形AI／受入テスト設計AI／仕様一貫性レビュワーAI）を上流に挿入した場合の
-      <strong>A 網羅率／B 正確性／C 下流効果</strong>の推定値を示す。
-      右端の Δ は <a href="./effect.html">effect.html ④</a> の素のインプット値からの差分（pt）。
-      <strong>業務的妥当性は人間SMEが後段で詰める前提</strong>であり、AI プリプロセスで埋まるのは "形式・構造・整合性" のみ。
+      <a href="./effect.html">effect.html ④</a>「インプット品質別シミュレーション」に <strong>8 エージェント</strong>を挿入した場合の <strong>A・B・C 軸</strong>推定値。
+      Δ は素のインプット値からの差分（pt）。
     </div>
 
     <div class="sim-wrap">
@@ -1788,10 +1747,9 @@
           </div>
 
           <div class="sim-summary">
-            <strong>総合所見：</strong>素のままなら「素案として読み流す」だけだったインプットが、
-            <strong>SME 時短 20→42%（倍増）／用語整合 50→73%／業務ルール網羅 40→58%</strong>と
-            <strong>中品質寄りの水準に底上げ</strong>される。
-            ただし UC・非機能は AI プリプロセスでは触れないため A3／A4 は伸び切らない（人手で UC・閾値を入れる必要が残る）。
+            <strong>総合所見：</strong>「読み流す素案」だったインプットが、
+            <strong>SME 時短 20→42%・用語整合 50→73%・業務ルール網羅 40→58%</strong> と<strong>中品質寄りに底上げ</strong>。
+            A3／A4 は UC・非機能を人手で入れる必要があり伸び切らない。
           </div>
         </div>
 
@@ -1906,11 +1864,9 @@
           </div>
 
           <div class="sim-summary">
-            <strong>総合所見：</strong>中品質帯がもっとも投資効率が高い。
-            <strong>B2 用語整合 80→95% / C3 SME時短 55→75% / C1 欠陥流出 12→7%</strong>と、
-            5 軸すべてが高品質帯に近い水準に到達する。
-            元の中品質を維持する人手コストを、プリプロセスAI が肩代わりする構図。
-            <strong>ai-05/index.html「Plan 工程で派生・確定可」（紫●マーカー）の前提が成立</strong>するライン。
+            <strong>総合所見：</strong>投資効率が最大の帯。
+            <strong>B2 80→95%・C3 55→75%・C1 12→7%</strong> と 5 軸すべてが高品質帯に近づく。
+            中品質維持の人手コストを AI が肩代わり。<strong><a href="./index.html">index.html</a> 紫●「Plan 工程で派生・確定可」の前提が成立</strong>。
           </div>
         </div>
 
@@ -2025,10 +1981,9 @@
           </div>
 
           <div class="sim-summary">
-            <strong>総合所見：</strong>元のインプットが既に構造化されているため<strong>飽和（伸び代小）</strong>。
-            ただし <strong>C3 SME 時短 75→85%</strong> は依然として大きい — 高品質を<strong>"維持する"人手コスト</strong>を
-            プリプロセスAI が肩代わりするためで、SME はレビューだけに専念できる。
-            投資の主目的は "品質向上" ではなく "高品質の<strong>維持コスト削減</strong>" にシフトする。
+            <strong>総合所見：</strong>元から構造化済みで<strong>飽和（伸び代小）</strong>。
+            ただし <strong>C3 75→85%</strong> は大きく、高品質を<strong>"維持する"人手コスト</strong>を AI が肩代わりするため SME はレビューに専念できる。
+            投資目的は "品質向上" から <strong>"維持コスト削減"</strong> にシフト。
           </div>
         </div>
 
@@ -2036,12 +1991,9 @@
 
       <div class="sim-note">
         <strong>感度の方向性（推定）：</strong>
-        プリプロセスAI が最も効くのは<strong>低→中の底上げ</strong>と<strong>中→高への押し上げ</strong>の 2 帯。
-        最大の伸び幅は <strong>C3 SME 時短（+20〜22pt）</strong>と <strong>B2 用語整合（+15〜23pt）</strong>で、
-        これは 5 種のサブエージェントがそれぞれ "形式・構造・整合性" の作業を肩代わりした結果。
-        逆に <strong>A4 非機能Cov・B5 偽陽性</strong>はプリプロセスでの伸び幅が小さい — これらは<strong>業務的妥当性の領域</strong>であり、
-        AI プリプロセスでは埋まらず、SME 早期介入や DMN 化など <a href="./effect.html">effect.html ⑤</a> の他レバーとの併用が必要。
-        高品質帯では飽和するため、投資判断は<strong>"中品質を高品質へ押し上げる"局面に集中</strong>させると ROI が最大化する。
+        効きが最大なのは <strong>低→中</strong>と<strong>中→高</strong>の 2 帯。最大の伸び幅は <strong>C3 SME 時短（+20〜22pt）</strong>・<strong>B2 用語整合（+15〜23pt）</strong>。
+        <strong>A4 非機能Cov・B5 偽陽性</strong>は業務的妥当性の領域で伸び小、SME 早期介入や DMN 化など <a href="./effect.html">effect.html ⑤</a> の他レバーとの併用が効果的。
+        高品質帯は飽和するため、ROI 最大化には <strong>中→高の押し上げ局面に集中</strong>。
       </div>
     </div>
   </div>
