@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>AIエージェント・オーケストレーション構造（要件整備プリプロセス統合版）</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: #fafaf7; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Yu Gothic UI", sans-serif; color: #1a1a1a; }
+  body { padding: 32px 40px 80px; }
+  .container { max-width: 1480px; margin: 0 auto; }
+
+  /* Header */
+  .header { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid #d8dbe2; padding-bottom: 14px; margin-bottom: 28px; }
+  .header h1 { font-size: 22px; font-weight: 700; color: #1a1a1a; }
+  .header .meta { font-size: 13px; color: #666; }
+
+  .lede { color: #555; font-size: 13px; line-height: 1.7; margin-bottom: 24px; padding: 14px 18px; background: #fff; border: 1px solid #d8dbe2; border-radius: 12px; }
+  .lede strong { color: #1a1a1a; }
+  .lede a { color: #4d479e; }
+
+  /* Section */
+  .section { margin-bottom: 32px; }
+  .section-title { font-size: 14px; font-weight: 700; color: #444; letter-spacing: 0.04em; margin-bottom: 10px; padding-left: 10px; border-left: 4px solid #6e68c2; }
+  .section-sub { font-size: 12px; color: #777; margin-bottom: 14px; padding-left: 14px; }
+
+  /* V-model area */
+  .vmodel {
+    position: relative;
+    background: #fff;
+    border: 1px solid #d8dbe2;
+    border-radius: 14px;
+    padding: 28px 24px 24px;
+  }
+
+  /* V-model のレーンラベル (上端) */
+  .vmodel-lane-labels {
+    display: grid;
+    grid-template-columns: 1fr 90px 1fr;
+    gap: 12px;
+    margin-bottom: 14px;
+    align-items: center;
+  }
+  .lane-label {
+    text-align: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: #444;
+    letter-spacing: 0.04em;
+    padding: 6px 10px;
+    border-radius: 6px;
+  }
+  .lane-label.design { background: #e8e2f5; color: #4d479e; }
+  .lane-label.derive { background: transparent; color: #888; font-size: 11px; }
+  .lane-label.test   { background: #fdebd0; color: #a05f1d; }
+
+  /* V-model の各行 */
+  .vrow {
+    display: grid;
+    grid-template-columns: 1fr 90px 1fr;
+    gap: 12px;
+    align-items: stretch;
+    margin-bottom: 10px;
+  }
+  /* V字を視覚的に表現するためのインデント */
+  .vrow.lv1 { padding: 0 0 0 0; }
+  .vrow.lv2 { padding: 0 50px; }
+  .vrow.lv3 { padding: 0 100px; }
+  .vrow.lv4 { padding: 0 150px; margin-bottom: 0; }
+
+  /* 各フェーズブロック (設計 / テスト) */
+  .phase {
+    position: relative;
+    border-radius: 12px;
+    padding: 12px 14px 14px;
+    min-height: 138px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .phase.design  { background: #f1edfa; border: 2px solid #6e68c2; }
+  .phase.test    { background: #fdf3e2; border: 2px solid #d69a3a; }
+  .phase.apex    { background: linear-gradient(135deg, #f1edfa 0%, #d4f0de 50%, #fdf3e2 100%); border: 2px solid #2c8a5e; padding: 14px 16px 16px; min-height: auto; }
+
+  .phase-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+    padding-bottom: 4px;
+    border-bottom: 1px dashed rgba(0,0,0,0.12);
+  }
+  .phase-title { font-size: 13px; font-weight: 700; }
+  .phase.design .phase-title { color: #4d479e; }
+  .phase.test   .phase-title { color: #a05f1d; }
+  .phase-title a { color: inherit; text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 2px; }
+  .phase-title a:hover { text-decoration-style: solid; }
+  .phase-stage  { font-size: 10px; color: #888; letter-spacing: 0.04em; }
+
+  /* AI エージェントチップ */
+  .agents { display: flex; flex-wrap: wrap; gap: 4px 6px; margin-top: 2px; }
+  .agent-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 10.5px;
+    font-weight: 600;
+    line-height: 1.5;
+    white-space: nowrap;
+  }
+  .agent-chip.ai { background: #e0f3e6; color: #1e6042; border: 1px solid #5cb085; }
+  .agent-chip.ai-new { background: #fde9b8; color: #7a4a0a; border: 1px solid #d69a3a; }
+  .agent-chip.assist { background: #e0eaf5; color: #2c4d7d; border: 1px solid #6b8fc7; }
+  .agent-chip.shared { background: #f3f4f6; color: #4b5563; border: 1px solid #9ca3af; }
+  .agent-chip.human { background: #fff; color: #444; border: 1px solid #888; }
+
+  /* 出力物 */
+  .outputs {
+    margin-top: auto;
+    padding-top: 6px;
+    font-size: 10.5px;
+    color: #555;
+    line-height: 1.5;
+  }
+  .outputs-label { font-weight: 700; color: #4d479e; margin-right: 4px; }
+  .phase.test .outputs-label { color: #a05f1d; }
+  .outputs-items { display: flex; flex-wrap: wrap; gap: 3px 4px; margin-top: 2px; }
+  .out-tag {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1.5;
+  }
+  .phase.design .out-tag { background: #d8cef0; color: #3d3680; border: 1px solid #b6a7e1; }
+  .phase.test   .out-tag { background: #f9d9a4; color: #7a4a0a; border: 1px solid #e1ad59; }
+
+  /* 中央: 仕様派生矢印カラム */
+  .derive-cell {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: #888;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding: 8px 0;
+  }
+  .derive-arrow {
+    width: 100%;
+    text-align: center;
+    color: #d69a3a;
+    font-weight: 700;
+  }
+  .derive-arrow svg { width: 100%; height: 36px; display: block; }
+  .derive-text { margin-top: 4px; font-size: 9.5px; color: #888; }
+
+  /* V字の腕 (左斜め下 / 右斜め下) を描く SVG */
+  .vmodel-svg {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Apex (実装/単体テスト) ブロック詳細 */
+  .apex-inner {
+    display: grid;
+    grid-template-columns: 1.2fr 0.6fr;
+    gap: 14px;
+    margin-top: 6px;
+  }
+  .apex-col h4 { font-size: 11.5px; font-weight: 700; color: #1e6042; margin-bottom: 6px; letter-spacing: 0.02em; }
+  .apex-col.design-side h4 { color: #4d479e; }
+  .apex-col.test-side   h4 { color: #a05f1d; }
+  .apex-link {
+    margin-top: 8px;
+    padding: 6px 10px;
+    background: rgba(255,255,255,0.7);
+    border: 1px solid #2c8a5e;
+    border-radius: 6px;
+    font-size: 10.5px;
+    color: #1e6042;
+    line-height: 1.5;
+  }
+  .apex-link a { color: #1e6042; font-weight: 700; }
+
+  /* オーケストレーター (全体監視) */
+  .conductor {
+    margin-top: 20px;
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr;
+    gap: 12px;
+  }
+  .conductor-block {
+    border-radius: 12px;
+    padding: 12px 14px;
+    border: 2px solid;
+    background: #fff;
+  }
+  .conductor-block .cb-title { font-size: 12.5px; font-weight: 700; letter-spacing: 0.02em; margin-bottom: 6px; }
+  .conductor-block .cb-sub { font-size: 11px; color: #555; line-height: 1.55; }
+  .conductor-block.orch   { border-color: #2c8a5e; background: #e8f7ee; }
+  .conductor-block.orch .cb-title { color: #1e6042; }
+  .conductor-block.trace  { border: 2px solid #d69a3a; background: #fdf3e2; }
+  .conductor-block.trace .cb-title { color: #a05f1d; }
+  .conductor-block.consistency { border: 2px solid #6e68c2; background: #f1edfa; }
+  .conductor-block.consistency .cb-title { color: #4d479e; }
+
+  /* 外部インプット（フェーズの外で行われ、フェーズに入る情報） */
+  .ext-inputs {
+    padding: 5px 8px;
+    background: rgba(255,255,255,0.6);
+    border: 1px solid #6b7280;
+    border-radius: 6px;
+    font-size: 10.5px;
+  }
+  .ext-inputs-label {
+    font-weight: 700;
+    color: #4b5563;
+    font-size: 10px;
+    display: block;
+    margin-bottom: 4px;
+    letter-spacing: 0.02em;
+  }
+  .ext-inputs-items { display: flex; flex-direction: column; gap: 3px; }
+  .ext-tag {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    background: #e5e7eb;
+    color: #374151;
+    border: 1px solid #9ca3af;
+    text-align: center;
+  }
+
+  /* 外部インプットを右側に並べるフェーズ用レイアウト */
+  .phase.with-ext .phase-body {
+    display: grid;
+    grid-template-columns: 1fr 130px;
+    gap: 10px;
+    flex: 1;
+  }
+  .phase.with-ext .phase-main {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+  }
+  .phase.with-ext .phase-main .outputs { margin-top: auto; }
+  .phase.with-ext .ext-inputs { align-self: end; }
+
+  .cb-agents { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 4px; }
+
+  /* 人タスク帯 */
+  .human-band {
+    margin-top: 22px;
+    padding: 14px 18px;
+    background: #fdf1de;
+    border: 2px solid #d69a3a;
+    border-radius: 12px;
+  }
+  .human-band-title { font-size: 13px; font-weight: 700; color: #a05f1d; margin-bottom: 10px; letter-spacing: 0.04em; }
+  .human-band-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+  .human-card { background: #fff; border: 1px solid #eebd6c; border-radius: 8px; padding: 10px 12px; }
+  .human-card-key { font-size: 11px; font-weight: 700; color: #a05f1d; margin-bottom: 4px; }
+  .human-card-body { font-size: 11px; color: #555; line-height: 1.55; }
+  @media (max-width: 1100px) {
+    .human-band-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* 凡例 */
+  .legend {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 18px;
+    margin-top: 18px;
+    padding: 10px 18px;
+    background: #fff;
+    border: 1px solid #d8dbe2;
+    border-radius: 12px;
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #444; }
+  .legend-swatch { width: 16px; height: 16px; border-radius: 4px; }
+  .legend-swatch.design { background: #e8e2f5; border: 1px solid #6e68c2; }
+  .legend-swatch.test { background: #fdf3e2; border: 1px solid #d69a3a; }
+  .legend-swatch.ai { background: #e0f3e6; border: 1px solid #5cb085; }
+  .legend-swatch.new { background: #fde9b8; border: 1px solid #d69a3a; }
+  .legend-swatch.assist { background: #e0eaf5; border: 1px solid #6b8fc7; }
+  .legend-swatch.shared { background: #f3f4f6; border: 1px solid #9ca3af; }
+  .legend-swatch.human { background: #fff; border: 1px solid #888; }
+
+  /* エスカレーション */
+  .escalation {
+    margin-top: 22px;
+    padding: 14px 18px;
+    background: #fff;
+    border: 1px solid #d8dbe2;
+    border-radius: 12px;
+  }
+  .escalation-title { font-size: 13px; font-weight: 700; color: #444; margin-bottom: 4px; }
+  .escalation-sub { font-size: 11px; color: #777; margin-bottom: 10px; }
+  .escalation-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .escalation-table th, .escalation-table td { padding: 8px 10px; border-bottom: 1px solid #ececec; text-align: left; vertical-align: top; }
+  .escalation-table th { background: #f7f7f3; font-weight: 700; color: #555; font-size: 11px; }
+  .block-chip {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    margin: 0 2px;
+  }
+  .block-chip.req      { background: #e8e2f5; color: #4d479e; border: 1px solid #6e68c2; }
+  .block-chip.basic    { background: #e8e2f5; color: #4d479e; border: 1px solid #6e68c2; }
+  .block-chip.detail   { background: #e8e2f5; color: #4d479e; border: 1px solid #6e68c2; }
+  .block-chip.impl     { background: #d4f0de; color: #1e6042; border: 1px solid #2c8a5e; }
+  .block-chip.acc      { background: #fdebd0; color: #a05f1d; border: 1px solid #d69a3a; }
+  .block-chip.sys      { background: #fdebd0; color: #a05f1d; border: 1px solid #d69a3a; }
+  .block-chip.int      { background: #fdebd0; color: #a05f1d; border: 1px solid #d69a3a; }
+  .block-chip.unit     { background: #fdebd0; color: #a05f1d; border: 1px solid #d69a3a; }
+
+  /* 強調 */
+  .new-badge {
+    display: inline-block;
+    background: #d69a3a;
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 3px;
+    margin-left: 4px;
+    letter-spacing: 0.04em;
+    vertical-align: middle;
+  }
+
+  /* 実装開始前マーカー（Plan 工程で派生・確定できる成果物・AI = 設計レーンと同じ紫） */
+  .out-tag.pre-impl::before,
+  .agent-chip.pre-impl::before {
+    content: "●";
+    color: #6e68c2;
+    margin-right: 4px;
+    font-size: 9px;
+    vertical-align: middle;
+  }
+  .out-tag.pre-impl {
+    background: #ede8f7 !important;
+    color: #3d3680 !important;
+    border-color: #6e68c2 !important;
+  }
+  .agent-chip.pre-impl {
+    box-shadow: inset 3px 0 0 #6e68c2;
+    padding-left: 10px;
+  }
+
+  /* 先行マーカー解説 callout */
+  .pre-impl-callout {
+    margin: 0 0 14px;
+    padding: 10px 14px;
+    background: #f1edfa;
+    border: 1px solid #b6a7e1;
+    border-left: 4px solid #6e68c2;
+    border-radius: 8px;
+    font-size: 12px;
+    color: #3d3680;
+    line-height: 1.6;
+  }
+  .pre-impl-callout strong { color: #2a235e; }
+  .pre-impl-callout .dot { color: #6e68c2; font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header class="header">
+    <h1>AIエージェント・オーケストレーション構造 — 要件整備プリプロセス統合版</h1>
+    <div class="meta">対象: 要件整備 → 設計 → 実装 → テスト仕様作成 → テスト実装 → テスト実行</div>
+  </header>
+
+  <div class="lede">
+    <a href="./index.html">index.html</a> の V字モデル構造を基に、<strong>① 要件定義／② 基本設計フェーズ</strong>に
+    <a href="./preprocess.html">preprocess.html</a> で検討し
+    <a href="./agents.html">agents.html</a> として実装した <strong>6 サブエージェント</strong>
+    （章立て構造化AI／ID 付与エンジン／アトミック要件分解AI／業務ルール抽出AI／用語集生成AI／ユースケース整形AI）を統合した版。
+    これまで「要件アナリスト（AI支援）」として人主導でまとめていた要件整備工程を、<strong>章立て・ID 付与・アトミック分解・業務ルール抽出・用語集生成・UC 整形</strong>の
+    各サブタスクに分解し、それぞれを独立した Claude Code subagent で実行する構造を可視化する。
+    <span class="new-badge">NEW</span> はこの拡張で新規追加した役割。
+  </div>
+
+  <!-- ==================== V字モデル本体 ==================== -->
+  <div class="section">
+    <div class="section-title">V字モデル：設計レーン ↔ テストレーン と AI エージェント配置</div>
+    <div class="section-sub">左列＝設計工程（成果物を生成する役割）／右列＝対応するテスト工程（仕様→実装→実行）／中央＝<strong>テスト仕様の派生</strong>経路</div>
+
+    <div class="pre-impl-callout">
+      <span class="dot">●</span> マーカー＝<strong>Plan 工程で派生／確定できるテストレーン要素</strong>（設計レーンと同じ紫）。
+      V字モデルの中核価値である<strong>テストの左シフト</strong>を可視化したもので、
+      ここに含まれる仕様・AI は<strong>要件・設計が固まった時点で先行着手でき</strong>、トレーサビリティマトリクスを実装着手前に一度埋めきれる。
+      実行系（テスターAI／CIレポート／E2Eテストコード本体）はマーキング対象外（Do 工程＝実装後に稼働）。
+    </div>
+
+    <div class="vmodel">
+
+      <!-- V字の腕を背景に描く SVG -->
+      <svg class="vmodel-svg" viewBox="0 0 1400 720" preserveAspectRatio="none">
+        <!-- 左腕: 要件→基本→詳細→実装 (左側のブロック中央を斜めに結ぶ) -->
+        <path d="M 200 70 L 250 220 L 300 370 L 350 530" stroke="#b6a7e1" stroke-width="2" fill="none" stroke-dasharray="6 4" opacity="0.6"/>
+        <!-- 右腕: 受入→システム→結合→単体 (右側のブロック中央を斜めに結ぶ) -->
+        <path d="M 1200 70 L 1150 220 L 1100 370 L 1050 530" stroke="#e1ad59" stroke-width="2" fill="none" stroke-dasharray="6 4" opacity="0.6"/>
+      </svg>
+
+      <!-- レーン見出し -->
+      <div class="vmodel-lane-labels">
+        <div class="lane-label design">▼ 設計レーン（Plan + Check）</div>
+        <div class="lane-label derive">テスト仕様<br>派生</div>
+        <div class="lane-label test">▲ テストレーン（Do + Check）</div>
+      </div>
+
+      <!-- Level 1: 要件定義 ↔ 受入テスト -->
+      <div class="vrow lv1">
+        <div class="phase design with-ext">
+          <div class="phase-head">
+            <span class="phase-title"><a href="./preprocess.html">① 要件定義（要件整備プリプロセス）</a></span>
+            <span class="phase-stage">Level 1 / Plan</span>
+          </div>
+          <div class="phase-body">
+            <div class="phase-main">
+              <div class="agents">
+                <span class="agent-chip ai-new">章立て構造化AI<span class="new-badge">NEW</span></span>
+                <span class="agent-chip ai-new">ID 付与エンジン<span class="new-badge">NEW</span></span>
+                <span class="agent-chip ai-new">アトミック要件分解AI<span class="new-badge">NEW</span></span>
+                <span class="agent-chip ai-new">業務ルール抽出AI<span class="new-badge">NEW</span></span>
+                <span class="agent-chip ai-new">用語集生成AI<span class="new-badge">NEW</span></span>
+                <span class="agent-chip human">PM／業務SME</span>
+              </div>
+              <div class="outputs">
+                <span class="outputs-label">成果物</span>
+                <div class="outputs-items">
+                  <span class="out-tag">業務要件（章立て）</span>
+                  <span class="out-tag">機能要件（アトミック）</span>
+                  <span class="out-tag">非機能要件</span>
+                  <span class="out-tag">業務ルール一覧</span>
+                  <span class="out-tag">用語集</span>
+                  <span class="out-tag">要件ID マップ</span>
+                </div>
+              </div>
+            </div>
+            <div class="ext-inputs">
+              <span class="ext-inputs-label">→ 外部インプット</span>
+              <div class="ext-inputs-items">
+                <span class="ext-tag">ユースケーステスト</span>
+                <span class="ext-tag">仕様変更管理</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="derive-cell">
+          <div class="derive-arrow">
+            <svg viewBox="0 0 80 36" preserveAspectRatio="none">
+              <defs>
+                <marker id="ah1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><polygon points="0,0 10,5 0,10" fill="#d69a3a"/></marker>
+              </defs>
+              <line x1="4" y1="18" x2="74" y2="18" stroke="#d69a3a" stroke-width="2.2" marker-end="url(#ah1)"/>
+            </svg>
+          </div>
+          <div class="derive-text">受入基準を派生</div>
+        </div>
+
+        <div class="phase test">
+          <div class="phase-head">
+            <span class="phase-title"><a href="./effect.html">⑧ 受入テスト</a></span>
+            <span class="phase-stage">Level 1 / 業務シナリオ検証</span>
+          </div>
+          <div class="agents">
+            <span class="agent-chip ai-new pre-impl">受入テスト設計AI<span class="new-badge">NEW</span></span>
+            <span class="agent-chip ai">E2Eテスト実装AI</span>
+            <span class="agent-chip ai">テスターAI</span>
+            <span class="agent-chip human pre-impl">業務SME（承認）</span>
+          </div>
+          <div class="outputs">
+            <span class="outputs-label">成果物</span>
+            <div class="outputs-items">
+              <span class="out-tag pre-impl">受入基準（Gherkin）</span>
+              <span class="out-tag">E2Eテストコード</span>
+              <span class="out-tag">実行レポート</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Level 2: 基本設計 ↔ システムテスト -->
+      <div class="vrow lv2">
+        <div class="phase design">
+          <div class="phase-head">
+            <span class="phase-title">② 基本設計</span>
+            <span class="phase-stage">Level 2 / Plan</span>
+          </div>
+          <div class="agents">
+            <span class="agent-chip ai-new">ユースケース整形AI<span class="new-badge">NEW</span></span>
+            <span class="agent-chip ai">アーキテクトAI</span>
+            <span class="agent-chip assist">機能設計（AI支援）</span>
+            <span class="agent-chip assist">非機能設計（AI支援）</span>
+            <span class="agent-chip human">テックリード</span>
+          </div>
+          <div class="outputs">
+            <span class="outputs-label">成果物</span>
+            <div class="outputs-items">
+              <span class="out-tag">UC 定義</span>
+              <span class="out-tag">機能仕様</span>
+              <span class="out-tag">画面遷移図</span>
+              <span class="out-tag">I/F一覧</span>
+              <span class="out-tag">非機能要件定義</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="derive-cell">
+          <div class="derive-arrow">
+            <svg viewBox="0 0 80 36" preserveAspectRatio="none">
+              <line x1="4" y1="18" x2="74" y2="18" stroke="#d69a3a" stroke-width="2.2" marker-end="url(#ah1)"/>
+            </svg>
+          </div>
+          <div class="derive-text">機能×非機能を派生</div>
+        </div>
+
+        <div class="phase test">
+          <div class="phase-head">
+            <span class="phase-title">⑦ システムテスト</span>
+            <span class="phase-stage">Level 2 / 機能間・非機能検証</span>
+          </div>
+          <div class="agents">
+            <span class="agent-chip assist pre-impl">システムテスト設計（AI支援）</span>
+            <span class="agent-chip assist pre-impl">非機能テスト設計（AI支援）</span>
+            <span class="agent-chip ai">テスト実装AI</span>
+            <span class="agent-chip ai">テスターAI</span>
+          </div>
+          <div class="outputs">
+            <span class="outputs-label">成果物</span>
+            <div class="outputs-items">
+              <span class="out-tag pre-impl">機能間テスト仕様</span>
+              <span class="out-tag pre-impl">負荷／可用性テスト</span>
+              <span class="out-tag pre-impl">セキュリティテスト</span>
+              <span class="out-tag">システムテストコード／スクリプト</span>
+              <span class="out-tag">実行レポート</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Level 3: 詳細設計 ↔ 結合テスト -->
+      <div class="vrow lv3">
+        <div class="phase design">
+          <div class="phase-head">
+            <span class="phase-title">③ 詳細設計</span>
+            <span class="phase-stage">Level 3 / Plan</span>
+          </div>
+          <div class="agents">
+            <span class="agent-chip ai">DBアーキテクトAI</span>
+            <span class="agent-chip ai">バックエンドAI</span>
+            <span class="agent-chip ai">フロントエンドAI</span>
+          </div>
+          <div class="outputs">
+            <span class="outputs-label">成果物</span>
+            <div class="outputs-items">
+              <span class="out-tag">API契約</span>
+              <span class="out-tag">データモデル</span>
+              <span class="out-tag">コンポーネント設計</span>
+              <span class="out-tag">業務ロジック仕様</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="derive-cell">
+          <div class="derive-arrow">
+            <svg viewBox="0 0 80 36" preserveAspectRatio="none">
+              <line x1="4" y1="18" x2="74" y2="18" stroke="#d69a3a" stroke-width="2.2" marker-end="url(#ah1)"/>
+            </svg>
+          </div>
+          <div class="derive-text">モジュール間契約を派生</div>
+        </div>
+
+        <div class="phase test">
+          <div class="phase-head">
+            <span class="phase-title">⑥ 結合テスト</span>
+            <span class="phase-stage">Level 3 / モジュール間検証</span>
+          </div>
+          <div class="agents">
+            <span class="agent-chip assist pre-impl">結合テスト設計（AI支援）</span>
+            <span class="agent-chip shared pre-impl">契約テストAI（兼務）</span>
+            <span class="agent-chip ai">テスト実装AI</span>
+            <span class="agent-chip ai">テスターAI</span>
+          </div>
+          <div class="outputs">
+            <span class="outputs-label">成果物</span>
+            <div class="outputs-items">
+              <span class="out-tag pre-impl">API契約テスト</span>
+              <span class="out-tag pre-impl">モジュール統合テスト</span>
+              <span class="out-tag">統合テストコード</span>
+              <span class="out-tag">実行レポート</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Level 4: 実装 + 単体テスト (Apex) -->
+      <div class="vrow lv4">
+        <div class="phase apex" style="grid-column: 1 / -1;">
+          <div class="phase-head" style="border-bottom-color: rgba(0,0,0,0.18);">
+            <span class="phase-title" style="color: #1e6042;">④ 実装 ／ ⑤ 単体テスト （V字の頂点 — AI Orchestration ゾーン）</span>
+            <span class="phase-stage">Level 4 / Do</span>
+          </div>
+
+          <div class="apex-inner">
+            <div class="apex-col design-side">
+              <h4>実装側（設計レーン → コード）</h4>
+              <div class="agents">
+                <span class="agent-chip ai">DBアーキテクトAI</span>
+                <span class="agent-chip ai">バックエンドAI</span>
+                <span class="agent-chip ai">フロントエンドAI</span>
+                <span class="agent-chip ai">バックエンドレビュワーAI</span>
+                <span class="agent-chip ai">フロントエンドレビュワーAI</span>
+              </div>
+              <div class="outputs">
+                <span class="outputs-label">成果物</span>
+                <div class="outputs-items">
+                  <span class="out-tag">マイグレーション</span>
+                  <span class="out-tag">APIコード</span>
+                  <span class="out-tag">フロントコード</span>
+                  <span class="out-tag">PR</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="apex-col test-side">
+              <h4>単体テスト側（テストレーン → 自動実行）</h4>
+              <div class="agents">
+                <span class="agent-chip shared pre-impl">単体テスト設計AI（兼務）</span>
+                <span class="agent-chip shared">単体テスト実装AI（兼務）</span>
+                <span class="agent-chip ai">テスターAI（CI実行）</span>
+              </div>
+              <div class="outputs">
+                <span class="outputs-label">成果物</span>
+                <div class="outputs-items">
+                  <span class="out-tag pre-impl">単体テストケース</span>
+                  <span class="out-tag">テストコード</span>
+                  <span class="out-tag">CIレポート</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="apex-link">
+            <strong>※ 本ゾーンの詳細フローおよび工数効果</strong>は
+            <a href="../ai-04/ai_dd_process.html">ai-04/ai_dd_process.html</a>
+            （AsIs/ToBe フロー）および
+            <a href="../ai-04/index.html">ai-04/index.html</a>
+            （シナリオ別工数比較）を参照。本図ではその上位のV字構造への接続を明示。
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==================== 横断エージェント ==================== -->
+  <div class="section">
+    <div class="section-title">横断エージェント（V字全体を貫く役割）</div>
+    <div class="section-sub">設計レーンとテストレーンの整合性・進行・追跡を担う。フェーズに紐づかず常時稼働。</div>
+
+    <div class="conductor">
+      <div class="conductor-block orch">
+        <div class="cb-title">Orchestrator（オーケストレーター）</div>
+        <div class="cb-sub">
+          各フェーズの AI エージェントへタスク投入、依存関係に基づく順序制御、PR 作成、ゲート判定の起票。
+          上流（要件・基本設計）の更新を検知して下流テストレーンへ波及させる。
+        </div>
+        <div class="cb-agents">
+          <span class="agent-chip ai">Task Dispatcher</span>
+          <span class="agent-chip assist">PR Author（AI支援）</span>
+          <span class="agent-chip assist">変更影響分析（AI支援）</span>
+        </div>
+      </div>
+
+      <div class="conductor-block trace">
+        <div class="cb-title">トレーサビリティAI<span class="new-badge">NEW</span></div>
+        <div class="cb-sub">
+          要件ID ↔ 設計ID ↔ テストID ↔ 実行結果の<strong>双方向追跡マトリクス</strong>を維持。
+          要件カバレッジ・テストカバレッジを常時可視化し、未対応要件・浮きテストを検出。
+          <strong>① 要件定義の ID 付与エンジンが出力する要件ID マップを起点として、実装着手前にマトリクスを一度埋めきれる</strong>。
+        </div>
+        <div class="cb-agents">
+          <span class="agent-chip ai-new pre-impl">トレースマトリクスAI<span class="new-badge">NEW</span></span>
+          <span class="agent-chip shared pre-impl">カバレッジ監査AI（兼務）</span>
+        </div>
+      </div>
+
+      <div class="conductor-block consistency">
+        <div class="cb-title">仕様一貫性レビュワーAI<span class="new-badge">NEW</span></div>
+        <div class="cb-sub">
+          設計レーンの成果物とテストレーンの仕様が同一の業務ルール／用語で記述されているかを横断レビュー。
+          層をまたいだ仕様ドリフトを早期検出する。
+          <strong>① 要件定義の用語集生成AI が生成する用語集と組み合わせると検出精度が大きく上がる</strong>。最も価値が出るのは実装着手前。
+        </div>
+        <div class="cb-agents">
+          <span class="agent-chip ai-new pre-impl">仕様ドリフト検出AI<span class="new-badge">NEW</span></span>
+          <span class="agent-chip shared pre-impl">用語一致チェックAI（兼務）</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 人タスク帯 ==================== -->
+  <div class="section">
+    <div class="section-title">人タスク（エンジニア／PM／業務SME の役割）</div>
+    <div class="section-sub">AI による派生は「素案」であり、業務知識を持つ人が最終承認する。V字の各レイヤで担当が異なる。</div>
+
+    <div class="human-band">
+      <div class="human-band-title">▲ 人が担う Check ポイント（AI には委ねきれない承認・判断）</div>
+      <div class="human-band-grid">
+        <div class="human-card">
+          <div class="human-card-key">要件 / 受入</div>
+          <div class="human-card-body">業務SME による業務的妥当性の確認・受入基準の承認。<br><small>＝ プリプロセスAI が形式・構造を整えた後、業務ルールの正しさは人にしか判断できない</small></div>
+        </div>
+        <div class="human-card">
+          <div class="human-card-key">基本 / システムテスト</div>
+          <div class="human-card-body">テックリードによる非機能テスト閾値（性能・可用性）の決定とレポート評価。</div>
+        </div>
+        <div class="human-card">
+          <div class="human-card-key">詳細 / 結合テスト</div>
+          <div class="human-card-body">設計レビュー、API 契約の妥当性確認、結合テスト結果の評価。</div>
+        </div>
+        <div class="human-card">
+          <div class="human-card-key">実装 / 単体テスト</div>
+          <div class="human-card-body">コードレビュー（仕様適合・セキュリティ・設計整合）、PR マージゲート判定。<br><small>※ ai-04 と同じ範囲</small></div>
+        </div>
+        <div class="human-card">
+          <div class="human-card-key">横断</div>
+          <div class="human-card-body">Orchestrator 運用、Check 観点の追加更新、トレーサビリティ漏れ確認、例外承認。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== エスカレーション ==================== -->
+  <div class="section">
+    <div class="section-title">エスカレーション経路（V字フロー上で失敗した時にどこへ戻すか）</div>
+    <div class="section-sub">テスト失敗の原因がどの層に起因するかで差し戻し先が変わる。AI が原因層を推定し、Orchestrator が起票する。</div>
+
+    <div class="escalation">
+      <table class="escalation-table">
+        <thead>
+          <tr>
+            <th style="width: 50%;">失敗が発生したブロック・状況</th>
+            <th>差し戻し先・対応</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="block-chip unit">単体テスト</span> NG（実装バグ）</td>
+            <td><span class="block-chip impl">実装</span> へ差し戻し（ai-04 の AI Orchestration 内で再実装）</td>
+          </tr>
+          <tr>
+            <td><span class="block-chip int">結合テスト</span> NG（モジュール間契約不整合）</td>
+            <td><span class="block-chip detail">詳細設計</span> へ差し戻し（API 契約・データモデルを修正 → 実装再生成）</td>
+          </tr>
+          <tr>
+            <td><span class="block-chip sys">システムテスト</span> NG（性能・機能間連携・非機能）</td>
+            <td><span class="block-chip basic">基本設計</span> へ差し戻し（非機能設計や I/F 設計を見直し）</td>
+          </tr>
+          <tr>
+            <td><span class="block-chip acc">受入テスト</span> NG（業務シナリオ不一致・要件解釈ミス）</td>
+            <td><span class="block-chip req">要件定義</span> へ差し戻し（業務SME と要件を再確認 → プリプロセスAI で再構造化 → 下流へ波及）</td>
+          </tr>
+          <tr>
+            <td>テスト仕様派生AIが要件・設計の<strong>曖昧さ</strong>を検出</td>
+            <td>対応する上位の設計フェーズへ即時起票（テスト作成を保留）</td>
+          </tr>
+          <tr>
+            <td><strong>仕様一貫性レビュワーAI</strong> が層間ドリフトを検出</td>
+            <td>該当する 2 層（設計とテスト）の双方を Orchestrator が同時に再キュー</td>
+          </tr>
+          <tr>
+            <td><strong>業務ルール抽出AI／用語集生成AI</strong> が業務ルールの矛盾・用語揺れを検出<span class="new-badge">NEW</span></td>
+            <td><span class="block-chip req">要件定義</span> 内で業務SME に起票（プリプロセス工程内で解消）</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ==================== 凡例 ==================== -->
+  <div class="legend">
+    <div class="legend-item"><span class="legend-swatch design"></span>設計レーン（Plan）</div>
+    <div class="legend-item"><span class="legend-swatch test"></span>テストレーン（Do + Check）</div>
+    <div class="legend-item"><span class="legend-swatch ai"></span>既存AIエージェント（ai-04由来）</div>
+    <div class="legend-item"><span class="legend-swatch new"></span>新規AIエージェント<span class="new-badge">NEW</span></div>
+    <div class="legend-item"><span class="legend-swatch assist"></span>AI支援（エージェント化せず人主導でAIをアシスト利用）</div>
+    <div class="legend-item"><span class="legend-swatch shared"></span>他AIで兼務（独立エージェント化せず）</div>
+    <div class="legend-item"><span class="legend-swatch human"></span>人タスク</div>
+    <div class="legend-item"><span style="color:#6e68c2;font-weight:700;">●</span>Plan 工程で派生／確定可（テストの左シフト）</div>
+  </div>
+
+</div>
+</body>
+</html>

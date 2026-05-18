@@ -555,6 +555,58 @@
   }
   .agent-card-meta .ms-label { font-weight: 700; color: #555; }
   .agent-card-meta strong { color: #1a1a1a; }
+  .agent-card-step {
+    font-size: 9.5px;
+    font-weight: 700;
+    color: #4b5563;
+    background: #e5e7eb;
+    padding: 1px 6px;
+    border-radius: 4px;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+  .agent-card.new .agent-card-step {
+    background: #fef3c7;
+    color: #92400e;
+  }
+  .agent-card-id {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 10.5px;
+    color: #6b7280;
+    margin-bottom: 6px;
+    word-break: break-all;
+  }
+  .agent-card-parallel {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 9.5px;
+    color: #92400e;
+    background: #fef3c7;
+    border: 1px solid #fcd34d;
+    border-radius: 3px;
+    padding: 1px 5px;
+    font-weight: 700;
+    margin: 4px 0;
+    width: fit-content;
+  }
+  .agent-card-phase {
+    grid-column: 1 / -1;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    margin-top: 10px;
+    margin-bottom: -4px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    color: #fff;
+    text-transform: uppercase;
+  }
+  .agent-card-phase:first-child { margin-top: 0; }
+  .agent-card-phase.req    { background: #2563eb; }
+  .agent-card-phase.design { background: #7c3aed; }
+  .agent-card-phase.test   { background: #0891b2; }
+  .agent-card-phase.qa     { background: #0f766e; }
 
   /* ===== ⑤ Limits + effect.html impact ===== */
   .limits-grid {
@@ -1262,82 +1314,164 @@
 
   <!-- ====================== ④ 導入する AI エージェント ====================== -->
   <div class="section">
-    <div class="section-title ai">④ 導入する AI エージェント一覧（5 種類）</div>
+    <div class="section-title ai">④ 導入する AI エージェント一覧（8 種類）</div>
     <div class="section-sub">
-      上記で登場した AI エージェントを整理。<strong>すべて Claude Code subagent で実装可能</strong>な規模で、
-      初期実装はそれぞれ 1〜3 日のオーダー。<span class="new-badge">NEW</span> は本資料で新規提案。
+      <a href="./agents.html">agents.html</a> に整理した<strong>実装済み 8 エージェント</strong>。すべて Claude Code subagent で実装可能な規模で、
+      初期実装はそれぞれ 1〜3 日のオーダー。Step 番号は <a href="./agents.html">agents.html</a> の実行順序、
+      <span class="new-badge">NEW</span> は本資料で新規提案、実測出力は実装後のパイロット実行値。
     </div>
 
     <div class="agents-grid">
-      <div class="agent-card new">
-        <div class="agent-card-head">
-          <div class="agent-card-name">要件構造化AI<span class="new-badge">NEW</span></div>
-        </div>
-        <div class="agent-card-role">
-          要件仕様書（書式不定）から章立て構造・アトミック要件分解を自動生成。
-          ID 付与の前提となる<strong>セマンティック階層</strong>を作る。
-        </div>
-        <div class="agent-card-meta">
-          <span class="ms-label">使用ステップ:</span> ① 章立て、② 要件分解<br>
-          <span class="ms-label">実装規模:</span> <strong>2〜3 日</strong>（最重要）<br>
-          <span class="ms-label">人間チェック:</span> 章構造の妥当性レビュー
-        </div>
-      </div>
+
+      <div class="agent-card-phase req">▼ 要件定義フェーズ（Step 1〜4）</div>
 
       <div class="agent-card new">
         <div class="agent-card-head">
-          <div class="agent-card-name">業務ルール抽出AI<span class="new-badge">NEW</span></div>
+          <div class="agent-card-name">章立て構造化AI<span class="new-badge">NEW</span></div>
+          <div class="agent-card-step">Step 1</div>
         </div>
+        <div class="agent-card-id">chapter-structuring-ai</div>
         <div class="agent-card-role">
-          要件文中の業務ルール（条件分岐・閾値・状態遷移）を抽出し、デシジョンテーブル素案を生成。
+          要件仕様書（書式不定）から章・節構造を自動抽出。
+          ID 付与・分解の前提となる<strong>セマンティック階層</strong>を作る。
         </div>
         <div class="agent-card-meta">
-          <span class="ms-label">使用ステップ:</span> ③ 業務ルール抽出<br>
+          <span class="ms-label">使用ステップ:</span> ① 章立て<br>
           <span class="ms-label">実装規模:</span> <strong>2 日</strong><br>
-          <span class="ms-label">人間チェック:</span> 業務的妥当性・欠落確認
-        </div>
-      </div>
-
-      <div class="agent-card new">
-        <div class="agent-card-head">
-          <div class="agent-card-name">用語抽出AI<span class="new-badge">NEW</span></div>
-        </div>
-        <div class="agent-card-role">
-          全文書から専門用語を抽出し、定義素案と同義語候補を生成。用語集を自動メンテナンス。
-        </div>
-        <div class="agent-card-meta">
-          <span class="ms-label">使用ステップ:</span> ④ 用語集<br>
-          <span class="ms-label">実装規模:</span> <strong>1〜2 日</strong><br>
-          <span class="ms-label">人間チェック:</span> 業務固有語の定義補強
+          <span class="ms-label">人間チェック:</span> 章構造の妥当性レビュー<br>
+          <span class="ms-label">実測出力:</span> 10 章 27 節
         </div>
       </div>
 
       <div class="agent-card new">
         <div class="agent-card-head">
           <div class="agent-card-name">ID 付与エンジン<span class="new-badge">NEW</span></div>
+          <div class="agent-card-step">Step 2</div>
         </div>
+        <div class="agent-card-id">id-assignment-engine</div>
         <div class="agent-card-role">
-          章立て構造から決定論的に安定 ID を自動生成。<strong>大部分はスクリプト</strong>、AI は曖昧解決のみ。
+          章立て構造から決定論的に安定 ID を自動生成。<strong>大部分はスクリプト</strong>で、AI は曖昧解決のみ担当。
         </div>
         <div class="agent-card-meta">
-          <span class="ms-label">使用ステップ:</span> ⑤ ID 付与<br>
+          <span class="ms-label">使用ステップ:</span> ② ID 付与<br>
           <span class="ms-label">実装規模:</span> <strong>1 日</strong>（最も簡単）<br>
-          <span class="ms-label">人間チェック:</span> 原則不要
+          <span class="ms-label">人間チェック:</span> unresolved 件のみ<br>
+          <span class="ms-label">実測出力:</span> 30 件（unresolved 4 件）
         </div>
       </div>
+
+      <div class="agent-card new">
+        <div class="agent-card-head">
+          <div class="agent-card-name">アトミック要件分解AI<span class="new-badge">NEW</span></div>
+          <div class="agent-card-step">Step 3</div>
+        </div>
+        <div class="agent-card-id">atomic-requirement-ai</div>
+        <div class="agent-card-role">
+          複合的に書かれた要件文を <strong>1 要件 1 主張</strong>のアトミック単位に分解。
+          受入テスト設計AI が個別シナリオを生成するための前提を整える。
+        </div>
+        <div class="agent-card-meta">
+          <span class="ms-label">使用ステップ:</span> ③ 要件分解<br>
+          <span class="ms-label">実装規模:</span> <strong>2 日</strong><br>
+          <span class="ms-label">人間チェック:</span> 分解粒度の確認・統合判断<br>
+          <span class="ms-label">実測出力:</span> 65 件アトミック要件
+        </div>
+      </div>
+
+      <div class="agent-card new">
+        <div class="agent-card-head">
+          <div class="agent-card-name">業務ルール抽出AI<span class="new-badge">NEW</span></div>
+          <div class="agent-card-step">Step 4a</div>
+        </div>
+        <div class="agent-card-id">business-rule-extraction-ai</div>
+        <div class="agent-card-role">
+          要件文中の業務ルール（条件分岐・閾値・状態遷移）を抽出し、<strong>YAML / デシジョンテーブル素案</strong>を生成。
+        </div>
+        <span class="agent-card-parallel">⚡ Step 4a・4b 並列実行可</span>
+        <div class="agent-card-meta">
+          <span class="ms-label">使用ステップ:</span> ④a 業務ルール抽出<br>
+          <span class="ms-label">実装規模:</span> <strong>2 日</strong><br>
+          <span class="ms-label">人間チェック:</span> 業務的妥当性・欠落候補確認<br>
+          <span class="ms-label">実測出力:</span> 16 件ルール + 15 件欠落候補
+        </div>
+      </div>
+
+      <div class="agent-card new">
+        <div class="agent-card-head">
+          <div class="agent-card-name">用語集生成AI<span class="new-badge">NEW</span></div>
+          <div class="agent-card-step">Step 4b</div>
+        </div>
+        <div class="agent-card-id">glossary-generation-ai</div>
+        <div class="agent-card-role">
+          全文書からドメイン用語を抽出し、<strong>定義素案＋同義語クラスタ</strong>を生成。用語集を自動メンテナンス。
+        </div>
+        <span class="agent-card-parallel">⚡ Step 4a・4b 並列実行可</span>
+        <div class="agent-card-meta">
+          <span class="ms-label">使用ステップ:</span> ④b 用語集<br>
+          <span class="ms-label">実装規模:</span> <strong>1〜2 日</strong><br>
+          <span class="ms-label">人間チェック:</span> 業務固有語の定義補強<br>
+          <span class="ms-label">実測出力:</span> 22 用語・3 同義語クラスタ
+        </div>
+      </div>
+
+      <div class="agent-card-phase design">▼ 基本設計フェーズ（Step 5）</div>
+
+      <div class="agent-card new">
+        <div class="agent-card-head">
+          <div class="agent-card-name">ユースケース整形AI<span class="new-badge">NEW</span></div>
+          <div class="agent-card-step">Step 5</div>
+        </div>
+        <div class="agent-card-id">usecase-formatting-ai</div>
+        <div class="agent-card-role">
+          要件・業務ルール・用語集から UC 定義を構築。<strong>Given-When-Then の出力は禁止</strong>（責務分離）し、
+          UC 段階で REQ／BR カバレッジを担保する。
+        </div>
+        <div class="agent-card-meta">
+          <span class="ms-label">使用ステップ:</span> ⑤ UC 整形<br>
+          <span class="ms-label">実装規模:</span> <strong>2 日</strong><br>
+          <span class="ms-label">人間チェック:</span> UC 粒度・業務シナリオ整合<br>
+          <span class="ms-label">実測出力:</span> 8 UC・REQ／BR カバレッジ 100%
+        </div>
+      </div>
+
+      <div class="agent-card-phase test">▼ テスト設計フェーズ（Step 6）</div>
+
+      <div class="agent-card">
+        <div class="agent-card-head">
+          <div class="agent-card-name">受入テスト設計AI</div>
+          <div class="agent-card-step">Step 6</div>
+        </div>
+        <div class="agent-card-id">acceptance-test-design-ai</div>
+        <div class="agent-card-role">
+          <a href="./index.html">ai-05/index.html</a> ／ <a href="./effect.html">effect.html</a> の主役エージェント。
+          UC 定義から <strong>Gherkin 形式の受入テストシナリオ</strong>を生成。
+        </div>
+        <div class="agent-card-meta">
+          <span class="ms-label">使用ステップ:</span> ⑥ 受入テスト設計<br>
+          <span class="ms-label">実装規模:</span> <strong>2〜3 日</strong><br>
+          <span class="ms-label">人間チェック:</span> 業務SME による受入基準承認<br>
+          <span class="ms-label">実測出力:</span> 8 Feature・60 シナリオ・A1 = 100%
+        </div>
+      </div>
+
+      <div class="agent-card-phase qa">▼ 品質保証フェーズ（Step 7 / 横断）</div>
 
       <div class="agent-card">
         <div class="agent-card-head">
           <div class="agent-card-name">仕様一貫性レビュワーAI</div>
+          <div class="agent-card-step">Step 7（横断）</div>
         </div>
+        <div class="agent-card-id">spec-consistency-reviewer-ai</div>
         <div class="agent-card-role">
           <a href="./index.html">ai-05/index.html</a> の既存エージェント。
-          要件↔設計↔テスト間の用語揺れ・ルール矛盾を事前検出。
+          要件↔設計↔テスト間の<strong>ルール矛盾・用語揺れ・構造問題</strong>を横断検出。
+          <a href="./agents.html">agents.html</a> の推奨フローでは <strong>UC 整形後と Gherkin 生成後の 2 回稼働</strong>。
         </div>
         <div class="agent-card-meta">
-          <span class="ms-label">使用ステップ:</span> ⑥ レビュー<br>
+          <span class="ms-label">使用ステップ:</span> ⑦ 横断レビュー<br>
           <span class="ms-label">実装規模:</span> <strong>2〜3 日</strong><br>
-          <span class="ms-label">人間チェック:</span> 検出箇所の業務判断
+          <span class="ms-label">人間チェック:</span> 検出箇所の業務判断<br>
+          <span class="ms-label">実測出力:</span> ルール矛盾 3・用語揺れ 2・構造問題 3
         </div>
       </div>
     </div>
