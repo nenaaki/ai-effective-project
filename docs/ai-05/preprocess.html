@@ -613,6 +613,154 @@
     font-variant-numeric: tabular-nums;
   }
 
+  /* ===== ⑥ プリプロセスAI 導入後シミュレーション ===== */
+  .sim-wrap {
+    background: #fff;
+    border: 1px solid #d8dbe2;
+    border-radius: 14px;
+    padding: 18px;
+  }
+  .sim-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+  .sim-card {
+    border-radius: 12px;
+    padding: 14px 16px;
+    border: 2px solid;
+    background: #fff;
+  }
+  .sim-card.low  { border-color: #dc6262; background: #fdf2f2; }
+  .sim-card.mid  { border-color: #d69a3a; background: #fdf6e8; }
+  .sim-card.high { border-color: #2c8a5e; background: #ecf7ef; }
+  .sim-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding-bottom: 8px;
+    border-bottom: 1px dashed rgba(0,0,0,0.15);
+    margin-bottom: 10px;
+  }
+  .sim-title { font-size: 13px; font-weight: 700; }
+  .sim-card.low  .sim-title { color: #b53737; }
+  .sim-card.mid  .sim-title { color: #a05f1d; }
+  .sim-card.high .sim-title { color: #1e6042; }
+  .sim-badge {
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-weight: 700;
+  }
+  .sim-card.low  .sim-badge { background: #f4cccc; color: #8d2727; }
+  .sim-card.mid  .sim-badge { background: #f7e0b6; color: #7a4a0a; }
+  .sim-card.high .sim-badge { background: #c9ebd5; color: #1e6042; }
+  .sim-section { margin-bottom: 10px; }
+  .sim-section-title {
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #555;
+    letter-spacing: 0.04em;
+    margin-bottom: 5px;
+  }
+  .sim-input-list {
+    font-size: 10.5px;
+    color: #444;
+    line-height: 1.55;
+    padding-left: 16px;
+    margin: 0;
+  }
+  .sim-input-list li { margin-bottom: 2px; }
+  .sim-input-list li.new { color: #1e6042; font-weight: 600; }
+  .sim-metric {
+    display: grid;
+    grid-template-columns: 105px 1fr 38px 50px;
+    gap: 6px;
+    align-items: center;
+    margin-bottom: 4px;
+    font-size: 10.5px;
+  }
+  .sim-metric-name { color: #444; }
+  .sim-metric-bar {
+    position: relative;
+    height: 10px;
+    background: #f1f1f1;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .sim-metric-fill {
+    position: absolute; top: 0; left: 0; bottom: 0;
+    border-radius: 3px;
+  }
+  .sim-card.low  .sim-metric-fill { background: #dc6262; }
+  .sim-card.mid  .sim-metric-fill { background: #d69a3a; }
+  .sim-card.high .sim-metric-fill { background: #2c8a5e; }
+  .sim-metric-val { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; }
+  .sim-card.low  .sim-metric-val { color: #b53737; }
+  .sim-card.mid  .sim-metric-val { color: #a05f1d; }
+  .sim-card.high .sim-metric-val { color: #1e6042; }
+  .sim-metric-delta {
+    text-align: right;
+    font-size: 9.5px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: #1e6042;
+  }
+  .sim-metric.inverted {
+    box-shadow: inset 3px 0 0 #dc6262;
+    background: rgba(220, 98, 98, 0.05);
+    border-radius: 3px;
+  }
+  .sim-metric.inverted .sim-metric-bar { background: #fcdede; }
+  .sim-card .sim-metric.inverted .sim-metric-fill { background: #dc6262; }
+  .sim-metric.inverted .sim-metric-name {
+    color: #8d3030;
+    font-weight: 700;
+  }
+  .sim-card .sim-metric.inverted .sim-metric-val { color: #b53737; }
+  .sim-metric.inverted .sim-metric-name::before {
+    content: "↓";
+    display: inline-block;
+    background: #dc6262;
+    color: #fff;
+    font-size: 9px;
+    font-weight: 800;
+    padding: 0 3px;
+    border-radius: 2px;
+    margin-right: 4px;
+    vertical-align: middle;
+  }
+  .sim-metric-group {
+    font-size: 9.5px;
+    font-weight: 700;
+    color: #888;
+    margin-top: 7px;
+    margin-bottom: 3px;
+    letter-spacing: 0.04em;
+    border-bottom: 1px dashed rgba(0,0,0,0.08);
+    padding-bottom: 1px;
+  }
+  .sim-metric-group:first-child { margin-top: 0; }
+  .sim-summary {
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px dashed rgba(0,0,0,0.15);
+    font-size: 10.5px;
+    color: #555;
+    line-height: 1.55;
+  }
+  .sim-summary strong { color: #1a1a1a; }
+  .sim-note {
+    margin-top: 14px;
+    padding: 10px 14px;
+    background: #f1edfa;
+    border: 1px solid #b6a7e1;
+    border-left: 4px solid #6e68c2;
+    border-radius: 8px;
+    font-size: 11.5px;
+    color: #3d3680;
+    line-height: 1.65;
+  }
+  .sim-note strong { color: #2a235e; }
+
   /* Footer link */
   .footer-link {
     margin-top: 18px;
@@ -1271,6 +1419,389 @@
       <strong>ai-05/index.html の「要件アナリスト（AI支援）」を 5 種類のサブエージェントに分解</strong>することで、
       上流プリプロセスの自動化が実現する。最も重要なのは "ステップ⑤ ID 付与" の完全自動化で、
       これにより人手 ID 規約の負担なしにトレーサビリティAI が機能する前提が整う。
+    </div>
+  </div>
+
+  <!-- ====================== ⑥ プリプロセスAI 導入後シミュレーション ====================== -->
+  <div class="section">
+    <div class="section-title ai">⑥ プリプロセスAI 導入後の推論シミュレーション（A・B・C 軸）</div>
+    <div class="section-sub">
+      <a href="./effect.html">effect.html ④ 章</a>の「インプット品質レベル別の推論シミュレーション」に、
+      本資料で検討した <strong>5 種類のサブエージェント</strong>（要件構造化AI／業務ルール抽出AI／用語抽出AI／ID 付与エンジン／仕様一貫性レビュワーAI）を上流に挿入した場合の
+      <strong>A 網羅率／B 正確性／C 下流効果</strong>の推定値を示す。
+      右端の Δ は <a href="./effect.html">effect.html ④</a> の素のインプット値からの差分（pt）。
+      <strong>業務的妥当性は人間SMEが後段で詰める前提</strong>であり、AI プリプロセスで埋まるのは "形式・構造・整合性" のみ。
+    </div>
+
+    <div class="sim-wrap">
+      <div class="sim-grid">
+
+        <!-- LOW + preprocess -->
+        <div class="sim-card low">
+          <div class="sim-head">
+            <span class="sim-title">A. 低品質インプット<br>＋ プリプロセスAI</span>
+            <span class="sim-badge">低 → 中 へ底上げ</span>
+          </div>
+
+          <div class="sim-section">
+            <div class="sim-section-title">▼ プリプロセス後のインプット状態</div>
+            <ul class="sim-input-list">
+              <li class="new">業務要件：要件構造化AI が章立て化</li>
+              <li class="new">機能要件：アトミック要件分解＋ID 自動付与</li>
+              <li class="new">業務ルール：業務ルール抽出AI が一覧化（SME レビュー前）</li>
+              <li class="new">用語集：用語抽出AI が定義素案＋同義語候補生成</li>
+              <li>ユースケーステスト：元の素材のまま（人手）</li>
+              <li>非機能要件：定性記述のまま（閾値は人間判断）</li>
+            </ul>
+          </div>
+
+          <div class="sim-section">
+            <div class="sim-section-title">▼ 出力尺度（推定）</div>
+            <div class="sim-metric-group">A. 網羅率</div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">A1 機能要件Cov</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:73%"></div></div>
+              <span class="sim-metric-val">73%</span>
+              <span class="sim-metric-delta">+18pt</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">A2 業務ルール網羅</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:58%"></div></div>
+              <span class="sim-metric-val">58%</span>
+              <span class="sim-metric-delta">+18pt</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">A3 UCトレース</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:28%"></div></div>
+              <span class="sim-metric-val">28%</span>
+              <span class="sim-metric-delta">+13pt</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">A4 非機能Cov</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:30%"></div></div>
+              <span class="sim-metric-val">30%</span>
+              <span class="sim-metric-delta">+5pt</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">A5 パターン網羅</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:55%"></div></div>
+              <span class="sim-metric-val">55%</span>
+              <span class="sim-metric-delta">+10pt</span>
+            </div>
+            <div class="sim-metric-group">B. 正確性</div>
+            <div class="sim-metric inverted">
+              <span class="sim-metric-name">B1 SME修正↓</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:50%"></div></div>
+              <span class="sim-metric-val">50%</span>
+              <span class="sim-metric-delta">−15pt</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">B2 用語整合</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:73%"></div></div>
+              <span class="sim-metric-val">73%</span>
+              <span class="sim-metric-delta">+23pt</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">B3 実行可能</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:70%"></div></div>
+              <span class="sim-metric-val">70%</span>
+              <span class="sim-metric-delta">+5pt</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">B4 業務ルール再現</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:58%"></div></div>
+              <span class="sim-metric-val">58%</span>
+              <span class="sim-metric-delta">+13pt</span>
+            </div>
+            <div class="sim-metric inverted">
+              <span class="sim-metric-name">B5 偽陽性↓</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:15%"></div></div>
+              <span class="sim-metric-val">15%</span>
+              <span class="sim-metric-delta">−5pt</span>
+            </div>
+            <div class="sim-metric-group">C. 下流効果</div>
+            <div class="sim-metric inverted">
+              <span class="sim-metric-name">C1 欠陥流出↓</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:22%"></div></div>
+              <span class="sim-metric-val">22%</span>
+              <span class="sim-metric-delta">−8pt</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">C2 E2E引渡</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:60%"></div></div>
+              <span class="sim-metric-val">60%</span>
+              <span class="sim-metric-delta">+5pt</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">C3 SME時短率</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:42%"></div></div>
+              <span class="sim-metric-val">42%</span>
+              <span class="sim-metric-delta">+22pt</span>
+            </div>
+            <div class="sim-metric inverted">
+              <span class="sim-metric-name">C4 上流戻し↓</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:25%"></div></div>
+              <span class="sim-metric-val">25%</span>
+              <span class="sim-metric-delta">−10pt</span>
+            </div>
+          </div>
+
+          <div class="sim-summary">
+            <strong>総合所見：</strong>素のままなら「素案として読み流す」だけだったインプットが、
+            <strong>SME 時短 20→42%（倍増）／用語整合 50→73%／業務ルール網羅 40→58%</strong>と
+            <strong>中品質寄りの水準に底上げ</strong>される。
+            ただし UC・非機能は AI プリプロセスでは触れないため A3／A4 は伸び切らない（人手で UC・閾値を入れる必要が残る）。
+          </div>
+        </div>
+
+        <!-- MID + preprocess -->
+        <div class="sim-card mid">
+          <div class="sim-head">
+            <span class="sim-title">B. 中品質インプット<br>＋ プリプロセスAI</span>
+            <span class="sim-badge">最も投資効率が高い帯</span>
+          </div>
+
+          <div class="sim-section">
+            <div class="sim-section-title">▼ プリプロセス後のインプット状態</div>
+            <ul class="sim-input-list">
+              <li class="new">業務要件：構造化＋アトミック分解で粒度均一化</li>
+              <li class="new">機能要件：ID 付与済み・トレース容易</li>
+              <li class="new">業務ルール：抽出AI で漏れ補完＋一覧表強化</li>
+              <li class="new">用語集：抽出AI で同義語・例文を自動補強</li>
+              <li>ユースケーステスト：粗粒度（手作業）</li>
+              <li>非機能要件：主要項目に閾値あり（人手）</li>
+            </ul>
+          </div>
+
+          <div class="sim-section">
+            <div class="sim-section-title">▼ 出力尺度（推定）</div>
+            <div class="sim-metric-group">A. 網羅率</div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">A1 機能要件Cov</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:92%"></div></div>
+              <span class="sim-metric-val">92%</span>
+              <span class="sim-metric-delta">+12pt</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">A2 業務ルール網羅</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:85%"></div></div>
+              <span class="sim-metric-val">85%</span>
+              <span class="sim-metric-delta">+15pt</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">A3 UCトレース</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:80%"></div></div>
+              <span class="sim-metric-val">80%</span>
+              <span class="sim-metric-delta">+10pt</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">A4 非機能Cov</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:65%"></div></div>
+              <span class="sim-metric-val">65%</span>
+              <span class="sim-metric-delta">+5pt</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">A5 パターン網羅</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:82%"></div></div>
+              <span class="sim-metric-val">82%</span>
+              <span class="sim-metric-delta">+7pt</span>
+            </div>
+            <div class="sim-metric-group">B. 正確性</div>
+            <div class="sim-metric inverted">
+              <span class="sim-metric-name">B1 SME修正↓</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:22%"></div></div>
+              <span class="sim-metric-val">22%</span>
+              <span class="sim-metric-delta">−13pt</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">B2 用語整合</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:95%"></div></div>
+              <span class="sim-metric-val">95%</span>
+              <span class="sim-metric-delta">+15pt</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">B3 実行可能</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:92%"></div></div>
+              <span class="sim-metric-val">92%</span>
+              <span class="sim-metric-delta">+4pt</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">B4 業務ルール再現</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:85%"></div></div>
+              <span class="sim-metric-val">85%</span>
+              <span class="sim-metric-delta">+10pt</span>
+            </div>
+            <div class="sim-metric inverted">
+              <span class="sim-metric-name">B5 偽陽性↓</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:7%"></div></div>
+              <span class="sim-metric-val">7%</span>
+              <span class="sim-metric-delta">−3pt</span>
+            </div>
+            <div class="sim-metric-group">C. 下流効果</div>
+            <div class="sim-metric inverted">
+              <span class="sim-metric-name">C1 欠陥流出↓</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:7%"></div></div>
+              <span class="sim-metric-val">7%</span>
+              <span class="sim-metric-delta">−5pt</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">C2 E2E引渡</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:85%"></div></div>
+              <span class="sim-metric-val">85%</span>
+              <span class="sim-metric-delta">+5pt</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">C3 SME時短率</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:75%"></div></div>
+              <span class="sim-metric-val">75%</span>
+              <span class="sim-metric-delta">+20pt</span>
+            </div>
+            <div class="sim-metric inverted">
+              <span class="sim-metric-name">C4 上流戻し↓</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:8%"></div></div>
+              <span class="sim-metric-val">8%</span>
+              <span class="sim-metric-delta">−7pt</span>
+            </div>
+          </div>
+
+          <div class="sim-summary">
+            <strong>総合所見：</strong>中品質帯がもっとも投資効率が高い。
+            <strong>B2 用語整合 80→95% / C3 SME時短 55→75% / C1 欠陥流出 12→7%</strong>と、
+            5 軸すべてが高品質帯に近い水準に到達する。
+            元の中品質を維持する人手コストを、プリプロセスAI が肩代わりする構図。
+            <strong>ai-05/index.html「Plan 工程で派生・確定可」（紫●マーカー）の前提が成立</strong>するライン。
+          </div>
+        </div>
+
+        <!-- HIGH + preprocess -->
+        <div class="sim-card high">
+          <div class="sim-head">
+            <span class="sim-title">C. 高品質インプット<br>＋ プリプロセスAI</span>
+            <span class="sim-badge">飽和 / 維持コスト削減</span>
+          </div>
+
+          <div class="sim-section">
+            <div class="sim-section-title">▼ プリプロセス後のインプット状態</div>
+            <ul class="sim-input-list">
+              <li>業務要件：構造化＋関係性（DSL/モデル）— 元から完成</li>
+              <li>機能要件：アクション×権限粒度 — 元から完成</li>
+              <li>業務ルール：DMN — 元から完成</li>
+              <li>用語集：全語＋同義語＋例文 — 元から完成</li>
+              <li>ユースケーステスト：細粒度＋事前/事後条件</li>
+              <li>非機能要件：全項目に閾値・測定方法</li>
+            </ul>
+          </div>
+
+          <div class="sim-section">
+            <div class="sim-section-title">▼ 出力尺度（推定）</div>
+            <div class="sim-metric-group">A. 網羅率</div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">A1 機能要件Cov</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:97%"></div></div>
+              <span class="sim-metric-val">97%</span>
+              <span class="sim-metric-delta">+2pt</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">A2 業務ルール網羅</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:97%"></div></div>
+              <span class="sim-metric-val">97%</span>
+              <span class="sim-metric-delta">+2pt</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">A3 UCトレース</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:98%"></div></div>
+              <span class="sim-metric-val">98%</span>
+              <span class="sim-metric-delta">+1pt</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">A4 非機能Cov</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:92%"></div></div>
+              <span class="sim-metric-val">92%</span>
+              <span class="sim-metric-delta">+2pt</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">A5 パターン網羅</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:94%"></div></div>
+              <span class="sim-metric-val">94%</span>
+              <span class="sim-metric-delta">+2pt</span>
+            </div>
+            <div class="sim-metric-group">B. 正確性</div>
+            <div class="sim-metric inverted">
+              <span class="sim-metric-name">B1 SME修正↓</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:8%"></div></div>
+              <span class="sim-metric-val">8%</span>
+              <span class="sim-metric-delta">−4pt</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">B2 用語整合</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:98%"></div></div>
+              <span class="sim-metric-val">98%</span>
+              <span class="sim-metric-delta">+1pt</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">B3 実行可能</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:98%"></div></div>
+              <span class="sim-metric-val">98%</span>
+              <span class="sim-metric-delta">+1pt</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">B4 業務ルール再現</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:95%"></div></div>
+              <span class="sim-metric-val">95%</span>
+              <span class="sim-metric-delta">+3pt</span>
+            </div>
+            <div class="sim-metric inverted">
+              <span class="sim-metric-name">B5 偽陽性↓</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:3%"></div></div>
+              <span class="sim-metric-val">3%</span>
+              <span class="sim-metric-delta">−1pt</span>
+            </div>
+            <div class="sim-metric-group">C. 下流効果</div>
+            <div class="sim-metric inverted">
+              <span class="sim-metric-name">C1 欠陥流出↓</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:3%"></div></div>
+              <span class="sim-metric-val">3%</span>
+              <span class="sim-metric-delta">−1pt</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">C2 E2E引渡</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:97%"></div></div>
+              <span class="sim-metric-val">97%</span>
+              <span class="sim-metric-delta">+2pt</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-metric-name">C3 SME時短率</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:85%"></div></div>
+              <span class="sim-metric-val">85%</span>
+              <span class="sim-metric-delta">+10pt</span>
+            </div>
+            <div class="sim-metric inverted">
+              <span class="sim-metric-name">C4 上流戻し↓</span>
+              <div class="sim-metric-bar"><div class="sim-metric-fill" style="width:3%"></div></div>
+              <span class="sim-metric-val">3%</span>
+              <span class="sim-metric-delta">−2pt</span>
+            </div>
+          </div>
+
+          <div class="sim-summary">
+            <strong>総合所見：</strong>元のインプットが既に構造化されているため<strong>飽和（伸び代小）</strong>。
+            ただし <strong>C3 SME 時短 75→85%</strong> は依然として大きい — 高品質を<strong>"維持する"人手コスト</strong>を
+            プリプロセスAI が肩代わりするためで、SME はレビューだけに専念できる。
+            投資の主目的は "品質向上" ではなく "高品質の<strong>維持コスト削減</strong>" にシフトする。
+          </div>
+        </div>
+
+      </div>
+
+      <div class="sim-note">
+        <strong>感度の方向性（推定）：</strong>
+        プリプロセスAI が最も効くのは<strong>低→中の底上げ</strong>と<strong>中→高への押し上げ</strong>の 2 帯。
+        最大の伸び幅は <strong>C3 SME 時短（+20〜22pt）</strong>と <strong>B2 用語整合（+15〜23pt）</strong>で、
+        これは 5 種のサブエージェントがそれぞれ "形式・構造・整合性" の作業を肩代わりした結果。
+        逆に <strong>A4 非機能Cov・B5 偽陽性</strong>はプリプロセスでの伸び幅が小さい — これらは<strong>業務的妥当性の領域</strong>であり、
+        AI プリプロセスでは埋まらず、SME 早期介入や DMN 化など <a href="./effect.html">effect.html ⑤</a> の他レバーとの併用が必要。
+        高品質帯では飽和するため、投資判断は<strong>"中品質を高品質へ押し上げる"局面に集中</strong>させると ROI が最大化する。
+      </div>
     </div>
   </div>
 

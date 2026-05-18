@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PW-DMS 要件構造化AIパイプライン検証レポート（ユーザマスタ画面）</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", sans-serif;
+      font-size: 15px;
+      line-height: 1.8;
+      color: #1a1a2e;
+      background: #f5f6fa;
+    }
+
+    .page {
+      max-width: 960px;
+      margin: 40px auto;
+      padding: 0 24px 80px;
+    }
+
+    /* ヘッダー */
+    .report-header {
+      background: linear-gradient(135deg, #1e3a5f 0%, #2d6a9f 100%);
+      color: #fff;
+      border-radius: 12px;
+      padding: 36px 40px;
+      margin-bottom: 32px;
+    }
+
+    .report-header h1 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 8px 24px;
+    }
+
+    .meta-item {
+      font-size: 13px;
+      opacity: 0.9;
+    }
+
+    .meta-item strong {
+      opacity: 0.7;
+      font-weight: 500;
+      margin-right: 6px;
+    }
+
+    /* セクション */
+    section {
+      background: #fff;
+      border-radius: 10px;
+      padding: 32px 36px;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.07);
+    }
+
+    h2 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1e3a5f;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #e8eef6;
+    }
+
+    h3 {
+      font-size: 15px;
+      font-weight: 700;
+      color: #2d6a9f;
+      margin: 24px 0 12px;
+    }
+
+    p {
+      margin-bottom: 12px;
+      color: #2c2c3e;
+    }
+
+    /* 結論バナー */
+    .conclusion-banner {
+      background: #eaf4e8;
+      border-left: 4px solid #34a853;
+      border-radius: 6px;
+      padding: 16px 20px;
+      margin-bottom: 16px;
+      font-weight: 600;
+      color: #1e5c35;
+      font-size: 15px;
+    }
+
+    .conclusion-note {
+      color: #555;
+      font-size: 14px;
+      font-weight: 400;
+    }
+
+    /* テーブル */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      margin: 12px 0;
+    }
+
+    thead th {
+      background: #f0f4fa;
+      color: #1e3a5f;
+      font-weight: 600;
+      padding: 10px 14px;
+      text-align: left;
+      border-bottom: 2px solid #d0dcea;
+    }
+
+    tbody td {
+      padding: 9px 14px;
+      border-bottom: 1px solid #eef1f7;
+      vertical-align: top;
+      color: #2c2c3e;
+    }
+
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover { background: #fafbfe; }
+
+    /* バッジ */
+    .badge {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+    .badge-ok    { background: #d4edda; color: #155724; }
+    .badge-warn  { background: #fff3cd; color: #856404; }
+    .badge-fail  { background: #f8d7da; color: #721c24; }
+
+    /* 発見カード */
+    .finding-card {
+      border: 1px solid #e0e8f4;
+      border-radius: 8px;
+      padding: 20px 24px;
+      margin-bottom: 16px;
+    }
+
+    .finding-card .finding-title {
+      font-weight: 700;
+      color: #1e3a5f;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+
+    .finding-card dl {
+      display: grid;
+      grid-template-columns: 72px 1fr;
+      gap: 6px 12px;
+      font-size: 13.5px;
+    }
+
+    .finding-card dt {
+      font-weight: 600;
+      color: #777;
+      padding-top: 1px;
+    }
+
+    .finding-card dd { color: #2c2c3e; }
+
+    /* チェックリスト */
+    .checklist { list-style: none; }
+    .checklist li {
+      padding: 6px 0 6px 28px;
+      position: relative;
+      font-size: 14px;
+      color: #2c2c3e;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .checklist li:last-child { border-bottom: none; }
+    .checklist li::before {
+      position: absolute;
+      left: 0;
+      top: 7px;
+      font-size: 14px;
+    }
+    .checklist li.ok::before    { content: "✅"; }
+    .checklist li.warn::before  { content: "⚠️"; }
+    .checklist li.fail::before  { content: "❌"; }
+
+    /* パイプラインフロー */
+    .pipeline {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+      font-size: 13px;
+      margin: 12px 0;
+    }
+    .pipeline-step {
+      background: #e8eef6;
+      color: #1e3a5f;
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .pipeline-step.highlight {
+      background: #2d6a9f;
+      color: #fff;
+    }
+    .pipeline-arrow {
+      color: #9ab;
+      font-size: 16px;
+    }
+
+    /* アクションリスト */
+    .action-list { list-style: none; counter-reset: action; }
+    .action-list li {
+      counter-increment: action;
+      padding: 10px 12px 10px 48px;
+      position: relative;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 14px;
+      color: #2c2c3e;
+    }
+    .action-list li:last-child { border-bottom: none; }
+    .action-list li::before {
+      content: counter(action);
+      position: absolute;
+      left: 12px;
+      top: 9px;
+      width: 24px;
+      height: 24px;
+      background: #2d6a9f;
+      color: #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    code {
+      background: #f0f4fa;
+      color: #c7254e;
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: 12.5px;
+    }
+
+    .arrow-note {
+      margin-top: 10px;
+      font-size: 13.5px;
+      color: #555;
+      padding-left: 16px;
+      border-left: 3px solid #d0dcea;
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ヘッダー -->
+  <header class="report-header">
+    <h1>PW-DMS 要件構造化AIパイプライン検証レポート<br>（ユーザマスタ画面）</h1>
+    <div class="meta-grid">
+      <div class="meta-item"><strong>検証対象</strong>ユーザマスタ画面（FE020）</div>
+      <div class="meta-item"><strong>検証スコープ</strong>STEP1（8エージェント全体 end-to-end 1サイクル）</div>
+      <div class="meta-item"><strong>検証期間</strong>2026-05-18 09:32〜09:59 JST（約27分）</div>
+      <div class="meta-item"><strong>検証ブランチ</strong>f/PW-116</div>
+    </div>
+  </header>
+
+  <!-- 1. 結論 -->
+  <section>
+    <h2>1. 結論</h2>
+    <div class="conclusion-banner">
+      パイプラインは end-to-end で動作した。60 Gherkin シナリオ・10 Backlog 起票候補・一貫性レビューレポートまで自動生成された。
+    </div>
+    <p class="conclusion-note">ただし、PW-115 の mock 逸脱問題と同じ構造の「<strong>エージェントによる独断補完</strong>」が複数箇所で発生しており、エージェント定義の責務境界の精度がまだ不十分。</p>
+  </section>
+
+  <!-- 2. 出力サマリ -->
+  <section>
+    <h2>2. 出力サマリ</h2>
+    <table>
+      <thead>
+        <tr><th>エージェント</th><th>結果</th><th>主な出力</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>chapter-structuring-ai（章立て構造化AI）</td><td><span class="badge badge-ok">✅ 正常</span></td><td>10章 27節</td></tr>
+        <tr><td>id-assignment-engine（ID付与エンジン）</td><td><span class="badge badge-warn">⚠️ 補完判断</span></td><td>30件採番（うち unresolved 4件）</td></tr>
+        <tr><td>atomic-requirement-ai（アトミック要件分解AI）</td><td><span class="badge badge-warn">⚠️ 補完判断</span></td><td>65件アトミック要件</td></tr>
+        <tr><td>business-rule-extraction-ai（業務ルール抽出AI）</td><td><span class="badge badge-ok">✅ 正常</span></td><td>16件業務ルール + 15件欠落候補</td></tr>
+        <tr><td>glossary-generation-ai（用語集生成AI）</td><td><span class="badge badge-ok">✅ 正常</span></td><td>22用語・3同義語クラスタ</td></tr>
+        <tr><td>usecase-formatting-ai（ユースケース整形AI）</td><td><span class="badge badge-ok">✅ 責務厳守</span></td><td>8UC・REQ/BRカバレッジ100%</td></tr>
+        <tr><td>acceptance-test-design-ai（受入テスト設計AI）</td><td><span class="badge badge-ok">✅ 正常</span></td><td>8 Feature・60シナリオ・A1=100%</td></tr>
+        <tr><td>spec-consistency-reviewer-ai（仕様一貫性レビュワーAI）</td><td><span class="badge badge-ok">✅ 正常</span></td><td>ルール矛盾3・用語ゆれ2・構造問題3を検出</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 3. 重大な発見 -->
+  <section>
+    <h2>3. 重大な発見（推測補完問題の再現）</h2>
+
+    <div class="finding-card">
+      <div class="finding-title">発見1: Gherkin が「システム管理者権限」を独断で具体化（ISSUE-001）</div>
+      <dl>
+        <dt>状況</dt>
+        <dd>BR-011 は「パスワードリセット実行可能な管理者の権限グループは未定義」と明示</dd>
+        <dt>問題</dt>
+        <dd>acceptance-test-design-ai が UC008 の Background で <code>Given システム管理者権限を持つユーザがログイン済みである</code> と独断で具体化</dd>
+        <dt>構造</dt>
+        <dd>mock に無い <code>userPassword</code> を engineer が独断追加した PW-115 と同じパターン</dd>
+        <dt>成果</dt>
+        <dd>spec-consistency-reviewer-ai が<strong>事後検出に成功</strong>。責務境界の強化で未然防止可能</dd>
+      </dl>
+    </div>
+
+    <div class="finding-card">
+      <div class="finding-title">発見2: 「代表エリア」表示要件があるのに編集フィールドが存在しない（ISSUE-002）</div>
+      <dl>
+        <dt>状況</dt>
+        <dd>詳細ドロワータイトルに「ユーザID | 氏名 | 代表エリア」と表示する要件</dd>
+        <dt>問題</dt>
+        <dd>登録・編集フィールドに「代表エリア」が無く、実装不可能な状態</dd>
+        <dt>成果</dt>
+        <dd>パイプラインが上流（要件定義書）の不整合を検出できた</dd>
+      </dl>
+    </div>
+
+    <div class="finding-card">
+      <div class="finding-title">発見3: 上流エージェントの責務外動作の連鎖</div>
+      <table>
+        <thead>
+          <tr><th>エージェント</th><th>仕様外動作</th><th>影響</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>id-assignment-engine</td><td>L2 見出しを要件文として採番（仕様外）</td><td>atomic-requirement-ai への入力品質が低下</td></tr>
+          <tr><td>atomic-requirement-ai</td><td><code>inputs/requirements.md</code> を直接参照（仕様外）</td><td>再現性・決定論性が損なわれる</td></tr>
+          <tr><td>business-rule-extraction-ai / glossary-generation-ai</td><td>補助資料を自律的に参照</td><td>出力品質は高いが、入力の境界が曖昧</td></tr>
+        </tbody>
+      </table>
+      <p class="arrow-note">→「上流出力だけでは動けないので補助資料を読みに行く」連鎖。<strong>プロンプト設計の境界が緩い</strong>ことが構造要因。</p>
+    </div>
+  </section>
+
+  <!-- 4. 構造的な問題 -->
+  <section>
+    <h2>4. 構造的な問題（P-001〜P-003）</h2>
+    <table>
+      <thead>
+        <tr><th>ID</th><th>内容</th><th>影響</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>P-001</strong></td>
+          <td><code>business_rules.yaml</code> の YAML 構文エラー（19箇所）</td>
+          <td>下流が機械処理不可。business-rule-extraction-ai の修正必須</td>
+        </tr>
+        <tr>
+          <td><strong>P-002</strong></td>
+          <td>req_map.json（L2 粒度）と atomic-requirement-ai 出力（枝番粒度）の乖離</td>
+          <td>Gherkin タグが L2 止まりで、部分カバー検出不可</td>
+        </tr>
+        <tr>
+          <td><strong>P-003</strong></td>
+          <td>usecase-formatting-ai の FLAG が spec-consistency-reviewer-ai を経由せず acceptance-test-design-ai に直接届く</td>
+          <td>ISSUE-001/002 を未然防止できなかった</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 5. 全体評価 -->
+  <section>
+    <h2>5. パイプライン全体評価</h2>
+    <h3>✅ 良かった点</h3>
+    <ul class="checklist">
+      <li class="ok">end-to-end が初回で通った（60 シナリオ・10 起票候補）</li>
+      <li class="ok">usecase-formatting-ai が責務（Given-When-Then 出力禁止）を厳守</li>
+      <li class="ok">spec-consistency-reviewer-ai が ISSUE-001/002 を事後検出に成功（自浄作用が機能）</li>
+      <li class="ok">business-rule-extraction-ai と glossary-generation-ai の並列実行可能を確認</li>
+      <li class="ok">各エージェントが建設的な改善提案を返した</li>
+    </ul>
+
+    <h3>❌ 改善すべき点</h3>
+    <ul class="checklist">
+      <li class="fail">id-assignment-engine / atomic-requirement-ai / business-rule-extraction-ai / glossary-generation-ai が入力境界を超えて補助資料を参照する自律判断（PW-115 の推測補完問題の再現）</li>
+      <li class="fail">acceptance-test-design-ai が未定義事項を独断で具体化（mock 逸脱と同じ構造）</li>
+      <li class="fail">spec-consistency-reviewer-ai と acceptance-test-design-ai の実行順序を usecase-formatting-ai → spec-consistency-reviewer-ai → acceptance-test-design-ai に揃える必要</li>
+      <li class="fail">business-rule-extraction-ai の YAML 出力品質保証が必要（lint）</li>
+      <li class="fail">id-assignment-engine と atomic-requirement-ai の ID 粒度設計の統一が必要</li>
+    </ul>
+  </section>
+
+  <!-- 6. エージェント定義への改修提案 -->
+  <section>
+    <h2>6. エージェント定義への改修提案</h2>
+    <table>
+      <thead>
+        <tr><th>エージェント</th><th>改修内容</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>id-assignment-engine</td><td>「見出しを要件文として採番しない」を責務境界に明記。要件文が無い場合はエラー停止</td></tr>
+        <tr><td>atomic-requirement-ai</td><td>「上流出力以外は読まない」を厳格化。上流の品質不足はエラーで返す</td></tr>
+        <tr><td>business-rule-extraction-ai</td><td>出力 YAML を <code>yamllint</code> で検証するステップを workflow に追加</td></tr>
+        <tr><td>glossary-generation-ai</td><td>補助資料参照は許可するが、参照範囲を <code>inputs/</code> に限定明記</td></tr>
+        <tr><td>acceptance-test-design-ai</td><td>「未定義事項を独断で具体化しない」を責務境界に明記。具体化は必ず未充足レポートへ移動</td></tr>
+        <tr><td>spec-consistency-reviewer-ai</td><td>「Gherkin の独断具体化」「mock に無い項目の追加」を検出パターンとして追加</td></tr>
+        <tr><td>全エージェント</td><td>フロントマターに「補助資料の参照可否」フィールドを追加し、明示的に制御</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 7. パイプライン順序の見直し -->
+  <section>
+    <h2>7. パイプライン順序の見直し</h2>
+
+    <h3>現状</h3>
+    <div class="pipeline">
+      <span class="pipeline-step">chapter-structuring-ai</span>
+      <span class="pipeline-arrow">→</span>
+      <span class="pipeline-step">id-assignment-engine</span>
+      <span class="pipeline-arrow">→</span>
+      <span class="pipeline-step">atomic-requirement-ai</span>
+      <span class="pipeline-arrow">→</span>
+      <span class="pipeline-step">business-rule-extraction-ai<br>+ glossary-generation-ai</span>
+      <span class="pipeline-arrow">→</span>
+      <span class="pipeline-step">usecase-formatting-ai</span>
+      <span class="pipeline-arrow">→</span>
+      <span class="pipeline-step">acceptance-test-design-ai</span>
+      <span class="pipeline-arrow">→</span>
+      <span class="pipeline-step">spec-consistency-reviewer-ai</span>
+    </div>
+
+    <h3>推奨</h3>
+    <div class="pipeline">
+      <span class="pipeline-step">chapter-structuring-ai</span>
+      <span class="pipeline-arrow">→</span>
+      <span class="pipeline-step">id-assignment-engine</span>
+      <span class="pipeline-arrow">→</span>
+      <span class="pipeline-step">atomic-requirement-ai</span>
+      <span class="pipeline-arrow">→</span>
+      <span class="pipeline-step">business-rule-extraction-ai<br>+ glossary-generation-ai</span>
+      <span class="pipeline-arrow">→</span>
+      <span class="pipeline-step">usecase-formatting-ai</span>
+      <span class="pipeline-arrow">→</span>
+      <span class="pipeline-step highlight">spec-consistency-reviewer-ai<br>（中間レビュー）</span>
+      <span class="pipeline-arrow">→</span>
+      <span class="pipeline-step">acceptance-test-design-ai</span>
+      <span class="pipeline-arrow">→</span>
+      <span class="pipeline-step highlight">spec-consistency-reviewer-ai<br>（最終レビュー）</span>
+    </div>
+    <p class="arrow-note" style="margin-top:14px;">usecase-formatting-ai → spec-consistency-reviewer-ai → acceptance-test-design-ai の順にすることで、ISSUE-001/002 のような独断具体化を Gherkin 生成前に防止できる。</p>
+  </section>
+
+  <!-- 8. 防げる問題 -->
+  <section>
+    <h2>8. 検証で確認できた "防げる問題"</h2>
+    <table>
+      <thead>
+        <tr><th>問題</th><th>パイプラインの能力</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>用語ゆれ（「ステータス」vs「状態」）</td><td><span class="badge badge-ok">✅ 検出</span> spec-consistency-reviewer-ai が検出</td></tr>
+        <tr><td>ルール矛盾（表示と編集の不一致）</td><td><span class="badge badge-ok">✅ 検出</span> spec-consistency-reviewer-ai が検出</td></tr>
+        <tr><td>未充足要件</td><td><span class="badge badge-ok">✅ 検出</span> spec-consistency-reviewer-ai が検出</td></tr>
+        <tr><td>独断具体化（mock 逸脱と同じ構造）</td><td><span class="badge badge-warn">⚠️ 事後検出</span> 未然防止には acceptance-test-design-ai の責務強化が必要</td></tr>
+        <tr><td>仕様外の独自フィールド追加</td><td><span class="badge badge-warn">⚠️ 事後検出</span> 同上</td></tr>
+        <tr><td>不正な YAML</td><td><span class="badge badge-fail">❌ 未検出</span> acceptance-test-design-ai のエラー報告で気付いた</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 9. 次のアクション候補 -->
+  <section>
+    <h2>9. 次のアクション候補</h2>
+    <ol class="action-list">
+      <li><strong>エージェント定義の改修</strong>（本レポート §6 に列挙）</li>
+      <li><strong>パイプライン順序の変更</strong>（§7）</li>
+      <li><strong>business-rule-extraction-ai の YAML 出力 lint 化</strong></li>
+      <li><strong>STEP2 検証</strong>: 改修後パイプラインを同じユーザマスタ入力で再実行し、改善が確認できるか比較</li>
+      <li><strong>STEP3 検証</strong>: 別画面（例: 商品マスタ）で再現性を確認</li>
+    </ol>
+  </section>
+
+</div>
+</body>
+</html>

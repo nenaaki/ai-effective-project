@@ -530,6 +530,14 @@
     color: #3d3680;
     width: 22%;
   }
+  .levers-table td.lever-name a {
+    color: inherit;
+    text-decoration: underline dotted;
+    text-underline-offset: 3px;
+  }
+  .levers-table td.lever-name a:hover {
+    text-decoration: underline solid;
+  }
   .levers-table td.lever-from { width: 19%; color: #b53737; }
   .levers-table td.lever-to   { width: 19%; color: #1e6042; font-weight: 600; }
   .levers-table td.lever-effect { width: 22%; }
@@ -657,6 +665,7 @@
           <div class="io-head">▼ 外部インプット（要件定義に流入）</div>
           <ul>
             <li>ユースケーステスト</li>
+            <li>仕様変更管理</li>
           </ul>
         </div>
       </div>
@@ -1610,7 +1619,7 @@
         </tr>
         <tr class="lever-meta">
           <td class="lever-name">
-            要件構造化AIの導入<br>（上流補強）<span class="meta-badge">META</span>
+            <a href="./preprocess.html">要件構造化AIの導入</a><br>（上流補強）<span class="meta-badge">META</span>
           </td>
           <td class="lever-from">章立て・ID 付与を人手<br>プロジェクト間で粒度・規約バラツキ<br>規約遵守が現実的に困難</td>
           <td class="lever-to">フリーテキスト→章立て化＋<br>原子要件分解＋ID 自動付与を<br>AI エージェントが実施</td>

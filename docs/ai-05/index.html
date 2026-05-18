@@ -92,6 +92,8 @@
   .phase-title { font-size: 13px; font-weight: 700; }
   .phase.design .phase-title { color: #4d479e; }
   .phase.test   .phase-title { color: #a05f1d; }
+  .phase-title a { color: inherit; text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 2px; }
+  .phase-title a:hover { text-decoration-style: solid; }
   .phase-stage  { font-size: 10px; color: #888; letter-spacing: 0.04em; }
 
   /* AI エージェントチップ */
@@ -461,6 +463,7 @@
               <span class="ext-inputs-label">→ 外部インプット</span>
               <div class="ext-inputs-items">
                 <span class="ext-tag">ユースケーステスト</span>
+                <span class="ext-tag">仕様変更管理</span>
               </div>
             </div>
           </div>
@@ -480,7 +483,7 @@
 
         <div class="phase test">
           <div class="phase-head">
-            <span class="phase-title">⑧ 受入テスト</span>
+            <span class="phase-title"><a href="./effect.html">⑧ 受入テスト</a></span>
             <span class="phase-stage">Level 1 / 業務シナリオ検証</span>
           </div>
           <div class="agents">
