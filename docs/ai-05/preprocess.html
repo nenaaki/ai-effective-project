@@ -851,7 +851,8 @@
   <div class="lede">
     <a href="./effect.html">effect.html</a> で示した <strong>META レバー（要件構造化AI の導入）</strong>は、
     要件定義工程の "人手プリプロセス" を AI エージェントに置き換えるという発想だった。
-    本資料ではその中身を分解し、<strong>ヒアリング完了後の要件整備 6 ステップ</strong>のうち
+    本資料ではその中身を分解し、<strong>ヒアリング完了後の要件整備〜受入テスト設計 7 ステップ</strong>
+    （<a href="./agents.html">agents.html</a> に実装した 8 エージェントの実行順序に揃え、Step 4a・4b は並列実行）のうち
     どこを AI に肩代わりさせられるか、人間は何に集中すべきかを明らかにする。
     そして <strong>商品マスタ画面 + 業務フロー定義</strong>の規模感を例に、AsIs / ToBe の工数を比較する。
     <br>※ 起点となる<strong>初期情報セット</strong>（要件仕様書（書式不定）／ユースケース情報／機能一覧／データ構造／非機能要件閾値）は
@@ -866,17 +867,17 @@
     AI に置き換え可能なのは<strong>"形式・構造・整合性の整備作業"</strong>に限る、という前提で読んでほしい。
   </div>
 
-  <!-- ====================== ① 全体像 7 ステップ + 依存関係 ====================== -->
+  <!-- ====================== ① 全体パイプライン処理フロー ====================== -->
   <div class="section">
-    <div class="section-title">① 要件整備プロセスの処理フロー — 依存関係と並列実行</div>
+    <div class="section-title">① 要件整備〜受入テスト設計パイプライン — 依存関係と並列実行</div>
     <div class="section-sub">
       <strong>★ 入力（分析対象）</strong>：要件仕様書（書式不定）・ユースケース情報・機能一覧・データ構造・非機能要件閾値の 5 種類が
       人間によって用意されている前提。AI はこれらを統合して分析・構造化する。
-      <strong>処理は左→右に進行</strong>。破線で囲った領域は<strong>並列実行可能</strong>を示す。
-      各ステップの<strong>AI 化可能性</strong>を 3 段階で色分け：
+      <strong>処理は左→右に進行</strong>。Step 番号と並びは <a href="./agents.html">agents.html</a> の実装に揃えた。
+      破線で囲った領域は<strong>並列実行可能</strong>。
+      各ステップの<strong>AI 化可能性</strong>を 2 段階で色分け：
       <strong style="color:#1e6042">緑＝完全自動化可能</strong>（人間は確認のみ）／
-      <strong style="color:#2c4d7d">青＝AI 素案 + 人間判断</strong>／
-      <strong style="color:#4d479e">紫＝人間専担</strong>（AI は参考情報のみ）。
+      <strong style="color:#2c4d7d">青＝AI 素案 + 人間判断</strong>（業務的妥当性判断あり／横断レビュー含む）。
     </div>
 
     <div class="steps-overview">
@@ -895,58 +896,78 @@
         </div>
         <div class="flow-arrow">→</div>
 
-        <!-- ① -->
+        <!-- Step 1 章立て構造化 -->
         <div class="flow-stage">
           <div class="step-card lv-auto">
-            <div class="step-num">①</div>
-            <div class="step-name">章立て・<br>構造化</div>
+            <div class="step-num">Step 1</div>
+            <div class="step-name">章立て<br>構造化</div>
             <span class="step-level-tag">完全自動</span>
           </div>
         </div>
         <div class="flow-arrow">→</div>
 
-        <!-- ② -->
+        <!-- Step 2 ID 付与 -->
         <div class="flow-stage">
           <div class="step-card lv-auto">
-            <div class="step-num">②</div>
+            <div class="step-num">Step 2</div>
+            <div class="step-name">ID 付与</div>
+            <span class="step-level-tag">完全自動</span>
+          </div>
+        </div>
+        <div class="flow-arrow">→</div>
+
+        <!-- Step 3 アトミック要件分解 -->
+        <div class="flow-stage">
+          <div class="step-card lv-auto">
+            <div class="step-num">Step 3</div>
             <div class="step-name">アトミック<br>要件分解</div>
             <span class="step-level-tag">完全自動</span>
           </div>
         </div>
         <div class="flow-arrow">→</div>
 
-        <!-- ③④ Parallel -->
+        <!-- Step 4a / 4b Parallel -->
         <div class="flow-stage flow-parallel">
           <div class="flow-parallel-label">▼ 並列実行可能</div>
           <div class="step-card lv-mixed">
-            <div class="step-num">③</div>
-            <div class="step-name">業務ルール<br>抽出・整理</div>
+            <div class="step-num">Step 4a</div>
+            <div class="step-name">業務ルール<br>抽出</div>
             <span class="step-level-tag">素案+判断</span>
           </div>
           <div class="step-card lv-auto">
-            <div class="step-num">④</div>
-            <div class="step-name">用語集<br>作成・維持</div>
+            <div class="step-num">Step 4b</div>
+            <div class="step-name">用語集<br>生成</div>
             <span class="step-level-tag">完全自動</span>
           </div>
         </div>
         <div class="flow-arrow">→</div>
 
-        <!-- ⑤ ID 付与 -->
+        <!-- Step 5 UC 整形 -->
         <div class="flow-stage">
           <div class="step-card lv-auto">
-            <div class="step-num">⑤</div>
-            <div class="step-name">ID 付与・<br>整合性確認</div>
+            <div class="step-num">Step 5</div>
+            <div class="step-name">UC 整形</div>
             <span class="step-level-tag">完全自動</span>
           </div>
         </div>
         <div class="flow-arrow">→</div>
 
-        <!-- ⑥ レビュー -->
+        <!-- Step 6 受入テスト設計 -->
         <div class="flow-stage">
-          <div class="step-card lv-human">
-            <div class="step-num">⑥</div>
-            <div class="step-name">レビュー・<br>最終承認</div>
-            <span class="step-level-tag">人間専担</span>
+          <div class="step-card lv-mixed">
+            <div class="step-num">Step 6</div>
+            <div class="step-name">受入テスト<br>設計</div>
+            <span class="step-level-tag">素案+判断</span>
+          </div>
+        </div>
+        <div class="flow-arrow">→</div>
+
+        <!-- Step 7 仕様一貫性レビュー（横断） -->
+        <div class="flow-stage">
+          <div class="step-card lv-mixed">
+            <div class="step-num">Step 7</div>
+            <div class="step-name">仕様一貫性<br>レビュー</div>
+            <span class="step-level-tag">横断</span>
           </div>
         </div>
         <div class="flow-arrow">→</div>
@@ -954,30 +975,32 @@
         <!-- Output -->
         <div class="flow-io flow-output">
           <div class="flow-io-label">▼ 出力</div>
-          <div class="flow-io-content">ID 付き<br>構造化要件文書</div>
+          <div class="flow-io-content">ID 付き<br>要件文書<br>＋ UC 定義<br>＋ Gherkin<br>受入テスト</div>
         </div>
 
       </div>
 
       <div class="steps-legend">
-        <div class="lg-item"><span class="lg-swatch lv-auto"></span><strong>完全自動化可能</strong>：AI が出力し、人間は確認のみ（①②④⑤）</div>
-        <div class="lg-item"><span class="lg-swatch lv-mixed"></span><strong>AI 素案 + 人間判断</strong>：AI が下書きを作り、人間が業務的判断（③）</div>
-        <div class="lg-item"><span class="lg-swatch lv-human"></span><strong>人間専担</strong>：業務的・組織的判断のため AI 代替不能（⑥）</div>
+        <div class="lg-item"><span class="lg-swatch lv-auto"></span><strong>完全自動化可能</strong>：AI が出力し、人間は確認のみ（Step 1・2・3・4b・5）</div>
+        <div class="lg-item"><span class="lg-swatch lv-mixed"></span><strong>AI 素案 + 人間判断</strong>：AI が下書きを作り、人間が業務的判断（Step 4a・6・7）</div>
       </div>
 
       <div class="flow-note">
         <strong>入力の使われ方：</strong>
-        5 種類の入力は <strong>① 章立て</strong>で統合され、後続工程で参照される。
-        <strong>機能一覧・データ構造</strong>は <strong>③ 業務ルール抽出</strong>のソース、
-        <strong>UC 情報・データ構造</strong>は <strong>④ 用語集</strong>の主要ソース。
+        5 種類の入力は <strong>Step 1 章立て構造化</strong>で統合され、後続工程で参照される。
+        <strong>機能一覧・データ構造</strong>は <strong>Step 4a 業務ルール抽出</strong>のソース、
+        <strong>UC 情報・データ構造</strong>は <strong>Step 4b 用語集生成</strong>の主要ソース。
         <strong>非機能要件閾値</strong>は別工程で確定済みのため、ここでは入力として参照するのみ。
         <br><strong>依存関係：</strong>
-        <strong>①→②</strong>（章立てが固まらないと要件は原子化できない）／
-        <strong>②→③④</strong>（原子要件が揃えば 2 工程は<strong>独立に並列実行可能</strong>）／
-        <strong>③④→⑤</strong>（全要素が揃ってから ID を一括付与）／
-        <strong>⑤→⑥</strong>（最終整合確認）。
+        <strong>Step 1→2</strong>（章立てが固まってから章節 ID を採番）／
+        <strong>Step 2→3</strong>（ID を持つ要件をアトミック化）／
+        <strong>Step 3→4a・4b</strong>（原子要件が揃えば 2 工程は<strong>独立に並列実行可能</strong>）／
+        <strong>Step 4a・4b→5</strong>（業務ルール・用語が揃ってから UC を整形）／
+        <strong>Step 5→6</strong>（UC が固まってから受入テスト Gherkin を生成）／
+        <strong>Step 7 仕様一貫性レビュー</strong>は<strong>横断</strong>：
+        <a href="./agents.html">agents.html</a> 推奨フローでは <strong>Step 5 UC 整形後と Step 6 Gherkin 生成後の 2 回稼働</strong>させ、UC 段階の矛盾を Gherkin 生成前に解消する。
         <br><strong>並列実行の意味：</strong>
-        <strong>③ 業務ルール抽出</strong>と <strong>④ 用語集作成</strong>は互いに独立して進められる。
+        <strong>Step 4a 業務ルール抽出</strong>と <strong>Step 4b 用語集生成</strong>は互いに独立して進められる。
         異なる AI エージェントが同時稼働するため、<strong>カレンダー上の所要日数</strong>が短縮される（工数の総和は不変だが、ボトルネック工程が短くなる）。
       </div>
     </div>
@@ -989,6 +1012,7 @@
     <div class="section-sub">
       左＝<strong>AsIs（現状）</strong>：すべて人間が実行／右＝<strong>ToBe（AI 導入後）</strong>：AI が素案・整形を担当、人間は判断・修正のみ。
       <strong>対象規模＝商品マスタ画面 + その業務フロー定義</strong>を 1 機能として算定。
+      Step 番号は <a href="./agents.html">agents.html</a> の実装順序に揃えた。
       <span style="background:#fff; padding:1px 4px; border:1px solid #888; border-radius:3px; font-size:10px;">人</span>＝人間 ／
       <span style="background:#e0f3e6; padding:1px 4px; border:1px solid #5cb085; border-radius:3px; font-size:10px; color:#1e6042;">AI</span>＝AI エージェント
     </div>
@@ -1006,9 +1030,9 @@
         </thead>
         <tbody>
 
-          <!-- Step 1 -->
+          <!-- Step 1 章立て構造化 -->
           <tr>
-            <td class="task">① 章立て・<br>構造化<span class="lv-tag lv-auto">完全自動</span></td>
+            <td class="task">Step 1<br>章立て<br>構造化<span class="lv-tag lv-auto">完全自動</span></td>
             <td class="asis-cell">
               <div class="work-line">
                 <span class="work-actor human">人</span>
@@ -1029,7 +1053,7 @@
               </div>
             </td>
             <td class="agent">
-              <span class="agent-chip new">要件構造化AI<span class="new-badge">NEW</span></span>
+              <span class="agent-chip new">章立て構造化AI<span class="new-badge">NEW</span></span>
             </td>
             <td class="delta">
               <div class="total">-2.3h</div>
@@ -1037,9 +1061,40 @@
             </td>
           </tr>
 
-          <!-- Step 2 -->
+          <!-- Step 2 ID 付与 -->
           <tr>
-            <td class="task">② アトミック<br>要件分解<span class="lv-tag lv-auto">完全自動</span></td>
+            <td class="task">Step 2<br>ID 付与<span class="lv-tag lv-auto">完全自動</span></td>
+            <td class="asis-cell">
+              <div class="work-line">
+                <span class="work-actor human">人</span>
+                <span class="work-time">1.5h</span>
+                <span class="work-desc">ID 規約決定 + 章節・要件への手動付与 + 重複チェック</span>
+              </div>
+            </td>
+            <td class="tobe-cell">
+              <div class="work-line">
+                <span class="work-actor ai">AI</span>
+                <span class="work-time">0.1h</span>
+                <span class="work-desc">章立て構造から決定論的に ID 自動生成（大部分はスクリプト）</span>
+              </div>
+              <div class="work-line">
+                <span class="work-actor human">人</span>
+                <span class="work-time">0.0h</span>
+                <span class="work-desc">原則レビュー不要（規約破綻がない）</span>
+              </div>
+            </td>
+            <td class="agent">
+              <span class="agent-chip new">ID 付与エンジン<span class="new-badge">NEW</span></span>
+            </td>
+            <td class="delta">
+              <div class="total">-1.4h</div>
+              <div class="sub">（-93%）</div>
+            </td>
+          </tr>
+
+          <!-- Step 3 アトミック要件分解 -->
+          <tr>
+            <td class="task">Step 3<br>アトミック<br>要件分解<span class="lv-tag lv-auto">完全自動</span></td>
             <td class="asis-cell">
               <div class="work-line">
                 <span class="work-actor human">人</span>
@@ -1060,7 +1115,7 @@
               </div>
             </td>
             <td class="agent">
-              <span class="agent-chip new">要件構造化AI</span>
+              <span class="agent-chip new">アトミック要件分解AI<span class="new-badge">NEW</span></span>
             </td>
             <td class="delta">
               <div class="total">-1.5h</div>
@@ -1068,9 +1123,9 @@
             </td>
           </tr>
 
-          <!-- Step 3 -->
+          <!-- Step 4a 業務ルール抽出 -->
           <tr>
-            <td class="task">③ 業務ルール<br>抽出・整理<span class="lv-tag lv-mixed">素案+判断</span></td>
+            <td class="task">Step 4a<br>業務ルール<br>抽出<span class="lv-tag lv-mixed">素案+判断</span></td>
             <td class="asis-cell">
               <div class="work-line">
                 <span class="work-actor human">人</span>
@@ -1082,12 +1137,12 @@
               <div class="work-line">
                 <span class="work-actor ai">AI</span>
                 <span class="work-time">0.3h</span>
-                <span class="work-desc">文中の業務ルール候補を抽出 → デシジョンテーブル素案生成</span>
+                <span class="work-desc">文中の業務ルール候補を抽出 → YAML / デシジョンテーブル素案</span>
               </div>
               <div class="work-line">
                 <span class="work-actor human">人</span>
                 <span class="work-time">0.7h</span>
-                <span class="work-desc">業務的妥当性判断・欠落ルールの追記</span>
+                <span class="work-desc">業務的妥当性判断・欠落候補の確認</span>
               </div>
             </td>
             <td class="agent">
@@ -1099,9 +1154,9 @@
             </td>
           </tr>
 
-          <!-- Step 4 -->
+          <!-- Step 4b 用語集生成 -->
           <tr>
-            <td class="task">④ 用語集<br>作成・維持<span class="lv-tag lv-auto">完全自動</span></td>
+            <td class="task">Step 4b<br>用語集<br>生成<span class="lv-tag lv-auto">完全自動</span></td>
             <td class="asis-cell">
               <div class="work-line">
                 <span class="work-actor human">人</span>
@@ -1113,7 +1168,7 @@
               <div class="work-line">
                 <span class="work-actor ai">AI</span>
                 <span class="work-time">0.2h</span>
-                <span class="work-desc">全文書から専門用語を抽出 + 定義素案生成</span>
+                <span class="work-desc">全文書から専門用語抽出 + 定義素案 + 同義語クラスタ生成</span>
               </div>
               <div class="work-line">
                 <span class="work-actor human">人</span>
@@ -1122,7 +1177,7 @@
               </div>
             </td>
             <td class="agent">
-              <span class="agent-chip new">用語抽出AI<span class="new-badge">NEW</span></span>
+              <span class="agent-chip new">用語集生成AI<span class="new-badge">NEW</span></span>
             </td>
             <td class="delta">
               <div class="total">-1.5h</div>
@@ -1130,40 +1185,71 @@
             </td>
           </tr>
 
-          <!-- Step 5 -->
+          <!-- Step 5 UC 整形 -->
           <tr>
-            <td class="task">⑤ ID 付与・<br>整合性確認<span class="lv-tag lv-auto">完全自動</span></td>
+            <td class="task">Step 5<br>UC 整形<span class="lv-tag lv-auto">完全自動</span></td>
             <td class="asis-cell">
               <div class="work-line">
                 <span class="work-actor human">人</span>
-                <span class="work-time">1.5h</span>
-                <span class="work-desc">ID 規約決定 + 各要件への手動付与 + 重複チェック</span>
+                <span class="work-time">2.5h</span>
+                <span class="work-desc">業務SME が UC 定義書を作成（8 UC 相当）・REQ/BR カバレッジ確認</span>
               </div>
             </td>
             <td class="tobe-cell">
               <div class="work-line">
                 <span class="work-actor ai">AI</span>
-                <span class="work-time">0.1h</span>
-                <span class="work-desc">章立て構造から決定論的に ID 自動生成（スクリプト）</span>
+                <span class="work-time">0.3h</span>
+                <span class="work-desc">要件・業務ルール・用語集から UC 定義を構築（Gherkin 出力は禁止＝責務分離）</span>
               </div>
               <div class="work-line">
                 <span class="work-actor human">人</span>
-                <span class="work-time">0.0h</span>
-                <span class="work-desc">原則レビュー不要（規約破綻がない）</span>
+                <span class="work-time">0.5h</span>
+                <span class="work-desc">UC 粒度・業務シナリオ整合の確認</span>
               </div>
             </td>
             <td class="agent">
-              <span class="agent-chip new">ID 付与エンジン<span class="new-badge">NEW</span></span>
+              <span class="agent-chip new">ユースケース整形AI<span class="new-badge">NEW</span></span>
             </td>
             <td class="delta">
-              <div class="total">-1.4h</div>
-              <div class="sub">（-93%）</div>
+              <div class="total">-1.7h</div>
+              <div class="sub">（-68%）</div>
             </td>
           </tr>
 
-          <!-- Step 6 -->
+          <!-- Step 6 受入テスト設計 -->
           <tr>
-            <td class="task">⑥ レビュー・<br>最終承認<span class="lv-tag lv-human">人間専担</span></td>
+            <td class="task">Step 6<br>受入テスト<br>設計<span class="lv-tag lv-mixed">素案+判断</span></td>
+            <td class="asis-cell">
+              <div class="work-line">
+                <span class="work-actor human">人</span>
+                <span class="work-time">4.0h</span>
+                <span class="work-desc">テスト設計者が Gherkin で受入シナリオ作成（8 Feature・60 シナリオ相当）</span>
+              </div>
+            </td>
+            <td class="tobe-cell">
+              <div class="work-line">
+                <span class="work-actor ai">AI</span>
+                <span class="work-time">0.4h</span>
+                <span class="work-desc">UC 定義から Gherkin 形式の受入テストシナリオを生成</span>
+              </div>
+              <div class="work-line">
+                <span class="work-actor human">人</span>
+                <span class="work-time">0.6h</span>
+                <span class="work-desc">業務SME による受入基準承認・シナリオ補強</span>
+              </div>
+            </td>
+            <td class="agent">
+              <span class="agent-chip">受入テスト設計AI</span>
+            </td>
+            <td class="delta">
+              <div class="total">-3.0h</div>
+              <div class="sub">（-75%）</div>
+            </td>
+          </tr>
+
+          <!-- Step 7 仕様一貫性レビュー（横断） -->
+          <tr>
+            <td class="task">Step 7<br>仕様一貫性<br>レビュー<span class="lv-tag lv-mixed">横断</span></td>
             <td class="asis-cell">
               <div class="work-line">
                 <span class="work-actor human">人</span>
@@ -1175,7 +1261,7 @@
               <div class="work-line">
                 <span class="work-actor ai">AI</span>
                 <span class="work-time">0.2h</span>
-                <span class="work-desc">不整合・用語揺れ・未充足要件を事前検出してレポート</span>
+                <span class="work-desc">ルール矛盾・用語揺れ・構造問題を検出（Step 5 後と Step 6 後の 2 回稼働）</span>
               </div>
               <div class="work-line">
                 <span class="work-actor human">人</span>
@@ -1195,12 +1281,12 @@
           <!-- Total -->
           <tr class="total-row">
             <td class="task">合計</td>
-            <td class="asis-cell"><strong>13.5h</strong>（人間 13.5h）</td>
-            <td class="tobe-cell"><strong>4.5h</strong>（AI 1.2h ＋ 人間 3.3h）</td>
-            <td class="agent">5 種類の AI が分担</td>
+            <td class="asis-cell"><strong>20.0h</strong>（人間 20.0h）</td>
+            <td class="tobe-cell"><strong>6.3h</strong>（AI 1.9h ＋ 人間 4.4h）</td>
+            <td class="agent">8 種類の AI が分担</td>
             <td class="delta">
-              <div class="total">-9.0h</div>
-              <div class="sub">（-67%）</div>
+              <div class="total">-13.7h</div>
+              <div class="sub">（-68.5%）</div>
             </td>
           </tr>
         </tbody>
@@ -1213,30 +1299,30 @@
     <div class="section-title value">③ 工数比較バー（AsIs vs ToBe）</div>
     <div class="section-sub">
       上記合計を視覚化。ToBe バーの<strong>斜線部分</strong>がエンジニア/SME の工数（判断・確認・最終承認）。
-      <strong>人間の工数は 13.5h → 3.3h（-76%）</strong>と大きく減り、業務判断（レビュー）に集中できるようになる。
+      <strong>人間の工数は 20.0h → 4.4h（-78%）</strong>と大きく減り、業務判断（レビュー）に集中できるようになる。
     </div>
 
     <div class="bar-section">
       <div class="bar-summary">
         <div class="stat-card asis">
           <div class="stat-k">AsIs（人手のみ）</div>
-          <div class="stat-v">13.5h</div>
-          <div class="stat-sub">1.69 人日（1人日=8h 換算）</div>
+          <div class="stat-v">20.0h</div>
+          <div class="stat-sub">2.50 人日（1人日=8h 換算）</div>
         </div>
         <div class="stat-card tobe">
           <div class="stat-k">ToBe（AI 駆動）</div>
-          <div class="stat-v">4.5h</div>
-          <div class="stat-sub">AI 1.2h / 人間 3.3h</div>
+          <div class="stat-v">6.3h</div>
+          <div class="stat-sub">AI 1.9h / 人間 4.4h</div>
         </div>
         <div class="stat-card delta">
           <div class="stat-k">削減率（総工数）</div>
-          <div class="stat-v">-67%</div>
-          <div class="stat-sub">-9.0h 短縮</div>
+          <div class="stat-v">-68.5%</div>
+          <div class="stat-sub">-13.7h 短縮</div>
         </div>
         <div class="stat-card human">
           <div class="stat-k">削減率（人間工数のみ）</div>
-          <div class="stat-v">-76%</div>
-          <div class="stat-sub">人間負担は 13.5h → 3.3h</div>
+          <div class="stat-v">-78%</div>
+          <div class="stat-sub">人間負担は 20.0h → 4.4h</div>
         </div>
       </div>
 
@@ -1244,9 +1330,10 @@
         <div></div>
         <div class="axis-track">
           <span class="axis-tick" style="left:0">0h</span>
-          <span class="axis-tick" style="left:37.0%">5h</span>
-          <span class="axis-tick" style="left:74.1%">10h</span>
-          <span class="axis-tick" style="left:100%">13.5h</span>
+          <span class="axis-tick" style="left:25%">5h</span>
+          <span class="axis-tick" style="left:50%">10h</span>
+          <span class="axis-tick" style="left:75%">15h</span>
+          <span class="axis-tick" style="left:100%">20h</span>
         </div>
         <div></div>
       </div>
@@ -1256,70 +1343,78 @@
         <div class="bar-label"><span class="tag asis">AsIs</span>人手</div>
         <div>
           <div class="bar" style="width: 100%;">
-            <div class="bar-segment" style="flex: 0 0 22.22%; background:#7c75d8;" title="① 章立て 3h">3h</div>
-            <div class="bar-segment" style="flex: 0 0 14.81%; background:#8a82e3;" title="② 分解 2h">2h</div>
-            <div class="bar-segment" style="flex: 0 0 22.22%; background:#6e68c2;" title="③ 業務ルール 3h">3h</div>
-            <div class="bar-segment" style="flex: 0 0 14.81%; background:#8a82e3;" title="④ 用語集 2h">2h</div>
-            <div class="bar-segment" style="flex: 0 0 11.11%; background:#8a82e3;" title="⑤ ID 1.5h">1.5h</div>
-            <div class="bar-segment" style="flex: 0 0 14.81%; background:#6e68c2;" title="⑥ レビュー 2h">2h</div>
+            <div class="bar-segment" style="flex: 0 0 15.0%; background:#7c75d8;" title="Step 1 章立て 3h">3h</div>
+            <div class="bar-segment" style="flex: 0 0 7.5%;  background:#8a82e3;" title="Step 2 ID 1.5h">1.5h</div>
+            <div class="bar-segment" style="flex: 0 0 10.0%; background:#7c75d8;" title="Step 3 アトミック 2h">2h</div>
+            <div class="bar-segment" style="flex: 0 0 15.0%; background:#6e68c2;" title="Step 4a 業務ルール 3h">3h</div>
+            <div class="bar-segment" style="flex: 0 0 10.0%; background:#8a82e3;" title="Step 4b 用語集 2h">2h</div>
+            <div class="bar-segment" style="flex: 0 0 12.5%; background:#7c75d8;" title="Step 5 UC 2.5h">2.5h</div>
+            <div class="bar-segment" style="flex: 0 0 20.0%; background:#6e68c2;" title="Step 6 受入テスト 4h">4h</div>
+            <div class="bar-segment" style="flex: 0 0 10.0%; background:#8a82e3;" title="Step 7 レビュー 2h">2h</div>
           </div>
         </div>
-        <div class="bar-total">13.5h<span class="days">1.69 人日</span></div>
+        <div class="bar-total">20.0h<span class="days">2.50 人日</span></div>
       </div>
 
       <!-- ToBe Bar -->
       <div class="bar-row">
         <div class="bar-label"><span class="tag tobe">ToBe</span>AI 駆動</div>
         <div>
-          <div class="bar" style="width: 33.33%;">
+          <div class="bar" style="width: 31.5%;">
             <!-- Step 1 (章立て): AI 0.2 + Human 0.5 -->
-            <div class="bar-segment" style="flex: 0 0 4.44%; background:#5cb085;" title="① AI 0.2h">.2</div>
-            <div class="bar-segment human" style="flex: 0 0 11.11%; background:#5cb085;" title="① 人 0.5h">.5</div>
-            <!-- Step 2 (分解): AI 0.2 + Human 0.3 -->
-            <div class="bar-segment" style="flex: 0 0 4.44%; background:#2c8a5e;" title="② AI 0.2h">.2</div>
-            <div class="bar-segment human" style="flex: 0 0 6.67%; background:#2c8a5e;" title="② 人 0.3h">.3</div>
-            <!-- Step 3 (業務ルール): AI 0.3 + Human 0.7 -->
-            <div class="bar-segment" style="flex: 0 0 6.67%; background:#5cb085;" title="③ AI 0.3h">.3</div>
-            <div class="bar-segment human" style="flex: 0 0 15.56%; background:#5cb085;" title="③ 人 0.7h">.7</div>
-            <!-- Step 4 (用語集): AI 0.2 + Human 0.3 -->
-            <div class="bar-segment" style="flex: 0 0 4.44%; background:#2c8a5e;" title="④ AI 0.2h">.2</div>
-            <div class="bar-segment human" style="flex: 0 0 6.67%; background:#2c8a5e;" title="④ 人 0.3h">.3</div>
-            <!-- Step 5 (ID): AI 0.1 -->
-            <div class="bar-segment" style="flex: 0 0 2.22%; background:#2c8a5e;" title="⑤ AI 0.1h">.1</div>
-            <!-- Step 6 (レビュー): AI 0.2 + Human 1.5 -->
-            <div class="bar-segment" style="flex: 0 0 4.44%; background:#5cb085;" title="⑥ AI 0.2h">.2</div>
-            <div class="bar-segment human" style="flex: 0 0 33.33%; background:#5cb085;" title="⑥ 人 1.5h">1.5</div>
+            <div class="bar-segment" style="flex: 0 0 3.17%;  background:#5cb085;" title="Step 1 AI 0.2h">.2</div>
+            <div class="bar-segment human" style="flex: 0 0 7.94%;  background:#5cb085;" title="Step 1 人 0.5h">.5</div>
+            <!-- Step 2 (ID): AI 0.1 -->
+            <div class="bar-segment" style="flex: 0 0 1.59%;  background:#2c8a5e;" title="Step 2 AI 0.1h">.1</div>
+            <!-- Step 3 (アトミック): AI 0.2 + Human 0.3 -->
+            <div class="bar-segment" style="flex: 0 0 3.17%;  background:#5cb085;" title="Step 3 AI 0.2h">.2</div>
+            <div class="bar-segment human" style="flex: 0 0 4.76%;  background:#5cb085;" title="Step 3 人 0.3h">.3</div>
+            <!-- Step 4a (業務ルール): AI 0.3 + Human 0.7 -->
+            <div class="bar-segment" style="flex: 0 0 4.76%;  background:#2c8a5e;" title="Step 4a AI 0.3h">.3</div>
+            <div class="bar-segment human" style="flex: 0 0 11.11%; background:#2c8a5e;" title="Step 4a 人 0.7h">.7</div>
+            <!-- Step 4b (用語集): AI 0.2 + Human 0.3 -->
+            <div class="bar-segment" style="flex: 0 0 3.17%;  background:#5cb085;" title="Step 4b AI 0.2h">.2</div>
+            <div class="bar-segment human" style="flex: 0 0 4.76%;  background:#5cb085;" title="Step 4b 人 0.3h">.3</div>
+            <!-- Step 5 (UC): AI 0.3 + Human 0.5 -->
+            <div class="bar-segment" style="flex: 0 0 4.76%;  background:#2c8a5e;" title="Step 5 AI 0.3h">.3</div>
+            <div class="bar-segment human" style="flex: 0 0 7.94%;  background:#2c8a5e;" title="Step 5 人 0.5h">.5</div>
+            <!-- Step 6 (受入テスト): AI 0.4 + Human 0.6 -->
+            <div class="bar-segment" style="flex: 0 0 6.35%;  background:#5cb085;" title="Step 6 AI 0.4h">.4</div>
+            <div class="bar-segment human" style="flex: 0 0 9.52%;  background:#5cb085;" title="Step 6 人 0.6h">.6</div>
+            <!-- Step 7 (レビュー): AI 0.2 + Human 1.5 -->
+            <div class="bar-segment" style="flex: 0 0 3.17%;  background:#2c8a5e;" title="Step 7 AI 0.2h">.2</div>
+            <div class="bar-segment human" style="flex: 0 0 23.81%; background:#2c8a5e;" title="Step 7 人 1.5h">1.5</div>
           </div>
         </div>
-        <div class="bar-total">4.5h<span class="days">0.56 人日</span></div>
+        <div class="bar-total">6.3h<span class="days">0.79 人日</span></div>
       </div>
 
       <!-- Sub: AI のみ -->
       <div class="bar-row sub">
         <div class="bar-label">└ うち AI</div>
         <div>
-          <div class="bar" style="width: 8.89%;">
-            <div class="bar-segment" style="flex: 1; background:#2c8a5e;" title="AI 合計 1.2h">1.2h</div>
+          <div class="bar" style="width: 9.5%;">
+            <div class="bar-segment" style="flex: 1; background:#2c8a5e;" title="AI 合計 1.9h">1.9h</div>
           </div>
         </div>
-        <div class="bar-total" style="font-size:12px;">1.2h</div>
+        <div class="bar-total" style="font-size:12px;">1.9h</div>
       </div>
 
       <!-- Sub: 人間のみ -->
       <div class="bar-row sub">
         <div class="bar-label">└ うち人間</div>
         <div>
-          <div class="bar" style="width: 24.44%;">
-            <div class="bar-segment human" style="flex: 1; background:#6e68c2;" title="人間 合計 3.3h">3.3h</div>
+          <div class="bar" style="width: 22.0%;">
+            <div class="bar-segment human" style="flex: 1; background:#6e68c2;" title="人間 合計 4.4h">4.4h</div>
           </div>
         </div>
-        <div class="bar-total" style="font-size:12px;">3.3h</div>
+        <div class="bar-total" style="font-size:12px;">4.4h</div>
       </div>
 
       <div class="bar-note">
-        ※ バー長は時間 (h) に比例。各セグメントは 6 ステップに対応（番号順）。<strong>斜線部</strong>＝人間工数。
-        <strong>⑤ ID 付与はほぼ完全自動化</strong>（人間レビュー 0h）。
-        人間工数のほぼすべては<strong>⑥ レビュー（業務判断・最終承認）</strong>に集中し、AI 工程の人間チェック分はわずか。
+        ※ バー長は時間 (h) に比例。各セグメントは 8 ステップに対応（Step 番号順、4a・4b は並列実行）。<strong>斜線部</strong>＝人間工数。
+        <strong>Step 2 ID 付与はほぼ完全自動化</strong>（人間レビュー 0h）。
+        人間工数のほぼすべては <strong>Step 7 仕様一貫性レビュー（業務判断・最終承認）</strong>と <strong>Step 4a 業務ルール抽出（業務的妥当性判断）</strong>に集中し、AI 工程の人間チェック分はわずか。
       </div>
     </div>
   </div>
@@ -1560,10 +1655,10 @@
 
     <div class="caveat" style="margin-top:14px;">
       <strong>結論：</strong>
-      ヒアリング後の要件整備プリプロセスを AI 化することで、<strong>総工数は 67% 減・人間工数は 76% 減</strong>し、
+      ヒアリング後の要件整備〜受入テスト設計パイプラインを AI 化することで、<strong>総工数は 68.5% 減・人間工数は 78% 減</strong>し、
       <a href="./effect.html">effect.html</a> の E 軸（トレーサビリティ）と B2 用語整合・C3 SME 時短に大きく波及する。
-      <strong>ai-05/index.html の「要件アナリスト（AI支援）」を 5 種類のサブエージェントに分解</strong>することで、
-      上流プリプロセスの自動化が実現する。最も重要なのは "ステップ⑤ ID 付与" の完全自動化で、
+      <strong>ai-05/index.html の「要件アナリスト（AI支援）」を <a href="./agents.html">agents.html</a> の 8 種類のサブエージェントに分解</strong>することで、
+      上流プリプロセスから受入テスト設計までの自動化が実現する。最も重要なのは "Step 2 ID 付与" の完全自動化で、
       これにより人手 ID 規約の負担なしにトレーサビリティAI が機能する前提が整う。
     </div>
   </div>
@@ -1573,7 +1668,7 @@
     <div class="section-title ai">⑥ プリプロセスAI 導入後の推論シミュレーション（A・B・C 軸）</div>
     <div class="section-sub">
       <a href="./effect.html">effect.html ④ 章</a>の「インプット品質レベル別の推論シミュレーション」に、
-      本資料で検討した <strong>5 種類のサブエージェント</strong>（要件構造化AI／業務ルール抽出AI／用語抽出AI／ID 付与エンジン／仕様一貫性レビュワーAI）を上流に挿入した場合の
+      本資料で検討した <strong>8 種類のサブエージェント</strong>（章立て構造化AI／ID 付与エンジン／アトミック要件分解AI／業務ルール抽出AI／用語集生成AI／ユースケース整形AI／受入テスト設計AI／仕様一貫性レビュワーAI）を上流に挿入した場合の
       <strong>A 網羅率／B 正確性／C 下流効果</strong>の推定値を示す。
       右端の Δ は <a href="./effect.html">effect.html ④</a> の素のインプット値からの差分（pt）。
       <strong>業務的妥当性は人間SMEが後段で詰める前提</strong>であり、AI プリプロセスで埋まるのは "形式・構造・整合性" のみ。
@@ -1592,10 +1687,10 @@
           <div class="sim-section">
             <div class="sim-section-title">▼ プリプロセス後のインプット状態</div>
             <ul class="sim-input-list">
-              <li class="new">業務要件：要件構造化AI が章立て化</li>
-              <li class="new">機能要件：アトミック要件分解＋ID 自動付与</li>
+              <li class="new">業務要件：章立て構造化AI が章節化＋アトミック要件分解AI が原子化</li>
+              <li class="new">機能要件：ID 付与エンジンが章節・要件 ID を自動採番</li>
               <li class="new">業務ルール：業務ルール抽出AI が一覧化（SME レビュー前）</li>
-              <li class="new">用語集：用語抽出AI が定義素案＋同義語候補生成</li>
+              <li class="new">用語集：用語集生成AI が定義素案＋同義語クラスタ生成</li>
               <li>ユースケーステスト：元の素材のまま（人手）</li>
               <li>非機能要件：定性記述のまま（閾値は人間判断）</li>
             </ul>
