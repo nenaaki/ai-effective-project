@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pw-dms AIエージェント動作フロー</title>
+  <style>
+    :root {
+      --bg: #fafaf7;
+      --surface: #ffffff;
+      --surface2: #f3f4f6;
+      --border: #d8dbe2;
+      --text: #1a1a1a;
+      --text-muted: #6b7280;
+      --arrow: #94a3b8;
+
+      --red: #dc2626;
+      --red-bg: #fef2f2;
+      --blue: #2563eb;
+      --blue-bg: #eff6ff;
+      --cyan: #0891b2;
+      --cyan-bg: #ecfeff;
+      --pink: #db2777;
+      --pink-bg: #fdf2f8;
+      --yellow: #a16207;
+      --yellow-bg: #fefce8;
+      --purple: #9333ea;
+      --purple-bg: #faf5ff;
+
+      --gold: #b45309;
+      --gold-bg: #fffbeb;
+      --indigo: #4f46e5;
+      --indigo-bg: #eef2ff;
+      --green: #16a34a;
+      --green-bg: #f0fdf4;
+      --orange: #c2410c;
+      --orange-bg: #fff7ed;
+      --magenta: #c026d3;
+      --magenta-bg: #fdf4ff;
+      --teal: #0d9488;
+      --teal-bg: #f0fdfa;
+      --gray: #6b7280;
+      --gray-bg: #f9fafb;
+      --violet: #7c3aed;
+      --violet-bg: #f5f3ff;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 32px 24px;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 8px;
+      letter-spacing: 0.04em;
+    }
+    .subtitle {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-bottom: 48px;
+    }
+
+    .pipelines {
+      display: flex;
+      gap: 40px;
+      align-items: flex-start;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    /* ─────── pipeline column ─────── */
+    .pipeline {
+      flex: 1;
+      min-width: 0;
+    }
+    .pipeline-header {
+      text-align: center;
+      padding: 12px 20px;
+      border-radius: 12px 12px 0 0;
+      font-weight: 700;
+      font-size: 0.9rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border: 1px solid var(--border);
+      border-bottom: none;
+    }
+    .pipeline-header.dev { background: var(--blue-bg); color: var(--blue); border-color: var(--blue); }
+    .pipeline-header.req { background: var(--green-bg); color: var(--green); border-color: var(--green); }
+
+    .pipeline-body {
+      border: 1px solid var(--border);
+      border-radius: 0 0 12px 12px;
+      padding: 24px 16px;
+      background: var(--surface);
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .pipeline-body.dev { border-color: var(--blue); }
+    .pipeline-body.req { border-color: var(--green); }
+
+    /* ─────── agent card ─────── */
+    .agent-card {
+      border-radius: 10px;
+      border: 1.5px solid;
+      padding: 14px 16px;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+      position: relative;
+    }
+    .agent-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.10);
+    }
+    .agent-card:hover .detail { display: block; }
+
+    .agent-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+    .agent-badge {
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 99px;
+      letter-spacing: 0.06em;
+      opacity: 0.9;
+      white-space: nowrap;
+    }
+    .agent-name {
+      font-size: 0.88rem;
+      font-weight: 700;
+    }
+    .agent-model {
+      margin-left: auto;
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      background: var(--surface2);
+      padding: 2px 8px;
+      border-radius: 99px;
+      border: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    .agent-desc {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      line-height: 1.55;
+    }
+
+    /* detail tooltip / expansion */
+    .detail {
+      display: none;
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(0,0,0,0.08);
+    }
+    .io-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 6px;
+    }
+    .io-block {
+      flex: 1;
+      background: rgba(0,0,0,0.04);
+      border-radius: 6px;
+      padding: 8px 10px;
+    }
+    .io-label {
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+      opacity: 0.65;
+    }
+    .io-items {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+    .io-items li { list-style: none; padding-left: 10px; position: relative; }
+    .io-items li::before { content: '›'; position: absolute; left: 0; }
+    .boundary {
+      font-size: 0.65rem;
+      color: #b91c1c;
+      background: rgba(220,38,38,0.06);
+      border-left: 2px solid rgba(220,38,38,0.4);
+      padding: 4px 8px;
+      border-radius: 0 4px 4px 0;
+      margin-top: 8px;
+      font-style: italic;
+    }
+
+    /* ─────── arrows ─────── */
+    .arrow-down {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      padding: 4px 0;
+    }
+    .arrow-line {
+      width: 2px;
+      background: var(--arrow);
+      height: 18px;
+      flex-shrink: 0;
+    }
+    .arrow-head {
+      width: 0;
+      height: 0;
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-top: 8px solid var(--arrow);
+    }
+    .arrow-label {
+      font-size: 0.6rem;
+      color: var(--text-muted);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      padding: 1px 7px;
+      border-radius: 99px;
+      margin: 2px 0;
+      white-space: nowrap;
+    }
+
+    /* branch arrows */
+    .branch-container {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      position: relative;
+    }
+    .branch-left, .branch-right { flex: 1; }
+
+    /* horizontal connector */
+    .h-connector {
+      display: flex;
+      align-items: center;
+      margin: 6px 0;
+    }
+    .h-line { flex: 1; height: 1.5px; background: var(--arrow); }
+    .h-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--arrow);
+      flex-shrink: 0;
+    }
+
+    /* parallel group */
+    .parallel-group {
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      padding: 10px 8px;
+      position: relative;
+    }
+    .parallel-label {
+      position: absolute;
+      top: -8px;
+      left: 12px;
+      font-size: 0.6rem;
+      background: var(--surface);
+      padding: 0 6px;
+      color: var(--text-muted);
+      border-radius: 4px;
+    }
+    .parallel-inner {
+      display: flex;
+      gap: 10px;
+    }
+    .parallel-col { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+
+    /* splitter */
+    .splitter {
+      display: flex;
+      align-items: flex-start;
+      gap: 0;
+      position: relative;
+    }
+    .splitter-line {
+      position: absolute;
+      top: 0; left: 50%;
+      width: 1px;
+      background: var(--arrow);
+      height: 20px;
+      transform: translateX(-50%);
+    }
+    .splitter-row {
+      display: flex;
+      gap: 10px;
+      width: 100%;
+    }
+    .splitter-col { flex: 1; }
+
+    /* color helpers */
+    .c-red    { --c: var(--red);    --bg: var(--red-bg);    }
+    .c-blue   { --c: var(--blue);   --bg: var(--blue-bg);   }
+    .c-cyan   { --c: var(--cyan);   --bg: var(--cyan-bg);   }
+    .c-pink   { --c: var(--pink);   --bg: var(--pink-bg);   }
+    .c-yellow { --c: var(--yellow); --bg: var(--yellow-bg); }
+    .c-purple { --c: var(--purple); --bg: var(--purple-bg); }
+    .c-gold   { --c: var(--gold);   --bg: var(--gold-bg);   }
+    .c-indigo { --c: var(--indigo); --bg: var(--indigo-bg); }
+    .c-green  { --c: var(--green);  --bg: var(--green-bg);  }
+    .c-orange { --c: var(--orange); --bg: var(--orange-bg); }
+    .c-magenta{ --c: var(--magenta);--bg: var(--magenta-bg);}
+    .c-teal   { --c: var(--teal);   --bg: var(--teal-bg);   }
+    .c-gray   { --c: var(--gray);   --bg: var(--gray-bg);   }
+    .c-violet { --c: var(--violet); --bg: var(--violet-bg); }
+
+    .agent-card {
+      background: var(--bg);
+      border-color: var(--c);
+    }
+    .agent-badge {
+      background: color-mix(in srgb, var(--c) 20%, transparent);
+      color: var(--c);
+      border: 1px solid color-mix(in srgb, var(--c) 40%, transparent);
+    }
+    .agent-name { color: var(--c); }
+    .io-label { color: var(--c); }
+
+    /* actor */
+    .actor {
+      text-align: center;
+      padding: 10px 16px;
+      border-radius: 8px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text);
+      position: relative;
+    }
+    .actor .emoji { font-size: 1.2rem; display: block; margin-bottom: 2px; }
+
+    /* output box */
+    .output-box {
+      text-align: center;
+      padding: 8px 14px;
+      border-radius: 8px;
+      background: var(--surface2);
+      border: 1px dashed var(--border);
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+    .output-box strong { display: block; color: var(--text); margin-bottom: 2px; font-size: 0.78rem; }
+
+    /* legend */
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin: 40px auto 0;
+      max-width: 900px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+    .legend-dot {
+      width: 10px; height: 10px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    .tag {
+      font-size: 0.62rem;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      padding: 1px 6px;
+      border-radius: 3px;
+      color: var(--text-muted);
+      font-family: monospace;
+    }
+
+    /* responsive */
+    @media (max-width: 900px) {
+      .pipelines { flex-direction: column; }
+    }
+
+    /* animation */
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    .arrow-line { animation: pulse 2s infinite; }
+  </style>
+</head>
+<body>
+
+<nav style="max-width:1400px;margin:0 auto 18px;padding:8px 14px;background:#fff;border:1px solid #d8dbe2;border-radius:10px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Hiragino Sans',sans-serif;font-size:11.5px;color:#444;display:flex;flex-wrap:wrap;align-items:center;gap:4px;">
+  <a href="./index.html" style="padding:3px 10px;border-radius:5px;text-decoration:none;color:#4d479e;background:#f3f1f9;border:1px solid #d8d3e8;font-weight:600;"><span style="opacity:0.55;font-weight:700;margin-right:4px;">1.</span>V字モデル</a>
+  <span style="color:#cbd1da;margin:0 2px;">›</span>
+  <a href="./effect.html" style="padding:3px 10px;border-radius:5px;text-decoration:none;color:#4d479e;background:#f3f1f9;border:1px solid #d8d3e8;font-weight:600;"><span style="opacity:0.55;font-weight:700;margin-right:4px;">2.</span>効果指標</a>
+  <span style="color:#cbd1da;margin:0 2px;">›</span>
+  <a href="./preprocess.html" style="padding:3px 10px;border-radius:5px;text-decoration:none;color:#4d479e;background:#f3f1f9;border:1px solid #d8d3e8;font-weight:600;"><span style="opacity:0.55;font-weight:700;margin-right:4px;">3.</span>プリプロセス</a>
+  <span style="color:#cbd1da;margin:0 2px;">›</span>
+  <a href="./index2.html" style="padding:3px 10px;border-radius:5px;text-decoration:none;color:#4d479e;background:#f3f1f9;border:1px solid #d8d3e8;font-weight:600;"><span style="opacity:0.55;font-weight:700;margin-right:4px;">4.</span>V字モデル統合版</a>
+  <span style="color:#cbd1da;margin:0 2px;">›</span>
+  <a href="./report.html" style="padding:3px 10px;border-radius:5px;text-decoration:none;color:#4d479e;background:#f3f1f9;border:1px solid #d8d3e8;font-weight:600;"><span style="opacity:0.55;font-weight:700;margin-right:4px;">5.</span>検証レポート</a>
+  <span style="color:#cbd1da;margin:0 2px;">›</span>
+  <span style="padding:3px 10px;border-radius:5px;background:#4d479e;color:#fff;font-weight:700;border:1px solid #4d479e;"><span style="opacity:0.7;font-weight:700;margin-right:4px;">6.</span>現在の動作フロー・課題</span>
+</nav>
+
+<h1>pw-dms AIエージェント 動作フロー</h1>
+<p class="subtitle">カードにカーソルを乗せると入力・出力・責務の境界を確認できます</p>
+
+<div class="pipelines">
+
+  <!-- ══════════════════════════════════════════
+       PIPELINE B: 要件構造化パイプライン
+  ══════════════════════════════════════════ -->
+  <div class="pipeline">
+    <div class="pipeline-header req">要件構造化パイプライン（01〜08）</div>
+    <div class="pipeline-body req">
+
+      <!-- Actor -->
+      <div class="actor">
+        <span class="emoji">📝</span>
+        ビジネスアナリスト / PO<br>
+        <span style="font-size:0.7rem;color:var(--text-muted);font-weight:400">仕様文書（書式不定）</span>
+      </div>
+
+      <div class="arrow-down">
+        <div class="arrow-line"></div>
+        <div class="arrow-head"></div>
+      </div>
+
+      <!-- 02 Chapter -->
+      <div class="agent-card c-indigo">
+        <div class="agent-head">
+          <span class="agent-badge">02</span>
+          <span class="agent-name">chapter-structuring-ai</span>
+          <span class="agent-model">Sonnet</span>
+        </div>
+        <div class="agent-desc">仕様文書（書式不定） → Markdown 3階層の見出し構造を生成。素案に徹する。</div>
+        <div class="detail">
+          <div class="io-row">
+            <div class="io-block">
+              <div class="io-label">Input</div>
+              <ul class="io-items"><li>仕様文書（書式不定）</li></ul>
+            </div>
+            <div class="io-block">
+              <div class="io-label">Output</div>
+              <ul class="io-items"><li>structure.md（# ## ###）</li></ul>
+            </div>
+          </div>
+          <div class="boundary">禁止: ID採番・要件分解・ルール抽出</div>
+        </div>
+      </div>
+
+      <div class="arrow-down">
+        <div class="arrow-line"></div>
+        <div class="arrow-head"></div>
+      </div>
+
+      <!-- 01 ID -->
+      <div class="agent-card c-gold">
+        <div class="agent-head">
+          <span class="agent-badge">01</span>
+          <span class="agent-name">id-assignment-engine</span>
+          <span class="agent-model">Haiku</span>
+        </div>
+        <div class="agent-desc">章立て Markdown へ REQ-ID を決定論的に自動採番。同一入力 = 同一出力を保証。</div>
+        <div class="detail">
+          <div class="io-row">
+            <div class="io-block">
+              <div class="io-label">Input</div>
+              <ul class="io-items"><li>structure.md</li></ul>
+            </div>
+            <div class="io-block">
+              <div class="io-label">Output</div>
+              <ul class="io-items">
+                <li>requirements_with_ids.md</li>
+                <li>req_map.json</li>
+              </ul>
+            </div>
+          </div>
+          <div style="font-size:0.65rem;color:var(--text-muted);margin-top:6px">ID形式: <span class="tag">REQ-{L1}-{L2}-{L3}-{seq:03d}</span></div>
+          <div class="boundary">禁止: 構造変更・要件分解・ルール抽出</div>
+        </div>
+      </div>
+
+      <div class="arrow-down">
+        <div class="arrow-line"></div>
+        <div class="arrow-head"></div>
+      </div>
+
+      <!-- 03 Atomic -->
+      <div class="agent-card c-green">
+        <div class="agent-head">
+          <span class="agent-badge">03</span>
+          <span class="agent-name">atomic-requirement-ai</span>
+          <span class="agent-model">Sonnet</span>
+        </div>
+        <div class="agent-desc">複合要件（「〜かつ〜」）を 1主張 1要件 のアトミック粒度に分解。Chain-of-thought で分割理由を出力。</div>
+        <div class="detail">
+          <div class="io-row">
+            <div class="io-block">
+              <div class="io-label">Input</div>
+              <ul class="io-items"><li>requirements_with_ids.md</li></ul>
+            </div>
+            <div class="io-block">
+              <div class="io-label">Output</div>
+              <ul class="io-items">
+                <li>requirements_atomic.md</li>
+                <li>derivation_map.json</li>
+              </ul>
+            </div>
+          </div>
+          <div style="font-size:0.65rem;color:var(--text-muted);margin-top:6px">派生ID: <span class="tag">REQ-XXX-a / -b / -c</span></div>
+          <div class="boundary">禁止: 章立て・ID採番・ルール抽出・UC執筆</div>
+        </div>
+      </div>
+
+      <div class="arrow-down">
+        <div class="arrow-line"></div>
+        <div class="arrow-head"></div>
+      </div>
+
+      <!-- 04 Business Rule -->
+      <div class="agent-card c-orange">
+        <div class="agent-head">
+          <span class="agent-badge">04</span>
+          <span class="agent-name">business-rule-extraction-ai</span>
+          <span class="agent-model">Sonnet</span>
+        </div>
+        <div class="agent-desc">条件分岐・閾値・状態遷移・コード規則を抽出。デシジョンテーブルを生成。欠落候補も明示する。</div>
+        <div class="detail">
+          <div class="io-row">
+            <div class="io-block">
+              <div class="io-label">Input</div>
+              <ul class="io-items">
+                <li>requirements_atomic.md</li>
+                <li>仕様文書（書式不定、補足）</li>
+              </ul>
+            </div>
+            <div class="io-block">
+              <div class="io-label">Output</div>
+              <ul class="io-items">
+                <li>business_rules.md</li>
+                <li>business_rules.yaml</li>
+              </ul>
+            </div>
+          </div>
+          <div style="font-size:0.65rem;color:var(--text-muted);margin-top:6px">ID形式: <span class="tag">BR-NNN</span> + source_req 必須</div>
+          <div class="boundary">禁止: 要件再編集・UC執筆・テストシナリオ生成</div>
+        </div>
+      </div>
+
+      <div class="arrow-down">
+        <div class="arrow-line"></div>
+        <div class="arrow-label">並行実行</div>
+        <div class="arrow-line"></div>
+        <div class="arrow-head"></div>
+      </div>
+
+      <!-- 05 + 06 parallel -->
+      <div class="parallel-group">
+        <div class="parallel-label">並行</div>
+        <div class="parallel-inner">
+
+          <!-- 05 UC -->
+          <div class="parallel-col">
+            <div class="agent-card c-magenta">
+              <div class="agent-head">
+                <span class="agent-badge">05</span>
+                <span class="agent-name">usecase-formatting-ai</span>
+                <span class="agent-model">Sonnet</span>
+              </div>
+              <div class="agent-desc">登録・更新・削除・検索 ごとの UC 素案（事前条件 / 主フロー / 代替フロー / 事後条件）を生成。Given-When-Then は出力しない。</div>
+              <div class="detail">
+                <div class="io-row">
+                  <div class="io-block">
+                    <div class="io-label">Input</div>
+                    <ul class="io-items">
+                      <li>requirements_atomic.md</li>
+                      <li>business_rules.md</li>
+                    </ul>
+                  </div>
+                  <div class="io-block">
+                    <div class="io-label">Output</div>
+                    <ul class="io-items"><li>usecases.md</li></ul>
+                  </div>
+                </div>
+                <div class="boundary">禁止: Gherkin 生成・UC 本文完成</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 06 Glossary -->
+          <div class="parallel-col">
+            <div class="agent-card c-teal">
+              <div class="agent-head">
+                <span class="agent-badge">06</span>
+                <span class="agent-name">glossary-generation-ai</span>
+                <span class="agent-model">Haiku</span>
+              </div>
+              <div class="agent-desc">全文書から専門用語を抽出し、定義素案・同義語候補を生成。既存用語集を優先してマージ。</div>
+              <div class="detail">
+                <div class="io-row">
+                  <div class="io-block">
+                    <div class="io-label">Input</div>
+                    <ul class="io-items">
+                      <li>requirements_atomic.md</li>
+                      <li>business_rules.md</li>
+                      <li>usecases.md（参照）</li>
+                    </ul>
+                  </div>
+                  <div class="io-block">
+                    <div class="io-label">Output</div>
+                    <ul class="io-items">
+                      <li>glossary.md</li>
+                      <li>glossary.yaml</li>
+                    </ul>
+                  </div>
+                </div>
+                <div style="font-size:0.65rem;color:var(--text-muted);margin-top:6px">ID形式: <span class="tag">TERM-NNN</span></div>
+                <div class="boundary">禁止: 要件編集・用語ゆれ是正判断</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="arrow-down">
+        <div class="arrow-line"></div>
+        <div class="arrow-head"></div>
+      </div>
+
+      <!-- 07 Spec Consistency -->
+      <div class="agent-card c-gray">
+        <div class="agent-head">
+          <span class="agent-badge">07</span>
+          <span class="agent-name">spec-consistency-reviewer-ai</span>
+          <span class="agent-model">Sonnet</span>
+        </div>
+        <div class="agent-desc">用語ゆれ・ルール矛盾・未充足要件を機械的に検出。読取専用。08 へ unfulfilled_feedback.json を渡してイテレーション。</div>
+        <div class="detail">
+          <div class="io-row">
+            <div class="io-block">
+              <div class="io-label">Input</div>
+              <ul class="io-items">
+                <li>requirements_atomic.md</li>
+                <li>business_rules.md</li>
+                <li>usecases.md</li>
+                <li>glossary.md</li>
+                <li>*.feature（Gherkin）</li>
+              </ul>
+            </div>
+            <div class="io-block">
+              <div class="io-label">Output</div>
+              <ul class="io-items">
+                <li>consistency_report.md</li>
+                <li>unfulfilled_feedback.json</li>
+              </ul>
+            </div>
+          </div>
+          <div class="boundary">禁止: コード変更・要件編集・Gherkin 生成</div>
+        </div>
+      </div>
+
+      <!-- 07 ↔ 08 feedback loop -->
+      <div style="display:flex;align-items:center;gap:0;margin:4px 0">
+        <div style="flex:1;border-top:1px dashed var(--arrow);border-left:1px dashed var(--arrow);border-radius:4px 0 0 4px;height:20px;margin-left:40%"></div>
+        <div style="font-size:0.58rem;color:var(--text-muted);white-space:nowrap;padding:0 8px">フィードバックループ</div>
+        <div style="flex:1;border-top:1px dashed var(--arrow);border-right:1px dashed var(--arrow);border-radius:0 4px 4px 0;height:20px;margin-right:40%"></div>
+      </div>
+
+      <div class="arrow-down">
+        <div class="arrow-line"></div>
+        <div class="arrow-label">unfulfilled_feedback.json</div>
+        <div class="arrow-line"></div>
+        <div class="arrow-head"></div>
+      </div>
+
+      <!-- 08 Acceptance Test -->
+      <div class="agent-card c-violet">
+        <div class="agent-head">
+          <span class="agent-badge">08</span>
+          <span class="agent-name">acceptance-test-design-ai</span>
+          <span class="agent-model">Sonnet</span>
+        </div>
+        <div class="agent-desc">最終出力エージェント。UC 素案 → Gherkin（Given-When-Then）を生成。<span class="tag">@req:</span><span class="tag">@rule:</span>タグで全シナリオをトレース。A1 機能要件 100% カバレッジを目標。</div>
+        <div class="detail">
+          <div class="io-row">
+            <div class="io-block">
+              <div class="io-label">Input</div>
+              <ul class="io-items">
+                <li>usecases.md</li>
+                <li>business_rules.md</li>
+                <li>unfulfilled_feedback.json</li>
+                <li>req_map.json</li>
+              </ul>
+            </div>
+            <div class="io-block">
+              <div class="io-label">Output</div>
+              <ul class="io-items">
+                <li>*.feature（Gherkin）</li>
+                <li>unfulfilled_report.md</li>
+                <li>backlog_issues.json</li>
+              </ul>
+            </div>
+          </div>
+          <div style="font-size:0.65rem;color:var(--text-muted);margin-top:6px">浮きシナリオ（タグなし）ゼロ保証 / 閾値未達で自己再生成ループ</div>
+          <div class="boundary">禁止: 要件編集・ルール再抽出・Backlog API 直呼び</div>
+        </div>
+      </div>
+
+      <div class="arrow-down">
+        <div class="arrow-line"></div>
+        <div class="arrow-head"></div>
+      </div>
+
+      <!-- Final output -->
+      <div class="output-box">
+        <strong>完成物</strong>
+        タグ付き Gherkin シナリオ ／ 未充足要件レポート ／ Backlog 起票 JSON
+      </div>
+
+    </div><!-- pipeline-body -->
+  </div><!-- pipeline -->
+
+
+  <!-- ══════════════════════════════════════════
+       PIPELINE A: 画面開発パイプライン
+  ══════════════════════════════════════════ -->
+  <div class="pipeline">
+    <div class="pipeline-header dev">画面開発パイプライン</div>
+    <div class="pipeline-body dev">
+
+      <!-- Actor -->
+      <div class="actor">
+        <span class="emoji">👤</span>
+        ユーザー<br>
+        <span style="font-size:0.7rem;color:var(--text-muted);font-weight:400">「〇〇画面を作りたい」</span>
+      </div>
+
+      <div class="arrow-down">
+        <div class="arrow-line"></div>
+        <div class="arrow-label">画面名 / テーブル名 / mock パス</div>
+        <div class="arrow-line"></div>
+        <div class="arrow-head"></div>
+      </div>
+
+      <!-- Planner -->
+      <div class="agent-card c-red">
+        <div class="agent-head">
+          <span class="agent-badge">司令塔</span>
+          <span class="agent-name">Planner</span>
+          <span class="agent-model">Opus</span>
+        </div>
+        <div class="agent-desc">mock・API・DB を調査し 8 インプットを正規化。下流エージェントへ指示書を生成する。<strong>実装は行わない。</strong></div>
+        <div class="detail">
+          <div class="io-row">
+            <div class="io-block">
+              <div class="io-label">Input</div>
+              <ul class="io-items">
+                <li>画面名 / テーブル名</li>
+                <li>mock ファイル or 画像</li>
+                <li>schema.gql</li>
+                <li>Prisma スキーマ</li>
+              </ul>
+            </div>
+            <div class="io-block">
+              <div class="io-label">Output</div>
+              <ul class="io-items">
+                <li>specs/backend-engineer/{name}.md</li>
+                <li>specs/frontend-engineer/{name}.brief.md</li>
+                <li>specs/db-architect/{name}.md</li>
+              </ul>
+            </div>
+          </div>
+          <div class="io-row">
+            <div class="io-block" style="flex:1">
+              <div class="io-label">スキル</div>
+              <ul class="io-items">
+                <li>/detect-api-gaps</li>
+                <li>/extract-dto-validation</li>
+                <li>/validate-brief</li>
+              </ul>
+            </div>
+            <div class="io-block" style="flex:1">
+              <div class="io-label">8 インプット</div>
+              <ul class="io-items">
+                <li>ビジュアル / ルーティング</li>
+                <li>API 契約 / フィールドマッピング</li>
+                <li>表示変換 / 操作仕様</li>
+                <li>スコープ / バリデーション</li>
+              </ul>
+            </div>
+          </div>
+          <div class="boundary">禁止: 実装・コード変更</div>
+        </div>
+      </div>
+
+      <!-- Split to 3 -->
+      <div class="arrow-down">
+        <div class="arrow-line"></div>
+        <div class="arrow-label">指示書を配布</div>
+        <div class="arrow-line"></div>
+        <div class="arrow-head"></div>
+      </div>
+
+      <!-- 3 parallel lanes -->
+      <div class="parallel-group">
+        <div class="parallel-label">並行 / 必要に応じて</div>
+        <div class="parallel-inner">
+
+          <!-- DB lane -->
+          <div class="parallel-col">
+            <div class="agent-card c-purple">
+              <div class="agent-head">
+                <span class="agent-badge">DB</span>
+                <span class="agent-name">db-architect</span>
+                <span class="agent-model">Sonnet</span>
+              </div>
+              <div class="agent-desc">Prisma スキーマ設計・マイグレーション</div>
+              <div class="detail">
+                <div class="io-row">
+                  <div class="io-block">
+                    <div class="io-label">Input</div>
+                    <ul class="io-items">
+                      <li>specs/db-architect/{name}.md</li>
+                    </ul>
+                  </div>
+                  <div class="io-block">
+                    <div class="io-label">Output</div>
+                    <ul class="io-items">
+                      <li>prisma/schema/*.prisma</li>
+                      <li>migration SQL</li>
+                    </ul>
+                  </div>
+                </div>
+                <div class="io-row">
+                  <div class="io-block" style="flex:1">
+                    <div class="io-label">スキル</div>
+                    <ul class="io-items">
+                      <li>/prisma-validate</li>
+                      <li>/prisma-migrate</li>
+                    </ul>
+                  </div>
+                </div>
+                <div class="boundary">禁止: resolver/service/dto 変更</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Backend lane -->
+          <div class="parallel-col">
+            <div class="agent-card c-blue">
+              <div class="agent-head">
+                <span class="agent-badge">BE</span>
+                <span class="agent-name">backend-engineer</span>
+                <span class="agent-model">Sonnet</span>
+              </div>
+              <div class="agent-desc">NestJS Resolver / Service / DTO 実装</div>
+              <div class="detail">
+                <div class="io-row">
+                  <div class="io-block">
+                    <div class="io-label">Input</div>
+                    <ul class="io-items">
+                      <li>specs/backend-engineer/{name}.md</li>
+                      <li>Prisma スキーマ（参照）</li>
+                    </ul>
+                  </div>
+                  <div class="io-block">
+                    <div class="io-label">Output</div>
+                    <ul class="io-items">
+                      <li>*.resolver.ts</li>
+                      <li>*.service.ts</li>
+                      <li>dto/*.input.ts</li>
+                    </ul>
+                  </div>
+                </div>
+                <div class="boundary">禁止: フロント変更・スキーマ変更</div>
+              </div>
+            </div>
+            <div class="arrow-down" style="padding:4px 0">
+              <div class="arrow-line"></div>
+              <div class="arrow-head"></div>
+            </div>
+            <div class="agent-card c-cyan">
+              <div class="agent-head">
+                <span class="agent-badge">Review</span>
+                <span class="agent-name">backend-reviewer</span>
+                <span class="agent-model">Sonnet</span>
+              </div>
+              <div class="agent-desc">読取専用レビュー。優先度付き改善提案を返す。</div>
+              <div class="detail">
+                <div class="io-row">
+                  <div class="io-block">
+                    <div class="io-label">観点</div>
+                    <ul class="io-items">
+                      <li>スペック整合性</li>
+                      <li>冗長性 / N+1</li>
+                      <li>セキュリティ</li>
+                      <li>命名・アーキテクチャ</li>
+                    </ul>
+                  </div>
+                  <div class="io-block">
+                    <div class="io-label">Output</div>
+                    <ul class="io-items">
+                      <li>🔴 Critical</li>
+                      <li>🟠 Major</li>
+                      <li>🟡 Minor</li>
+                      <li>🔵 Info</li>
+                    </ul>
+                  </div>
+                </div>
+                <div class="boundary">禁止: コード変更</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Frontend lane -->
+          <div class="parallel-col">
+            <div class="agent-card c-pink">
+              <div class="agent-head">
+                <span class="agent-badge">FE</span>
+                <span class="agent-name">frontend-engineer</span>
+                <span class="agent-model">Sonnet</span>
+              </div>
+              <div class="agent-desc">Phase 1: スケルトン → Phase 2: 実装。mock を 1:1 で再現。</div>
+              <div class="detail">
+                <div class="io-row">
+                  <div class="io-block">
+                    <div class="io-label">Input</div>
+                    <ul class="io-items">
+                      <li>specs/frontend-engineer/{name}.brief.md</li>
+                      <li>mock 画像 / JSX</li>
+                      <li>schema.gql</li>
+                    </ul>
+                  </div>
+                  <div class="io-block">
+                    <div class="io-label">Output</div>
+                    <ul class="io-items">
+                      <li>pages/*.tsx</li>
+                      <li>components/*.tsx</li>
+                      <li>graphql/*.ts</li>
+                    </ul>
+                  </div>
+                </div>
+                <div class="boundary">禁止: api-core 変更</div>
+              </div>
+            </div>
+            <div class="arrow-down" style="padding:4px 0">
+              <div class="arrow-line"></div>
+              <div class="arrow-head"></div>
+            </div>
+            <div class="agent-card c-yellow">
+              <div class="agent-head">
+                <span class="agent-badge">Review</span>
+                <span class="agent-name">frontend-reviewer</span>
+                <span class="agent-model">Sonnet</span>
+              </div>
+              <div class="agent-desc">モードA: スケルトン vs デザイン。モードB: 実装 vs スケルトン。読取専用。</div>
+              <div class="detail">
+                <div class="io-row">
+                  <div class="io-block">
+                    <div class="io-label">観点</div>
+                    <ul class="io-items">
+                      <li>デザイン忠実度</li>
+                      <li>コンポーネント設計</li>
+                      <li>GraphQL 連携</li>
+                      <li>型安全性</li>
+                    </ul>
+                  </div>
+                </div>
+                <div class="boundary">禁止: コード変更</div>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- parallel-inner -->
+      </div><!-- parallel-group -->
+
+      <div class="arrow-down">
+        <div class="arrow-line"></div>
+        <div class="arrow-head"></div>
+      </div>
+
+      <!-- Output -->
+      <div class="output-box">
+        <strong>完成物</strong>
+        Prisma マイグレーション ／ GraphQL API ／ Next.js 画面
+      </div>
+
+    </div><!-- pipeline-body -->
+  </div><!-- pipeline -->
+
+</div><!-- pipelines -->
+
+<!-- 現在の課題 -->
+<section style="max-width:1400px;margin:36px auto 0;padding:18px 24px;background:var(--gold-bg);border:1.5px solid var(--gold);border-left-width:5px;border-radius:12px;">
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+    <span style="font-size:1.05rem;">⚠</span>
+    <h2 style="font-size:0.95rem;font-weight:700;color:var(--gold);letter-spacing:0.04em;">現在の課題</h2>
+  </div>
+  <ul style="font-size:0.82rem;line-height:1.75;color:var(--text);padding-left:20px;margin-bottom:10px;">
+    <li style="margin-bottom:6px;">
+      <strong>パイプライン間の仲介エージェントが不在</strong>：
+      <strong>要件構造化パイプライン</strong>の出力（Gherkin／業務ルール／用語集／UC 定義 など）から、
+      <strong>画面開発パイプライン</strong>の入力（画面名／テーブル名／mock パス）に必要な情報を取り出す<strong>パスが存在しない</strong>。両者を接続する仲介エージェントが必要。
+    </li>
+    <li>
+      <strong>トレーサビリティAI が不在</strong>：
+      仕様変更によって生じた<strong>テストの穴</strong>（既存テスト ↔ 変更後要件の対応不整合・カバレッジ欠落）を継続的に管理する専門 AI エージェントが存在しない。
+    </li>
+  </ul>
+  <p style="font-size:0.82rem;line-height:1.75;color:var(--text);">
+    これらが実現すれば、<strong>「仕様文書（書式不定）」</strong>と<strong>「〇〇画面を作りたい」</strong>のたった 2 入力から、
+    <strong>テスト仕様（Gherkin）に適う画面</strong>を end-to-end で生成し、<strong>仕様変更時もテストの整合性を維持</strong>できるようになる。
+  </p>
+</section>
+
+<!-- Legend -->
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>Planner (司令塔)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--purple)"></div>db-architect</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div>backend-engineer</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--cyan)"></div>backend-reviewer</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--pink)"></div>frontend-engineer</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--yellow)"></div>frontend-reviewer</div>
+  <div class="legend-item" style="margin-left:16px"><div class="legend-dot" style="background:var(--indigo)"></div>chapter-structuring-ai (02)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--gold)"></div>id-assignment-engine (01)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>atomic-requirement-ai (03)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--orange)"></div>business-rule-extraction-ai (04)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--magenta)"></div>usecase-formatting-ai (05)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--teal)"></div>glossary-generation-ai (06)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--gray)"></div>spec-consistency-reviewer-ai (07)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--violet)"></div>acceptance-test-design-ai (08)</div>
+</div>
+
+<p style="text-align:center;font-size:0.62rem;color:var(--text-muted);margin-top:24px">
+  カードにカーソルを乗せると詳細（Input / Output / 責務境界）を表示 ／ モデル: Haiku = 軽量, Sonnet = 標準, Opus = 高推論
+</p>
+
+</body>
+</html>
