@@ -406,19 +406,29 @@
 <nav style="max-width:1400px;margin:0 auto 18px;padding:8px 14px;background:#fff;border:1px solid #d8dbe2;border-radius:10px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Hiragino Sans',sans-serif;font-size:11.5px;color:#444;display:flex;flex-wrap:wrap;align-items:center;gap:4px;">
   <a href="./index.html" style="padding:3px 10px;border-radius:5px;text-decoration:none;color:#4d479e;background:#f3f1f9;border:1px solid #d8d3e8;font-weight:600;"><span style="opacity:0.55;font-weight:700;margin-right:4px;">1.</span>V字モデル(初期案)</a>
   <span style="color:#cbd1da;margin:0 2px;">›</span>
-  <a href="./effect.html" style="padding:3px 10px;border-radius:5px;text-decoration:none;color:#4d479e;background:#f3f1f9;border:1px solid #d8d3e8;font-weight:600;"><span style="opacity:0.55;font-weight:700;margin-right:4px;">2.</span>効果指標</a>
+  <a href="./effect.html" style="padding:3px 10px;border-radius:5px;text-decoration:none;color:#4d479e;background:#f3f1f9;border:1px solid #d8d3e8;font-weight:600;"><span style="opacity:0.55;font-weight:700;margin-right:4px;">2.</span>⑧受入テストに着目する</a>
   <span style="color:#cbd1da;margin:0 2px;">›</span>
-  <a href="./preprocess.html" style="padding:3px 10px;border-radius:5px;text-decoration:none;color:#4d479e;background:#f3f1f9;border:1px solid #d8d3e8;font-weight:600;"><span style="opacity:0.55;font-weight:700;margin-right:4px;">3.</span>プリプロセス</a>
+  <a href="./preprocess.html" style="padding:3px 10px;border-radius:5px;text-decoration:none;color:#4d479e;background:#f3f1f9;border:1px solid #d8d3e8;font-weight:600;"><span style="opacity:0.55;font-weight:700;margin-right:4px;">3.</span>要件整備AIエージェントの導入と効果</a>
   <span style="color:#cbd1da;margin:0 2px;">›</span>
-  <a href="./index2.html" style="padding:3px 10px;border-radius:5px;text-decoration:none;color:#4d479e;background:#f3f1f9;border:1px solid #d8d3e8;font-weight:600;"><span style="opacity:0.55;font-weight:700;margin-right:4px;">4.</span>V字モデル統合版</a>
+  <a href="./index2.html" style="padding:3px 10px;border-radius:5px;text-decoration:none;color:#4d479e;background:#f3f1f9;border:1px solid #d8d3e8;font-weight:600;"><span style="opacity:0.55;font-weight:700;margin-right:4px;">4.</span>V字モデル(目指す姿)</a>
   <span style="color:#cbd1da;margin:0 2px;">›</span>
   <a href="./report.html" style="padding:3px 10px;border-radius:5px;text-decoration:none;color:#4d479e;background:#f3f1f9;border:1px solid #d8d3e8;font-weight:600;"><span style="opacity:0.55;font-weight:700;margin-right:4px;">5.</span>検証レポート</a>
   <span style="color:#cbd1da;margin:0 2px;">›</span>
-  <span style="padding:3px 10px;border-radius:5px;background:#4d479e;color:#fff;font-weight:700;border:1px solid #4d479e;"><span style="opacity:0.7;font-weight:700;margin-right:4px;">6.</span>現在の動作フロー・課題</span>
+  <span style="padding:3px 10px;border-radius:5px;background:#4d479e;color:#fff;font-weight:700;border:1px solid #4d479e;"><span style="opacity:0.7;font-weight:700;margin-right:4px;">6.</span>まとめ・課題</span>
 </nav>
 
-<h1>pw-dms AIエージェント 動作フロー</h1>
+<h1>まとめ・課題 — pw-dms AIエージェント動作フロー</h1>
 <p class="subtitle">カードにカーソルを乗せると入力・出力・責務の境界を確認できます</p>
+
+<section style="max-width:1400px;margin:0 auto 36px;padding:20px 28px;background:var(--indigo-bg);border:1.5px solid var(--indigo);border-left-width:5px;border-radius:12px;">
+  <div style="font-size:0.95rem;font-weight:700;color:var(--indigo);letter-spacing:0.04em;margin-bottom:12px;">全体まとめ</div>
+  <ul style="font-size:0.82rem;line-height:1.75;color:var(--text);padding-left:20px;display:flex;flex-direction:column;gap:6px;">
+    <li><strong>取り組み</strong>：V字モデル全工程のAIエージェント化。今回は要件・基本設計フェーズのテスト仕様側を拡張した。</li>
+    <li><strong>設計（目指す姿）</strong>：要件整備AIエージェント群（8体）を追加し、V字の左シフト（実装着手前にテスト仕様まで整える）を実現する構造を定義した。</li>
+    <li><strong>検証で得た知見</strong>：ユーザマスタ画面で end-to-end 動作確認（27分・60シナリオ）。独断補完の課題はあるが、実装AI群との補完関係を発見した。</li>
+    <li><strong>残課題</strong>：独断補完の未然防止策・仲介AI・トレーサビリティAI が未整備（→ ページ末尾参照）。</li>
+  </ul>
+</section>
 
 <div class="pipelines">
 
@@ -1015,13 +1025,16 @@
   </div>
   <ul style="font-size:0.82rem;line-height:1.75;color:var(--text);padding-left:20px;margin-bottom:10px;">
     <li style="margin-bottom:6px;">
+      <strong>エージェントによる独断補完の防止策が未整備</strong>：
+      検証で観測された「責務境界を越えた自律補完」（mock に無い項目の追加、未定義事項の独断具体化など）を発生前に止める仕組みが必要。レビュワーAI による事後検出は機能しているが、責務境界の精密化・参照範囲の制約・レビュワーAI の前段化などで、未然防止の段階へ進む必要がある。
+    </li>
+    <li style="margin-bottom:6px;">
       <strong>パイプライン間の仲介エージェントが不在</strong>：
-      <strong>要件構造化パイプライン</strong>の出力（Gherkin／業務ルール／用語集／UC 定義 など）から、
-      <strong>画面開発パイプライン</strong>の入力（画面名／テーブル名／mock パス）に必要な情報を取り出す<strong>パスが存在しない</strong>。両者を接続する仲介エージェントが必要。
+      要件構造化パイプラインの出力（Gherkin／業務ルール／用語集／UC 定義 など）から、画面開発パイプラインの入力（画面名／テーブル名／mock パス）に必要な情報を取り出すパスが存在しない。両者を接続する仲介エージェントが必要。
     </li>
     <li>
       <strong>トレーサビリティAI が不在</strong>：
-      仕様変更によって生じた<strong>テストの穴</strong>（既存テスト ↔ 変更後要件の対応不整合・カバレッジ欠落）を継続的に管理する専門 AI エージェントが存在しない。
+      仕様変更によって生じたテストの穴（既存テスト ↔ 変更後要件の対応不整合・カバレッジ欠落）を継続的に管理する専門 AI エージェントが存在しない。
     </li>
   </ul>
   <p style="font-size:0.82rem;line-height:1.75;color:var(--text);">

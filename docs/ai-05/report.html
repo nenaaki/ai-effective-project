@@ -102,6 +102,43 @@
       font-weight: 400;
     }
 
+    /* TL;DR (h1 直下のエグゼクティブサマリ) */
+    section.tldr {
+      border: 2px solid #2d6a9f;
+      background: #fbfdff;
+      box-shadow: 0 4px 14px rgba(30, 58, 95, 0.12);
+      margin-bottom: 28px;
+    }
+    .tldr-verdict {
+      background: #eaf4e8;
+      border-left: 4px solid #34a853;
+      border-radius: 6px;
+      padding: 14px 20px;
+      margin-bottom: 16px;
+      font-weight: 700;
+      color: #1e5c35;
+      font-size: 17px;
+    }
+    .tldr-list {
+      list-style: none;
+    }
+    .tldr-list li {
+      padding: 10px 0;
+      border-bottom: 1px dashed #e0e8f4;
+      font-size: 14px;
+      line-height: 1.75;
+      color: #2c2c3e;
+    }
+    .tldr-list li:last-child { border-bottom: none; padding-bottom: 0; }
+    .tldr-list code {
+      background: #f0f4fa;
+      padding: 1px 6px;
+      border-radius: 3px;
+      font-size: 12.5px;
+      color: #1e3a5f;
+      font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    }
+
     /* テーブル */
     table {
       width: 100%;
@@ -376,21 +413,31 @@
   <nav style="margin:0 0 18px;padding:8px 14px;background:#fff;border:1px solid #d8dbe2;border-radius:10px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Hiragino Sans',sans-serif;font-size:11.5px;color:#444;display:flex;flex-wrap:wrap;align-items:center;gap:4px;">
     <a href="./index.html" style="padding:3px 10px;border-radius:5px;text-decoration:none;color:#4d479e;background:#f3f1f9;border:1px solid #d8d3e8;font-weight:600;"><span style="opacity:0.55;font-weight:700;margin-right:4px;">1.</span>V字モデル(初期案)</a>
     <span style="color:#cbd1da;margin:0 2px;">›</span>
-    <a href="./effect.html" style="padding:3px 10px;border-radius:5px;text-decoration:none;color:#4d479e;background:#f3f1f9;border:1px solid #d8d3e8;font-weight:600;"><span style="opacity:0.55;font-weight:700;margin-right:4px;">2.</span>効果指標</a>
+    <a href="./effect.html" style="padding:3px 10px;border-radius:5px;text-decoration:none;color:#4d479e;background:#f3f1f9;border:1px solid #d8d3e8;font-weight:600;"><span style="opacity:0.55;font-weight:700;margin-right:4px;">2.</span>⑧受入テストに着目する</a>
     <span style="color:#cbd1da;margin:0 2px;">›</span>
-    <a href="./preprocess.html" style="padding:3px 10px;border-radius:5px;text-decoration:none;color:#4d479e;background:#f3f1f9;border:1px solid #d8d3e8;font-weight:600;"><span style="opacity:0.55;font-weight:700;margin-right:4px;">3.</span>プリプロセス</a>
+    <a href="./preprocess.html" style="padding:3px 10px;border-radius:5px;text-decoration:none;color:#4d479e;background:#f3f1f9;border:1px solid #d8d3e8;font-weight:600;"><span style="opacity:0.55;font-weight:700;margin-right:4px;">3.</span>要件整備AIエージェントの導入と効果</a>
     <span style="color:#cbd1da;margin:0 2px;">›</span>
-    <a href="./index2.html" style="padding:3px 10px;border-radius:5px;text-decoration:none;color:#4d479e;background:#f3f1f9;border:1px solid #d8d3e8;font-weight:600;"><span style="opacity:0.55;font-weight:700;margin-right:4px;">4.</span>V字モデル統合版</a>
+    <a href="./index2.html" style="padding:3px 10px;border-radius:5px;text-decoration:none;color:#4d479e;background:#f3f1f9;border:1px solid #d8d3e8;font-weight:600;"><span style="opacity:0.55;font-weight:700;margin-right:4px;">4.</span>V字モデル(目指す姿)</a>
     <span style="color:#cbd1da;margin:0 2px;">›</span>
     <span style="padding:3px 10px;border-radius:5px;background:#4d479e;color:#fff;font-weight:700;border:1px solid #4d479e;"><span style="opacity:0.7;font-weight:700;margin-right:4px;">5.</span>検証レポート</span>
     <span style="color:#cbd1da;margin:0 2px;">›</span>
-    <a href="./agent-flow.html" style="padding:3px 10px;border-radius:5px;text-decoration:none;color:#4d479e;background:#f3f1f9;border:1px solid #d8d3e8;font-weight:600;"><span style="opacity:0.55;font-weight:700;margin-right:4px;">6.</span>現在の動作フロー・課題</a>
+    <a href="./agent-flow.html" style="padding:3px 10px;border-radius:5px;text-decoration:none;color:#4d479e;background:#f3f1f9;border:1px solid #d8d3e8;font-weight:600;"><span style="opacity:0.55;font-weight:700;margin-right:4px;">6.</span>まとめ・課題</a>
   </nav>
 
   <!-- ヘッダー -->
   <header class="report-header">
     <h1>PW-DMS 要件構造化AIパイプライン検証レポート<br>（ユーザマスタ画面）</h1>
   </header>
+
+  <!-- TL;DR (h1 直下のエグゼクティブサマリ) -->
+  <section class="tldr">
+    <div class="tldr-verdict">まとめ</div>
+    <ul class="tldr-list">
+      <li><strong>動作確認</strong>：テスト仕様エージェント群が、27分で end-to-end を初回で完走し、60 Gherkinシナリオ・10 Backlog 起票候補まで自動生成。</li>
+      <li><strong>未解決の課題</strong>：実装エージェント群と同じ「エージェントによる独断補完」が複数箇所で発生している。レビュワーAIによる事後検出は成功している。</li>
+      <li><strong>両エージェント群の補完関係</strong>：テスト仕様側の整合性レビュー結果を実装側の入力に接続すれば、実装エージェント群側で起きていた「独自判断の混入」を予防できる可能性が見えた。</li>
+    </ul>
+  </section>
 
   <!-- タブ -->
   <div class="tabs">

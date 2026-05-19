@@ -834,15 +834,15 @@
   <nav style="margin:0 0 18px;padding:8px 14px;background:#fff;border:1px solid #d8dbe2;border-radius:10px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Hiragino Sans',sans-serif;font-size:11.5px;color:#444;display:flex;flex-wrap:wrap;align-items:center;gap:4px;">
     <a href="./index.html" style="padding:3px 10px;border-radius:5px;text-decoration:none;color:#4d479e;background:#f3f1f9;border:1px solid #d8d3e8;font-weight:600;"><span style="opacity:0.55;font-weight:700;margin-right:4px;">1.</span>V字モデル(初期案)</a>
     <span style="color:#cbd1da;margin:0 2px;">›</span>
-    <a href="./effect.html" style="padding:3px 10px;border-radius:5px;text-decoration:none;color:#4d479e;background:#f3f1f9;border:1px solid #d8d3e8;font-weight:600;"><span style="opacity:0.55;font-weight:700;margin-right:4px;">2.</span>効果指標</a>
+    <a href="./effect.html" style="padding:3px 10px;border-radius:5px;text-decoration:none;color:#4d479e;background:#f3f1f9;border:1px solid #d8d3e8;font-weight:600;"><span style="opacity:0.55;font-weight:700;margin-right:4px;">2.</span>⑧受入テストに着目する</a>
     <span style="color:#cbd1da;margin:0 2px;">›</span>
-    <span style="padding:3px 10px;border-radius:5px;background:#4d479e;color:#fff;font-weight:700;border:1px solid #4d479e;"><span style="opacity:0.7;font-weight:700;margin-right:4px;">3.</span>プリプロセス</span>
+    <span style="padding:3px 10px;border-radius:5px;background:#4d479e;color:#fff;font-weight:700;border:1px solid #4d479e;"><span style="opacity:0.7;font-weight:700;margin-right:4px;">3.</span>要件整備AIエージェントの導入と効果</span>
     <span style="color:#cbd1da;margin:0 2px;">›</span>
-    <a href="./index2.html" style="padding:3px 10px;border-radius:5px;text-decoration:none;color:#4d479e;background:#f3f1f9;border:1px solid #d8d3e8;font-weight:600;"><span style="opacity:0.55;font-weight:700;margin-right:4px;">4.</span>V字モデル統合版</a>
+    <a href="./index2.html" style="padding:3px 10px;border-radius:5px;text-decoration:none;color:#4d479e;background:#f3f1f9;border:1px solid #d8d3e8;font-weight:600;"><span style="opacity:0.55;font-weight:700;margin-right:4px;">4.</span>V字モデル(目指す姿)</a>
     <span style="color:#cbd1da;margin:0 2px;">›</span>
     <a href="./report.html" style="padding:3px 10px;border-radius:5px;text-decoration:none;color:#4d479e;background:#f3f1f9;border:1px solid #d8d3e8;font-weight:600;"><span style="opacity:0.55;font-weight:700;margin-right:4px;">5.</span>検証レポート</a>
     <span style="color:#cbd1da;margin:0 2px;">›</span>
-    <a href="./agent-flow.html" style="padding:3px 10px;border-radius:5px;text-decoration:none;color:#4d479e;background:#f3f1f9;border:1px solid #d8d3e8;font-weight:600;"><span style="opacity:0.55;font-weight:700;margin-right:4px;">6.</span>現在の動作フロー・課題</a>
+    <a href="./agent-flow.html" style="padding:3px 10px;border-radius:5px;text-decoration:none;color:#4d479e;background:#f3f1f9;border:1px solid #d8d3e8;font-weight:600;"><span style="opacity:0.55;font-weight:700;margin-right:4px;">6.</span>まとめ・課題</a>
   </nav>
 
   <header class="header">
@@ -853,7 +853,7 @@
   <div class="lede">
     <a href="./effect.html">effect.html</a> の <strong>META レバー（要件構造化AI）</strong>を分解し、
     要件整備〜受入テスト設計の <strong>7 ステップ</strong>
-    （<a href="./agents.html">agents.html</a> 実装の 8 エージェント、Step 4a・4b は並列）の AI／人間分担と、
+    （<strong>8 エージェント</strong>、Step 4a・4b は並列）の AI／人間分担と、
     <strong>商品マスタ画面 + 業務フロー定義</strong>規模での AsIs / ToBe 工数を示す。
     <br>※ 起点となる<strong>初期情報セット</strong>（要件仕様書／UC 情報／機能一覧／データ構造／非機能要件閾値）は人間が用意した状態が前提。
   </div>
@@ -867,7 +867,7 @@
   <div class="section">
     <div class="section-title">① 要件整備〜受入テスト設計パイプライン — 依存関係と並列実行</div>
     <div class="section-sub">
-      Step 番号と並びは <a href="./agents.html">agents.html</a> の実装に準拠。
+      Step 1→2→3→[4a‖4b]→5→6→7 の依存関係と並列実行可能箇所を示す（Step 番号は ④ の 8 エージェントに対応）。
     </div>
 
     <div class="steps-overview">
@@ -980,7 +980,7 @@
         Step 1 で統合し後続が参照。<strong>機能一覧・データ構造</strong>は Step 4a の主ソース、<strong>UC 情報・データ構造</strong>は Step 4b の主ソース。非機能要件閾値は参照のみ。
         <br><strong>依存関係：</strong>
         Step 1→2→3→[4a‖4b]→5→6。
-        <strong>Step 7（横断レビュー）</strong>は <a href="./agents.html">agents.html</a> 推奨では <strong>Step 5 後・Step 6 後の 2 回稼働</strong>し、UC 段階の矛盾を Gherkin 生成前に解消する。
+        <strong>Step 7（横断レビュー）</strong>は <strong>Step 5 後・Step 6 後の 2 回稼働</strong>し、UC 段階の矛盾を Gherkin 生成前に解消する。
         <br><strong>並列実行：</strong>Step 4a・4b は独立稼働できるため、工数総和は不変だが<strong>カレンダー上の所要日数</strong>が短縮される。
       </div>
     </div>
@@ -1397,7 +1397,7 @@
   <div class="section">
     <div class="section-title ai">④ 導入する AI エージェント一覧（8 種類）</div>
     <div class="section-sub">
-      <a href="./agents.html">agents.html</a> の<strong>実装済み 8 エージェント</strong>。各 1〜3 日で Claude Code subagent として実装可能。
+      <strong>実装済み 8 エージェント</strong>。各 1〜3 日で Claude Code subagent として実装可能。
     </div>
 
     <div class="agents-grid">
@@ -1539,7 +1539,7 @@
         <div class="agent-card-id">spec-consistency-reviewer-ai</div>
         <div class="agent-card-role">
           <a href="./index.html">index.html</a> の既存エージェント。要件↔設計↔テスト間の<strong>ルール矛盾・用語揺れ・構造問題</strong>を横断検出。
-          <a href="./agents.html">agents.html</a> 推奨フローでは <strong>Step 5 後・Step 6 後の 2 回稼働</strong>。
+          推奨フローでは <strong>Step 5 後・Step 6 後の 2 回稼働</strong>。
         </div>
         <div class="agent-card-meta">
           <span class="ms-label">使用ステップ:</span> ⑦ 横断レビュー<br>
@@ -1622,7 +1622,7 @@
     <div class="caveat" style="margin-top:14px;">
       <strong>結論：</strong>
       パイプライン AI 化で<strong>総工数 -68.5%・人間工数 -78%</strong>。<a href="./effect.html">effect.html</a> の E 軸（トレーサビリティ）・B2 用語整合・C3 SME 時短に大きく波及。
-      「要件アナリスト（AI支援）」を <a href="./agents.html">agents.html</a> の 8 サブエージェントに分解。
+      「要件アナリスト（AI支援）」を <strong>8 サブエージェント</strong>に分解。
       中核は <strong>Step 2 ID 付与の完全自動化</strong>で、人手 ID 規約の負担なしにトレーサビリティAI が機能する前提が整う。
     </div>
   </div>
