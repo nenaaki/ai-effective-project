@@ -435,7 +435,7 @@
     <ul class="tldr-list">
       <li><strong>動作確認</strong>：テスト仕様エージェント群が、27分で end-to-end を初回で完走し、60 Gherkinシナリオ・10 Backlog 起票候補まで自動生成。</li>
       <li><strong>未解決の課題</strong>：実装エージェント群と同じ「エージェントによる独断補完」が複数箇所で発生している。レビュワーAIによる事後検出は成功している。</li>
-      <li><strong>両エージェント群の補完関係</strong>：テスト仕様側の整合性レビュー結果を実装側の入力に接続すれば、実装エージェント群側で起きていた「独自判断の混入」を予防できる可能性が見えた。</li>
+      <li><strong>両エージェント群の補完関係（仮説）</strong>：テスト仕様側の整合性レビュー結果を実装側の入力に接続すれば、実装エージェント群側で起きていた「独自判断の混入」を予防できる可能性が見えた。</li>
     </ul>
   </section>
 
@@ -444,8 +444,8 @@
     <input type="radio" name="tab" id="tab1" checked>
     <input type="radio" name="tab" id="tab2">
     <div class="tab-buttons">
-      <label for="tab1">① 動作検証 (PW-116 単独)</label>
-      <label for="tab2">② 効果比較 (PW-115 vs PW-116)</label>
+      <label for="tab1">① 動作検証（テスト仕様側 単独）</label>
+      <label for="tab2">② 効果比較（実装側 vs テスト仕様側）</label>
     </div>
 
     <!-- ▼ タブ1: 動作検証 -->
