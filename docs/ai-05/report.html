@@ -262,6 +262,112 @@
       padding-left: 16px;
       border-left: 3px solid #d0dcea;
     }
+
+    /* タブ */
+    .tabs {
+      position: relative;
+      margin-bottom: 8px;
+    }
+    .tabs > input[type="radio"] {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .tab-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #d0dcea;
+    }
+    .tab-buttons label {
+      padding: 9px 18px;
+      font-size: 13.5px;
+      font-weight: 600;
+      color: #6c7585;
+      cursor: pointer;
+      border-radius: 8px 8px 0 0;
+      background: #eaeef5;
+      border: 1px solid #d0dcea;
+      border-bottom: none;
+      margin-bottom: -2px;
+      transition: background 0.15s, color 0.15s;
+      user-select: none;
+    }
+    .tab-buttons label:hover {
+      background: #dce4ef;
+      color: #2d6a9f;
+    }
+    .tab-panel { display: none; }
+    #tab1:checked ~ .tab-buttons label[for="tab1"],
+    #tab2:checked ~ .tab-buttons label[for="tab2"] {
+      background: #fff;
+      color: #1e3a5f;
+      border-bottom: 2px solid #fff;
+    }
+    #tab1:checked ~ #panel1,
+    #tab2:checked ~ #panel2 { display: block; }
+
+    /* report2 用 追加スタイル */
+    blockquote.conclusion-line {
+      background: #eaf4e8;
+      border-left: 4px solid #34a853;
+      border-radius: 6px;
+      padding: 14px 18px;
+      margin: 16px 0;
+      font-weight: 600;
+      color: #1e5c35;
+      font-size: 14.5px;
+    }
+    pre.code-block {
+      background: #f7f9fc;
+      border: 1px solid #d8dee9;
+      border-radius: 6px;
+      padding: 12px 14px;
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: 12.5px;
+      color: #2c2c3e;
+      overflow-x: auto;
+      line-height: 1.55;
+      margin: 10px 0;
+    }
+    .perspective-row { margin-bottom: 14px; }
+    .perspective-row dt {
+      font-weight: 700;
+      color: #1e3a5f;
+      margin-top: 12px;
+      margin-bottom: 4px;
+      font-size: 14px;
+    }
+    .perspective-row dd {
+      margin-left: 0;
+      color: #2c2c3e;
+      font-size: 14px;
+    }
+    .perspective-row dd ul { padding-left: 20px; margin: 4px 0; }
+    .eval-note {
+      background: #f0f4fa;
+      border-left: 3px solid #2d6a9f;
+      padding: 10px 14px;
+      margin-top: 10px;
+      font-size: 13.5px;
+      color: #2c2c3e;
+    }
+    .eval-note strong { color: #1e3a5f; }
+    h4 {
+      font-size: 14px;
+      font-weight: 700;
+      color: #1e3a5f;
+      margin: 16px 0 8px;
+    }
+    ul.std-list, ol.std-list {
+      padding-left: 22px;
+      margin: 8px 0 12px;
+      color: #2c2c3e;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+    ul.std-list li, ol.std-list li { margin-bottom: 4px; }
   </style>
 </head>
 <body>
@@ -284,13 +390,28 @@
   <!-- ヘッダー -->
   <header class="report-header">
     <h1>PW-DMS 要件構造化AIパイプライン検証レポート<br>（ユーザマスタ画面）</h1>
-    <div class="meta-grid">
-      <div class="meta-item"><strong>検証対象</strong>ユーザマスタ画面（FE020）</div>
-      <div class="meta-item"><strong>検証スコープ</strong>STEP1（8エージェント全体 end-to-end 1サイクル）</div>
-      <div class="meta-item"><strong>検証期間</strong>2026-05-18 09:32〜09:59 JST（約27分）</div>
-      <div class="meta-item"><strong>検証ブランチ</strong>f/PW-116</div>
-    </div>
   </header>
+
+  <!-- タブ -->
+  <div class="tabs">
+    <input type="radio" name="tab" id="tab1" checked>
+    <input type="radio" name="tab" id="tab2">
+    <div class="tab-buttons">
+      <label for="tab1">① 動作検証 (PW-116 単独)</label>
+      <label for="tab2">② 効果比較 (PW-115 vs PW-116)</label>
+    </div>
+
+    <!-- ▼ タブ1: 動作検証 -->
+    <div class="tab-panel" id="panel1">
+
+      <section>
+        <div class="meta-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:6px 24px;font-size:13px;color:#444;">
+          <div><strong style="color:#777;font-weight:500;margin-right:6px;">検証対象</strong>ユーザマスタ画面（FE020）</div>
+          <div><strong style="color:#777;font-weight:500;margin-right:6px;">検証スコープ</strong>STEP1（8エージェント全体 end-to-end 1サイクル）</div>
+          <div><strong style="color:#777;font-weight:500;margin-right:6px;">検証期間</strong>2026-05-18 09:32〜09:59 JST（約27分）</div>
+          <div><strong style="color:#777;font-weight:500;margin-right:6px;">検証ブランチ</strong>f/PW-116</div>
+        </div>
+      </section>
 
   <!-- 1. 結論 -->
   <section>
@@ -506,6 +627,341 @@
       <li><strong>STEP3 検証</strong>: 別画面（例: 商品マスタ）で再現性を確認</li>
     </ol>
   </section>
+
+    </div><!-- /panel1 -->
+
+    <!-- ▼ タブ2: 効果比較 -->
+    <div class="tab-panel" id="panel2">
+
+      <section>
+        <div class="meta-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:6px 24px;font-size:13px;color:#444;">
+          <div><strong style="color:#777;font-weight:500;margin-right:6px;">作成日</strong>2026-05-18</div>
+          <div><strong style="color:#777;font-weight:500;margin-right:6px;">対象画面</strong>ユーザマスタ画面（FE020）</div>
+          <div><strong style="color:#777;font-weight:500;margin-right:6px;">比較ブランチ</strong>f/PW-115（要件構造化なし）vs f/PW-116（要件構造化あり）</div>
+        </div>
+      </section>
+
+      <!-- 0. エグゼクティブサマリ -->
+      <section>
+        <h2>0. エグゼクティブサマリ</h2>
+        <p>要件構造化AI群（<code>id-assignment-engine</code> 〜 <code>acceptance-test-design-ai</code>）を導入した場合、<strong>要件解像度・トレーサビリティ・欠落検出能力・mock 整合維持の 4 点で明確な効果がある</strong>。約 27 分で 60 Gherkin シナリオまで到達し、PW-115 では検出できなかった構造的問題（独断具体化・自己矛盾・YAML 欠陥など）を 07 が検出した。</p>
+        <p>ただし本パイプラインは「<strong>要件→受入テスト</strong>」までを担い、PW-115 が達成した「<strong>要件→動く実装</strong>」までは到達しない。両者は<strong>補完関係</strong>にあり、<code>spec-consistency-reviewer-ai</code> の出力を planner の入力に繋ぐことで PW-115 の弱点（planner spec への独自判断混入）を予防できる可能性が見えた。</p>
+        <p>ネガティブ要素（補助資料の自律参照・YAML 構文エラー・ID 粒度乖離など）は仕様改修で解消可能。<strong>改善付きで導入推奨</strong>。</p>
+      </section>
+
+      <!-- 1. 比較対象の定義 -->
+      <section>
+        <h2>1. 比較対象の定義</h2>
+        <table>
+          <thead>
+            <tr><th></th><th>PW-115</th><th>PW-116</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>アプローチ</td><td>brief.md + mockup → planner → 各 spec → 実装</td><td>要件定義書 → 8 エージェント → タグ付き Gherkin</td></tr>
+            <tr><td>入力規模</td><td>brief.md 22 行 + mockup ソース</td><td>要件定義書 77 行 + 非機能項目一覧 13 行</td></tr>
+            <tr><td>エージェント数</td><td>9（planner / db-architect / backend × 4 / frontend × 4）</td><td>8（01〜08）</td></tr>
+            <tr><td>実行時間</td><td>約 1 時間 43 分</td><td>約 27 分</td></tr>
+            <tr><td>中間生成物</td><td>spec.md × 3（db / backend / frontend）合計 763 行</td><td>章立て / ID 付き / アトミック / BR / UC / 用語集 / レビュー</td></tr>
+            <tr><td>最終成果物</td><td>動く画面 + API + DB スキーマ + テスト</td><td>60 Gherkin シナリオ + 未充足レポート + Backlog 起票案 10 件</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- 2. 観点別の比較 -->
+      <section>
+        <h2>2. 観点別の比較</h2>
+
+        <h3>2.1 要件解像度</h3>
+        <dl class="perspective-row">
+          <dt>PW-115 の入力</dt>
+          <dd>
+            <ul class="std-list">
+              <li><code>specs/frontend-engineer/user-master.brief.md</code>（22 行） — 「mockup パス」「mockup 全実装デフォルト」「status (1=休止/2=稼働) ↔ suspensionDiv (0=稼働中/1=休止中) 値反転」のみ。<strong>画面項目 1 つ 1 つの仕様は未記述</strong>（mockup を読めの一言）。</li>
+              <li>mockup ソース（参照のみ・暗黙の仕様）。</li>
+            </ul>
+          </dd>
+          <dt>PW-116 の入力</dt>
+          <dd>
+            <ul class="std-list">
+              <li><code>inputs/requirements.md</code>（要件定義書、77 行・68 項目） — 各項目の「エリア / セクション / 項目名 / UI 種別 / 検索方式 / 表示順 / 仕様 / 備考」が表形式で網羅。</li>
+              <li>「2026/04/06 顧客レビューア」コメント 4 件（未確定事項の追跡可能）。</li>
+            </ul>
+          </dd>
+        </dl>
+        <div class="eval-note"><strong>評価：</strong>PW-116 の入力は<strong>本質的に異なる粒度の情報源</strong>。要件定義書は「何を作るべきか」を一次情報として持つが、brief + mockup は「どう作るべきか」を二次情報として持つ。前者は推測補完を不要にし、後者は推測補完を誘発する構造。</div>
+
+        <h3>2.2 データモデル設計</h3>
+        <dl class="perspective-row">
+          <dt>PW-115（手動駆動・実装あり）</dt>
+          <dd>
+            <ul class="std-list">
+              <li><code>m_user</code> 拡張: katakanaName / permissionGroupId / operationEndDate を追加、depotId を削除。</li>
+              <li><code>m_permission_group</code> 新規（権限グループのマスタ化）。</li>
+              <li><code>m_user_shipper</code> / <code>m_user_depot</code> 中間テーブル新規（N:N 化）。</li>
+              <li>マイグレーション <code>20260513034011_pw_115_add_user_master_extension</code> を発行。</li>
+              <li>planner が <strong>mockup ソース</strong>から「shipperName: string[]」を見て N:N 必要と判断、db-architect spec に落とし込んだ。</li>
+            </ul>
+          </dd>
+          <dt>PW-116（パイプライン駆動・素材整理のみ）</dt>
+          <dd>
+            <ul class="std-list">
+              <li>直接的な DB スキーマは生成されない。</li>
+              <li><code>business-rule-extraction-ai</code> の出力（BR-001〜BR-016）が API バリデーション・状態遷移の素材として利用可能。</li>
+              <li><code>glossary-generation-ai</code> の出力（TERM-001〜TERM-022）がエンティティ識別の素材として利用可能。</li>
+              <li>「N:N にすべき」「権限グループをマスタ化すべき」という設計判断は<strong>生成されない</strong>。</li>
+            </ul>
+          </dd>
+        </dl>
+        <div class="eval-note"><strong>評価：</strong>PW-116 は DB 設計を直接出力しないが、<strong>設計判断のための素材を整理</strong>する。db-architect の入力として 04 と 06 の出力を渡せば、PW-115 と同等以上の設計品質が期待できる。</div>
+
+        <h3>2.3 バックエンド実装</h3>
+        <dl class="perspective-row">
+          <dt>PW-115（実装あり）</dt>
+          <dd>
+            <ul class="std-list">
+              <li>約 30 ファイルの新規・変更。<code>changeMUserPassword</code> mutation（旧パスワード bcrypt 照合 + 自分自身チェック + version 楽観ロック）。</li>
+              <li>backend-reviewer Round 4 まで実施し Critical/Major 解消。</li>
+              <li>backend-tester で <code>DateTimeScalar.parseLiteral</code> / NotFoundException マッピング / PrismaError マッピング / mock-user-id UUID 化を runtime で検出・修正。</li>
+            </ul>
+          </dd>
+          <dt>PW-116（API 契約の素材を整理）</dt>
+          <dd>
+            <ul class="std-list">
+              <li>業務ルール YAML が DTO バリデーション・エラーマッピングの根拠として使える（BR-001 → <code>@Matches(/^[0-9]{10,11}$/)</code>、BR-016 → カスタムバリデーション）。</li>
+              <li>Resolver / Service / DTO の実装ファイルは生成されない。</li>
+            </ul>
+          </dd>
+        </dl>
+        <div class="eval-note"><strong>評価：</strong>PW-116 は実装支援だが置換はしない。<strong>04 が生成した「業務ルール欠落候補 15 件」</strong>（パスワード強度未定義・ステータスと稼働期間の優先関係未定義など）は PW-115 のバリデーション設計時に存在しなかった視点であり、PW-115 の <code>@MinLength(8)</code> という単純なバリデーションを「業務ルールベースに統一する」契機になる。</div>
+
+        <h3>2.4 フロントエンド実装（<strong>最重要の発見</strong>）</h3>
+        <dl class="perspective-row">
+          <dt>PW-115（mock 逸脱の発生源）</dt>
+          <dd>
+            <ul class="std-list">
+              <li><code>user-drawer.tsx</code>（593 行）: UserDetailDrawer + UserCreateDrawer の <strong>2 コンポーネント分割</strong>（mockup は 1 つの UserDrawer で兼用）。</li>
+              <li>UserCreateDrawer に <code>&lt;input type="password"&gt;</code> を追加（<strong>mock には存在しない</strong>）。</li>
+              <li>起源: <code>specs/frontend-engineer/user-master.md</code> § 8 バリデーション行 190 — <code>userPassword | ✅ (create only) | @IsString + @IsNotEmpty</code>。</li>
+              <li>これは <strong>planner が brief + mockup を読んで spec を生成した際に独自判断で追加</strong>。理由は「DB 必須カラムで新規作成にはパスワードが必要」という技術的妥当性のみ。</li>
+              <li>frontend-reviewer モード A / B / 再 B のいずれも mock 逸脱を検出できず。</li>
+            </ul>
+          </dd>
+          <dt>PW-116（mock 整合の維持）</dt>
+          <dd>
+            <p><code>outputs/08_gherkin/UC003_user_create.feature</code> の「正常登録」シナリオ:</p>
+<pre class="code-block">When 荷主プルダウンで「荷主A」を選択する
+And デポの検索付きマルチセレクトで「東京デポ」を選択する
+And 氏名テキストボックスに "山田 太郎" を入力する
+And カタカナ氏名テキストボックスに "ヤマダ タロウ" を入力する
+And 電話番号テキストボックスに "09012345678" を入力する
+And 権限グループのコンボボックスで「デポ運行管理者」を選択する
+And 稼働開始日のカレンダーコントロールで「2026/06/01」を選択する
+And ステータスのチョイスチップスで「稼働中」を選択する
+And 「登録」ボタンを押下する</pre>
+            <ul class="std-list">
+              <li><strong>パスワード入力ステップが存在しない</strong>（要件定義書通り）。</li>
+              <li>04 業務ルール抽出にも「新規登録時パスワード入力」の BR は生成されない。</li>
+              <li>07 がパスワード変更モーダル（UC-007）と新規登録（UC-003）を別 UC として明確に分離。</li>
+            </ul>
+          </dd>
+        </dl>
+        <div class="eval-note"><strong>評価：</strong><strong>PW-116 のパイプラインを planner の前段に挟めば、PW-115 で起きた「planner 独自判断による mock 逸脱」を予防できる可能性が高い</strong>。Gherkin 段階で「新規登録時にパスワード入力なし」が明示されており、これを spec の入力にすれば planner が <code>userPassword | ✅ (create only)</code> と勝手に書くインセンティブが消える。</div>
+
+        <h3>2.5 オーケストレーション・ハンドリングのしやすさ</h3>
+        <dl class="perspective-row">
+          <dt>PW-115（9 エージェント直列・実装中心）</dt>
+          <dd>
+            <ul class="std-list">
+              <li>順序: planner → db-architect → backend-engineer → backend-reviewer × 4 → backend-tester × 2 → frontend-engineer Phase1 → frontend-reviewer A → frontend-engineer Phase2 → frontend-reviewer B × 2 → frontend-tester。</li>
+              <li>並列ポイント少（backend と frontend Phase1 のみ並列）。リワーク多（backend-reviewer 4 回・frontend-reviewer 3 回）。約 1 時間 43 分。</li>
+            </ul>
+          </dd>
+          <dt>PW-116（8 エージェント・要件構造化中心）</dt>
+          <dd>
+            <ul class="std-list">
+              <li>順序: 章立て → ID 付与 → アトミック分解 → （業務ルール抽出 + 用語集生成 並列） → UC 整形 → 受入テスト設計 → 仕様一貫性レビュー。</li>
+              <li>並列ポイントあり（04 + 06 同時実行）。リワーク 0 回（初回 1 周で完走）。約 27 分。</li>
+            </ul>
+          </dd>
+        </dl>
+        <div class="eval-note"><strong>評価：</strong>PW-116 は<strong>約 1/4 の時間</strong>で完走。単純な時間比較は不公平だが、「要件整理フェーズ」だけ取り出せば PW-115 の planner（約 5 分）に対し PW-116 は約 27 分。<strong>成果物が圧倒的に多い</strong>（Gherkin / BR / UC / 用語集）ため、価値あたりの時間効率は良好。</div>
+
+        <h3>2.6 品質・トレーサビリティ</h3>
+        <dl class="perspective-row">
+          <dt>PW-115</dt>
+          <dd>
+            <ul class="std-list">
+              <li>「mockup 全実装」という曖昧な前提で、要件 ↔ 実装のトレーサビリティが弱い。</li>
+              <li>spec ↔ 実装 のトレーサビリティはある（DTO バリデーション表 → 実装デコレータ）。</li>
+              <li>「カバレッジ」という概念は spec に存在しない。</li>
+            </ul>
+          </dd>
+          <dt>PW-116</dt>
+          <dd>
+            <ul class="std-list">
+              <li>4 方向トレース可能: REQ-ID ↔ BR-ID ↔ UC-ID ↔ Gherkin タグ。</li>
+              <li>カバレッジ指標が定量化: A1 = 100%、E1 = 0、E2 = 0、E3 = 100%。</li>
+              <li>未充足要件は <code>unfulfilled_report.md</code> に明示分離。</li>
+            </ul>
+          </dd>
+        </dl>
+        <div class="eval-note"><strong>評価：</strong>PW-116 は<strong>品質指標が明確で、要件カバレッジを客観的に測定可能</strong>。PW-115 では存在しなかった視点。</div>
+
+        <h3>2.7 推測補完問題の検出能力</h3>
+        <dl class="perspective-row">
+          <dt>PW-115</dt>
+          <dd>
+            <ul class="std-list">
+              <li>planner 自身が <code>userPassword | ✅ (create only)</code> を spec に埋め込む（推測補完）。</li>
+              <li>backend-reviewer Round 1 で UpdateMUserInput.userPassword 削除は指摘するが CreateMUserInput.userPassword は残す（部分的な検出）。</li>
+              <li>frontend-reviewer A / B / 再 B はいずれも mock 逸脱を未検出 → 「動く実装」は完成したが mock との構造一致は失われた。</li>
+            </ul>
+          </dd>
+          <dt>PW-116</dt>
+          <dd>
+            <ul class="std-list">
+              <li><code>spec-consistency-reviewer-ai</code> が <strong>ISSUE-001</strong> を検出: acceptance-test-design-ai が UC008 で「システム管理者権限を持つユーザがログイン済み」と独断具体化 → BR-011 は「権限グループ未定義」と明示。</li>
+              <li><strong>ISSUE-002</strong>（代表エリアの自己矛盾）も検出: 表示要件のみで編集 UI がない。</li>
+              <li><code>business-rule-extraction-ai</code> が <strong>15 件の欠落候補</strong>を提示（パスワード強度未定義・ステータスと稼働期間の優先関係未定義・パスワード変更実行者制御の矛盾など）。</li>
+            </ul>
+          </dd>
+        </dl>
+        <div class="eval-note"><strong>評価：</strong><strong>PW-116 は推測補完を事後検出する自浄作用を持つ</strong>。PW-115 が見逃した同種の問題（mock 逸脱）を、構造的に近いケース（独断具体化）として検出している。ただし「未然防止」ではなく「事後検出」である点は改善余地。</div>
+
+        <h3>2.8 業務ルール・欠落事項の発見</h3>
+        <p><strong>PW-115:</strong> 業務ルール抽出という工程自体が存在しない。spec の「バリデーション表」が代用されているが、これは技術制約の列挙にすぎない。</p>
+        <p><strong>PW-116:</strong> <code>business-rule-extraction-ai</code> が業務ルール 16 件 + 欠落候補 15 件を明示。例えば:</p>
+        <ul class="std-list">
+          <li><strong>BR-016</strong>（稼働開始日・終了日の前後関係制約）: PW-115 では UI 側でインライン警告するのが望ましいとのみ記述。</li>
+          <li>欠落候補（パスワード強度未定義）: PW-115 では <code>@MinLength(8)</code> と決め打ち、業務ルールとしての議論なし。</li>
+          <li>欠落候補（ステータスと稼働期間の優先関係）: PW-115 の実装では稼働終了日後の表示挙動が未定義のまま動いている。</li>
+        </ul>
+        <div class="eval-note"><strong>評価：</strong>PW-116 は<strong>業務ルールを構造化された形で抽出し、欠落を機械的に検出</strong>する。PW-115 では暗黙のまま実装に進んでいた事項を可視化する。</div>
+      </section>
+
+      <!-- 3. ポジティブな影響 -->
+      <section>
+        <h2>3. ポジティブな影響（11 件）</h2>
+        <table>
+          <thead>
+            <tr><th>#</th><th>効果</th><th>根拠</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>P1</td><td>要件解像度の劇的向上</td><td>brief 22 行 → 要件定義書 77 行 → Gherkin 60 シナリオ</td></tr>
+            <tr><td>P2</td><td>4 方向トレーサビリティ</td><td>REQ ⇄ BR ⇄ UC ⇄ Gherkin タグ完備、A1/E1/E2/E3 全 100%</td></tr>
+            <tr><td>P3</td><td>欠落事項の機械的発見</td><td>04 が欠落候補 15 件、08 が未充足 4 件、10 件の Backlog 起票案</td></tr>
+            <tr><td>P4</td><td>mock 整合の維持</td><td>UC-003 にパスワード入力なし。planner spec の独自判断問題（userPassword 埋め込み）が発生しない</td></tr>
+            <tr><td>P5</td><td>並列実行可能</td><td>04 + 06 並列、約 27 分で end-to-end 完走</td></tr>
+            <tr><td>P6</td><td>品質指標の定量化</td><td>A1=100% / E1=0 / E2=0 / E3=100% で要件カバレッジ測定可能</td></tr>
+            <tr><td>P7</td><td>自浄作用</td><td>07 が独断具体化（ISSUE-001）・自己矛盾（ISSUE-002）を事後検出</td></tr>
+            <tr><td>P8</td><td>テスト可能な成果物</td><td>タグ付き Gherkin が E2E / 受入テストに直接使える</td></tr>
+            <tr><td>P9</td><td>Backlog 起票候補の自動抽出</td><td>10 件の未決事項をチケット候補として整理</td></tr>
+            <tr><td>P10</td><td>業務SMEレビューの集中</td><td>機械チェック後の「業務妥当性のみ」に集中可能</td></tr>
+            <tr><td>P11</td><td>用語ゆれの可視化</td><td>「ステータス vs 状態」「ユーザID vs ログインID」を 06 / 07 が検出</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- 4. ネガティブな影響 -->
+      <section>
+        <h2>4. ネガティブな影響（10 件）</h2>
+        <table>
+          <thead>
+            <tr><th>#</th><th>影響</th><th>根拠 / 解消策</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>N1</td><td>実装そのものを生成しない</td><td>PW-115 のような「動く画面」までは到達しない。<strong>補完関係</strong>として PW-115 と統合する必要</td></tr>
+            <tr><td>N2</td><td>入力 5 点セットの整備コスト</td><td>要件定義書を <code>inputs/</code> に整形するコスト。今回は 1 ファイルコピーで済んだが、画面が増えると整形が必要</td></tr>
+            <tr><td>N3</td><td>エージェントの境界越え</td><td>01/03/04/06 が補助資料を自律参照。再現性・決定論性が損なわれる → <strong>責務境界の厳格化で解消可能</strong></td></tr>
+            <tr><td>N4</td><td>YAML 構文エラー</td><td>04 出力に 19 箇所の構文エラー。下流が機械処理不可 → <strong>yamllint 必須化で解消可能</strong></td></tr>
+            <tr><td>N5</td><td>ID 粒度の乖離</td><td>01 (L2) と 03 (枝番) で Gherkin タグが L2 止まり、部分カバー検出不可 → <strong>採番ポリシー統一で解消可能</strong></td></tr>
+            <tr><td>N6</td><td>独断具体化を未然防止できず</td><td>08 のシステム管理者権限独断指定は 07 で事後検出のみ → <strong>05→07→08 順序変更で改善可能</strong></td></tr>
+            <tr><td>N7</td><td>業務知識の限界</td><td>「代表エリア」のようなドメイン固有概念は要件文だけでは判定困難 → <strong>業務SMEレビュー必須</strong></td></tr>
+            <tr><td>N8</td><td>UC は人間が書く前提</td><td>05 は素案までで UC を完成させない → 仕様通りだが業務SMEの作業負荷あり</td></tr>
+            <tr><td>N9</td><td>設計フェーズ持越し事項の扱い</td><td>REQ-10 系の扱いがエージェント間で曖昧 → <strong>明示的なポリシー策定必要</strong></td></tr>
+            <tr><td>N10</td><td>コスト</td><td>8 エージェント実行（特に Sonnet 系）の API コスト。1 サイクル 27 分で 50 万トークン以上</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- 5. mock 逸脱の連鎖 -->
+      <section>
+        <h2>5. PW-115 でなぜ mock 逸脱が起きたか（深掘り）</h2>
+        <p>PW-115 で<strong>「userPassword 入力欄を新規作成 Drawer に追加した」</strong>問題は、以下の連鎖で発生:</p>
+<pre class="code-block">brief.md「mockup全実装デフォルト」（22行）
+  ↓
+planner が brief + mockup + Prisma schema を読む
+  ↓
+planner: 「mockup には新規作成画面がない」
+       + 「DB の m_user.userPassword は NOT NULL」
+       + 「新規作成 API には userPassword が必要」
+  ↓
+planner が独自判断で spec に書き込む:
+  - § 8 バリデーション: 「userPassword | ✅ (create only) | @IsNotEmpty」
+  - § 10 実装ファイル: 「features/user/components/user-drawer.tsx」（mockup と同じ1ファイル）
+  ↓
+frontend-engineer フェーズ1（スケルトン抽出）:
+  - スケルトン 482 行目に
+    「{/* UserDetailDrawer と同じセクション3構造（ID は非表示、userPassword 入力あり） */}」
+  - planner spec の userPassword 必須を尊重してスケルトン化
+  ↓
+frontend-reviewer モードA: スケルトンと mockup の比較で「userPassword 入力」をスルー
+  ↓
+frontend-engineer フェーズ2: スケルトンを実装に展開
+  - UserDetailDrawer と UserCreateDrawer の 2 コンポーネント化
+  - &lt;input type="password"&gt; 追加
+  ↓
+frontend-reviewer モードB（×2回）: いずれも mock 逸脱を検出せず通過
+  ↓
+動く実装は完成。しかし mock とは構造が異なる</pre>
+        <p><strong>この問題は PW-116 のパイプラインを spec 生成の前段に挟むことで予防可能:</strong></p>
+        <ul class="std-list">
+          <li>02 → 08 が「mockup 由来の要件（パスワード入力ステップなし）」を Gherkin として明文化。</li>
+          <li>planner はこれを入力にすれば「userPassword 必須」と独自判断する根拠を失う。</li>
+          <li>仮に planner が独自判断したとしても、07 が「Gherkin に無い項目を spec に追加」として検出可能。</li>
+        </ul>
+      </section>
+
+      <!-- 6. 結論 -->
+      <section>
+        <h2>6. 結論</h2>
+
+        <h3>導入効果の判定</h3>
+        <p><strong>効果あり</strong>。以下の 4 つで明確:</p>
+        <ol class="std-list">
+          <li><strong>要件解像度</strong>: 22 行 brief → 77 行画面項目定義書 → 60 Gherkin への解像度向上</li>
+          <li><strong>トレーサビリティ</strong>: REQ ⇄ BR ⇄ UC ⇄ Gherkin タグの 4 方向トレース</li>
+          <li><strong>自浄作用</strong>: 07 が独断具体化・自己矛盾を事後検出</li>
+          <li><strong>mock 整合の維持</strong>: planner spec の「userPassword 埋め込み」型問題が原理的に発生しない</li>
+        </ol>
+
+        <h3>改善が必要な点</h3>
+        <p>ネガティブ要素は<strong>すべて仕様改修で解消可能</strong>:</p>
+        <ul class="std-list">
+          <li>N3（境界越え）: エージェント定義の責務境界を厳格化</li>
+          <li>N4（YAML 構文）: 04 出力に yamllint ステップ追加</li>
+          <li>N5（ID 粒度）: 採番ポリシー統一（01 で枝番採番 or req_map 拡張）</li>
+          <li>N6（事後検出）: 05→07→08 にパイプライン順序変更</li>
+          <li>N9（持越し扱い）: 設計フェーズ持越しのポリシー明文化</li>
+        </ul>
+
+        <h3>推奨アクション</h3>
+        <ol class="action-list">
+          <li><strong>エージェント定義の改修</strong>（N3〜N6、N9）を実施</li>
+          <li><strong>改修後パイプラインで同じユーザマスタ入力を再実行</strong>（STEP2 検証）</li>
+          <li><strong>PW-116 パイプラインを planner の前段に統合する PoC</strong>（PW-115 の問題を予防できるか検証）</li>
+          <li><strong>業務SMEレビュープロセスの正式化</strong>（07 結果を業務側に渡す運用設計）</li>
+          <li><strong>別画面（商品マスタ等）で再現性確認</strong>（STEP3 検証）</li>
+        </ol>
+
+        <h3>一行結論</h3>
+        <blockquote class="conclusion-line">
+          PW-116 パイプラインは「要件→受入テスト」を担い、PW-115 パイプラインは「要件→実装」を担う。両者を PW-116 → PW-115 の順で連結すれば、PW-115 単独では予防できない独自判断問題（mock 逸脱）を構造的に予防できる可能性がある。改修付きで本格導入を推奨。
+        </blockquote>
+      </section>
+
+    </div><!-- /panel2 -->
+  </div><!-- /tabs -->
 
 </div>
 </body>
