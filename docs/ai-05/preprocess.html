@@ -858,6 +858,10 @@
     <br>※ 起点となる<strong>初期情報セット</strong>（要件仕様書／UC 情報／機能一覧／データ構造／非機能要件閾値）は人間が用意した状態が前提。
   </div>
 
+  <div style="margin:4px 0 14px;padding:12px 16px;background:#eaf4e8;border-left:4px solid #34a853;border-radius:6px;font-size:13px;line-height:1.7;color:#1e5c35;">
+    <strong>✓ ToBe パイプラインは <a href="./report.html" style="color:#1e5c35;">⑤検証レポート</a> で動作実証済み</strong>：ユーザマスタ画面で end-to-end 27分・60 Gherkinシナリオを初回完走（PW-116検証）。下記の工数試算（AI 1.9h／人間 4.4h）は推論ベースだが、ToBe パイプライン自体は理論ではなく稼働実証されている。
+  </div>
+
   <div class="caveat">
     <strong>★ 前提：</strong> AI は無から要件を作らず、人間が用意した素材を<strong>構造化・整形・索引化</strong>する役割。
     本資料の AsIs/ToBe は<strong>工数削減のみ</strong>を示し、品質を AI が代替するものではない（AI が担うのは "形式・構造・整合性" のみ）。
@@ -1398,6 +1402,16 @@
     <div class="section-title ai">④ 導入する AI エージェント一覧（8 種類）</div>
     <div class="section-sub">
       <strong>実装済み 8 エージェント</strong>。各 1〜3 日で Claude Code subagent として実装可能。
+    </div>
+
+    <div style="margin:6px 0 16px;padding:12px 16px;background:#fbfdff;border:1px solid #c5d4e8;border-left:4px solid #2d6a9f;border-radius:6px;font-size:12.5px;line-height:1.7;color:#2c2c3e;">
+      <strong style="color:#1e3a5f;">8エージェント粒度の方針</strong>：AI 価値の濃淡で「決定論層／軽量推論層／本格推論層」の3層に分けて配置。
+      <ul style="margin:6px 0 0 18px;padding:0;">
+        <li><strong>決定論層</strong>（ID付与エンジン）：大部分はスクリプト処理で AI は曖昧解決のみ担当（Haiku）。トレーサビリティ基盤として独立化</li>
+        <li><strong>軽量推論層</strong>（章立て構造化／用語集生成）：書式不定入力からの構造抽出（Sonnet）。人手では時間がかかるが AI で短時間で処理</li>
+        <li><strong>本格推論層</strong>（アトミック分解／業務ルール抽出／UC整形／受入テスト設計／仕様一貫性レビュー）：業務文脈の理解が要る、AI 価値が最も高い領域</li>
+      </ul>
+      <span style="display:block;margin-top:6px;">8 体に分けているのは <strong>各責務が独立して再実行できる</strong> ようにするため（例：業務ルールだけ更新する際、章立て・ID付与から作り直す必要がない）。</span>
     </div>
 
     <div class="agents-grid">
