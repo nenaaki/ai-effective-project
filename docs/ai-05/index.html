@@ -413,11 +413,10 @@
   </header>
 
   <div class="lede">
-    これまでに整理してきた AI エージェント構成（<a href="../ai-04/ai_dd_process.html">ai-04/ai_dd_process.html</a>）は<strong>設計〜実装</strong>を主対象としていた。
+    これまでに整理してきた AI エージェント構成は、<strong>設計〜実装</strong>を主対象に、AsIs→ToBe のプロセス再編（<a href="../ai-04/ai_dd_process.html">ai-04/ai_dd_process.html</a>）とシナリオ別の工数比較（<a href="../ai-04/index.html">ai-04/index.html</a>）で AI 導入効果を試算してきた。
     本資料ではそれを<strong>ウォーターフォール型のV字モデル全体</strong>へ拡張し、
     要件・基本設計・詳細設計からそれぞれ対応するテスト仕様（受入・システム・結合・単体）を<strong>AI が派生生成</strong>し、
     さらにテストコード実装・自動実行までを一連のオーケストレーションとして扱う構造を示す。
-    <span class="new-badge">NEW</span> はこの拡張で新規追加した役割。
   </div>
 
   <!-- ==================== V字モデル本体 ==================== -->
@@ -502,9 +501,10 @@
           </div>
           <div class="agents">
             <span class="agent-chip ai-new pre-impl">受入テスト設計AI<span class="new-badge">NEW</span></span>
+            <span class="agent-chip human pre-impl">業務SME（設計承認）</span>
             <span class="agent-chip ai">E2Eテスト実装AI</span>
             <span class="agent-chip ai">テスターAI</span>
-            <span class="agent-chip human pre-impl">業務SME（承認）</span>
+            <span class="agent-chip human">業務SME（結果承認）</span>
           </div>
           <div class="outputs">
             <span class="outputs-label">成果物</span>
@@ -798,7 +798,7 @@
             <td><span class="block-chip req">要件定義</span> へ差し戻し（業務SME と要件を再確認 → 下流へ波及）</td>
           </tr>
           <tr>
-            <td>テスト仕様派生AIが要件・設計の<strong>曖昧さ</strong>を検出</td>
+            <td><strong>受入テスト設計AI</strong>が要件・設計の<strong>曖昧さ</strong>を検出</td>
             <td>対応する上位の設計フェーズへ即時起票（テスト作成を保留）</td>
           </tr>
           <tr>
@@ -815,7 +815,7 @@
     <div class="legend-item"><span class="legend-swatch design"></span>設計レーン（Plan）</div>
     <div class="legend-item"><span class="legend-swatch test"></span>テストレーン（Do + Check）</div>
     <div class="legend-item"><span class="legend-swatch ai"></span>既存AIエージェント（ai-04由来）</div>
-    <div class="legend-item"><span class="legend-swatch new"></span>新規AIエージェント<span class="new-badge">NEW</span></div>
+    <div class="legend-item"><span class="legend-swatch new"></span>新規AIエージェント（本拡張で追加）<span class="new-badge">NEW</span></div>
     <div class="legend-item"><span class="legend-swatch assist"></span>AI支援（エージェント化せず人主導でAIをアシスト利用）</div>
     <div class="legend-item"><span class="legend-swatch deferred"></span>低優先／他AIで兼務（独立エージェント化は保留）</div>
     <div class="legend-item"><span class="legend-swatch human"></span>人タスク</div>

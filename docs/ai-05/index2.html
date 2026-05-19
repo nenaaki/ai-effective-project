@@ -405,7 +405,6 @@
     （章立て構造化AI／ID 付与エンジン／アトミック要件分解AI／業務ルール抽出AI／用語集生成AI／ユースケース整形AI）を統合した版。
     これまで「要件アナリスト（AI支援）」として人主導でまとめていた要件整備工程を、<strong>章立て・ID 付与・アトミック分解・業務ルール抽出・用語集生成・UC 整形</strong>の
     各サブタスクに分解し、それぞれを独立した Claude Code subagent で実行する構造を可視化する。
-    <span class="new-badge">NEW</span> はこの拡張で新規追加した役割。
   </div>
 
   <!-- ==================== V字モデル本体 ==================== -->
@@ -495,9 +494,10 @@
           </div>
           <div class="agents">
             <span class="agent-chip ai-new pre-impl">受入テスト設計AI<span class="new-badge">NEW</span></span>
+            <span class="agent-chip human pre-impl">業務SME（設計承認）</span>
             <span class="agent-chip ai">E2Eテスト実装AI</span>
             <span class="agent-chip ai">テスターAI</span>
-            <span class="agent-chip human pre-impl">業務SME（承認）</span>
+            <span class="agent-chip human">業務SME（結果承認）</span>
           </div>
           <div class="outputs">
             <span class="outputs-label">成果物</span>
@@ -794,7 +794,7 @@
             <td><span class="block-chip req">要件定義</span> へ差し戻し（業務SME と要件を再確認 → プリプロセスAI で再構造化 → 下流へ波及）</td>
           </tr>
           <tr>
-            <td>テスト仕様派生AIが要件・設計の<strong>曖昧さ</strong>を検出</td>
+            <td><strong>受入テスト設計AI</strong>が要件・設計の<strong>曖昧さ</strong>を検出</td>
             <td>対応する上位の設計フェーズへ即時起票（テスト作成を保留）</td>
           </tr>
           <tr>
@@ -815,7 +815,7 @@
     <div class="legend-item"><span class="legend-swatch design"></span>設計レーン（Plan）</div>
     <div class="legend-item"><span class="legend-swatch test"></span>テストレーン（Do + Check）</div>
     <div class="legend-item"><span class="legend-swatch ai"></span>既存AIエージェント（ai-04由来）</div>
-    <div class="legend-item"><span class="legend-swatch new"></span>新規AIエージェント<span class="new-badge">NEW</span></div>
+    <div class="legend-item"><span class="legend-swatch new"></span>新規AIエージェント（本拡張で追加）<span class="new-badge">NEW</span></div>
     <div class="legend-item"><span class="legend-swatch assist"></span>AI支援（エージェント化せず人主導でAIをアシスト利用）</div>
     <div class="legend-item"><span class="legend-swatch shared"></span>他AIで兼務（独立エージェント化せず）</div>
     <div class="legend-item"><span class="legend-swatch human"></span>人タスク</div>
