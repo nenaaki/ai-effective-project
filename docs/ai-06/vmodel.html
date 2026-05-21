@@ -193,30 +193,27 @@
   .vstep-out-box.exit   .out-badge { background: #e5e7eb; color: #374151; border: 1px solid #9ca3af; }
   .vstep-out-box.dim-out .out-badge { background: #fff; color: #4b5563; border: 1px dashed #9ca3af; }
 
-  /* 人間によるレビュー／実装指示（小さい枠） */
-  .phase.small-review,
-  .phase.small-instruction {
-    min-height: auto;
-    padding: 8px 12px 10px;
+  /* AI と人間の境界線 */
+  .boundary-row { margin-bottom: 6px !important; }
+  .boundary-line {
+    position: relative;
+    height: 18px;
+    border-top: 3px dashed #d63a3a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
-  .phase.small-review {
-    background: #fff8eb;
-    border: 2px solid #d69a3a;
-  }
-  .phase.small-instruction {
-    background: #f5f1fb;
-    border: 2px solid #6e68c2;
-  }
-  .phase.small-review .phase-head,
-  .phase.small-instruction .phase-head {
-    border-bottom: none;
-    padding-bottom: 4px;
-  }
-  .phase.small-review .review-body,
-  .phase.small-instruction .review-body {
+  .boundary-label {
+    position: absolute;
+    top: -10px;
+    background: #fff;
+    padding: 0 10px;
     font-size: 11px;
-    color: #555;
-    line-height: 1.5;
+    font-weight: 700;
+    color: #d63a3a;
+    letter-spacing: 0.04em;
+    border: 1px solid #d63a3a;
+    border-radius: 999px;
   }
 
   /* 期待入力（対象外フェーズに、本フローが受け取りたいもの） */
@@ -370,14 +367,10 @@
         </div>
       </div>
 
-      <!-- Level 2.5: 人間による実装指示（左腕のみ、対象） -->
-      <div class="vrow" style="padding: 0 75px; margin-bottom: 10px;">
-        <div class="phase design small-instruction">
-          <div class="phase-head">
-            <span class="phase-title">人間による実装指示</span>
-            <span class="phase-stage">対象</span>
-          </div>
-          <div class="review-body">基本設計の成果物を受けて、エンジニアが spec を整備し AI に実装を委譲する</div>
+      <!-- 境界線（左腕）: 人間 ↑ ／ AI ↓ -->
+      <div class="vrow boundary-row" style="padding: 0 75px; margin-bottom: 10px;">
+        <div class="boundary-line left">
+          <span class="boundary-label">人間 ↑　／　AI ↓</span>
         </div>
         <div class="derive-cell"></div>
         <div></div>
@@ -417,15 +410,12 @@
       </div>
 
       <!-- Level 3.5: 人間によるレビュー（右腕のみ、対象） -->
-      <div class="vrow" style="padding: 0 125px; margin-bottom: 10px;">
+      <!-- 境界線（右腕）: AI ↑ ／ 人間 ↓（上方向へ進むので、テストレーンは下から上へ） -->
+      <div class="vrow boundary-row" style="padding: 0 125px; margin-bottom: 10px;">
         <div></div>
         <div class="derive-cell"></div>
-        <div class="phase test small-review">
-          <div class="phase-head">
-            <span class="phase-title">人間によるレビュー</span>
-            <span class="phase-stage">対象</span>
-          </div>
-          <div class="review-body">マージ判断。NGの場合は spec 修正後に「人間による実装指示」に戻る</div>
+        <div class="boundary-line right">
+          <span class="boundary-label">AI ↓　／　人間 ↑</span>
         </div>
       </div>
 
