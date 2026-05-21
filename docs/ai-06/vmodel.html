@@ -405,15 +405,53 @@
   .apex-section.impl h4 { color: #1e6042; }
   .apex-section.test h4 { color: #a05f1d; }
 
-  /* apex 内コンパクトモード（出力省略） */
-  .phase.apex .vstep { padding: 5px 9px 6px; }
-  .phase.apex .vs-head { margin-bottom: 3px; gap: 4px; }
-  .phase.apex .vs-task {
-    font-size: 11.5px;
-    margin-bottom: 0;
-    line-height: 1.35;
+  /* apex 内 箇条書き（高密度・1行） */
+  .apex-bullets {
+    list-style: none;
+    padding: 8px 14px;
+    margin: 8px 0 0;
+    background: #fff;
+    border-radius: 10px;
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 4px 10px;
   }
-  .phase.apex .vs-ai { font-size: 10px; padding: 0 6px; }
+  .apex-bullets li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 6px;
+    padding: 2px 0;
+    font-size: 11.5px;
+    line-height: 1.5;
+    flex: 1 1 0;
+    min-width: 0;
+  }
+  .b-dot {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    align-self: center;
+  }
+  li.design .b-dot { background: #6e68c2; }
+  li.impl   .b-dot { background: #2c8a5e; }
+  li.test   .b-dot { background: #d69a3a; }
+  .b-task { font-weight: 700; color: #1a1a1a; }
+  .b-ai {
+    font-size: 10.5px;
+    font-weight: 600;
+    padding: 0 6px;
+    border-radius: 3px;
+  }
+  li.design .b-ai { color: #4d479e; background: #f1edfa; }
+  li.impl   .b-ai { color: #1e6042; background: #e0f3e6; }
+  li.test   .b-ai { color: #a05f1d; background: #fdf3e2; }
+  .b-outs {
+    color: #555;
+    font-size: 11px;
+  }
 
   /* V字外 (post-V) */
   .post-v {
@@ -483,7 +521,7 @@
   <!-- ==================== V字モデル ==================== -->
   <div class="section">
     <div class="section-title">V字モデル：AIが担当する範囲</div>
-    <div class="section-sub">上部の対象外フェーズと AI 担当領域を境界線で分離。③〜⑥は AI 担当領域として一括表示。</div>
+    <div class="section-sub">上部の対象外フェーズと AI 担当領域を境界線で分離。③〜⑤は AI 担当領域として一括表示。</div>
 
     <div class="vmodel">
 
@@ -567,44 +605,38 @@
             <span class="phase-stage">Level 3〜4 / 対象</span>
           </div>
 
-          <div class="vsteps horiz" style="margin-top: 8px;">
-            <div class="vstep design">
-              <div class="vs-head">
-                <span class="vs-ai">バックエンドAI</span>
-              </div>
-              <div class="vs-task">DBのテーブル設計・更新</div>
-            </div>
-            <div class="vstep test">
-              <div class="vs-head">
-                <span class="vs-ai">テストAI</span>
-              </div>
-              <div class="vs-task">ユニットテスト設計・実装</div>
-            </div>
-            <div class="vstep impl">
-              <div class="vs-head">
-                <span class="vs-ai">バックエンドAI</span>
-              </div>
-              <div class="vs-task">CRUD API 実装</div>
-            </div>
-            <div class="vstep test">
-              <div class="vs-head">
-                <span class="vs-ai">テストAI</span>
-              </div>
-              <div class="vs-task">機能テスト実装</div>
-            </div>
-            <div class="vstep impl">
-              <div class="vs-head">
-                <span class="vs-ai">フロントエンドAI</span>
-              </div>
-              <div class="vs-task">CRUD画面実装</div>
-            </div>
-            <div class="vstep test">
-              <div class="vs-head">
-                <span class="vs-ai">テストAI</span>
-              </div>
-              <div class="vs-task">テスト実施</div>
-            </div>
-          </div>
+          <ul class="apex-bullets">
+            <li class="design">
+              <span class="b-dot"></span>
+              <span class="b-task">DBのテーブル設計・更新</span>
+              <span class="b-ai">バックエンドAI</span>
+            </li>
+            <li class="test">
+              <span class="b-dot"></span>
+              <span class="b-task">ユニットテスト設計・実装</span>
+              <span class="b-ai">テストAI</span>
+            </li>
+            <li class="impl">
+              <span class="b-dot"></span>
+              <span class="b-task">CRUD API 実装</span>
+              <span class="b-ai">バックエンドAI</span>
+            </li>
+            <li class="test">
+              <span class="b-dot"></span>
+              <span class="b-task">機能テスト実装</span>
+              <span class="b-ai">テストAI</span>
+            </li>
+            <li class="impl">
+              <span class="b-dot"></span>
+              <span class="b-task">CRUD画面実装</span>
+              <span class="b-ai">フロントエンドAI</span>
+            </li>
+            <li class="test">
+              <span class="b-dot"></span>
+              <span class="b-task">テスト実施</span>
+              <span class="b-ai">テストAI</span>
+            </li>
+          </ul>
         </div>
       </div>
 
