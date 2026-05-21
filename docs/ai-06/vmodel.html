@@ -306,13 +306,13 @@
 
   <header class="header">
     <h1>CRUD系機能・画面の実装</h1>
-    <div class="meta">影響範囲: 詳細設計 → 実装 → 単体テスト</div>
+    <div class="meta">影響範囲: 詳細設計 → 実装 → 単体テスト → 結合テスト</div>
   </header>
 
   <!-- ==================== V字モデル ==================== -->
   <div class="section">
     <div class="section-title">V字モデル：本フローが影響する範囲</div>
-    <div class="section-sub">左列＝設計レーン／右列＝テストレーン／頂点＝実装＋単体テスト。色付きが本フローの対象。</div>
+    <div class="section-sub">上部の対象外フェーズと AI 担当領域を境界線で分離。③〜⑥は AI 担当領域として一括表示。</div>
 
     <div class="vmodel">
 
@@ -367,28 +367,30 @@
         </div>
       </div>
 
-      <!-- 境界線（左腕）: 人間 ↑ ／ AI ↓ -->
+      <!-- 境界線（左右）: 人間 ↑ ／ AI ↓ -->
       <div class="vrow boundary-row" style="padding: 0 75px; margin-bottom: 10px;">
         <div class="boundary-line left">
           <span class="boundary-label">人間 ↑　／　AI ↓</span>
         </div>
         <div class="derive-cell"></div>
-        <div></div>
+        <div class="boundary-line right">
+          <span class="boundary-label">AI ↓　／　人間 ↑</span>
+        </div>
       </div>
 
-      <!-- Level 3: 詳細設計（対象）↔ 結合テスト（対象外） -->
-      <div class="vrow lv3">
-        <div class="phase design">
-          <div class="phase-head">
-            <span class="phase-title">③ 詳細設計</span>
-            <span class="phase-stage">Level 3 / 対象</span>
+      <!-- ③④⑤⑥: 詳細設計 ／ 実装 ／ 単体テスト ／ 結合テスト （統合） -->
+      <div class="vrow lv2">
+        <div class="phase apex" style="grid-column: 1 / -1;">
+          <div class="phase-head" style="border-bottom-color: rgba(0,0,0,0.18);">
+            <span class="phase-title" style="color: #1e6042;">③ 詳細設計 ／ ④ 実装 ／ ⑤ 単体テスト ／ ⑥ 結合テスト</span>
+            <span class="phase-stage">Level 3〜4 / 対象</span>
           </div>
-          <div class="vsteps">
+
+          <div class="vsteps horiz" style="margin-top: 8px;">
             <div class="vstep-grp">
               <div class="vstep design">
                 <div class="vs-head">
-                  <span class="vs-num">STEP 1</span>
-                  <span class="vs-ai">DBアーキテクトAI</span>
+                  <span class="vs-ai">バックエンドAI</span>
                 </div>
                 <div class="vs-task">DBのテーブル設計・更新</div>
               </div>
@@ -398,40 +400,9 @@
                 <span class="out-badge">ER図</span>
               </div>
             </div>
-          </div>
-        </div>
-        <div class="derive-cell"></div>
-        <div class="phase test dim">
-          <div class="phase-head">
-            <span class="phase-title">⑥ 結合テスト <span class="out-of-scope">対象外</span></span>
-            <span class="phase-stage">Level 3</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Level 3.5: 人間によるレビュー（右腕のみ、対象） -->
-      <!-- 境界線（右腕）: AI ↑ ／ 人間 ↓（上方向へ進むので、テストレーンは下から上へ） -->
-      <div class="vrow boundary-row" style="padding: 0 125px; margin-bottom: 10px;">
-        <div></div>
-        <div class="derive-cell"></div>
-        <div class="boundary-line right">
-          <span class="boundary-label">AI ↓　／　人間 ↑</span>
-        </div>
-      </div>
-
-      <!-- Level 4: 実装 + 単体テスト （V字頂点、ひとつの枠） -->
-      <div class="vrow lv4">
-        <div class="phase apex" style="grid-column: 1 / -1;">
-          <div class="phase-head" style="border-bottom-color: rgba(0,0,0,0.18);">
-            <span class="phase-title" style="color: #1e6042;">④ 実装 ／ ⑤ 単体テスト（V字の頂点）</span>
-            <span class="phase-stage">Level 4 / 対象</span>
-          </div>
-
-          <div class="vsteps horiz" style="margin-top: 8px;">
             <div class="vstep-grp">
               <div class="vstep test">
                 <div class="vs-head">
-                  <span class="vs-num">STEP 2</span>
                   <span class="vs-ai">バックエンドAI</span>
                 </div>
                 <div class="vs-task">ユニットテスト設計</div>
@@ -444,7 +415,6 @@
             <div class="vstep-grp">
               <div class="vstep impl">
                 <div class="vs-head">
-                  <span class="vs-num">STEP 3</span>
                   <span class="vs-ai">バックエンドAI</span>
                 </div>
                 <div class="vs-task">CRUD API を実装する</div>
@@ -457,7 +427,6 @@
             <div class="vstep-grp">
               <div class="vstep test">
                 <div class="vs-head">
-                  <span class="vs-num">STEP 4</span>
                   <span class="vs-ai">テスト実装AI</span>
                 </div>
                 <div class="vs-task">機能単体テスト実装</div>
@@ -469,7 +438,6 @@
             <div class="vstep-grp">
               <div class="vstep impl">
                 <div class="vs-head">
-                  <span class="vs-num">STEP 5</span>
                   <span class="vs-ai">フロントエンドAI</span>
                 </div>
                 <div class="vs-task">画面（一覧/登録/詳細/編集/削除）を実装する</div>
@@ -481,7 +449,6 @@
             <div class="vstep-grp">
               <div class="vstep test">
                 <div class="vs-head">
-                  <span class="vs-num">STEP 6</span>
                   <span class="vs-ai">テスターAI</span>
                 </div>
                 <div class="vs-task">テスト実施</div>
