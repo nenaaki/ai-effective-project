@@ -194,7 +194,11 @@
   .vstep-out-box.dim-out .out-badge { background: #fff; color: #4b5563; border: 1px dashed #9ca3af; }
 
   /* AI と人間の境界線 */
-  .boundary-row { margin-bottom: 6px !important; }
+  .boundary-row {
+    margin-bottom: 6px !important;
+    position: relative;
+    z-index: 5;
+  }
   .boundary-line {
     position: relative;
     height: 18px;
@@ -202,6 +206,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    overflow: visible;
   }
   .boundary-label {
     position: absolute;
@@ -215,8 +220,164 @@
     border: 1px solid #d63a3a;
     border-radius: 999px;
   }
+  .boundary-label.with-inputs {
+    top: -13px;
+    padding: 4px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-radius: 14px;
+    white-space: nowrap;
+  }
+  .bl-arrow-input,
+  .bl-arrow-output {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 0;
+    pointer-events: none;
+  }
+  /* 入力矢印（下向き）：矢じりが下の箱内に届くよう深めに配置 */
+  .bl-arrow-input { top: 12px; }
+  /* 出力矢印（上向き）：ラベル直下に貼り付ける */
+  .bl-arrow-output { top: 100%; }
+  .boundary-label { z-index: 2; }
+  /* 右側（AIからの出力）は緑系で統一 */
+  .boundary-line.right { border-top-color: #2c8a5e; }
+  .boundary-line.right .boundary-label {
+    color: #1e6042;
+    border-color: #2c8a5e;
+  }
+  .boundary-line.right .boundary-label .bl-human {
+    background: #e8f7ee;
+    color: #1e6042;
+    border-color: #2c8a5e;
+  }
+  .boundary-line.right .boundary-label .bl-human::before {
+    background: #2c8a5e;
+    color: #fff;
+  }
 
-  /* 期待入力（対象外フェーズに、本フローが受け取りたいもの） */
+  /* 人間の責務（システムテスト枠内） */
+  .human-tasks {
+    margin-top: 8px;
+    padding: 8px 10px;
+    background: #fff;
+    border: 1.5px dashed #d63a3a;
+    border-radius: 8px;
+  }
+  .ht-label {
+    display: inline-block;
+    background: #d63a3a;
+    color: #fff;
+    font-size: 9.5px;
+    font-weight: 700;
+    padding: 1px 8px;
+    border-radius: 999px;
+    letter-spacing: 0.04em;
+    margin-bottom: 6px;
+  }
+  .human-tasks ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 6px;
+  }
+  .human-tasks li {
+    background: #fff7f7;
+    color: #a32424;
+    border: 1px solid #d63a3a;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 10.5px;
+    font-weight: 600;
+  }
+
+  /* spec / UX 例 */
+  .io-examples {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .io-example {
+    background: #fff;
+    border: 1px solid #d8dbe2;
+    border-radius: 10px;
+    padding: 12px 14px;
+  }
+  .io-example.spec { border-left: 4px solid #6e68c2; }
+  .io-example.ux   { border-left: 4px solid #4d479e; }
+  .io-ex-head {
+    font-size: 12px;
+    font-weight: 700;
+    color: #4d479e;
+    margin-bottom: 6px;
+    letter-spacing: 0.04em;
+  }
+  .io-ex-body {
+    font-size: 12px;
+    color: #444;
+    line-height: 1.7;
+  }
+  .io-ex-body .hl {
+    background: #f1edfa;
+    color: #3d3680;
+    border: 1px solid #b6a7e1;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 11px;
+  }
+  .boundary-label .bl-dir { color: #d63a3a; }
+  .boundary-label .bl-io-label {
+    color: #4b5563;
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+  .boundary-label .bl-inputs {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 3px 4px;
+  }
+  .boundary-label .bl-badge {
+    display: inline-block;
+    background: #fff;
+    color: #4b5563;
+    border: 1px dashed #9ca3af;
+    padding: 1px 7px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1.5;
+  }
+  .boundary-label .bl-human {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #fff7f7;
+    color: #a32424;
+    border: 1px solid #d63a3a;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+  .boundary-label .bl-human::before {
+    content: "人の責務";
+    background: #d63a3a;
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 0 6px;
+    border-radius: 999px;
+    line-height: 1.5;
+  }
+
+  /* 期待入力（対象外フェーズに、AI が受け取りたいもの） */
   .expected-outputs {
     margin-top: 6px;
   }
@@ -306,12 +467,12 @@
 
   <header class="header">
     <h1>CRUD系機能・画面の実装</h1>
-    <div class="meta">影響範囲: 詳細設計 → 実装 → 単体テスト → 結合テスト</div>
+    <div class="meta">影響範囲: 詳細設計 → 実装 → 機能テスト</div>
   </header>
 
   <!-- ==================== V字モデル ==================== -->
   <div class="section">
-    <div class="section-title">V字モデル：本フローが影響する範囲</div>
+    <div class="section-title">V字モデル：AIが担当する範囲</div>
     <div class="section-sub">上部の対象外フェーズと AI 担当領域を境界線で分離。③〜⑥は AI 担当領域として一括表示。</div>
 
     <div class="vmodel">
@@ -334,7 +495,7 @@
         <div class="derive-cell"></div>
         <div class="phase test dim">
           <div class="phase-head">
-            <span class="phase-title">⑧ 受入テスト <span class="out-of-scope">対象外</span></span>
+            <span class="phase-title">⑦ 受入テスト <span class="out-of-scope">対象外</span></span>
             <span class="phase-stage">Level 1</span>
           </div>
         </div>
@@ -347,21 +508,11 @@
             <span class="phase-title">② 基本設計 <span class="out-of-scope">対象外</span></span>
             <span class="phase-stage">Level 2</span>
           </div>
-          <div class="expected-outputs">
-            <div class="eo-label">本フローへの期待入力</div>
-            <div class="vstep-out-box dim-out">
-              <span class="out-badge">機能仕様</span>
-              <span class="out-badge">画面遷移図</span>
-              <span class="out-badge">業務ルール</span>
-              <span class="out-badge">データモデル</span>
-              <span class="out-badge">API契約</span>
-            </div>
-          </div>
         </div>
         <div class="derive-cell"></div>
         <div class="phase test dim">
           <div class="phase-head">
-            <span class="phase-title">⑦ システムテスト <span class="out-of-scope">対象外</span></span>
+            <span class="phase-title">⑥ システムテスト <span class="out-of-scope">対象外</span></span>
             <span class="phase-stage">Level 2</span>
           </div>
         </div>
@@ -370,11 +521,31 @@
       <!-- 境界線（左右）: 人間 ↑ ／ AI ↓ -->
       <div class="vrow boundary-row" style="padding: 0 75px; margin-bottom: 10px;">
         <div class="boundary-line left">
-          <span class="boundary-label">人間 ↑　／　AI ↓</span>
+          <svg class="bl-arrow-input" width="50" height="50" viewBox="0 0 50 50" aria-hidden="true">
+            <polygon points="18,0 32,0 32,30 45,30 25,50 5,30 18,30" fill="#d63a3a"/>
+          </svg>
+          <span class="boundary-label with-inputs">
+            <span class="bl-human">仕様注入</span>
+            <span class="bl-io-label">AIへの入力</span>
+            <span class="bl-inputs">
+              <span class="bl-badge">spec</span>
+              <span class="bl-badge">UX</span>
+            </span>
+          </span>
         </div>
         <div class="derive-cell"></div>
         <div class="boundary-line right">
-          <span class="boundary-label">AI ↓　／　人間 ↑</span>
+          <span class="boundary-label with-inputs">
+            <span class="bl-io-label">AIからの出力</span>
+            <span class="bl-inputs">
+              <span class="bl-badge">ソースコード</span>
+              <span class="bl-badge">テスト実施レポート</span>
+            </span>
+            <span class="bl-human">品質チェック</span>
+            <svg class="bl-arrow-output" width="50" height="50" viewBox="0 0 50 50" aria-hidden="true">
+              <polygon points="25,0 45,20 32,20 32,50 18,50 18,20 5,20" fill="#2c8a5e"/>
+            </svg>
+          </span>
         </div>
       </div>
 
@@ -382,7 +553,7 @@
       <div class="vrow lv2">
         <div class="phase apex" style="grid-column: 1 / -1;">
           <div class="phase-head" style="border-bottom-color: rgba(0,0,0,0.18);">
-            <span class="phase-title" style="color: #1e6042;">③ 詳細設計 ／ ④ 実装 ／ ⑤ 単体テスト ／ ⑥ 結合テスト</span>
+            <span class="phase-title" style="color: #1e6042;">③ 詳細設計 ／ ④ 実装 ／ ⑤ 機能テスト</span>
             <span class="phase-stage">Level 3〜4 / 対象</span>
           </div>
 
@@ -403,12 +574,11 @@
             <div class="vstep-grp">
               <div class="vstep test">
                 <div class="vs-head">
-                  <span class="vs-ai">バックエンドAI</span>
+                  <span class="vs-ai">テストAI</span>
                 </div>
-                <div class="vs-task">ユニットテスト設計</div>
+                <div class="vs-task">ユニットテスト設計・実装</div>
               </div>
               <div class="vstep-out-box test">
-                <span class="out-badge">ユニットテストケース</span>
                 <span class="out-badge">ユニットテストコード</span>
               </div>
             </div>
@@ -427,12 +597,12 @@
             <div class="vstep-grp">
               <div class="vstep test">
                 <div class="vs-head">
-                  <span class="vs-ai">テスト実装AI</span>
+                  <span class="vs-ai">テストAI</span>
                 </div>
-                <div class="vs-task">機能単体テスト実装</div>
+                <div class="vs-task">機能テスト実装</div>
               </div>
               <div class="vstep-out-box test">
-                <span class="out-badge">機能単体テストコード</span>
+                <span class="out-badge">機能テストコード</span>
               </div>
             </div>
             <div class="vstep-grp">
@@ -449,12 +619,12 @@
             <div class="vstep-grp">
               <div class="vstep test">
                 <div class="vs-head">
-                  <span class="vs-ai">テスターAI</span>
+                  <span class="vs-ai">テストAI</span>
                 </div>
                 <div class="vs-task">テスト実施</div>
               </div>
               <div class="vstep-out-box test">
-                <span class="out-badge">実行レポート</span>
+                <span class="out-badge">テスト実施レポート</span>
               </div>
             </div>
           </div>
@@ -464,11 +634,38 @@
     </div>
   </div>
 
+  <!-- AIへの入力 -->
+  <div class="section">
+    <div class="section-title">AIへの入力</div>
+    <div class="section-sub">AI に渡す入力の準備の仕方。spec と UX に分けて整理する。</div>
+    <div class="io-examples">
+      <div class="io-example spec">
+        <div class="io-ex-head">spec</div>
+        <div class="io-ex-body">
+          spec 自体に詳細を書き下すのではなく、<span class="hl">一次ソースへの参照先</span>を明示するドキュメント。
+          <br>例:
+          <ul style="margin: 6px 0 0 18px; padding: 0;">
+            <li>データモデル → <code>docs/データモデル設計書.xlsx</code> の「商品マスタ(product)」シート</li>
+            <li>業務ルール → <code>docs/業務仕様書.md</code> の §3.2「商品登録フロー」</li>
+            <li>画面仕様 → <code>docs/画面仕様書.xlsx</code> の「商品マスタ画面」シート</li>
+            <li>UX参考情報 → <code>projects/app-admin-mockup/src/pages/products</code></li>
+          </ul>
+        </div>
+      </div>
+      <div class="io-example ux">
+        <div class="io-ex-head">UX</div>
+        <div class="io-ex-body">
+          画面遷移・レイアウト・コンポーネント挙動を示す。本ケースでは <span class="hl">mock（クリッカブルモックアップ）</span> が UX 定義の主体となり、AI はそれを参照して実装する。（Figma やポンチ絵・ワイヤーフレームなどでもよい）
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- 凡例 -->
   <div class="legend">
     <div class="legend-item"><span class="legend-swatch design"></span>設計レーン（対象）</div>
     <div class="legend-item"><span class="legend-swatch impl"></span>実装（V字頂点）</div>
-    <div class="legend-item"><span class="legend-swatch test"></span>単体テスト（V字頂点）</div>
+    <div class="legend-item"><span class="legend-swatch test"></span>テスト</div>
     <div class="legend-item"><span class="legend-swatch dim"></span>対象外フェーズ</div>
   </div>
 
