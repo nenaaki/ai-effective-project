@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>CRUD系機能・画面の実装</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: #fafaf7; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Yu Gothic UI", sans-serif; color: #1a1a1a; }
+  body { padding: 32px 40px 80px; }
+  .container { max-width: 1480px; margin: 0 auto; }
+
+  /* Header */
+  .header { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid #d8dbe2; padding-bottom: 14px; margin-bottom: 28px; }
+  .header h1 { font-size: 22px; font-weight: 700; color: #1a1a1a; }
+  .header .meta { font-size: 13px; color: #666; }
+
+  .lede { color: #555; font-size: 13px; line-height: 1.7; margin-bottom: 24px; padding: 14px 18px; background: #fff; border: 1px solid #d8dbe2; border-radius: 12px; }
+  .lede strong { color: #1a1a1a; }
+  .lede a { color: #4d479e; }
+
+  /* Section */
+  .section { margin-bottom: 32px; }
+  .section-title { font-size: 14px; font-weight: 700; color: #444; letter-spacing: 0.04em; margin-bottom: 10px; padding-left: 10px; border-left: 4px solid #6e68c2; }
+  .section-sub { font-size: 12px; color: #777; margin-bottom: 14px; padding-left: 14px; }
+
+  /* V-model area */
+  .vmodel {
+    position: relative;
+    background: #fff;
+    border: 1px solid #d8dbe2;
+    border-radius: 14px;
+    padding: 28px 24px 24px;
+  }
+
+  /* V-model のレーンラベル (上端) */
+  .vmodel-lane-labels {
+    display: grid;
+    grid-template-columns: 1fr 90px 1fr;
+    gap: 12px;
+    margin-bottom: 14px;
+    align-items: center;
+  }
+  .lane-label {
+    text-align: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: #444;
+    letter-spacing: 0.04em;
+    padding: 6px 10px;
+    border-radius: 6px;
+  }
+  .lane-label.design { background: #e8e2f5; color: #4d479e; }
+  .lane-label.derive { background: transparent; color: #888; font-size: 11px; }
+  .lane-label.test   { background: #fdebd0; color: #a05f1d; }
+
+  /* V-model の各行 */
+  .vrow {
+    display: grid;
+    grid-template-columns: 1fr 90px 1fr;
+    gap: 12px;
+    align-items: stretch;
+    margin-bottom: 10px;
+  }
+  /* V字を視覚的に表現するためのインデント */
+  .vrow.lv1 { padding: 0; }
+  .vrow.lv2 { padding: 0 50px; }
+  .vrow.lv3 { padding: 0 100px; }
+  .vrow.lv4 { padding: 0 150px; margin-bottom: 0; }
+
+  /* 各フェーズブロック */
+  .phase {
+    position: relative;
+    border-radius: 12px;
+    padding: 12px 14px 14px;
+    min-height: 100px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .phase.design  { background: #f1edfa; border: 2px solid #6e68c2; }
+  .phase.test    { background: #fdf3e2; border: 2px solid #d69a3a; }
+  .phase.apex    { background: linear-gradient(135deg, #f1edfa 0%, #d4f0de 50%, #fdf3e2 100%); border: 2px solid #2c8a5e; padding: 14px 16px 16px; min-height: auto; }
+
+  /* グレー（対象外）スタイル */
+  .phase.dim {
+    background: #f3f4f6 !important;
+    border: 1.5px dashed #c0c5cf !important;
+    min-height: 60px;
+  }
+  .phase.dim .phase-title { color: #6b7280 !important; }
+  .phase.dim .phase-stage { color: #9ca3af; }
+
+  .phase-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+    padding-bottom: 4px;
+    border-bottom: 1px dashed rgba(0,0,0,0.12);
+  }
+  .phase.dim .phase-head { border-bottom-color: rgba(0,0,0,0.08); padding-bottom: 0; border-bottom: none; }
+  .phase-title { font-size: 13px; font-weight: 700; }
+  .phase.design .phase-title { color: #4d479e; }
+  .phase.test   .phase-title { color: #a05f1d; }
+  .phase-stage  { font-size: 10px; color: #888; letter-spacing: 0.04em; }
+
+  /* ステップカード（フェーズ内に置く） */
+  .vsteps { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+  .vsteps.horiz { flex-direction: row; gap: 8px; flex-wrap: wrap; }
+
+  .vstep {
+    background: #fff;
+    border: 1.5px solid;
+    border-radius: 8px;
+    padding: 8px 10px 9px;
+    min-width: 0;
+    flex: 1;
+  }
+  .vstep.design { border-color: #6e68c2; }
+  .vstep.impl   { border-color: #2c8a5e; }
+  .vstep.test   { border-color: #d69a3a; }
+  .vstep.exit   { border-color: #6b7280; }
+
+  .vs-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 5px;
+  }
+  .vs-num {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    padding: 1px 6px;
+    border-radius: 3px;
+    color: #fff;
+  }
+  .vstep.design .vs-num { background: #6e68c2; }
+  .vstep.impl   .vs-num { background: #2c8a5e; }
+  .vstep.test   .vs-num { background: #d69a3a; }
+  .vstep.exit   .vs-num { background: #6b7280; }
+
+  .vs-task {
+    font-size: 12px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 4px;
+    line-height: 1.4;
+  }
+  .vs-ai {
+    display: inline-block;
+    font-size: 10.5px;
+    font-weight: 600;
+    padding: 1px 7px;
+    border-radius: 4px;
+  }
+  .vstep.design .vs-ai { background: #f1edfa; color: #4d479e; border: 1px solid #b6a7e1; }
+  .vstep.impl   .vs-ai { background: #e0f3e6; color: #1e6042; border: 1px solid #5cb085; }
+  .vstep.test   .vs-ai { background: #fdf3e2; color: #a05f1d; border: 1px solid #d69a3a; }
+  .vstep.exit   .vs-ai { background: #f3f4f6; color: #4b5563; border: 1px solid #9ca3af; }
+  /* ステップ + 出力 ペア */
+  .vstep-grp {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+    min-width: 0;
+  }
+  .vstep-out-box {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 3px 4px;
+    padding: 4px 6px;
+    background: #fff;
+    border: 1px dashed #b6bcc7;
+    border-radius: 6px;
+  }
+  .out-badge {
+    display: inline-block;
+    padding: 1px 7px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1.5;
+    white-space: nowrap;
+  }
+  .vstep-out-box.design .out-badge { background: #d8cef0; color: #3d3680; border: 1px solid #b6a7e1; }
+  .vstep-out-box.impl   .out-badge { background: #cee9d6; color: #1d5a3f; border: 1px solid #8cc7a3; }
+  .vstep-out-box.test   .out-badge { background: #f9d9a4; color: #7a4a0a; border: 1px solid #e1ad59; }
+  .vstep-out-box.exit   .out-badge { background: #e5e7eb; color: #374151; border: 1px solid #9ca3af; }
+  .vstep-out-box.dim-out .out-badge { background: #fff; color: #4b5563; border: 1px dashed #9ca3af; }
+
+  /* 人間によるレビュー／実装指示（小さい枠） */
+  .phase.small-review,
+  .phase.small-instruction {
+    min-height: auto;
+    padding: 8px 12px 10px;
+  }
+  .phase.small-review {
+    background: #fff8eb;
+    border: 2px solid #d69a3a;
+  }
+  .phase.small-instruction {
+    background: #f5f1fb;
+    border: 2px solid #6e68c2;
+  }
+  .phase.small-review .phase-head,
+  .phase.small-instruction .phase-head {
+    border-bottom: none;
+    padding-bottom: 4px;
+  }
+  .phase.small-review .review-body,
+  .phase.small-instruction .review-body {
+    font-size: 11px;
+    color: #555;
+    line-height: 1.5;
+  }
+
+  /* 期待入力（対象外フェーズに、本フローが受け取りたいもの） */
+  .expected-outputs {
+    margin-top: 6px;
+  }
+  .eo-label {
+    font-size: 9.5px;
+    font-weight: 700;
+    color: #4b5563;
+    letter-spacing: 0.04em;
+    margin-bottom: 3px;
+  }
+
+  /* apex 内のレイアウト：実装と単体テストを一つの枠で示す */
+  .apex-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 14px;
+    margin-top: 6px;
+  }
+  .apex-section h4 {
+    font-size: 11.5px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    letter-spacing: 0.02em;
+  }
+  .apex-section.impl h4 { color: #1e6042; }
+  .apex-section.test h4 { color: #a05f1d; }
+
+  /* V字外 (post-V) */
+  .post-v {
+    margin-top: 14px;
+    padding: 14px 18px;
+    background: #fff;
+    border: 1.5px dashed #6b7280;
+    border-radius: 12px;
+  }
+  .post-v-title {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #4b5563;
+    margin-bottom: 10px;
+    letter-spacing: 0.04em;
+  }
+  .post-v-row {
+    display: flex;
+    gap: 10px;
+    align-items: stretch;
+  }
+  .post-v-row .vstep { max-width: 280px; }
+  .post-v-arrow { display: flex; align-items: center; color: #9ca3af; font-size: 16px; font-weight: 700; }
+
+  /* グレー帯のフェーズ内に小さく "対象外" タグ */
+  .out-of-scope {
+    display: inline-block;
+    font-size: 9.5px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 3px;
+    background: #d8dbe2;
+    color: #4b5563;
+    letter-spacing: 0.04em;
+    margin-left: 6px;
+  }
+
+  /* 凡例 */
+  .legend {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 18px;
+    margin-top: 18px;
+    padding: 10px 18px;
+    background: #fff;
+    border: 1px solid #d8dbe2;
+    border-radius: 12px;
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #444; }
+  .legend-swatch { width: 16px; height: 16px; border-radius: 4px; }
+  .legend-swatch.design { background: #f1edfa; border: 2px solid #6e68c2; }
+  .legend-swatch.impl   { background: #e0f3e6; border: 2px solid #2c8a5e; }
+  .legend-swatch.test   { background: #fdf3e2; border: 2px solid #d69a3a; }
+  .legend-swatch.dim    { background: #f3f4f6; border: 1.5px dashed #c0c5cf; }
+  .legend-swatch.exit   { background: #fff; border: 1.5px dashed #6b7280; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header class="header">
+    <h1>CRUD系機能・画面の実装</h1>
+    <div class="meta">影響範囲: 詳細設計 → 実装 → 単体テスト</div>
+  </header>
+
+  <!-- ==================== V字モデル ==================== -->
+  <div class="section">
+    <div class="section-title">V字モデル：本フローが影響する範囲</div>
+    <div class="section-sub">左列＝設計レーン／右列＝テストレーン／頂点＝実装＋単体テスト。色付きが本フローの対象。</div>
+
+    <div class="vmodel">
+
+      <!-- レーン見出し -->
+      <div class="vmodel-lane-labels">
+        <div class="lane-label design">▼ 設計レーン</div>
+        <div class="lane-label derive">テスト派生</div>
+        <div class="lane-label test">▲ テストレーン</div>
+      </div>
+
+      <!-- Level 1: 要件定義 ↔ 受入テスト （対象外） -->
+      <div class="vrow lv1">
+        <div class="phase design dim">
+          <div class="phase-head">
+            <span class="phase-title">① 要件定義 <span class="out-of-scope">対象外</span></span>
+            <span class="phase-stage">Level 1</span>
+          </div>
+        </div>
+        <div class="derive-cell"></div>
+        <div class="phase test dim">
+          <div class="phase-head">
+            <span class="phase-title">⑧ 受入テスト <span class="out-of-scope">対象外</span></span>
+            <span class="phase-stage">Level 1</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Level 2: 基本設計 ↔ システムテスト （対象外） -->
+      <div class="vrow lv2">
+        <div class="phase design dim">
+          <div class="phase-head">
+            <span class="phase-title">② 基本設計 <span class="out-of-scope">対象外</span></span>
+            <span class="phase-stage">Level 2</span>
+          </div>
+          <div class="expected-outputs">
+            <div class="eo-label">本フローへの期待入力</div>
+            <div class="vstep-out-box dim-out">
+              <span class="out-badge">機能仕様</span>
+              <span class="out-badge">画面遷移図</span>
+              <span class="out-badge">業務ルール</span>
+              <span class="out-badge">データモデル</span>
+              <span class="out-badge">API契約</span>
+            </div>
+          </div>
+        </div>
+        <div class="derive-cell"></div>
+        <div class="phase test dim">
+          <div class="phase-head">
+            <span class="phase-title">⑦ システムテスト <span class="out-of-scope">対象外</span></span>
+            <span class="phase-stage">Level 2</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Level 2.5: 人間による実装指示（左腕のみ、対象） -->
+      <div class="vrow" style="padding: 0 75px; margin-bottom: 10px;">
+        <div class="phase design small-instruction">
+          <div class="phase-head">
+            <span class="phase-title">人間による実装指示</span>
+            <span class="phase-stage">対象</span>
+          </div>
+          <div class="review-body">基本設計の成果物を受けて、エンジニアが spec を整備し AI に実装を委譲する</div>
+        </div>
+        <div class="derive-cell"></div>
+        <div></div>
+      </div>
+
+      <!-- Level 3: 詳細設計（対象）↔ 結合テスト（対象外） -->
+      <div class="vrow lv3">
+        <div class="phase design">
+          <div class="phase-head">
+            <span class="phase-title">③ 詳細設計</span>
+            <span class="phase-stage">Level 3 / 対象</span>
+          </div>
+          <div class="vsteps">
+            <div class="vstep-grp">
+              <div class="vstep design">
+                <div class="vs-head">
+                  <span class="vs-num">STEP 1</span>
+                  <span class="vs-ai">DBアーキテクトAI</span>
+                </div>
+                <div class="vs-task">DBのテーブル設計・更新</div>
+              </div>
+              <div class="vstep-out-box design">
+                <span class="out-badge">DDL</span>
+                <span class="out-badge">マイグレーションファイル</span>
+                <span class="out-badge">ER図</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="derive-cell"></div>
+        <div class="phase test dim">
+          <div class="phase-head">
+            <span class="phase-title">⑥ 結合テスト <span class="out-of-scope">対象外</span></span>
+            <span class="phase-stage">Level 3</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Level 3.5: 人間によるレビュー（右腕のみ、対象） -->
+      <div class="vrow" style="padding: 0 125px; margin-bottom: 10px;">
+        <div></div>
+        <div class="derive-cell"></div>
+        <div class="phase test small-review">
+          <div class="phase-head">
+            <span class="phase-title">人間によるレビュー</span>
+            <span class="phase-stage">対象</span>
+          </div>
+          <div class="review-body">マージ判断。NGの場合は spec 修正後に「人間による実装指示」に戻る</div>
+        </div>
+      </div>
+
+      <!-- Level 4: 実装 + 単体テスト （V字頂点、ひとつの枠） -->
+      <div class="vrow lv4">
+        <div class="phase apex" style="grid-column: 1 / -1;">
+          <div class="phase-head" style="border-bottom-color: rgba(0,0,0,0.18);">
+            <span class="phase-title" style="color: #1e6042;">④ 実装 ／ ⑤ 単体テスト（V字の頂点）</span>
+            <span class="phase-stage">Level 4 / 対象</span>
+          </div>
+
+          <div class="vsteps horiz" style="margin-top: 8px;">
+            <div class="vstep-grp">
+              <div class="vstep test">
+                <div class="vs-head">
+                  <span class="vs-num">STEP 2</span>
+                  <span class="vs-ai">バックエンドAI</span>
+                </div>
+                <div class="vs-task">ユニットテスト設計</div>
+              </div>
+              <div class="vstep-out-box test">
+                <span class="out-badge">ユニットテストケース</span>
+                <span class="out-badge">ユニットテストコード</span>
+              </div>
+            </div>
+            <div class="vstep-grp">
+              <div class="vstep impl">
+                <div class="vs-head">
+                  <span class="vs-num">STEP 3</span>
+                  <span class="vs-ai">バックエンドAI</span>
+                </div>
+                <div class="vs-task">CRUD API を実装する</div>
+              </div>
+              <div class="vstep-out-box impl">
+                <span class="out-badge">CRUD APIコード</span>
+                <span class="out-badge">DTO・スキーマ</span>
+              </div>
+            </div>
+            <div class="vstep-grp">
+              <div class="vstep test">
+                <div class="vs-head">
+                  <span class="vs-num">STEP 4</span>
+                  <span class="vs-ai">テスト実装AI</span>
+                </div>
+                <div class="vs-task">機能単体テスト実装</div>
+              </div>
+              <div class="vstep-out-box test">
+                <span class="out-badge">機能単体テストコード</span>
+              </div>
+            </div>
+            <div class="vstep-grp">
+              <div class="vstep impl">
+                <div class="vs-head">
+                  <span class="vs-num">STEP 5</span>
+                  <span class="vs-ai">フロントエンドAI</span>
+                </div>
+                <div class="vs-task">画面（一覧/登録/詳細/編集/削除）を実装する</div>
+              </div>
+              <div class="vstep-out-box impl">
+                <span class="out-badge">CRUD画面</span>
+              </div>
+            </div>
+            <div class="vstep-grp">
+              <div class="vstep test">
+                <div class="vs-head">
+                  <span class="vs-num">STEP 6</span>
+                  <span class="vs-ai">テスターAI</span>
+                </div>
+                <div class="vs-task">テスト実施</div>
+              </div>
+              <div class="vstep-out-box test">
+                <span class="out-badge">実行レポート</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 凡例 -->
+  <div class="legend">
+    <div class="legend-item"><span class="legend-swatch design"></span>設計レーン（対象）</div>
+    <div class="legend-item"><span class="legend-swatch impl"></span>実装（V字頂点）</div>
+    <div class="legend-item"><span class="legend-swatch test"></span>単体テスト（V字頂点）</div>
+    <div class="legend-item"><span class="legend-swatch dim"></span>対象外フェーズ</div>
+  </div>
+
+</div>
+</body>
+</html>

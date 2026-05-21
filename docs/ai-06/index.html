@@ -515,7 +515,7 @@
   <!-- ==================== メインマップ ==================== -->
   <div class="section">
     <div class="section-title">人タスク → 代替AIのマッピング</div>
-    <div class="section-sub">Phase 0（起点インプット） → Phase 1〜4（8個の人タスクを実装）。各ステップごとに「実行するAI」「出力物」を示す。</div>
+    <div class="section-sub">Phase 0（起点インプット） → Phase 1〜4（7個の人タスクを実装）。各ステップごとに「実行するAI」「出力物」を示す。</div>
 
     <div class="map-wrap">
       <table class="map-table">
@@ -673,25 +673,6 @@
 
           <tr>
             <td class="col-num">7</td>
-            <td>人間による簡単な動作確認<br><small style="color:#888;">（AIが勝手な機能を付けていないか確認し、必要に応じてAIに修正を指示する）</small></td>
-            <td class="col-arrow">→</td>
-            <td>
-              <div class="agents">
-                <span class="agent-chip human">エンジニア</span>
-                <span class="agent-plus">⟲</span>
-                <span class="agent-chip orch">Orchestrator</span>
-              </div>
-            </td>
-            <td>
-              <div class="out-tags">
-                <span class="out-tag">動作確認結果</span>
-                <span class="out-tag">禁止事項追記（spec）</span>
-              </div>
-            </td>
-          </tr>
-
-          <tr>
-            <td class="col-num">8</td>
             <td>人間が PR をレビューしてマージする</td>
             <td class="col-arrow">→</td>
             <td>
@@ -834,41 +815,10 @@
     </details>
   </div>
 
-  <!-- ==================== ステップ13 でエンジニアが実施するテスト ==================== -->
-  <div class="section">
-    <details class="collapsible-detail">
-      <summary class="cd-title"><span class="se-toggle">▼ 開く</span>ステップ7 でエンジニアが実施するテスト</summary>
-      <div class="cd-body">
-        <div class="test-list">
-          <div class="test-cat">
-            <div class="tc-title">簡単な動作確認</div>
-            <ul>
-              <li>画面遷移を確認</li>
-              <li>CRUD 相当の各操作を確認</li>
-              <li>仕様外の機能・UI 要素が無いか確認</li>
-            </ul>
-          </div>
-
-          <div class="test-cat">
-            <div class="tc-title">認証・権限</div>
-            <ul>
-              <li>未ログイン時のアクセスがログイン画面へリダイレクトされる</li>
-              <li>セッション切れ時のリダイレクト挙動</li>
-              <li>権限のないユーザーが URL を直接叩いた場合のアクセス拒否</li>
-              <li>権限の有無による画面メニュー（サイドメニュー・ボタン）の表示／非表示の切替</li>
-              <li>権限の有無による CRUD 各操作ボタンの活性／非活性切替</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </details>
-  </div>
-
   <!-- ==================== 凡例 ==================== -->
   <div class="legend">
     <div class="legend-item"><span class="legend-swatch ai"></span>AIエージェント</div>
     <div class="legend-item"><span class="legend-swatch orch"></span>Orchestrator系</div>
-    <div class="legend-item"><span style="color:#d69a3a;font-weight:700;font-size:14px;">⟲</span>人 ⟲ AI の指示・修正ループ</div>
   </div>
 
   <!-- ==================== Appendix ==================== -->
@@ -917,7 +867,7 @@
 - price: 必須 / 0 以上 9,999,999.99 以下
 - category_id: 必須 / 商品分類マスタに存在すること
 
-## 禁止事項（ステップ7で見つかったNGをここに追記していく）
+## 禁止事項（人間の最終確認で見つかったNGをここに追記していく）
 - 一覧画面に「エクスポート」ボタンを勝手に追加しないこと
 - 詳細画面に「コピーして新規作成」機能を勝手に付けないこと
 - 「お気に入り登録」など装飾的な機能を追加しないこと
