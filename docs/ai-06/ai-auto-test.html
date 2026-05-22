@@ -678,6 +678,12 @@
 <span class="kw">const</span> rows = <span class="fn">page</span>.getByTestId(<span class="str">'product-table-row'</span>)
 <span class="kw">await</span> <span class="fn">expect</span>(rows).toHaveCount(<span class="val">20</span>)
 
+<span class="cmt">// 複数行を取得して 1 番目の行をクリック</span>
+<span class="kw">const</span> rows = <span class="fn">page</span>.getByTestId(<span class="str">'product-table-row'</span>)
+<span class="kw">await</span> rows.<span class="fn">first</span>().<span class="fn">click</span>()
+<span class="cmt">// nth(0) でも同じ。N 番目なら nth(N-1)</span>
+<span class="kw">await</span> rows.<span class="fn">nth</span>(<span class="val">2</span>).<span class="fn">click</span>()  <span class="cmt">// 3 番目の行</span>
+
 <span class="cmt">// 特定行をIDで選択（同名レコードがあっても確実）</span>
 <span class="kw">await</span> <span class="fn">page</span>.<span class="fn">locator</span>(<span class="str">'[data-testid="product-table-row"][data-row-id="01JXXX"]'</span>).<span class="fn">click</span>()
 
