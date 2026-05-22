@@ -135,14 +135,15 @@
   <div class="nav-section">
     <h2>目次</h2>
     <a href="#overview">1. 概要</a>
-    <a href="#page-map">2. ページ構造マップ</a>
-    <a href="#drawer-map">3. ドロワー状態マップ</a>
-    <a href="#naming">4. 命名規則</a>
-    <a href="#catalog">5. testid カタログ</a>
-    <a href="#duplicate">6. 重複レコード対策</a>
-    <a href="#impl">7. 実装コード例</a>
-    <a href="#playwright">8. Playwright テスト例</a>
-    <a href="#ai-guide">9. AI テスト生成ガイド</a>
+    <a href="#why">2. なぜ必要か</a>
+    <a href="#page-map">3. ページ構造マップ</a>
+    <a href="#drawer-map">4. ドロワー状態マップ</a>
+    <a href="#naming">5. 命名規則</a>
+    <a href="#catalog">6. testid カタログ</a>
+    <a href="#duplicate">7. 重複レコード対策</a>
+    <a href="#impl">8. 実装コード例</a>
+    <a href="#playwright">9. Playwright テスト例</a>
+    <a href="#ai-guide">10. AI テスト生成ガイド</a>
   </div>
 </nav>
 
@@ -181,7 +182,46 @@
   </div>
 
   <!-- ════════════════════════════════════════ -->
-  <h2 class="section" id="page-map">2. ページ構造マップ</h2>
+  <h2 class="section" id="why">2. なぜ data-testid が必要か</h2>
+
+  <p>通常の動作確認では、人間は <strong>「商品名」「ボタンの位置」「ボタンの見た目」</strong> などを目視で判別して操作しています。
+  AI / 自動テストは画面の意味を視覚的に解釈できないため、<strong>確実に特定できる ID（<code class="inline">data-testid</code>）で要素を指す</strong>ことが前提になります。</p>
+
+  <h3 class="sub">人間と AI の「要素特定」の違い</h3>
+  <table>
+    <tr><th>シーン</th><th>人間（目視）</th><th>AI / 自動テスト</th></tr>
+    <tr>
+      <td>「新規登録」ボタンを押したい</td>
+      <td>緑のボタンを目で探してクリック</td>
+      <td><code>product-header-create-btn</code> で確実に取得</td>
+    </tr>
+    <tr>
+      <td>同名の商品が 2 件ある一覧で 1 件目を編集</td>
+      <td>「上の方の行」「備考が違う方」など視覚情報で判別</td>
+      <td><code>data-row-id="01JXXX..."</code> でエンティティ単位に特定</td>
+    </tr>
+    <tr>
+      <td>編集モードかどうか確認</td>
+      <td>「更新」ボタンが見えるか目視</td>
+      <td><code>product-detail-edit-submit-btn</code> の visible で判定</td>
+    </tr>
+  </table>
+
+  <h3 class="sub">テキスト検索だけでは不十分な理由</h3>
+  <ul>
+    <li><strong>同一テキストの要素が複数存在する</strong>（同名商品、同じラベルのボタンなど）と一意特定が不能</li>
+    <li><strong>表記揺れ・i18n に脆い</strong>。「登録」「保存」「Submit」など文言が変わるとテストが壊れる</li>
+    <li><strong>表示テキストは UI 改善で頻繁に変わる</strong>。<code class="inline">data-testid</code> なら見た目が変わってもテストは無傷</li>
+    <li><strong>色・配置・アイコンなど視覚特徴に依存できない</strong>。AI は画面を「見て」操作するわけではない</li>
+  </ul>
+
+  <div class="callout callout-blue">
+    <strong>結論：</strong>人間が目視で行っている要素特定は、AI では <code class="inline">data-testid</code>（および繰り返し行では <code class="inline">data-row-id</code>）で代替する。
+    これがテストの安定性と AI の生成精度を両立させる最低限の前提となる。
+  </div>
+
+  <!-- ════════════════════════════════════════ -->
+  <h2 class="section" id="page-map">3. ページ構造マップ</h2>
   <p>各 <code class="inline">data-testid</code> の配置位置を色分けで示します。</p>
 
   <!-- Wireframe -->
@@ -302,7 +342,7 @@
   </div>
 
   <!-- ════════════════════════════════════════ -->
-  <h2 class="section" id="drawer-map">3. ドロワー状態マップ</h2>
+  <h2 class="section" id="drawer-map">4. ドロワー状態マップ</h2>
   <p>1枚の <code class="inline">ProductDetailDrawer</code> が4状態を持ちます。各状態で出現する要素が異なります。</p>
 
   <div class="state-flow">
@@ -429,7 +469,7 @@
   </div>
 
   <!-- ════════════════════════════════════════ -->
-  <h2 class="section" id="naming">4. 命名規則</h2>
+  <h2 class="section" id="naming">5. 命名規則</h2>
 
   <div class="pattern">
     data-testid = "{page}  -  {component}  -  {element-type}"
@@ -471,7 +511,7 @@
   </table>
 
   <!-- ════════════════════════════════════════ -->
-  <h2 class="section" id="catalog">5. data-testid カタログ（全量）</h2>
+  <h2 class="section" id="catalog">6. data-testid カタログ（全量）</h2>
 
   <table>
     <tr><th>testid</th><th>種別</th><th>付与先 / 役割</th></tr>
@@ -523,7 +563,7 @@
   </table>
 
   <!-- ════════════════════════════════════════ -->
-  <h2 class="section" id="duplicate">6. 重複レコード対策</h2>
+  <h2 class="section" id="duplicate">7. 重複レコード対策</h2>
 
   <p>商品名が同じレコードが複数存在するケースで、テキストだけでは行を特定できません。</p>
 
@@ -555,7 +595,7 @@
   </div>
 
   <!-- ════════════════════════════════════════ -->
-  <h2 class="section" id="impl">7. 実装コード例（TSX）</h2>
+  <h2 class="section" id="impl">8. 実装コード例（TSX）</h2>
 
   <h3 class="sub">ページルートコンテナ（product/index.tsx）</h3>
 <pre>&lt;<span class="kw">div</span> <span class="attr">data-testid</span>=<span class="str">"product-page"</span> className=<span class="str">"flex h-full flex-col"</span>&gt;
@@ -624,7 +664,7 @@
 &lt;/<span class="kw">MultiLevelDrawer</span>&gt;</pre>
 
   <!-- ════════════════════════════════════════ -->
-  <h2 class="section" id="playwright">8. Playwright テスト例</h2>
+  <h2 class="section" id="playwright">9. Playwright テスト例</h2>
 
   <h3 class="sub">ページ識別・ナビゲーション確認</h3>
 <pre><span class="cmt">// ① 商品マスタページが開いていることを確認</span>
@@ -698,7 +738,7 @@
 <span class="kw">await</span> <span class="fn">expect</span>(<span class="fn">page</span>.getByTestId(<span class="str">'product-detail-drawer'</span>)).not.toBeVisible()</pre>
 
   <!-- ════════════════════════════════════════ -->
-  <h2 class="section" id="ai-guide">9. AI テスト生成ガイド</h2>
+  <h2 class="section" id="ai-guide">10. AI テスト生成ガイド</h2>
 
   <p>このセクションは <strong>テスト生成AI（Claude 等）が参照するコンテキスト</strong>として設計されています。
   AIはコードを見ずにこのドキュメントだけでテストシナリオを先行生成できます。</p>
@@ -781,7 +821,7 @@
   <div class="callout callout-green" style="margin-top:24px;">
     <strong>このドキュメントの更新タイミング：</strong>
     新しい入力フィールド・ボタン・ドロワーが追加されたとき、または命名規則を変更したときに
-    <code class="inline">5. testid カタログ</code> と <code class="inline">9. AI テスト生成ガイド</code> を必ず更新してください。
+    <code class="inline">6. testid カタログ</code> と <code class="inline">10. AI テスト生成ガイド</code> を必ず更新してください。
   </div>
 
 </main>

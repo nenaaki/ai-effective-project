@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>AI による CRUD系機能・画面の実装</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: #fafaf7; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Yu Gothic UI", sans-serif; color: #1a1a1a; }
+  body { padding: 32px 40px 80px; }
+  .container { max-width: 960px; margin: 0 auto; }
+
+  .header { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid #d8dbe2; padding-bottom: 14px; margin-bottom: 28px; }
+  .header h1 { font-size: 22px; font-weight: 700; color: #1a1a1a; }
+  .header .meta { font-size: 13px; color: #666; }
+
+  .lede { color: #555; font-size: 13px; line-height: 1.7; margin-bottom: 24px; padding: 14px 18px; background: #fff; border: 1px solid #d8dbe2; border-radius: 12px; }
+
+  .links { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .link-card {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    background: #fff;
+    border: 1px solid #d8dbe2;
+    border-left: 4px solid #6e68c2;
+    border-radius: 12px;
+    padding: 18px 20px;
+    transition: border-color 0.1s ease, box-shadow 0.1s ease;
+  }
+  .link-card:hover { border-color: #6e68c2; box-shadow: 0 2px 8px rgba(110, 104, 194, 0.12); }
+  .link-card.test { border-left-color: #d69a3a; }
+  .link-card.test:hover { border-color: #d69a3a; box-shadow: 0 2px 8px rgba(214, 154, 58, 0.12); }
+  .link-title { font-size: 15px; font-weight: 700; color: #1a1a1a; margin-bottom: 6px; }
+  .link-card.design .link-title { color: #4d479e; }
+  .link-card.test .link-title { color: #a05f1d; }
+  .link-desc { font-size: 12px; color: #555; line-height: 1.6; }
+  .link-path { display: inline-block; margin-top: 8px; font-size: 11px; color: #888; font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; }
+
+  @media (max-width: 720px) {
+    .links { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header class="header">
+    <h1>AI による CRUD系機能・画面の実装</h1>
+    <div class="meta">ドキュメント目次</div>
+  </header>
+
+  <div class="lede">
+    典型的なマスター系エンティティの CRUD と操作画面（一覧／詳細／新規登録／編集／削除）の実装を、AI エージェントで完全自動化するためのドキュメント群。
+  </div>
+
+  <div class="links">
+    <a class="link-card design" href="vmodel.html">
+      <div class="link-title">V字モデル：AIが担当する範囲</div>
+      <div class="link-desc">CRUD実装フローを V字モデル上に配置し、AI と人間の責任分界、入出力を可視化する。</div>
+      <span class="link-path">vmodel.html</span>
+    </a>
+    <a class="link-card test" href="ai-auto-test.html">
+      <div class="link-title">AI による自動テスト</div>
+      <div class="link-desc">AI エージェントによるテスト設計・実装・実施の流れと、人間が担う品質チェックの設計。</div>
+      <span class="link-path">ai-auto-test.html</span>
+    </a>
+  </div>
+
+</div>
+</body>
+</html>
