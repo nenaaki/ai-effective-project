@@ -68,8 +68,8 @@ const SCREENS = [
 {"優先":0,"ドメイン":"DM07 マスタ管理","画面ID":"FE022","画面名":"商品マスタ","管理ID":"DM07FE022","処理区分":"新規登録","処理名":"商品新規登録","データモデル":"✅商品 ・商品区分","画面項目定義":"📐モックあり","備考":""},
 {"優先":1,"ドメイン":"DM01 配送情報確認","画面ID":"FE003","画面名":"配送予定一覧","管理ID":"DM01FE003","処理区分":"閲覧","処理名":"検索条件入力・検索","データモデル":"","画面項目定義":"🔄作成予定","備考":""},
 {"優先":1,"ドメイン":"DM01 配送情報確認","画面ID":"FE003","画面名":"配送予定一覧","管理ID":"DM01FE003","処理区分":"閲覧","処理名":"指定日配送予定一覧表示","データモデル":"","画面項目定義":"🔄作成予定","備考":""},
-{"優先":1,"ドメイン":"DM07 マスタ管理","画面ID":"FE020","画面名":"ユーザマスタ","管理ID":"DM07FE020","処理区分":"閲覧","処理名":"条件検索","データモデル":"🔄ユーザ","画面項目定義":"🔄作成予定","備考":""},
-{"優先":1,"ドメイン":"DM07 マスタ管理","画面ID":"FE020","画面名":"ユーザマスタ","管理ID":"DM07FE020","処理区分":"閲覧","処理名":"ユーザ一覧表示","データモデル":"🔄ユーザ","画面項目定義":"🔄作成予定","備考":""},
+{"優先":1,"ドメイン":"DM07 マスタ管理","画面ID":"FE020","画面名":"ユーザマスタ","管理ID":"DM07FE020","処理区分":"閲覧","処理名":"条件検索","データモデル":"✅ユーザ","画面項目定義":"🔄作成予定","備考":""},
+{"優先":1,"ドメイン":"DM07 マスタ管理","画面ID":"FE020","画面名":"ユーザマスタ","管理ID":"DM07FE020","処理区分":"閲覧","処理名":"ユーザ一覧表示","データモデル":"✅ユーザ","画面項目定義":"🔄作成予定","備考":""},
 {"優先":10,"ドメイン":"DM03 配送管理","画面ID":"FE007","画面名":"配送管理マップ","管理ID":"DM03FE007","処理区分":"閲覧","処理名":"条件検索","データモデル":"","画面項目定義":"📐モックあり","備考":""},
 {"優先":10,"ドメイン":"DM03 配送管理","画面ID":"FE007","画面名":"配送管理マップ","管理ID":"DM03FE007","処理区分":"閲覧","処理名":"顧客情報詳細ドロワー表示","データモデル":"","画面項目定義":"📐モックあり","備考":""},
 {"優先":10,"ドメイン":"DM04 管理情報通知","画面ID":"FE011","画面名":"トップメニュー","管理ID":"DM04FE011","処理区分":"閲覧","処理名":"配送日変更リスト","データモデル":"","画面項目定義":"🔄作成予定","備考":""},
@@ -224,11 +224,9 @@ function scope(r){
   const dm = r.データモデル || "";
   const ui = r.画面項目定義 || "";
   const beReady = dm.indexOf("✅")>=0;
-  const feVisualReady = ui.indexOf("📐")>=0 || ui.indexOf("📐")>=0;
-  const feAnyReady = feVisualReady || ui.indexOf("✅")>=0;
+  const feAnyReady = ui.indexOf("📐")>=0 || ui.indexOf("✅")>=0;
   if (beReady && feAnyReady) return "";
   if (beReady && !feAnyReady) return "バックエンドのみ";
-  if (!beReady && feVisualReady) return "フロントエンドのみ";
   return "実装不可";
 }
 [...SCREENS, ...IFS].forEach(r=>{
@@ -250,7 +248,7 @@ function scope(r){
   else if (k.indexOf("編集") >= 0) kC = 1.0;
   else if (k.indexOf("DL") >= 0 || k.indexOf("印刷") >= 0) kC = 1.1;
   let sC = 1.0;
-  if (bk.indexOf("バックエンドのみ") >= 0 || bk.indexOf("フロントエンドのみ") >= 0) sC = 0.5;
+  if (bk.indexOf("バックエンドのみ") >= 0) sC = 0.5;
   const hasMock = ui.indexOf("📐") >= 0;
   const hasSheet = ui.indexOf("✅") >= 0;
   let aC = 1.0;
@@ -523,12 +521,19 @@ function buildGantt(sortedScreens, containerId, title, palette, mode){
   bars.forEach(b=>{
     const col = b.isFeOnly ? FE_COLOR : DEFAULT_COLOR;
     const top = headerH + b.start * dayH;
-    const height = Math.max(b.工数 * dayH, 2);
+    // 休暇日が間に挟まる場合は (end-start) で延長して描画
+    const height = Math.max((b.end - b.start) * dayH, 2);
     const left = labelW + b.lane * laneW + 4;
     const width = laneW - 8;
-    html += `<div style="position:absolute; top:${top}px; left:${left}px; width:${width}px; height:${height}px; background:${col.bg}; border:1px solid ${col.bd}; border-radius:3px; font-size:11px; padding:4px 6px; box-sizing:border-box; overflow:hidden;" title="${esc(b.画面名)}${b.isFeOnly?' [FEのみ]':''} ${b.start.toFixed(2)}→${b.end.toFixed(2)}日 (${(b.工数*8).toFixed(1)}h)">
-      <div style="font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${esc(b.画面名)}</div>
-      <div style="font-size:10px; color:#444;">${(b.工数*8).toFixed(1)}h</div>
+    // 休暇日にかかるタスクは半透明
+    const vacSet = VACATIONS[b.lane];
+    const hitsVacation = vacSet && [...vacSet].some(v => v >= Math.floor(b.start) && v < b.end);
+    const opacity = hitsVacation ? 0.5 : 1.0;
+    html += `<div style="position:absolute; top:${top}px; left:${left}px; width:${width}px; height:${height}px; background:${col.bg}; border:1px solid ${col.bd}; border-radius:3px; font-size:11px; padding:4px 6px; box-sizing:border-box; overflow:hidden; opacity:${opacity};" title="${esc(b.画面名)}${b.isFeOnly?' [FEのみ]':''}${hitsVacation?' [休暇またぐ]':''} ${b.start.toFixed(2)}→${b.end.toFixed(2)}日 (${(b.工数*8).toFixed(1)}h)">
+      <div style="display:flex; justify-content:space-between; align-items:baseline; gap:6px;">
+        <div style="font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1 1 auto;">${esc(b.画面名)}</div>
+        <div style="font-size:10px; color:#444; white-space:nowrap; flex:0 0 auto;">${(b.工数*8).toFixed(1)}h</div>
+      </div>
     </div>`;
   });
   html += '</div></div>';
