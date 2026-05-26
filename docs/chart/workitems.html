@@ -14,38 +14,48 @@
   code { background: #f3f3f3; padding: 1px 4px; border-radius: 3px; font-size: 90%; }
   hr { border: none; border-top: 1px solid #ccc; margin: 24px 0; }
   ul { margin: 6px 0 12px 24px; }
+  .tabs { display: flex; gap: 4px; margin: 16px 0 0; border-bottom: 2px solid #888; }
+  .tab-btn { padding: 8px 18px; border: 1px solid #ccc; border-bottom: none; background: #f0f0f0; cursor: pointer; font-size: 14px; border-radius: 4px 4px 0 0; }
+  .tab-btn.active { background: #fff; border-color: #888; border-bottom: 2px solid #fff; margin-bottom: -2px; font-weight: bold; color: #2a6; }
+  .tab-panel { display: none; padding-top: 16px; }
+  .tab-panel.active { display: block; }
 </style>
 </head>
 <body>
 <h1>AI駆動PJタスク管理</h1>
-<p>元データ:</p>
-<ul>
-  <li><code>.work\20260521_○○機能一覧_担当・優先追記.xlsx</code> の 担当列=<code>AI</code> 行を抽出</li>
-  <li><code>.work\データモデル設計書.xlsx</code> 一覧シート <code>主な元資料</code> 列を画面名で逆引きしてデータモデル列を生成</li>
-  <li><code>.work\画面項目定義書.xlsx</code> 画面一覧シート <code>モック</code> 列 + 個別シート存在チェックで画面項目定義列を生成</li>
-</ul>
-<p>件数: 画面側 96 件 (優先 0=16 / 1=8 / 10=34 / 50=38) ／ IF側 18 件 (全件 優先=1) ／ 合計 114 件</p>
-<p>列凡例:</p>
-<ul>
-  <li>データモデル: ✅完了 / 🔄作業中 / ・未着手 (空欄=元資料に画面名の言及なし)</li>
-  <li>画面項目定義: ✅シートあり(画面項目定義書/管理画面項目定義書 にシート作成済) / 📐モックあり / 🔄作成予定 / ⏸Ph.2以降 / (空欄=画面一覧に該当なし) — 📐 と ✅ は併記しうる</li>
-</ul>
-<hr>
-<p>
-  <label><input type="checkbox" id="sort-score" checked> スコア順でソート</label>
-  <span style="color:#666;font-size:12px;">(データモデル完成 +10 / データモデル作業中 +5 / モックあり +7 / シートあり +3 (併存可・加算) / 実装不可は0点 → 同点は優先昇順)</span>
-</p>
-<p style="font-size:12px; color:#666;">工数計算式: 行工数 = (1 + 項目数×0.005) × 処理区分係数 × スコープ係数 × 資産係数 × 3.0 (h)　※1人日=8h<br>
-処理区分係数: 閲覧0.7 / 編集1.0 / 新規登録1.3 / DL印刷1.1　・　スコープ係数: 両方ready/データモデル変更1.0 / BEまたはFEのみ0.5 / 実装不可0　・　資産係数: モック+シート両方0.85 / 片方0.95 / なし1.0　・　IF行は0.2固定</p>
-<h2>画面処理</h2>
-<h3 style="margin-top:8px;">予実管理 (左=計画 / 右=実績)</h3>
-<div style="display:flex; gap:12px; align-items:flex-start; overflow-x:auto;">
-  <div id="gantt-plan"></div>
-  <div id="gantt-actual"></div>
+<div class="tabs">
+  <button class="tab-btn active" data-tab="calendar">予実管理カレンダー</button>
+  <button class="tab-btn" data-tab="worklist">作業一覧</button>
 </div>
-<table id="t-screens" style="margin-top:16px;"><thead><tr id="th-screens"></tr></thead><tbody></tbody></table>
-<h2>IF</h2>
-<table id="t-ifs"><thead><tr id="th-ifs"></tr></thead><tbody></tbody></table>
+<div id="tab-calendar" class="tab-panel active">
+  <h3 style="margin-top:8px;">予実管理 (5/25- 週次 / 2名 × 8h/日 × 稼働90% = 14.4h/日)</h3>
+  <div id="gantt-plan"></div>
+</div>
+<div id="tab-worklist" class="tab-panel">
+  <p>元データ:</p>
+  <ul>
+    <li><code>.work\20260521_○○機能一覧_担当・優先追記.xlsx</code> の 担当列=<code>AI</code> 行を抽出</li>
+    <li><code>.work\データモデル設計書.xlsx</code> 一覧シート <code>主な元資料</code> 列を画面名で逆引きしてデータモデル列を生成</li>
+    <li><code>.work\画面項目定義書.xlsx</code> 画面一覧シート <code>モック</code> 列 + 個別シート存在チェックで画面項目定義列を生成</li>
+  </ul>
+  <p>件数: 画面側 96 件 (優先 0=16 / 1=8 / 10=34 / 50=38) ／ IF側 18 件 (全件 優先=1) ／ 合計 114 件</p>
+  <p>列凡例:</p>
+  <ul>
+    <li>データモデル: ✅完了 / 🔄作業中 / ・未着手 (空欄=元資料に画面名の言及なし)</li>
+    <li>画面項目定義: ✅シートあり(画面項目定義書/管理画面項目定義書 にシート作成済) / 📐モックあり / 🔄作成予定 / ⏸Ph.2以降 / (空欄=画面一覧に該当なし) — 📐 と ✅ は併記しうる</li>
+  </ul>
+  <hr>
+  <p>
+    <label><input type="checkbox" id="sort-score" checked> スコア順でソート</label>
+    <span style="color:#666;font-size:12px;">(データモデル完成 +10 / データモデル作業中 +5 / モックあり +7 / シートあり +3 (併存可・加算) / 実装不可は0点 → 同点は優先昇順)</span>
+  </p>
+  <p style="font-size:12px; color:#666;">工数計算式: 行工数 = (1 + 項目数×0.005) × 処理区分係数 × スコープ係数 × 資産係数 × 3.0 (h)　※1人日=8h<br>
+  処理区分係数: 閲覧0.7 / 編集1.0 / 新規登録1.3 / DL印刷1.1　・　スコープ係数: 両方ready/データモデル変更1.0 / BEまたはFEのみ0.5 / 実装不可0　・　資産係数: モック+シート両方0.85 / 片方0.95 / なし1.0　・　IF行は2h固定</p>
+  <h2>画面処理</h2>
+  <table id="t-screens" style="margin-top:8px;"><thead><tr id="th-screens"></tr></thead><tbody></tbody></table>
+  <h2>IF</h2>
+  <table id="t-ifs"><thead><tr id="th-ifs"></tr></thead><tbody></tbody></table>
+</div>
 <script>
 const SCREEN_COLS = ["優先","ドメイン","画面ID","画面名","管理ID","処理区分","処理名","データモデル","画面項目定義","備考","工数(h)","担当者","実施順","実工数(h)"];
 const IF_COLS     = ["優先","IFID","カテゴリ","送受信","IF名","From","To","データモデル","画面項目定義","備考","工数(h)","担当者","実施順","実工数(h)"];
@@ -206,12 +216,34 @@ SCREENS.forEach(r=>{
     r.画面項目定義 = `${ui} / ${sheetTag}`;
   }
 });
-// 全画面モック完了: ✅シートあり 単独行に 📐モックあり を追記
+// 処理名 / 画面+処理名 単位の想定項目数 (シートはないが工数計算用に項目数を仮設定)
+// 画面項目定義 列には表示しない (📐モックあり のみ) — 工数計算でフォールバック参照
+const PROC_ITEMS = {
+  "配送先（荷物）情報表示": 20,
+  "配送履歴表示": 20,
+  "業務終了メッセージ表示": 5,
+  "登録結果CSV出力": 17
+};
+const SCREEN_PROC_ITEMS = {
+  "完了済み|荷物情報表示": 59,
+  "完了済み|配送完了案内表示": 59,
+  "完了済み|配送履歴表示": 59
+};
+// 全画面モック完了: すべての行に 📐モックあり を確保 (🔄作成予定 は削除)
+// PROC_ITEMS / SCREEN_PROC_ITEMS にある行はモックあり (X項目) で項目数併記
 SCREENS.forEach(r=>{
-  const ui = r.画面項目定義 || "";
-  if (ui.indexOf("✅") >= 0 && ui.indexOf("📐") === -1) {
-    r.画面項目定義 = `📐モックあり / ${ui}`;
+  let ui = r.画面項目定義 || "";
+  ui = ui.replace(/🔄作成予定\s*\/\s*/g, "")
+         .replace(/\s*\/\s*🔄作成予定/g, "")
+         .replace(/^🔄作成予定$/g, "");
+  if (ui.indexOf("📐") === -1) {
+    const key = `${r.画面名}|${r.処理名}`;
+    const items = (key in SCREEN_PROC_ITEMS) ? SCREEN_PROC_ITEMS[key]
+                : (r.処理名 in PROC_ITEMS ? PROC_ITEMS[r.処理名] : null);
+    const mockTag = items != null ? `📐モックあり (${items}項目)` : "📐モックあり";
+    ui = ui ? `${mockTag} / ${ui}` : mockTag;
   }
+  r.画面項目定義 = ui;
 });
 // 備考にスコープ判定:
 // IF行=バックエンドのみ
@@ -234,13 +266,18 @@ function scope(r){
   if (s) r.備考 = r.備考 ? `${s} / ${r.備考}` : s;
 });
 // 工数 (h/行) C案ハイブリッド計算 (定数 3.0 = 0.375 人日 × 8h)
+// 実装不可でも 画面項目定義 が入っていれば DM完成を仮定して計算する (空欄なら 0)
 [...SCREENS, ...IFS].forEach(r=>{
   const bk = r.備考 || "";
-  if (bk.indexOf("実装不可") >= 0) { r["工数(h)"] = 0; return; }
-  if (r.IFID) { r["工数(h)"] = 1.6; return; }   // IF行は1.6h固定 (=0.2人日)
+  if (r.IFID) { r["工数(h)"] = 2; return; }
+  if (bk.indexOf("実装不可") >= 0 && !r.画面項目定義) { r["工数(h)"] = 0; return; }
   const ui = r.画面項目定義 || "";
   const m = ui.match(/\((\d+)項目\)/);
-  const items = m ? parseInt(m[1], 10) : 0;
+  let items = m ? parseInt(m[1], 10) : 0;
+  if (!items) {
+    const key = `${r.画面名}|${r.処理名}`;
+    items = SCREEN_PROC_ITEMS[key] ?? PROC_ITEMS[r.処理名] ?? 0;
+  }
   const k = r.処理区分 || "";
   let kC = 1.0;
   if (k.indexOf("閲覧") >= 0) kC = 0.7;
@@ -302,7 +339,17 @@ SCREENS.forEach(r=>{
 function esc(s){return String(s==null?"":s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));}
 function render(tid,hid,cols,data){
   document.getElementById(hid).innerHTML = cols.map(c=>"<th>"+esc(c)+"</th>").join("");
-  document.querySelector("#"+tid+" tbody").innerHTML = data.map(r=>"<tr>"+cols.map(c=>"<td>"+esc(r[c])+"</td>").join("")+"</tr>").join("");
+  const dataRows = data.map(r=>"<tr>"+cols.map(c=>"<td>"+esc(r[c])+"</td>").join("")+"</tr>").join("");
+  const SUM_COLS = ["工数(h)", "実工数(h)"];
+  const sums = {};
+  SUM_COLS.forEach(c => { sums[c] = data.reduce((a, r) => a + (parseFloat(r[c]) || 0), 0); });
+  const totalCells = cols.map((c, i) => {
+    const base = 'font-weight:bold; background:#eaf0f6; border-top:2px solid #888;';
+    if (i === 0) return `<td style="${base}">合計</td>`;
+    if (SUM_COLS.includes(c)) return `<td style="${base}">${sums[c].toFixed(1)}</td>`;
+    return `<td style="${base}"></td>`;
+  }).join("");
+  document.querySelector("#"+tid+" tbody").innerHTML = dataRows + `<tr>${totalCells}</tr>`;
 }
 function score(r){
   // 実装不可 (画面行で DM未完成) は最下位扱い
@@ -343,10 +390,10 @@ function ganttWorkDates(count){
   return dates;
 }
 function ganttWeekday(d){ return ['日','月','火','水','木','金','土'][d.getDay()]; }
-// 休暇カレンダー: 人員別の不就業日 (work-day index に変換)
+// 休暇カレンダー: 人員別の不就業日 (work-day index に変換) — 現状なし
 const VACATIONS_BY_DATE = {
-  1: ["2026-06-01"],  // 人員1
-  2: []               // 人員2
+  1: [],
+  2: []
 };
 function dateToWorkdayIndex(isoDate){
   const [y, m, dd] = isoDate.split("-").map(Number);
@@ -410,21 +457,25 @@ function buildGantt(sortedScreens, containerId, title, palette, mode){
       if (!isNaN(ord) && summary[r.画面名].実施順 == null) summary[r.画面名].実施順 = ord;
     });
   } else {
+    // 計画: 画面処理 + IF。データモデル✅完了のみカレンダー対象。1日 = 7.2h (8h × 稼働率90%) で日数換算
+    const DAY_HOURS = 7.2;
     sortedScreens.forEach(r=>{
       const hH = r["工数(h)"] || 0;
       if (hH === 0) return;
-      const bk = r.備考 || "";
-      if (bk !== "着手可能") return;
+      if (!(r.データモデル || "").includes("✅")) return;  // DM未完成タスクは非表示
       if (!summary[r.画面名]) {
-        summary[r.画面名] = { 画面名: r.画面名, ドメイン: r.ドメイン, 工数: 0, isFeOnly: false, 担当者: null, 実施順: null };
+        summary[r.画面名] = { 画面名: r.画面名, ドメイン: r.ドメイン, 工数: 0, isFeOnly: false, 担当者: null, 実施順: null, 実工数: 0, kind: "screen" };
         order.push(r.画面名);
       }
-      summary[r.画面名].工数 += hH / 8;
+      summary[r.画面名].工数 += hH / DAY_HOURS;
+      const effH = parseFloat(r["実工数(h)"]) || 0;
+      if (effH > 0) summary[r.画面名].実工数 += effH;
       const t = parseInt(r.担当者);
       if (!isNaN(t) && summary[r.画面名].担当者 == null) summary[r.画面名].担当者 = t;
       const ord = parseFloat(r.実施順);
       if (!isNaN(ord) && summary[r.画面名].実施順 == null) summary[r.画面名].実施順 = ord;
     });
+    // IF処理は現時点ではガント上に表示しない (完了マイルストーンのみ計算)
   }
   let bars = [];
   if (mode === "actual") {
@@ -445,98 +496,199 @@ function buildGantt(sortedScreens, containerId, title, palette, mode){
       });
     }
   } else {
-    // 計画:
-    //   Phase1: 担当者+実施順 が両方ある画面を各レーン先頭に (実施順昇順)
-    //   Phase2: 残りを 2人並行・早く空く方に順次割当
-    const fixed = order.filter(n => summary[n].担当者 != null && summary[n].実施順 != null);
+    // 計画: 整数日単位の幅 + 同日に複数タスク収まる場合は積み上げ
+    // Phase1: 担当者+実施順 で各レーンに固定タスクを配置
+    // Phase2: 残りを総量の少ない方へ自動振分
+    const laneTasks = [[], []];
+    const fixedScreens = order.filter(n => summary[n].担当者 != null && summary[n].実施順 != null);
     const remaining = order.filter(n => !(summary[n].担当者 != null && summary[n].実施順 != null));
-    const cursors = Array(LANES).fill(0).map((_,i)=> LANE_START_INDICES[i] || 0);
-    for (let lane = 1; lane <= LANES; lane++) {
-      const inLane = fixed.filter(n => summary[n].担当者 === lane);
-      inLane.sort((a,b)=> summary[a].実施順 - summary[b].実施順);
-      inLane.forEach(n=>{
-        const s = summary[n];
-        const { start, end } = placeBarLane(cursors[lane-1], s.工数, VACATIONS[lane-1]);
-        cursors[lane-1] = end;
-        bars.push({ ...s, lane: lane-1, start, end });
-      });
-    }
-    remaining.forEach(name=>{
-      const s = summary[name];
-      let li = 0;
-      for (let i=1; i<LANES; i++) if (cursors[i] < cursors[li]) li = i;
-      const { start, end } = placeBarLane(cursors[li], s.工数, VACATIONS[li]);
-      cursors[li] = end;
-      bars.push({ ...s, lane: li, start, end });
+    fixedScreens.forEach(n => laneTasks[summary[n].担当者 - 1].push(n));
+    laneTasks.forEach(arr => arr.sort((a, b) => summary[a].実施順 - summary[b].実施順));
+    const laneTotals = laneTasks.map(arr => arr.reduce((s, n) => s + summary[n].工数, 0));
+    remaining.forEach(n => {
+      const li = laneTotals[0] <= laneTotals[1] ? 0 : 1;
+      laneTasks[li].push(n);
+      laneTotals[li] += summary[n].工数;
     });
+    // 各レーンで配置:
+    //   開始位置 = 実工数累積カーソルの floor (端数があっても開始日は変えない)
+    //   終了位置 = カーソル前進後の ceil (実工数で触れた日まで含む)
+    //   slot は、その期間の全日で空いている最下段 (重複を避けて積み上げ)
+    for (let li = 0; li < LANES; li++) {
+      let cursor = LANE_START_INDICES[li] || 0;
+      const daySlotUsed = {};
+      const vacationSet = VACATIONS[li];
+      while (vacationSet.has(Math.floor(cursor))) cursor = Math.floor(cursor) + 1;
+      for (const n of laneTasks[li]) {
+        const s = summary[n];
+        const w = s.工数;
+        while (vacationSet.has(Math.floor(cursor))) cursor = Math.floor(cursor) + 1;
+        const start = Math.floor(cursor);
+        // 実工数分カーソル前進 (休暇スキップ)
+        let pos = cursor, left = w;
+        while (left > 1e-9) {
+          if (vacationSet.has(Math.floor(pos))) { pos = Math.floor(pos) + 1; continue; }
+          const dayEnd = Math.floor(pos) + 1;
+          const avail = dayEnd - pos;
+          const consume = Math.min(left, avail);
+          pos += consume; left -= consume;
+        }
+        const end = Math.max(start + 1, Math.ceil(pos));
+        // 空き slot を探す (全日で空いている最小スロット)
+        let slot = 0;
+        while (true) {
+          let allFree = true;
+          for (let d = start; d < end; d++) {
+            if (daySlotUsed[`${d},${slot}`]) { allFree = false; break; }
+          }
+          if (allFree) break;
+          slot++;
+        }
+        for (let d = start; d < end; d++) daySlotUsed[`${d},${slot}`] = true;
+        cursor = pos;
+        bars.push({ ...s, lane: li, start, end, slot });
+      }
+    }
+  }
+  // 各レーンの最大slotを計算 (積み上げ用)
+  const laneSlotMax = [1, 1];
+  bars.forEach(b => { laneSlotMax[b.lane] = Math.max(laneSlotMax[b.lane], (b.slot || 0) + 1); });
+  // 画面実装完了日: 表示中screenバーのlane endに加え、非表示(DM未完成)の合算工数を考慮
+  let screenCompletionDay = 0;
+  if (mode !== "actual") {
+    const laneEndsScreen = [LANE_START_INDICES[0]||0, LANE_START_INDICES[1]||0];
+    bars.forEach(b => {
+      if (b.kind === "screen" && b.end > laneEndsScreen[b.lane]) laneEndsScreen[b.lane] = b.end;
+    });
+    // DM未完成 (非表示) 画面タスクの合算工数 (person-days)
+    let hiddenTotal = 0;
+    sortedScreens.forEach(r => {
+      const hH = r["工数(h)"] || 0;
+      if (hH === 0) return;
+      if ((r.データモデル || "").includes("✅")) return;
+      hiddenTotal += hH / 7.2;
+    });
+    // 2人レーンに均等配分した際の最短完了日
+    const balanced = Math.ceil((laneEndsScreen[0] + laneEndsScreen[1] + hiddenTotal) / 2);
+    screenCompletionDay = Math.max(laneEndsScreen[0], laneEndsScreen[1], balanced);
+  }
+  // IF実装完了日: screen完了日 の後に IF全件を2人並行で消化した想定
+  let ifCompletionDay = 0;
+  if (mode !== "actual" && screenCompletionDay > 0) {
+    const ifTotalH = IFS.reduce((a, r) => a + (r["工数(h)"] || 0), 0);
+    if (ifTotalH > 0) {
+      const ifDays = ifTotalH / 7.2;
+      ifCompletionDay = screenCompletionDay + Math.ceil(ifDays / 2);
+    }
   }
   const laneEnds = Array(LANES).fill(0);
   bars.forEach(b=>{ if (b.end > laneEnds[b.lane]) laneEnds[b.lane] = b.end; });
   const total = Math.max(0, ...laneEnds);
   const totalEffort = bars.reduce((a,b)=>a+b.工数,0);
-  const dayCount = Math.max(Math.ceil(total), 1);
+  // 5/25-6/12 (15営業日) を最低限カバー。バー or 完了日マーカーが超える場合は延長
+  const dayCount = Math.max(15, Math.ceil(total), screenCompletionDay, ifCompletionDay);
   const dates = ganttWorkDates(dayCount);
-  // 縦展開: 日付がY軸 (上→下)、レーンがX軸
-  const dayH = 36;       // 1日あたり高さ
-  const laneW = 240;     // 1レーンの幅
-  const labelW = 90;     // 日付ラベル幅
-  const headerH = 28;
-  const DEFAULT_COLOR = palette || { bg:'#9cd', bd:'#468' };
-  const FE_COLOR = { bg:'#fbb', bd:'#a44' };
-  const startStr = `${GANTT_START.getMonth()+1}/${GANTT_START.getDate()}(${ganttWeekday(GANTT_START)})`;
-  const endDate = dates[Math.min(Math.ceil(total)-1, dates.length-1)];
-  const endStr = endDate ? `${endDate.getMonth()+1}/${endDate.getDate()}(${ganttWeekday(endDate)})` : "-";
-  let html = '<div style="border:1px solid #ddd; padding:8px; background:#fff;">';
-  html += `<div style="font-size:12px; color:#666; margin-bottom:6px;"><b>${title}</b> ／ 並行2人 / ${bars.length} 画面 / 総工数 ${(totalEffort*8).toFixed(1)}h / ${total.toFixed(2)} 営業日 (${startStr} → ${endStr}) / 土日・祝除外</div>`;
-  html += `<div style="font-size:11px; margin-bottom:8px;">対象: ${mode === "actual" ? "実工数が入力された行のみ (担当者・実施順で配置)" : "備考が「着手可能」の行のみ"}</div>`;
-  const totalW = labelW + LANES * laneW;
-  const totalH = headerH + dayCount * dayH;
-  html += `<div style="position:relative; width:${totalW}px; height:${totalH}px; border:1px solid #ccc; background:#fff;">`;
-  // ヘッダ (レーン名)
-  for (let li=0; li<LANES; li++) {
-    html += `<div style="position:absolute; top:0; left:${labelW + li*laneW}px; width:${laneW}px; height:${headerH}px; font-size:12px; text-align:center; line-height:${headerH}px; color:#666; border-bottom:1px solid #ccc; border-left:1px solid #ccc; background:#f6f8fa; box-sizing:border-box;">人員${li+1}</div>`;
+  // 週境界 (月曜日で区切る)
+  const weekStarts = [0];
+  for (let i = 1; i < dayCount; i++) {
+    if (dates[i].getDay() === 1) weekStarts.push(i);
   }
-  html += `<div style="position:absolute; top:0; left:0; width:${labelW}px; height:${headerH}px; border-bottom:1px solid #ccc; background:#f6f8fa; box-sizing:border-box;"></div>`;
-  // 日付行 + レーン背景グリッド
-  for (let i=0; i<dayCount; i++) {
-    const d = dates[i];
-    const isMon = d.getDay() === 1;
-    const top = headerH + i*dayH;
-    const borderTop = isMon ? '2px solid #999' : '1px solid #eee';
-    html += `<div style="position:absolute; top:${top}px; left:0; width:${labelW}px; height:${dayH}px; border-top:${borderTop}; font-size:11px; padding:4px 8px; box-sizing:border-box; text-align:right; line-height:1.3;">${d.getMonth()+1}/${d.getDate()}<br><span style="font-size:9px; color:#999;">(${ganttWeekday(d)})</span></div>`;
-    for (let li=0; li<LANES; li++) {
-      html += `<div style="position:absolute; top:${top}px; left:${labelW + li*laneW}px; width:${laneW}px; height:${dayH}px; border-top:${borderTop}; border-left:1px solid #ddd; box-sizing:border-box;"></div>`;
+  const weekRanges = weekStarts.map((s, i) => [s, (i < weekStarts.length-1) ? weekStarts[i+1]-1 : dayCount-1]);
+  const dayW = 160;
+  const subRowH = 30;   // slot 1段あたりの高さ
+  const laneH = (li) => Math.max(1, laneSlotMax[li]) * subRowH;
+  const labelW = 100;
+  const headerH = 40;
+  const weekGap = 16;
+  const LANE_COLORS = [
+    { bg:'#9cd', bd:'#468' },  // 人員1
+    { bg:'#fc9', bd:'#a63' }   // 人員2
+  ];
+  const DONE_COLOR = { bg:'#cec', bd:'#484' };  // 完了 (実工数あり)
+  let html = '<div style="background:#fff;">';
+  html += `<div style="font-size:12px; color:#666; margin-bottom:6px;"><b>${title}</b> ／ 並行2人 (8h×90%=7.2h/日) / ${bars.length} 画面 / 総工数 ${(totalEffort*7.2).toFixed(1)}h / ${total.toFixed(2)} 営業日 / 土日・祝除外</div>`;
+  html += `<div style="font-size:11px; margin-bottom:10px;">凡例: <span style="display:inline-block;width:14px;height:10px;background:#9cd;border:1px solid #468;vertical-align:middle;"></span> 人員1 ／ <span style="display:inline-block;width:14px;height:10px;background:#fc9;border:1px solid #a63;vertical-align:middle;"></span> 人員2 ／ <span style="display:inline-block;width:14px;height:10px;background:#cec;border:1px solid #484;vertical-align:middle;"></span> 完了 (実工数h表示)</div>`;
+  // レーン頂上位置 (累積)
+  const laneTops = [headerH];
+  for (let li = 1; li < LANES; li++) laneTops.push(laneTops[li-1] + laneH(li-1));
+  const totalLaneH = laneTops[LANES-1] + laneH(LANES-1) - headerH;
+  weekRanges.forEach(([wStart, wEnd], wi)=>{
+    const wDays = wEnd - wStart + 1;
+    const blockW = labelW + wDays * dayW;
+    const blockH = headerH + totalLaneH;
+    html += `<div style="position:relative; width:${blockW}px; height:${blockH}px; border:1px solid #ccc; background:#fff; margin-bottom:${weekGap}px;">`;
+    // 週ラベル (左上)
+    const wLabel = `第${wi+1}週<br>${dates[wStart].getMonth()+1}/${dates[wStart].getDate()}〜${dates[wEnd].getMonth()+1}/${dates[wEnd].getDate()}`;
+    html += `<div style="position:absolute; top:0; left:0; width:${labelW}px; height:${headerH}px; border-bottom:1px solid #ccc; background:#f6f8fa; box-sizing:border-box; font-size:10px; padding:4px; line-height:1.3; color:#333;">${wLabel}</div>`;
+    // 日付ヘッダ
+    for (let i = 0; i < wDays; i++) {
+      const d = dates[wStart + i];
+      const left = labelW + i * dayW;
+      html += `<div style="position:absolute; top:0; left:${left}px; width:${dayW}px; height:${headerH}px; font-size:11px; padding:4px; box-sizing:border-box; text-align:center; line-height:1.3; border-bottom:1px solid #ccc; border-left:1px solid #ddd; background:#f6f8fa;">${d.getMonth()+1}/${d.getDate()}<br><span style="font-size:9px; color:#999;">(${ganttWeekday(d)})</span></div>`;
     }
-  }
-  // 休暇オーバーレイ (バー描画前なので背景扱い)
-  for (let i=0; i<dayCount; i++) {
-    for (let li=0; li<LANES; li++) {
-      if (VACATIONS[li].has(i)) {
-        const top = headerH + i*dayH;
-        html += `<div style="position:absolute; top:${top}px; left:${labelW + li*laneW}px; width:${laneW}px; height:${dayH}px; background:repeating-linear-gradient(45deg, #fdd 0, #fdd 4px, #fee 4px, #fee 8px); box-sizing:border-box; text-align:center; font-size:11px; color:#a44; line-height:${dayH}px; font-weight:bold;">休</div>`;
+    // レーン
+    for (let li = 0; li < LANES; li++) {
+      const top = laneTops[li];
+      const h = laneH(li);
+      const color = LANE_COLORS[li];
+      html += `<div style="position:absolute; top:${top}px; left:0; width:${labelW}px; height:${h}px; border-top:1px solid #ccc; font-size:12px; padding:0 8px; text-align:right; line-height:${h}px; color:${color.bd}; background:#f6f8fa; box-sizing:border-box; font-weight:bold;">人員${li+1}</div>`;
+      for (let i = 0; i < wDays; i++) {
+        const left = labelW + i * dayW;
+        html += `<div style="position:absolute; top:${top}px; left:${left}px; width:${dayW}px; height:${h}px; border-top:1px solid #ccc; border-left:1px solid #ddd; box-sizing:border-box;"></div>`;
       }
+      // 休暇オーバーレイ
+      [...VACATIONS[li]].forEach(v=>{
+        if (v >= wStart && v <= wEnd) {
+          const left = labelW + (v - wStart) * dayW;
+          html += `<div style="position:absolute; top:${top}px; left:${left}px; width:${dayW}px; height:${h}px; background:repeating-linear-gradient(45deg, #fdd 0, #fdd 4px, #fee 4px, #fee 8px); box-sizing:border-box; text-align:center; font-size:11px; color:#a44; line-height:${h}px; font-weight:bold;">休</div>`;
+        }
+      });
     }
-  }
-  // バー
-  bars.forEach(b=>{
-    const col = b.isFeOnly ? FE_COLOR : DEFAULT_COLOR;
-    const top = headerH + b.start * dayH;
-    // 休暇日が間に挟まる場合は (end-start) で延長して描画
-    const height = Math.max((b.end - b.start) * dayH, 2);
-    const left = labelW + b.lane * laneW + 4;
-    const width = laneW - 8;
-    // 休暇日にかかるタスクは半透明
-    const vacSet = VACATIONS[b.lane];
-    const hitsVacation = vacSet && [...vacSet].some(v => v >= Math.floor(b.start) && v < b.end);
-    const opacity = hitsVacation ? 0.5 : 1.0;
-    html += `<div style="position:absolute; top:${top}px; left:${left}px; width:${width}px; height:${height}px; background:${col.bg}; border:1px solid ${col.bd}; border-radius:3px; font-size:11px; padding:4px 6px; box-sizing:border-box; overflow:hidden; opacity:${opacity};" title="${esc(b.画面名)}${b.isFeOnly?' [FEのみ]':''}${hitsVacation?' [休暇またぐ]':''} ${b.start.toFixed(2)}→${b.end.toFixed(2)}日 (${(b.工数*8).toFixed(1)}h)">
-      <div style="display:flex; justify-content:space-between; align-items:baseline; gap:6px;">
-        <div style="font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1 1 auto;">${esc(b.画面名)}</div>
-        <div style="font-size:10px; color:#444; white-space:nowrap; flex:0 0 auto;">${(b.工数*8).toFixed(1)}h</div>
-      </div>
-    </div>`;
+    // バー (この週の範囲に該当するセグメント)
+    bars.forEach(b=>{
+      const overlapStart = Math.max(b.start, wStart);
+      const overlapEnd = Math.min(b.end, wEnd + 1);
+      if (overlapStart >= overlapEnd) return;
+      const isDone = (b.実工数 || 0) > 0;
+      const color = isDone ? DONE_COLOR : LANE_COLORS[b.lane];
+      const slot = b.slot || 0;
+      const top = laneTops[b.lane] + slot * subRowH + 3;
+      const left = labelW + (overlapStart - wStart) * dayW + 2;
+      const width = Math.max((overlapEnd - overlapStart) * dayW - 4, 2);
+      const height = subRowH - 6;
+      const vacSet = VACATIONS[b.lane];
+      const hitsVacation = vacSet && [...vacSet].some(v => v >= Math.floor(b.start) && v < b.end);
+      const opacity = hitsVacation ? 0.5 : 1.0;
+      const contFromPrev = b.start < wStart;
+      const contToNext = b.end > wEnd + 1;
+      const lRad = contFromPrev ? '0' : '3px';
+      const rRad = contToNext ? '0' : '3px';
+      const planH = (b.工数 * 7.2).toFixed(1);
+      const doneH = isDone ? b.実工数.toFixed(1) : '';
+      const titleExtra = isDone ? ` [完了 ${doneH}h/${planH}h]` : ` (${planH}h)`;
+      html += `<div style="position:absolute; top:${top}px; left:${left}px; width:${width}px; height:${height}px; background:${color.bg}; border:1px solid ${color.bd}; border-radius:${lRad} ${rRad} ${rRad} ${lRad}; font-size:11px; padding:0 6px; box-sizing:border-box; overflow:hidden; opacity:${opacity}; display:flex; align-items:center;" title="${esc(b.画面名)}${hitsVacation?' [休暇またぐ]':''} ${b.start.toFixed(2)}→${b.end.toFixed(2)}日${titleExtra}">
+        <div style="display:flex; justify-content:space-between; align-items:baseline; gap:6px; width:100%;">
+          <div style="font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1 1 auto;">${contFromPrev?'…':''}${esc(b.画面名)}${contToNext?'…':''}</div>
+          ${isDone ? `<div style="font-size:10px; color:#084; font-weight:bold; white-space:nowrap; flex:0 0 auto;">実 ${doneH}h</div>` : ''}
+          <div style="font-size:10px; color:#444; white-space:nowrap; flex:0 0 auto;">${planH}h</div>
+        </div>
+      </div>`;
+    });
+    // マイルストーンマーカー描画ヘルパ (labelTop で縦位置をずらして重なり回避)
+    const drawMarker = (day, color, label, labelTop) => {
+      if (day < wStart + 1 || day > wEnd + 1) return;
+      const markerLeft = labelW + (day - wStart) * dayW;
+      const markerH = headerH + totalLaneH;
+      const cd = dates[Math.min(day - 1, dates.length - 1)];
+      const dateStr = `${cd.getMonth()+1}/${cd.getDate()}(${ganttWeekday(cd)})`;
+      html += `<div style="position:absolute; top:0; left:${markerLeft - 2}px; width:4px; height:${markerH}px; background:${color}; z-index:5;"></div>`;
+      html += `<div style="position:absolute; top:${labelTop}px; left:${markerLeft + 6}px; font-size:11px; color:#fff; background:${color}; padding:2px 8px; border-radius:3px; z-index:6; white-space:nowrap; font-weight:bold;">📌 ${label} ${dateStr}</div>`;
+    };
+    drawMarker(screenCompletionDay, "#c33", "画面実装完了", 2);
+    drawMarker(ifCompletionDay, "#36a", "IF実装完了", 20);
+    html += `</div>`;
   });
-  html += '</div></div>';
+  html += '</div>';
   document.getElementById(containerId).innerHTML = html;
 }
 function redraw(){
@@ -545,9 +697,17 @@ function redraw(){
   render("t-screens","th-screens",SCREEN_COLS,sortedScreens);
   render("t-ifs","th-ifs",IF_COLS,[...IFS].sort(cmp));
   buildGantt(sortedScreens, "gantt-plan", "計画", { bg:'#9cd', bd:'#468' }, "plan");
-  buildGantt(sortedScreens, "gantt-actual", "実績", { bg:'#cec', bd:'#484' }, "actual");
 }
 cbScore.addEventListener("change",redraw);
+// タブ切替
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+  });
+});
 redraw();
 </script>
 </body>
