@@ -27,6 +27,10 @@
   .pv-wrap { display:flex; gap:16px; align-items:flex-start; }
   .pv-gantt { flex:1 1 auto; min-width:0; overflow-x:auto; }
   .pv-burndown { flex:0 0 440px; position:sticky; top:8px; }
+  .ai-callout { position:relative; flex:0 0 300px; margin-left:22px; align-self:center; background:#eef4fb; border:1.5px solid #5a8fc0; border-radius:10px; padding:12px 16px; font-size:13px; line-height:1.7; color:#234; }
+  .ai-callout::before { content:""; position:absolute; left:-13px; top:26px; border-style:solid; border-width:11px 13px 11px 0; border-color:transparent #5a8fc0 transparent transparent; }
+  .ai-callout::after { content:""; position:absolute; left:-10px; top:27px; border-style:solid; border-width:10px 12px 10px 0; border-color:transparent #eef4fb transparent transparent; }
+  .ai-callout .ttl { font-weight:bold; color:#2a5d8f; display:block; margin-bottom:4px; }
 </style>
 </head>
 <body>
@@ -43,7 +47,7 @@
   <button class="tab-btn" data-tab="worklist">作業一覧</button>
 </div>
 <div id="tab-calendar" class="tab-panel active">
-  <h3 style="margin-top:8px;">予実管理 (5/25- 週次 / 2名 × 8h/日 × 稼働90% = 14.4h/日 ※5/25-26は1名稼働=7.2h/日)</h3>
+  <h3 style="margin-top:8px;">予実管理 (5/25- 週次 / 2名 × 8h/日 × 稼働90% = 14.4h/日 ※5/25は0名・5/26は1名(7.2h)・5/27以降2名)</h3>
   <div class="pv-wrap">
     <div id="gantt-plan" class="pv-gantt"></div>
     <div id="burndown" class="pv-burndown"></div>
@@ -358,6 +362,12 @@ SCREENS.forEach(r=>{
 const JISSI_KOUSU_H = {
   "デポマスタ": 14.5
 };
+// 画面の完了日 (実績)。GANTT_START(5/25)より前に完了した画面はカレンダー・バーンダウン対象外
+const DONE_DATE = {
+  "デポマスタ": "2026-05-22"
+};
+// 5/25(プロジェクト開始)より前に完了済みの画面か (前週までに完了 → 予実対象外)
+function isPreStartDone(name){ return !!(DONE_DATE[name] && DONE_DATE[name] < "2026-05-25"); }
 const _firstSeen = {};
 SCREENS.forEach(r=>{
   if ((r.画面名 in JISSI_KOUSU_H) && !_firstSeen[r.画面名]) {
@@ -471,7 +481,7 @@ Object.keys(VACATIONS_BY_DATE).forEach(p=>{
 // 人員別の作業開始日 (未指定は GANTT_START と同日)
 const LANE_START_DATES = {
   1: "2026-05-27",  // 人員1
-  2: null
+  2: "2026-05-26"   // 人員2 (5/25=0名, 5/26=1名, 5/27=2名)
 };
 const LANE_START_INDICES = [0, 0];
 for (const p in LANE_START_DATES) {
@@ -492,6 +502,8 @@ function placeBarLane(cursor, work, vacationSet){
   return { start, end: pos };
 }
 function buildGantt(sortedScreens, containerId, title, palette, mode){
+  // 5/25より前に完了した画面 (前週までに完了済み) はカレンダー対象外
+  sortedScreens = sortedScreens.filter(r => !isPreStartDone(r.画面名 || ""));
   // 画面名ごとに工数集計 (先に出現した順)
   const order = [];
   const summary = {};
@@ -713,7 +725,9 @@ function buildGantt(sortedScreens, containerId, title, palette, mode){
     drawMs(screenCompletionDay, "#c33", "画面実装完了", 'top');
     drawMs(ifCompletionDay, "#36a", "IF実装完了", 'bottom');
     s += `</svg>`;
-    milestoneHtml = `<div style="font-size:14px; font-weight:bold; color:#444; margin:16px 0 4px;">マイルストーン (5/25〜6/26)</div>` + s;
+    const aiCallout = `<div class="ai-callout"><span class="ttl">AI駆動開発の課題取り組み</span>現状のマイルストーンは案件開発の実装マイルストーンとなっている。<br>AI駆動開発としての課題取り組み、マイルストーンを追加したいと考えている。</div>`;
+    milestoneHtml = `<div style="font-size:14px; font-weight:bold; color:#444; margin:16px 0 4px;">マイルストーン (5/25〜6/26)</div>`
+      + `<div style="display:flex; align-items:center;"><div style="flex:0 0 auto;">${s}</div>${aiCallout}</div>`;
   }
   // レーン頂上位置 (累積)
   const laneTops = [headerH];
@@ -796,7 +810,7 @@ const ACTUAL_BY_DATE = {
   // "2026-05-27": 18.5,
 };
 // 営業日 index ごとの稼働人数→工数(h)。人員別の開始日 (LANE_START_INDICES) を反映
-// → 5/25(idx0)・5/26(idx1) は人員1未稼働で1名、5/27(idx2)以降は2名
+// → 5/25(idx0)=0名、5/26(idx1)=1名(人員2)、5/27(idx2)以降=2名
 function teamHoursAt(idx){
   let people = 0;
   for (let li = 0; li < 2; li++) if ((LANE_START_INDICES[li] || 0) <= idx) people++;
@@ -805,7 +819,8 @@ function teamHoursAt(idx){
 function cumCapacity(days){ let s = 0; for (let i = 0; i < days; i++) s += teamHoursAt(i); return s; }
 function buildBurndown(containerId){
   const el = document.getElementById(containerId);
-  const all = [...SCREENS, ...IFS];
+  // 5/25(プロジェクト開始)より前に完了した画面はバーンダウン対象外 (総工数・消化とも除外)
+  const all = [...SCREENS, ...IFS].filter(r => !isPreStartDone(r.画面名 || ""));
   const totalH = all.reduce((a,r)=> a + (r["工数(h)"]||0), 0);
   if (totalH <= 0) { el.innerHTML = ""; return; }
   // バーンダウンは「予定工数(スコープ)」の消化で測る。実工数>0 の画面を完了とみなし、
@@ -830,7 +845,7 @@ function buildBurndown(containerId){
   const keys = Object.keys(ACTUAL_BY_DATE).sort();
   if (keys.length) {
     keys.forEach(k => actualPts.push({ x: dateToWorkdayIndex(k), rem: Math.max(0, totalH - ACTUAL_BY_DATE[k]) }));
-  } else if (burnedH > 0) {
+  } else {
     actualPts.push({ x: todayIdx, rem: Math.max(0, totalH - burnedH) });
   }
   const remNow = totalH - burnedH;
@@ -889,7 +904,7 @@ function buildBurndown(containerId){
   <div style="font-size:11px; color:#666; margin-bottom:8px;">総工数 ${totalH.toFixed(1)}h ／ 完了スコープ ${burnedH.toFixed(1)}h (${pct}%) ／ 残 ${remNow.toFixed(1)}h<br>完了画面の実投入 ${spentH.toFixed(1)}h（予定 ${burnedH.toFixed(1)}h）</div>
   ${svg}
   <div style="font-size:11px; margin-top:8px; line-height:1.8;">
-    <span style="display:inline-block;width:18px;border-top:2px dashed #bbb;vertical-align:middle;"></span> 理想線 (5/25-26は1名7.2h/日, 以降14.4h/日)
+    <span style="display:inline-block;width:18px;border-top:2px dashed #bbb;vertical-align:middle;"></span> 理想線 (5/25=0名, 5/26=1名7.2h, 5/27以降2名14.4h/日)
     　<span style="display:inline-block;width:18px;border-top:2px solid ${actColor};vertical-align:middle;"></span> 実績線 (完了画面の予定工数)<br>${statusTxt}
   </div>
 </div>`;
