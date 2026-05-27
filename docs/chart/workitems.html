@@ -64,6 +64,7 @@
   <p>列凡例:</p>
   <ul>
     <li>データモデル: ✅完了 / 🔄作業中 / ・未着手 (空欄=元資料に画面名の言及なし)</li>
+    <li>状況: レビュー中=進捗50%としてバーンダウンに加味 (完了=実工数ありは100% / 空欄=未設定)</li>
     <li>画面項目定義: ✅シートあり(画面項目定義書/管理画面項目定義書 にシート作成済) / 📐モックあり / 🔄作成予定 / ⏸Ph.2以降 / (空欄=画面一覧に該当なし) — 📐 と ✅ は併記しうる</li>
   </ul>
   <hr>
@@ -80,8 +81,8 @@
   <table id="t-ifs"><thead><tr id="th-ifs"></tr></thead><tbody></tbody></table>
 </div>
 <script>
-const SCREEN_COLS = ["優先","ドメイン","画面ID","画面名","管理ID","処理区分","処理名","データモデル","画面項目定義","備考","工数(h)","担当者","実施順","実工数(h)"];
-const IF_COLS     = ["優先","IFID","カテゴリ","送受信","IF名","From","To","データモデル","画面項目定義","備考","工数(h)","担当者","実施順","実工数(h)"];
+const SCREEN_COLS = ["優先","ドメイン","画面ID","画面名","管理ID","処理区分","処理名","データモデル","画面項目定義","備考","状況","工数(h)","担当者","実施順","実工数(h)"];
+const IF_COLS     = ["優先","IFID","カテゴリ","送受信","IF名","From","To","データモデル","画面項目定義","備考","状況","工数(h)","担当者","実施順","実工数(h)"];
 const SCREENS = [
 {"優先":0,"ドメイン":"DM01 配送情報確認","画面ID":"FE001","画面名":"配送情報照会","管理ID":"DM01FE001","処理区分":"閲覧","処理名":"検索条件入力・検索","データモデル":"✅顧客 ✅配送 ・カレンダー","画面項目定義":"📐モックあり","備考":""},
 {"優先":0,"ドメイン":"DM01 配送情報確認","画面ID":"FE001","画面名":"配送情報照会","管理ID":"DM01FE001","処理区分":"閲覧","処理名":"検索結果一覧表示","データモデル":"✅顧客 ✅配送 ・カレンダー","画面項目定義":"📐モックあり","備考":""},
@@ -358,6 +359,14 @@ SCREENS.forEach(r=>{
   if (r.画面名 in TANTOU_MAP) r.担当者 = TANTOU_MAP[r.画面名];
   if (r.画面名 in JISSI_MAP) r.実施順 = JISSI_MAP[r.画面名];
 });
+// 状況 (進捗ステータス)。タスク一覧に表示し、バーンダウンの進捗率に反映
+const STATUS_MAP = {
+  "ユーザマスタ": "レビュー中",
+  "エリアマスタ": "レビュー中"
+};
+SCREENS.forEach(r=>{ if (r.画面名 in STATUS_MAP) r.状況 = STATUS_MAP[r.画面名]; });
+// 状況→進捗率 (バーンダウンの消化スコープに加味。完了=実工数>0 は別途100%扱い)
+const STATUS_PROGRESS = { "レビュー中": 0.5 };
 // 実工数 (h)。画面単位の合計を最初の行に設定
 const JISSI_KOUSU_H = {
   "デポマスタ": 14.5
@@ -487,6 +496,10 @@ const LANE_START_INDICES = [0, 0];
 for (const p in LANE_START_DATES) {
   if (LANE_START_DATES[p]) LANE_START_INDICES[parseInt(p)-1] = dateToWorkdayIndex(LANE_START_DATES[p]);
 }
+// カレンダー注記 (工数管理外の作業メモ)。lane=人員番号(1始まり), from〜to の営業日にブロック表示
+const GANTT_NOTES = [
+  { lane: 1, from: "2026-05-25", to: "2026-05-26", label: "プランニング" }
+];
 function placeBarLane(cursor, work, vacationSet){
   let pos = cursor;
   while (vacationSet.has(Math.floor(pos))) pos = Math.floor(pos) + 1;
@@ -532,12 +545,13 @@ function buildGantt(sortedScreens, containerId, title, palette, mode){
       const dmv = r.データモデル || "";
       if (!dmv.includes("✅") && !dmv.includes("🔄")) return;  // DM未着手は非表示 (✅完了/🔄作業中=待機中 は表示)
       if (!summary[r.画面名]) {
-        summary[r.画面名] = { 画面名: r.画面名, ドメイン: r.ドメイン, 工数: 0, isFeOnly: false, 担当者: null, 実施順: null, 実工数: 0, kind: "screen" };
+        summary[r.画面名] = { 画面名: r.画面名, ドメイン: r.ドメイン, 工数: 0, isFeOnly: false, 担当者: null, 実施順: null, 実工数: 0, kind: "screen", 状況: null };
         order.push(r.画面名);
       }
       summary[r.画面名].工数 += hH / DAY_HOURS;
       const effH = parseFloat(r["実工数(h)"]) || 0;
       if (effH > 0) summary[r.画面名].実工数 += effH;
+      if (r.状況 && summary[r.画面名].状況 == null) summary[r.画面名].状況 = r.状況;
       const t = parseInt(r.担当者);
       if (!isNaN(t) && summary[r.画面名].担当者 == null) summary[r.画面名].担当者 = t;
       const ord = parseFloat(r.実施順);
@@ -676,9 +690,10 @@ function buildGantt(sortedScreens, containerId, title, palette, mode){
     { bg:'#fc9', bd:'#a63' }   // 人員2
   ];
   const DONE_COLOR = { bg:'#cec', bd:'#484' };  // 完了 (実工数あり)
+  const REVIEW_COLOR = { bg:'#e7d9f5', bd:'#8a5db5' };  // レビュー中
   let html = '<div style="background:#fff;">';
   html += `<div style="font-size:12px; color:#666; margin-bottom:6px;"><b>${title}</b> ／ 並行2人 (8h×90%=7.2h/日) / ${bars.length} 画面 / 総工数 ${(totalEffort*7.2).toFixed(1)}h / ${total.toFixed(2)} 営業日 / 土日・祝除外</div>`;
-  html += `<div style="font-size:11px; margin-bottom:10px;">凡例: <span style="display:inline-block;width:14px;height:10px;background:#9cd;border:1px solid #468;vertical-align:middle;"></span> 人員1 ／ <span style="display:inline-block;width:14px;height:10px;background:#fc9;border:1px solid #a63;vertical-align:middle;"></span> 人員2 ／ <span style="display:inline-block;width:14px;height:10px;background:#cec;border:1px solid #484;vertical-align:middle;"></span> 完了 (実工数h表示)</div>`;
+  html += `<div style="font-size:11px; margin-bottom:10px;">凡例: <span style="display:inline-block;width:14px;height:10px;background:#9cd;border:1px solid #468;vertical-align:middle;"></span> 人員1 ／ <span style="display:inline-block;width:14px;height:10px;background:#fc9;border:1px solid #a63;vertical-align:middle;"></span> 人員2 ／ <span style="display:inline-block;width:14px;height:10px;background:#cec;border:1px solid #484;vertical-align:middle;"></span> 完了 (実工数h表示) ／ <span style="display:inline-block;width:14px;height:10px;background:#e7d9f5;border:1px solid #8a5db5;vertical-align:middle;"></span> レビュー中</div>`;
   // マイルストーンを横に伸長するタイムライン + 矢印シェイプで表現 (5/25〜6/26)。カレンダー下部に描画
   let milestoneHtml = "";
   if (mode !== "actual" && screenCompletionDay > 0) {
@@ -733,6 +748,8 @@ function buildGantt(sortedScreens, containerId, title, palette, mode){
   const laneTops = [headerH];
   for (let li = 1; li < LANES; li++) laneTops.push(laneTops[li-1] + laneH(li-1));
   const totalLaneH = laneTops[LANES-1] + laneH(LANES-1) - headerH;
+  // 注記ブロック (工数管理外)。日付→営業日indexに変換
+  const noteBars = GANTT_NOTES.map(n => ({ lane: n.lane - 1, start: dateToWorkdayIndex(n.from), end: dateToWorkdayIndex(n.to) + 1, label: n.label }));
   weekRanges.forEach(([wStart, wEnd], wi)=>{
     const wDays = wEnd - wStart + 1;
     const blockW = labelW + wDays * dayW;
@@ -771,7 +788,8 @@ function buildGantt(sortedScreens, containerId, title, palette, mode){
       const overlapEnd = Math.min(b.end, wEnd + 1);
       if (overlapStart >= overlapEnd) return;
       const isDone = (b.実工数 || 0) > 0;
-      const color = isDone ? DONE_COLOR : LANE_COLORS[b.lane];
+      const isReview = !isDone && b.状況 === "レビュー中";
+      const color = isDone ? DONE_COLOR : (isReview ? REVIEW_COLOR : LANE_COLORS[b.lane]);
       const slot = b.slot || 0;
       const top = laneTops[b.lane] + slot * subRowH + 3;
       const left = labelW + (overlapStart - wStart) * dayW + 2;
@@ -786,14 +804,25 @@ function buildGantt(sortedScreens, containerId, title, palette, mode){
       const rRad = contToNext ? '0' : '3px';
       const planH = (b.工数 * 7.2).toFixed(1);
       const doneH = isDone ? b.実工数.toFixed(1) : '';
-      const titleExtra = isDone ? ` [完了 ${doneH}h/${planH}h]` : ` (${planH}h)`;
+      const titleExtra = isDone ? ` [完了 ${doneH}h/${planH}h]` : (isReview ? ` [レビュー中 ${planH}h]` : ` (${planH}h)`);
       html += `<div style="position:absolute; top:${top}px; left:${left}px; width:${width}px; height:${height}px; background:${color.bg}; border:1px solid ${color.bd}; border-radius:${lRad} ${rRad} ${rRad} ${lRad}; font-size:11px; padding:0 6px; box-sizing:border-box; overflow:hidden; opacity:${opacity}; display:flex; align-items:center;" title="${esc(b.画面名)}${hitsVacation?' [休暇またぐ]':''} ${b.start.toFixed(2)}→${b.end.toFixed(2)}日${titleExtra}">
         <div style="display:flex; justify-content:space-between; align-items:baseline; gap:6px; width:100%;">
           <div style="font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1 1 auto;">${contFromPrev?'…':''}${esc(b.画面名)}${contToNext?'…':''}</div>
           ${isDone ? `<div style="font-size:10px; color:#084; font-weight:bold; white-space:nowrap; flex:0 0 auto;">実 ${doneH}h</div>` : ''}
+          ${isReview ? `<div style="font-size:10px; color:#6a3a9a; font-weight:bold; white-space:nowrap; flex:0 0 auto;">🔍レビュー中</div>` : ''}
           <div style="font-size:10px; color:#444; white-space:nowrap; flex:0 0 auto;">${planH}h</div>
         </div>
       </div>`;
+    });
+    // カレンダー注記 (プランニング等。工数管理外)
+    noteBars.forEach(n=>{
+      const oS = Math.max(n.start, wStart), oE = Math.min(n.end, wEnd + 1);
+      if (oS >= oE) return;
+      const top = laneTops[n.lane] + 3;
+      const left = labelW + (oS - wStart) * dayW + 2;
+      const width = Math.max((oE - oS) * dayW - 4, 2);
+      const height = subRowH - 6;
+      html += `<div style="position:absolute; top:${top}px; left:${left}px; width:${width}px; height:${height}px; background:repeating-linear-gradient(45deg,#eef,#eef 5px,#e2e2f2 5px,#e2e2f2 10px); border:1px dashed #99b; border-radius:3px; font-size:11px; padding:0 6px; box-sizing:border-box; overflow:hidden; display:flex; align-items:center; color:#558; font-style:italic;" title="${esc(n.label)}">📋 ${esc(n.label)}</div>`;
     });
     html += `</div>`;
   });
@@ -823,17 +852,21 @@ function buildBurndown(containerId){
   const all = [...SCREENS, ...IFS].filter(r => !isPreStartDone(r.画面名 || ""));
   const totalH = all.reduce((a,r)=> a + (r["工数(h)"]||0), 0);
   if (totalH <= 0) { el.innerHTML = ""; return; }
-  // バーンダウンは「予定工数(スコープ)」の消化で測る。実工数>0 の画面を完了とみなし、
-  // その画面の予定工数(工数(h))分を消化済みとする (実際に何時間かかったかは別軸)
-  const planByScreen = {}, actualByScreen = {};
+  // バーンダウンは「予定工数(スコープ)」の進捗消化で測る。
+  //   完了(実工数>0)=100% / 状況レビュー中=50% など、画面の進捗率 × 予定工数 を消化済みとする
+  const planByScreen = {}, actualByScreen = {}, statusByScreen = {};
   all.forEach(r=>{
     const k = r.画面名 || r.IFID || "";
     planByScreen[k]   = (planByScreen[k]||0)   + (r["工数(h)"]||0);
     actualByScreen[k] = (actualByScreen[k]||0) + (parseFloat(r["実工数(h)"])||0);
+    if (r.状況 && !statusByScreen[k]) statusByScreen[k] = r.状況;
   });
-  let burnedH = 0, spentH = 0;   // burnedH=完了画面の予定工数合計 / spentH=その実投入合計
+  let burnedH = 0, spentH = 0;   // burnedH=進捗加味の消化スコープ / spentH=完了画面の実投入
   Object.keys(planByScreen).forEach(k=>{
-    if (actualByScreen[k] > 0) { burnedH += planByScreen[k]; spentH += actualByScreen[k]; }
+    let ratio = 0;
+    if (actualByScreen[k] > 0) ratio = 1;                                              // 完了
+    else if (STATUS_PROGRESS[statusByScreen[k]]) ratio = STATUS_PROGRESS[statusByScreen[k]];  // レビュー中=50% 等
+    if (ratio > 0) { burnedH += planByScreen[k] * ratio; spentH += actualByScreen[k]; }
   });
   // 理想完了までの営業日数 (日次キャパを累積して総工数に到達する日。初日2日は1名)
   let span = 0; while (cumCapacity(span) < totalH) span++;
@@ -901,7 +934,7 @@ function buildBurndown(containerId){
   el.innerHTML = `
 <div style="border:1px solid #ccc; border-radius:4px; padding:12px; background:#fff;">
   <div style="font-weight:bold; color:#2a6; margin-bottom:4px;">バーンダウンチャート（全体工数ベース）</div>
-  <div style="font-size:11px; color:#666; margin-bottom:8px;">総工数 ${totalH.toFixed(1)}h ／ 完了スコープ ${burnedH.toFixed(1)}h (${pct}%) ／ 残 ${remNow.toFixed(1)}h<br>完了画面の実投入 ${spentH.toFixed(1)}h（予定 ${burnedH.toFixed(1)}h）</div>
+  <div style="font-size:11px; color:#666; margin-bottom:8px;">総工数 ${totalH.toFixed(1)}h ／ 消化スコープ ${burnedH.toFixed(1)}h (${pct}%) ／ 残 ${remNow.toFixed(1)}h<br>※完了=100% / レビュー中=50% で進捗加味</div>
   ${svg}
   <div style="font-size:11px; margin-top:8px; line-height:1.8;">
     <span style="display:inline-block;width:18px;border-top:2px dashed #bbb;vertical-align:middle;"></span> 理想線 (5/25=0名, 5/26=1名7.2h, 5/27以降2名14.4h/日)
