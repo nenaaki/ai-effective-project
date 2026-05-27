@@ -10,6 +10,7 @@
   table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 13px; }
   th, td { border: 1px solid #bbb; padding: 4px 8px; vertical-align: top; }
   th { background: #f1f5f9; text-align: left; white-space: nowrap; }
+  td { white-space: pre-line; }
   tbody tr:nth-child(even) td { background: #fafafa; }
   code { background: #f3f3f3; padding: 1px 4px; border-radius: 3px; font-size: 90%; }
   hr { border: none; border-top: 1px solid #ccc; margin: 24px 0; }
@@ -19,17 +20,34 @@
   .tab-btn.active { background: #fff; border-color: #888; border-bottom: 2px solid #fff; margin-bottom: -2px; font-weight: bold; color: #2a6; }
   .tab-panel { display: none; padding-top: 16px; }
   .tab-panel.active { display: block; }
+  .purpose { background:#f0f7f2; border:1px solid #b9ddc6; border-left:4px solid #2a6; border-radius:4px; padding:10px 16px; margin:16px 0; font-size:13px; }
+  .purpose-title { font-weight:bold; color:#2a6; margin-bottom:4px; }
+  .purpose ol { margin:4px 0 4px 20px; }
+  .purpose li { margin:2px 0; }
+  .pv-wrap { display:flex; gap:16px; align-items:flex-start; }
+  .pv-gantt { flex:1 1 auto; min-width:0; overflow-x:auto; }
+  .pv-burndown { flex:0 0 440px; position:sticky; top:8px; }
 </style>
 </head>
 <body>
 <h1>AI駆動PJタスク管理</h1>
+<div class="purpose">
+  <div class="purpose-title">このシートの目的</div>
+  <ol>
+    <li><b>AI駆動開発としての予実管理</b> — AIによる実装を前提に、各画面・IFの計画工数と実工数を対比し、進捗と完了見込み（マイルストーン）を可視化する。</li>
+    <li><b>作業タスクの割り振り</b> — データモデル／画面項目定義の整備状況からスコア・着手可否を判定し、担当者・実施順を割り当てて並行作業を計画する。</li>
+  </ol>
+</div>
 <div class="tabs">
   <button class="tab-btn active" data-tab="calendar">予実管理カレンダー</button>
   <button class="tab-btn" data-tab="worklist">作業一覧</button>
 </div>
 <div id="tab-calendar" class="tab-panel active">
-  <h3 style="margin-top:8px;">予実管理 (5/25- 週次 / 2名 × 8h/日 × 稼働90% = 14.4h/日)</h3>
-  <div id="gantt-plan"></div>
+  <h3 style="margin-top:8px;">予実管理 (5/25- 週次 / 2名 × 8h/日 × 稼働90% = 14.4h/日 ※5/25-26は1名稼働=7.2h/日)</h3>
+  <div class="pv-wrap">
+    <div id="gantt-plan" class="pv-gantt"></div>
+    <div id="burndown" class="pv-burndown"></div>
+  </div>
 </div>
 <div id="tab-worklist" class="tab-panel">
   <p>元データ:</p>
@@ -47,10 +65,11 @@
   <hr>
   <p>
     <label><input type="checkbox" id="sort-score" checked> スコア順でソート</label>
+    　<label><input type="checkbox" id="group-tasks" checked> タスクをまとめる</label>
     <span style="color:#666;font-size:12px;">(データモデル完成 +10 / データモデル作業中 +5 / モックあり +7 / シートあり +3 (併存可・加算) / 実装不可は0点 → 同点は優先昇順)</span>
   </p>
   <p style="font-size:12px; color:#666;">工数計算式: 行工数 = (1 + 項目数×0.005) × 処理区分係数 × スコープ係数 × 資産係数 × 3.0 (h)　※1人日=8h<br>
-  処理区分係数: 閲覧0.7 / 編集1.0 / 新規登録1.3 / DL印刷1.1　・　スコープ係数: 両方ready/データモデル変更1.0 / BEまたはFEのみ0.5 / 実装不可0　・　資産係数: モック+シート両方0.85 / 片方0.95 / なし1.0　・　IF行は2h固定</p>
+  処理区分係数: 閲覧0.7 / 編集1.0 / 新規登録1.3 / DL印刷1.1　・　スコープ係数: 両方ready/データモデル変更1.0 / BEまたはFEのみ0.5 / 実装不可0　・　資産係数: モック+シート両方0.85 / 片方0.95 / なし1.0　・　IF行は1件4h固定</p>
   <h2>画面処理</h2>
   <table id="t-screens" style="margin-top:8px;"><thead><tr id="th-screens"></tr></thead><tbody></tbody></table>
   <h2>IF</h2>
@@ -245,6 +264,14 @@ SCREENS.forEach(r=>{
   }
   r.画面項目定義 = ui;
 });
+// 項目数が2つ表示される行 (📐モックあり (A項目) / ✅シートあり (B項目)) のみ、
+// シート側の実項目数 B を採用して 📐モックあり (B項目) の単一表示に統合する
+SCREENS.forEach(r=>{
+  const ui = r.画面項目定義 || "";
+  const mockM  = ui.match(/📐モックあり\s*\((\d+)項目\)/);
+  const sheetM = ui.match(/✅シートあり\s*\((\d+)項目\)/);
+  if (mockM && sheetM) r.画面項目定義 = `📐モックあり (${sheetM[1]}項目)`;
+});
 // 備考にスコープ判定:
 // IF行=バックエンドのみ
 // 画面行: DM✅完成 ありなら BE可能、UI 📐/📐/✅ ありなら BE側の制約のみ
@@ -269,7 +296,7 @@ function scope(r){
 // 実装不可でも 画面項目定義 が入っていれば DM完成を仮定して計算する (空欄なら 0)
 [...SCREENS, ...IFS].forEach(r=>{
   const bk = r.備考 || "";
-  if (r.IFID) { r["工数(h)"] = 2; return; }
+  if (r.IFID) { r["工数(h)"] = 4; return; }
   if (bk.indexOf("実装不可") >= 0 && !r.画面項目定義) { r["工数(h)"] = 0; return; }
   const ui = r.画面項目定義 || "";
   const m = ui.match(/\((\d+)項目\)/);
@@ -338,13 +365,13 @@ SCREENS.forEach(r=>{
 });
 function esc(s){return String(s==null?"":s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));}
 function render(tid,hid,cols,data){
-  document.getElementById(hid).innerHTML = cols.map(c=>"<th>"+esc(c)+"</th>").join("");
-  const dataRows = data.map(r=>"<tr>"+cols.map(c=>"<td>"+esc(r[c])+"</td>").join("")+"</tr>").join("");
+  document.getElementById(hid).innerHTML = "<th>No.</th>" + cols.map(c=>"<th>"+esc(c)+"</th>").join("");
+  const dataRows = data.map((r, idx)=>"<tr><td>"+(idx+1)+"</td>"+cols.map(c=>"<td>"+esc(r[c])+"</td>").join("")+"</tr>").join("");
   const SUM_COLS = ["工数(h)", "実工数(h)"];
   const sums = {};
   SUM_COLS.forEach(c => { sums[c] = data.reduce((a, r) => a + (parseFloat(r[c]) || 0), 0); });
-  const totalCells = cols.map((c, i) => {
-    const base = 'font-weight:bold; background:#eaf0f6; border-top:2px solid #888;';
+  const base = 'font-weight:bold; background:#eaf0f6; border-top:2px solid #888;';
+  const totalCells = `<td style="${base}"></td>` + cols.map((c, i) => {
     if (i === 0) return `<td style="${base}">合計</td>`;
     if (SUM_COLS.includes(c)) return `<td style="${base}">${sums[c].toFixed(1)}</td>`;
     return `<td style="${base}"></td>`;
@@ -368,6 +395,32 @@ function sortDefault(a,b){
   return (a.優先-b.優先) || String(a.管理ID||a.IFID||"").localeCompare(String(b.管理ID||b.IFID||""));
 }
 const cbScore = document.getElementById("sort-score");
+const cbGroup = document.getElementById("group-tasks");
+// タスクをまとめる: ソート後、優先～管理ID が同じ行を1行に統合
+//   データモデル/画面項目定義/担当者/実施順/備考 = 先頭行採用 / 工数・実工数 = 合計 / 処理区分・処理名 = 改行結合
+function groupTasks(data){
+  const KEY_COLS = ["優先","ドメイン","画面ID","画面名","管理ID"];
+  // 例外: DL・印刷 の行は結合しない (まとめるチェックでも単独行のまま)
+  const isDL = r => { const k = r.処理区分 || ""; return k.indexOf("DL") >= 0 || k.indexOf("印刷") >= 0; };
+  const groups = new Map();
+  const order = [];
+  data.forEach((r, i)=>{
+    const key = isDL(r) ? `__dl__${i}` : KEY_COLS.map(c=>r[c]).join("|");
+    if (!groups.has(key)) { groups.set(key, []); order.push(key); }
+    groups.get(key).push(r);
+  });
+  return order.map(key=>{
+    const rows = groups.get(key);
+    if (rows.length === 1) return { ...rows[0] };   // 単独行 (DL・印刷含む) はそのまま
+    const merged = { ...rows[0] };   // 優先～管理ID + データモデル/画面項目定義/担当者/実施順/備考 は先頭行
+    merged.処理区分 = rows.map(r=>r.処理区分).join("\n");
+    merged.処理名   = rows.map(r=>r.処理名).join("\n");
+    merged["工数(h)"] = Math.round(rows.reduce((a,r)=>a+(parseFloat(r["工数(h)"])||0),0)*10)/10;
+    const eff = rows.reduce((a,r)=>a+(parseFloat(r["実工数(h)"])||0),0);
+    merged["実工数(h)"] = eff > 0 ? Math.round(eff*10)/10 : "";
+    return merged;
+  });
+}
 // ガント基準: 2026-05-25 (月) 開始、土日 + 祝日除外 (2026年祝日のうちプロジェクト期間にかかり得るもの)
 const GANTT_START = new Date(2026, 4, 25);
 const GANTT_HOLIDAYS = new Set([
@@ -679,10 +732,8 @@ function buildGantt(sortedScreens, containerId, title, palette, mode){
       if (day < wStart + 1 || day > wEnd + 1) return;
       const markerLeft = labelW + (day - wStart) * dayW;
       const markerH = headerH + totalLaneH;
-      const cd = dates[Math.min(day - 1, dates.length - 1)];
-      const dateStr = `${cd.getMonth()+1}/${cd.getDate()}(${ganttWeekday(cd)})`;
       html += `<div style="position:absolute; top:0; left:${markerLeft - 2}px; width:4px; height:${markerH}px; background:${color}; z-index:5;"></div>`;
-      html += `<div style="position:absolute; top:${labelTop}px; left:${markerLeft + 6}px; font-size:11px; color:#fff; background:${color}; padding:2px 8px; border-radius:3px; z-index:6; white-space:nowrap; font-weight:bold;">📌 ${label} ${dateStr}</div>`;
+      html += `<div style="position:absolute; top:${labelTop}px; left:${markerLeft}px; transform:translateX(-50%); font-size:10px; color:#fff; background:${color}; padding:1px 6px; border-radius:3px; z-index:6; white-space:nowrap; font-weight:bold;">📌 ${label}</div>`;
     };
     drawMarker(screenCompletionDay, "#c33", "画面実装完了", 2);
     drawMarker(ifCompletionDay, "#36a", "IF実装完了", 20);
@@ -691,14 +742,123 @@ function buildGantt(sortedScreens, containerId, title, palette, mode){
   html += '</div>';
   document.getElementById(containerId).innerHTML = html;
 }
+// バーンダウンチャート (全体工数ベース)
+const PERSON_DAY_HOURS = 7.2;  // 1人1営業日 = 8h × 稼働90%
+const TODAY_ISO = "2026-05-27";
+// 実績を日付別に描きたい場合のみ使用: 日付→その日までの累積「完了スコープ(予定工数h)」
+// (空なら 実工数>0 の画面の予定工数合計を当日値として使用)
+const ACTUAL_BY_DATE = {
+  // "2026-05-27": 18.5,
+};
+// 営業日 index ごとの稼働人数→工数(h)。人員別の開始日 (LANE_START_INDICES) を反映
+// → 5/25(idx0)・5/26(idx1) は人員1未稼働で1名、5/27(idx2)以降は2名
+function teamHoursAt(idx){
+  let people = 0;
+  for (let li = 0; li < 2; li++) if ((LANE_START_INDICES[li] || 0) <= idx) people++;
+  return people * PERSON_DAY_HOURS;
+}
+function cumCapacity(days){ let s = 0; for (let i = 0; i < days; i++) s += teamHoursAt(i); return s; }
+function buildBurndown(containerId){
+  const el = document.getElementById(containerId);
+  const all = [...SCREENS, ...IFS];
+  const totalH = all.reduce((a,r)=> a + (r["工数(h)"]||0), 0);
+  if (totalH <= 0) { el.innerHTML = ""; return; }
+  // バーンダウンは「予定工数(スコープ)」の消化で測る。実工数>0 の画面を完了とみなし、
+  // その画面の予定工数(工数(h))分を消化済みとする (実際に何時間かかったかは別軸)
+  const planByScreen = {}, actualByScreen = {};
+  all.forEach(r=>{
+    const k = r.画面名 || r.IFID || "";
+    planByScreen[k]   = (planByScreen[k]||0)   + (r["工数(h)"]||0);
+    actualByScreen[k] = (actualByScreen[k]||0) + (parseFloat(r["実工数(h)"])||0);
+  });
+  let burnedH = 0, spentH = 0;   // burnedH=完了画面の予定工数合計 / spentH=その実投入合計
+  Object.keys(planByScreen).forEach(k=>{
+    if (actualByScreen[k] > 0) { burnedH += planByScreen[k]; spentH += actualByScreen[k]; }
+  });
+  // 理想完了までの営業日数 (日次キャパを累積して総工数に到達する日。初日2日は1名)
+  let span = 0; while (cumCapacity(span) < totalH) span++;
+  span = Math.max(1, span);
+  const dates = ganttWorkDates(span + 1);
+  const todayIdx = dateToWorkdayIndex(TODAY_ISO);
+  // 実績線の点列 (起点=総工数。完了画面の予定工数 burnedH を消化したスコープとして降下)
+  const actualPts = [{ x:0, rem: totalH }];
+  const keys = Object.keys(ACTUAL_BY_DATE).sort();
+  if (keys.length) {
+    keys.forEach(k => actualPts.push({ x: dateToWorkdayIndex(k), rem: Math.max(0, totalH - ACTUAL_BY_DATE[k]) }));
+  } else if (burnedH > 0) {
+    actualPts.push({ x: todayIdx, rem: Math.max(0, totalH - burnedH) });
+  }
+  const remNow = totalH - burnedH;
+  const idealRemToday = Math.max(0, totalH - cumCapacity(todayIdx));
+  const behind = remNow - idealRemToday;   // >0 なら理想線より遅れ
+  // SVG 座標
+  const W = 420, H = 320;
+  const m = { l:52, r:14, t:18, b:52 };
+  const plotW = W - m.l - m.r, plotH = H - m.t - m.b;
+  const xMax = span, yMax = totalH;
+  const X = d => m.l + plotW * (d / xMax);
+  const Y = h => m.t + plotH * (1 - h / yMax);
+  let svg = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="font-family:inherit;">`;
+  // y グリッド + ラベル
+  const yTicks = 5;
+  for (let i = 0; i <= yTicks; i++) {
+    const val = yMax * i / yTicks;
+    const py = Y(val);
+    svg += `<line x1="${m.l}" y1="${py}" x2="${W-m.r}" y2="${py}" stroke="#eee"/>`;
+    svg += `<text x="${m.l-6}" y="${py+3}" text-anchor="end" font-size="9" fill="#888">${val.toFixed(0)}</text>`;
+  }
+  // x グリッド + 日付ラベル
+  const xStep = Math.max(1, Math.ceil(xMax / 7));
+  for (let d = 0; d <= xMax; d += xStep) {
+    const px = X(d);
+    const dt = dates[Math.min(d, dates.length-1)];
+    svg += `<line x1="${px}" y1="${m.t}" x2="${px}" y2="${H-m.b}" stroke="#f4f4f4"/>`;
+    svg += `<text x="${px}" y="${H-m.b+14}" text-anchor="middle" font-size="9" fill="#888">${dt.getMonth()+1}/${dt.getDate()}</text>`;
+  }
+  // 軸
+  svg += `<line x1="${m.l}" y1="${m.t}" x2="${m.l}" y2="${H-m.b}" stroke="#999"/>`;
+  svg += `<line x1="${m.l}" y1="${H-m.b}" x2="${W-m.r}" y2="${H-m.b}" stroke="#999"/>`;
+  svg += `<text x="14" y="${m.t+plotH/2}" transform="rotate(-90 14 ${m.t+plotH/2})" text-anchor="middle" font-size="10" fill="#666">残工数 (h)</text>`;
+  // 今日マーカー
+  if (todayIdx >= 0 && todayIdx <= xMax) {
+    const px = X(todayIdx);
+    svg += `<line x1="${px}" y1="${m.t}" x2="${px}" y2="${H-m.b}" stroke="#e09b00" stroke-width="1" stroke-dasharray="3 3"/>`;
+    svg += `<text x="${px}" y="${m.t-5}" text-anchor="middle" font-size="9" fill="#c80">今日</text>`;
+  }
+  // 理想線 (総工数 → 0。日次キャパに応じて初日2日は緩やかに降下)
+  const idealPts = [];
+  for (let d = 0; d <= xMax; d++) idealPts.push(`${X(d)},${Y(Math.max(0, totalH - cumCapacity(d)))}`);
+  svg += `<polyline points="${idealPts.join(" ")}" fill="none" stroke="#bbb" stroke-width="2" stroke-dasharray="5 4"/>`;
+  // 実績線
+  const actColor = behind > 0 ? "#d33" : "#2a8";
+  svg += `<polyline points="${actualPts.map(p=>`${X(p.x)},${Y(p.rem)}`).join(" ")}" fill="none" stroke="${actColor}" stroke-width="2.5"/>`;
+  actualPts.forEach(p => { svg += `<circle cx="${X(p.x)}" cy="${Y(p.rem)}" r="3" fill="${actColor}"/>`; });
+  svg += `</svg>`;
+  const pct = (burnedH / totalH * 100).toFixed(1);
+  const statusTxt = behind > 0
+    ? `<span style="color:#d33;">理想比 +${behind.toFixed(1)}h 遅れ</span>`
+    : `<span style="color:#2a8;">理想比 ${Math.abs(behind).toFixed(1)}h 先行</span>`;
+  el.innerHTML = `
+<div style="border:1px solid #ccc; border-radius:4px; padding:12px; background:#fff;">
+  <div style="font-weight:bold; color:#2a6; margin-bottom:4px;">バーンダウンチャート（全体工数ベース）</div>
+  <div style="font-size:11px; color:#666; margin-bottom:8px;">総工数 ${totalH.toFixed(1)}h ／ 完了スコープ ${burnedH.toFixed(1)}h (${pct}%) ／ 残 ${remNow.toFixed(1)}h<br>完了画面の実投入 ${spentH.toFixed(1)}h（予定 ${burnedH.toFixed(1)}h）</div>
+  ${svg}
+  <div style="font-size:11px; margin-top:8px; line-height:1.8;">
+    <span style="display:inline-block;width:18px;border-top:2px dashed #bbb;vertical-align:middle;"></span> 理想線 (5/25-26は1名7.2h/日, 以降14.4h/日)
+    　<span style="display:inline-block;width:18px;border-top:2px solid ${actColor};vertical-align:middle;"></span> 実績線 (完了画面の予定工数)<br>${statusTxt}
+  </div>
+</div>`;
+}
 function redraw(){
   const cmp = cbScore.checked ? sortByScore : sortDefault;
   const sortedScreens = [...SCREENS].sort(cmp);
-  render("t-screens","th-screens",SCREEN_COLS,sortedScreens);
+  render("t-screens","th-screens",SCREEN_COLS, cbGroup.checked ? groupTasks(sortedScreens) : sortedScreens);
   render("t-ifs","th-ifs",IF_COLS,[...IFS].sort(cmp));
   buildGantt(sortedScreens, "gantt-plan", "計画", { bg:'#9cd', bd:'#468' }, "plan");
+  buildBurndown("burndown");
 }
 cbScore.addEventListener("change",redraw);
+cbGroup.addEventListener("change",redraw);
 // タブ切替
 document.querySelectorAll('.tab-btn').forEach(btn=>{
   btn.addEventListener('click', ()=>{
