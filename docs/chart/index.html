@@ -3,33 +3,47 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ドキュメント一覧</title>
+<title>AI駆動開発PJ</title>
 <style>
   body { font-family: "Yu Gothic UI", "Meiryo", sans-serif; margin: 24px; color:#222; line-height:1.6; }
   h1 { border-bottom: 2px solid #2a6; padding-bottom: 6px; }
-  ul.links { list-style: none; padding: 0; margin: 20px 0; max-width: 640px; }
+  ul.links { list-style: none; padding: 0; margin: 16px 0; max-width: 640px; }
   ul.links li { margin: 10px 0; }
   ul.links a { display: block; border: 1px solid #ccc; border-left: 4px solid #2a6; border-radius: 4px; padding: 12px 16px; text-decoration: none; color: #1a5; background: #fafdfb; }
   ul.links a:hover { background: #eef7f1; }
   ul.links .title { font-weight: bold; font-size: 15px; }
-  ul.links .path { font-size: 12px; color: #888; margin-top: 2px; }
+  ul.links .desc { font-size: 13px; color: #555; margin-top: 2px; }
+  ul.links .path { font-size: 12px; color: #999; margin-top: 2px; }
+  fieldset.issues { max-width: 640px; border: 1px solid #d9a05b; border-radius: 6px; margin: 24px 0; padding: 4px 16px 12px; }
+  fieldset.issues legend { font-weight: bold; color: #b5651d; padding: 0 8px; font-size: 15px; }
+  fieldset.issues ul.links a { border-left-color: #d9a05b; color: #a65a14; background: #fffaf3; }
+  fieldset.issues ul.links a:hover { background: #fdf1e0; }
 </style>
 </head>
 <body>
-<h1>ドキュメント一覧</h1>
+<h1>AI駆動開発PJ</h1>
+<p style="color:#666; font-size:14px; margin-top:6px;">ドキュメント一覧</p>
 <ul class="links">
   <li><a href="workitems.html">
-    <div class="title">AI駆動PJタスク管理</div>
+    <div class="title">プロジェクト管理</div>
+    <div class="desc">タスク管理・進捗管理・マイルストーン</div>
     <div class="path">workitems.html</div>
   </a></li>
   <li><a href="asis-tobe.html">
-    <div class="title">As-Is / To-Be</div>
+    <div class="title">工数比較（As-Is / To-Be）</div>
+    <div class="desc">As-Is（人力）と To-Be（AI駆動）の工数比較</div>
     <div class="path">asis-tobe.html</div>
   </a></li>
-  <li><a href="../ai-06/problem_ex_1.html">
-    <div class="title">problem_ex_1</div>
-    <div class="path">../ai-06/problem_ex_1.html</div>
-  </a></li>
 </ul>
+
+<fieldset class="issues">
+  <legend>課題</legend>
+  <ul class="links">
+    <li><a href="../ai-06/problem_ex_1.html">
+      <div class="title">要件不明時の対応</div>
+      <div class="path">../ai-06/problem_ex_1.html</div>
+    </a></li>
+  </ul>
+</fieldset>
 </body>
 </html>
