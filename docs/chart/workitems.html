@@ -211,6 +211,42 @@ const IFS = [
 {"優先":1,"IFID":"PR19","カテゴリ":"配送管理 /","送受信":"DL","IF名":"エクスポート用幹線手配スケジュール","From":"CSV","To":"画面ボタン押下でSFTPへダウンロード","データモデル":"","画面項目定義":"","備考":""},
 {"優先":1,"IFID":"PR22","カテゴリ":"サーバー地域配送","送受信":"UL","IF名":"サーバーシリアル-問番対応表","From":"Excel","To":"画面ファイル選択してアップロード","データモデル":"","画面項目定義":"","備考":""}
 ];
+// ============================================================================
+// ガント / バーンダウン / EVM 設定 (画面・IFデータの直後にまとめて集約)
+// ============================================================================
+// ガント基準: 2026-05-25 (月) 開始、土日 + 祝日除外 (2026年祝日のうちプロジェクト期間にかかり得るもの)
+const GANTT_START = new Date(2026, 4, 25);
+const GANTT_HOLIDAYS = new Set([
+  "2026-07-20","2026-08-11","2026-09-21","2026-09-23",
+  "2026-10-12","2026-11-03","2026-11-23"
+]);
+// 休暇カレンダー: 人員別の不就業日 (work-day index に変換)
+const VACATIONS_BY_DATE = {
+  1: ["2026-06-01"],
+  2: ["2026-06-05"]
+};
+// 人員別の作業開始日 (未指定は GANTT_START と同日)
+const LANE_START_DATES = {
+  1: "2026-05-27",  // 人員1
+  2: "2026-05-26"   // 人員2 (5/25=0名, 5/26=1名, 5/27=2名)
+};
+// カレンダー注記 (工数管理外の作業メモ)。lane=人員番号(1始まり), from〜to の営業日にブロック表示
+const GANTT_NOTES = [
+  { lane: 1, from: "2026-05-25", to: "2026-05-26", label: "プランニング" }
+];
+// 1人1営業日の稼働時間 (8h × 90%)
+const PERSON_DAY_HOURS = 7.2;
+// 基準日 (今日)
+const TODAY_ISO = "2026-05-27";
+// バーンダウン: 実績を日付別に描きたい場合のみ使用。日付→その日までの累積「完了スコープ(予定工数h)」
+// (空なら 実工数>0 の画面の予定工数合計を当日値として使用)
+const ACTUAL_BY_DATE = {
+  // "2026-05-27": 18.5,
+};
+// EVM: 日付別の累積EV/ACスナップショット (各日付の終了時点の累積。ev/ac いずれか一方のみの記録も可)
+const EVM_SNAPSHOTS = {
+  "2026-05-27": { ev: 12.6, ac: 8.3 }   // 今日(基準日)時点 / EV: ユーザ3.2 + エリア5.1 + 商品4.3 / AC: ユーザ3.3 + エリア2.5 + 商品2.5
+};
 // 優先順位調整: マスタ画面=0, 非マスタの 0→1 / 1→2, それ以外(10/50)は変更なし
 SCREENS.forEach(r=>{
   const isMaster = (r.画面名||"").indexOf("マスタ") >= 0;
@@ -309,12 +345,32 @@ function scope(r){
   const s = scope(r);
   if (s) r.備考 = r.備考 ? `${s} / ${r.備考}` : s;
 });
-// 工数 (h/行) C案ハイブリッド計算 (定数 3.0 = 0.375 人日 × 8h)
+// 工数 (h/行) C案ハイブリッド計算 (BASE_HOURS=3.0 = 0.375 人日 × 8h)
 // 実装不可でも 画面項目定義 が入っていれば DM完成を仮定して計算する (空欄なら 0)
-[...SCREENS, ...IFS].forEach(r=>{
+const EFFORT = {
+  BASE_HOURS: 3.0,
+  ITEM_WEIGHT: 0.005,
+  IF_HOURS: 4,
+  PROC:  { 閲覧: 0.7, 編集: 1.0, 新規登録: 1.3, DL印刷: 1.1 },
+  SCOPE: { 両方: 1.0, BEのみ: 0.5 },
+  ASSET: { 両方: 0.85, 片方: 0.95, なし: 1.0 }
+};
+function procFactor(k){
+  if (k.indexOf("閲覧") >= 0) return EFFORT.PROC.閲覧;
+  if (k.indexOf("新規登録") >= 0) return EFFORT.PROC.新規登録;
+  if (k.indexOf("編集") >= 0) return EFFORT.PROC.編集;
+  if (k.indexOf("DL") >= 0 || k.indexOf("印刷") >= 0) return EFFORT.PROC.DL印刷;
+  return EFFORT.PROC.編集;
+}
+function assetFactor(hasMock, hasSheet){
+  if (hasMock && hasSheet) return EFFORT.ASSET.両方;
+  if (hasMock || hasSheet) return EFFORT.ASSET.片方;
+  return EFFORT.ASSET.なし;
+}
+function calcEffort(r){
   const bk = r.備考 || "";
-  if (r.IFID) { r["工数(h)"] = 4; return; }
-  if (bk.indexOf("実装不可") >= 0 && !r.画面項目定義) { r["工数(h)"] = 0; return; }
+  if (r.IFID) return EFFORT.IF_HOURS;
+  if (bk.indexOf("実装不可") >= 0 && !r.画面項目定義) return 0;
   const ui = r.画面項目定義 || "";
   const m = ui.match(/\((\d+)項目\)/);
   let items = m ? parseInt(m[1], 10) : 0;
@@ -322,22 +378,13 @@ function scope(r){
     const key = `${r.画面名}|${r.処理名}`;
     items = SCREEN_PROC_ITEMS[key] ?? PROC_ITEMS[r.処理名] ?? 0;
   }
-  const k = r.処理区分 || "";
-  let kC = 1.0;
-  if (k.indexOf("閲覧") >= 0) kC = 0.7;
-  else if (k.indexOf("新規登録") >= 0) kC = 1.3;
-  else if (k.indexOf("編集") >= 0) kC = 1.0;
-  else if (k.indexOf("DL") >= 0 || k.indexOf("印刷") >= 0) kC = 1.1;
-  let sC = 1.0;
-  if (bk.indexOf("バックエンドのみ") >= 0) sC = 0.5;
-  const hasMock = ui.indexOf("📐") >= 0;
-  const hasSheet = ui.indexOf("✅") >= 0;
-  let aC = 1.0;
-  if (hasMock && hasSheet) aC = 0.85;
-  else if (hasMock || hasSheet) aC = 0.95;
-  const v = (1 + items * 0.005) * kC * sC * aC * 3.0;
-  r["工数(h)"] = Math.round(v * 10) / 10;
-});
+  const kC = procFactor(r.処理区分 || "");
+  const sC = bk.indexOf("バックエンドのみ") >= 0 ? EFFORT.SCOPE.BEのみ : EFFORT.SCOPE.両方;
+  const aC = assetFactor(ui.indexOf("📐") >= 0, ui.indexOf("✅") >= 0);
+  const v = (1 + items * EFFORT.ITEM_WEIGHT) * kC * sC * aC * EFFORT.BASE_HOURS;
+  return Math.round(v * 10) / 10;
+}
+[...SCREENS, ...IFS].forEach(r=>{ r["工数(h)"] = calcEffort(r); });
 // 備考が空欄の行 (両方ready) のみ「着手可能」と記載
 [...SCREENS, ...IFS].forEach(r=>{
   if (!r.備考) r.備考 = "着手可能";
@@ -394,6 +441,29 @@ const DONE_DATE = {
 };
 // 5/25(プロジェクト開始)より前に完了済みの画面か (前週までに完了 → 予実対象外)
 function isPreStartDone(name){ return !!(DONE_DATE[name] && DONE_DATE[name] < "2026-05-25"); }
+// 予実対象の全行 (画面+IF)。プロジェクト開始前完了は除外
+function activeRows(){ return [...SCREENS, ...IFS].filter(r => !isPreStartDone(r.画面名 || "")); }
+// 画面名(またはIFID)ごとに 予定工数(h) / 実工数(h) / 状況 を集計
+function aggregatePlanActualStatus(rows){
+  const plan = {}, actual = {}, status = {};
+  rows.forEach(r=>{
+    const k = r.画面名 || r.IFID || "";
+    plan[k]   = (plan[k]   || 0) + (r["工数(h)"]              || 0);
+    actual[k] = (actual[k] || 0) + (parseFloat(r["実工数(h)"]) || 0);
+    if (r.状況 && !status[k]) status[k] = r.状況;
+  });
+  return { plan, actual, status };
+}
+// EV (進捗加味の予定工数消化) / AC (実工数合計) を集計
+function aggregateEvAc({ plan, actual, status }){
+  let ev = 0, ac = 0;
+  Object.keys(plan).forEach(k=>{
+    const ratio = STATUS_PROGRESS[status[k]] || 0;
+    ev += plan[k] * ratio;
+    ac += actual[k];
+  });
+  return { ev, ac };
+}
 const _firstSeen = {};
 SCREENS.forEach(r=>{
   if ((r.画面名 in JISSI_KOUSU_H) && !_firstSeen[r.画面名]) {
@@ -459,12 +529,6 @@ function groupTasks(data){
     return merged;
   });
 }
-// ガント基準: 2026-05-25 (月) 開始、土日 + 祝日除外 (2026年祝日のうちプロジェクト期間にかかり得るもの)
-const GANTT_START = new Date(2026, 4, 25);
-const GANTT_HOLIDAYS = new Set([
-  "2026-07-20","2026-08-11","2026-09-21","2026-09-23",
-  "2026-10-12","2026-11-03","2026-11-23"
-]);
 function ganttIsoDate(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
 function ganttIsWorkday(d){
   const dow = d.getDay();
@@ -481,11 +545,6 @@ function ganttWorkDates(count){
   return dates;
 }
 function ganttWeekday(d){ return ['日','月','火','水','木','金','土'][d.getDay()]; }
-// 休暇カレンダー: 人員別の不就業日 (work-day index に変換) — 現状なし
-const VACATIONS_BY_DATE = {
-  1: ["2026-06-01"],
-  2: ["2026-06-05"]
-};
 function dateToWorkdayIndex(isoDate){
   const [y, m, dd] = isoDate.split("-").map(Number);
   const target = new Date(y, m-1, dd);  // localで解釈
@@ -504,19 +563,10 @@ Object.keys(VACATIONS_BY_DATE).forEach(p=>{
     VACATIONS[lane].add(dateToWorkdayIndex(iso));
   });
 });
-// 人員別の作業開始日 (未指定は GANTT_START と同日)
-const LANE_START_DATES = {
-  1: "2026-05-27",  // 人員1
-  2: "2026-05-26"   // 人員2 (5/25=0名, 5/26=1名, 5/27=2名)
-};
 const LANE_START_INDICES = [0, 0];
 for (const p in LANE_START_DATES) {
   if (LANE_START_DATES[p]) LANE_START_INDICES[parseInt(p)-1] = dateToWorkdayIndex(LANE_START_DATES[p]);
 }
-// カレンダー注記 (工数管理外の作業メモ)。lane=人員番号(1始まり), from〜to の営業日にブロック表示
-const GANTT_NOTES = [
-  { lane: 1, from: "2026-05-25", to: "2026-05-26", label: "プランニング" }
-];
 function placeBarLane(cursor, work, vacationSet){
   let pos = cursor;
   while (vacationSet.has(Math.floor(pos))) pos = Math.floor(pos) + 1;
@@ -554,8 +604,7 @@ function buildGantt(sortedScreens, containerId, title, palette, mode){
       if (!isNaN(ord) && summary[r.画面名].実施順 == null) summary[r.画面名].実施順 = ord;
     });
   } else {
-    // 計画: 画面処理 + IF。データモデル✅完了のみカレンダー対象。1日 = 7.2h (8h × 稼働率90%) で日数換算
-    const DAY_HOURS = 7.2;
+    // 計画: 画面処理 + IF。データモデル✅完了のみカレンダー対象。1日 = PERSON_DAY_HOURS (8h × 稼働率90%) で日数換算
     sortedScreens.forEach(r=>{
       const hH = r["工数(h)"] || 0;
       if (hH === 0) return;
@@ -565,7 +614,7 @@ function buildGantt(sortedScreens, containerId, title, palette, mode){
         summary[r.画面名] = { 画面名: r.画面名, ドメイン: r.ドメイン, 工数: 0, isFeOnly: false, 担当者: null, 実施順: null, 実工数: 0, kind: "screen", 状況: null };
         order.push(r.画面名);
       }
-      summary[r.画面名].工数 += hH / DAY_HOURS;
+      summary[r.画面名].工数 += hH / PERSON_DAY_HOURS;
       const effH = parseFloat(r["実工数(h)"]) || 0;
       if (effH > 0) summary[r.画面名].実工数 += effH;
       if (r.状況 && summary[r.画面名].状況 == null) summary[r.画面名].状況 = r.状況;
@@ -861,13 +910,6 @@ function buildGantt(sortedScreens, containerId, title, palette, mode){
   document.getElementById(containerId).innerHTML = html;
 }
 // バーンダウンチャート (全体工数ベース)
-const PERSON_DAY_HOURS = 7.2;  // 1人1営業日 = 8h × 稼働90%
-const TODAY_ISO = "2026-05-27";
-// 実績を日付別に描きたい場合のみ使用: 日付→その日までの累積「完了スコープ(予定工数h)」
-// (空なら 実工数>0 の画面の予定工数合計を当日値として使用)
-const ACTUAL_BY_DATE = {
-  // "2026-05-27": 18.5,
-};
 // 営業日 index ごとの稼働人数→工数(h)。人員別の開始日 (LANE_START_INDICES) を反映
 // → 5/25(idx0)=0名、5/26(idx1)=1名(人員2)、5/27(idx2)以降=2名
 function teamHoursAt(idx){
@@ -881,25 +923,13 @@ function cumCapacity(days){ let s = 0; for (let i = 0; i < days; i++) s += teamH
 function buildBurndown(containerId){
   const el = document.getElementById(containerId);
   // 5/25(プロジェクト開始)より前に完了した画面はバーンダウン対象外 (総工数・消化とも除外)
-  const all = [...SCREENS, ...IFS].filter(r => !isPreStartDone(r.画面名 || ""));
+  const all = activeRows();
   const totalH = all.reduce((a,r)=> a + (r["工数(h)"]||0), 0);
   if (totalH <= 0) { el.innerHTML = ""; return; }
   // バーンダウンは「予定工数(スコープ)」の進捗消化で測る。
   //   状況 (実装完了=100% / レビュー中=70% / 着手中=50%) × 予定工数 を消化済みとする
   //   実工数(h) はACとして別途集計し、進捗判定には使わない
-  const planByScreen = {}, actualByScreen = {}, statusByScreen = {};
-  all.forEach(r=>{
-    const k = r.画面名 || r.IFID || "";
-    planByScreen[k]   = (planByScreen[k]||0)   + (r["工数(h)"]||0);
-    actualByScreen[k] = (actualByScreen[k]||0) + (parseFloat(r["実工数(h)"])||0);
-    if (r.状況 && !statusByScreen[k]) statusByScreen[k] = r.状況;
-  });
-  let burnedH = 0, spentH = 0;   // burnedH=進捗加味の消化スコープ / spentH=実工数(AC)合計
-  Object.keys(planByScreen).forEach(k=>{
-    const ratio = STATUS_PROGRESS[statusByScreen[k]] || 0;
-    if (ratio > 0) burnedH += planByScreen[k] * ratio;
-    spentH += actualByScreen[k];
-  });
+  const { ev: burnedH, ac: spentH } = aggregateEvAc(aggregatePlanActualStatus(all));
   // 理想完了までの営業日数 (日次キャパを累積して総工数に到達する日。初日2日は1名)
   let span = 0; while (cumCapacity(span) < totalH) span++;
   span = Math.max(1, span);
@@ -975,31 +1005,14 @@ function buildBurndown(containerId){
 </div>`;
 }
 // EVM (Earned Value Management) =====================================================
-// 日付別の累積EV/ACスナップショット (空ならその日付の自動計算値=今日値のみ使用)
-const EVM_SNAPSHOTS = {
-  // 各日付の終了時点の累積EV/AC(h)。ev/ac いずれか一方のみの記録も可
-  "2026-05-27": { ev: 12.6, ac: 8.3 }   // 今日(基準日)時点 / EV: ユーザ3.2 + エリア5.1 + 商品4.3 / AC: ユーザ3.3 + エリア2.5 + 商品2.5
-};
 function buildEvm(containerId){
   const el = document.getElementById(containerId);
   if (!el) return;
-  const all = [...SCREENS, ...IFS].filter(r => !isPreStartDone(r.画面名 || ""));
+  const all = activeRows();
   const BAC = all.reduce((a,r)=>a+(r["工数(h)"]||0), 0);
   if (BAC <= 0) { el.innerHTML = ""; return; }
-  // 今日時点 EV/AC を集計
-  const planByScreen = {}, actualByScreen = {}, statusByScreen = {};
-  all.forEach(r=>{
-    const k = r.画面名 || r.IFID || "";
-    planByScreen[k]   = (planByScreen[k]||0)   + (r["工数(h)"]||0);
-    actualByScreen[k] = (actualByScreen[k]||0) + (parseFloat(r["実工数(h)"])||0);
-    if (r.状況 && !statusByScreen[k]) statusByScreen[k] = r.状況;
-  });
-  let ev = 0, ac = 0;
-  Object.keys(planByScreen).forEach(k=>{
-    const ratio = STATUS_PROGRESS[statusByScreen[k]] || 0;   // 進捗率は状況に基づく (実装完了=100% / レビュー中=70% / 着手中=50%)
-    ev += planByScreen[k] * ratio;
-    ac += actualByScreen[k];                                 // ACは実工数(h)を常に集計
-  });
+  // 今日時点 EV/AC を集計 (進捗率は状況に基づく: 実装完了=100% / レビュー中=70% / 着手中=50%)
+  const { ev, ac } = aggregateEvAc(aggregatePlanActualStatus(all));
   const todayIdx = dateToWorkdayIndex(TODAY_ISO);
   // 計画完了日 (workday index)。線形キャパベース
   let span = 0; while (cumCapacity(span) < BAC) span++;
