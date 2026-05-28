@@ -87,6 +87,68 @@
     flex-shrink: 0;
   }
 
+  /* 結論ブロック */
+  .conclusion {
+    margin-top: 10px;
+    background: #ecfdf5;
+    border-left: 3px solid #10b981;
+    border-radius: 4px;
+    padding: 8px 10px;
+  }
+  .conclusion-label {
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #047857;
+    letter-spacing: 0.04em;
+    margin-bottom: 6px;
+  }
+  .conclusion-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5px 10px;
+  }
+  .conclusion-item {
+    font-size: 10.5px;
+    line-height: 1.5;
+    color: #1f2937;
+  }
+  .conclusion-item .tag {
+    display: inline-block;
+    background: #10b981;
+    color: white;
+    font-size: 9.5px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 3px;
+    margin-right: 5px;
+    vertical-align: 1px;
+  }
+
+  /* 案件基本方針バナー（結論先頭） */
+  .conclusion-premise {
+    background: white;
+    border: 1.5px solid #047857;
+    border-radius: 4px;
+    padding: 6px 9px;
+    margin-bottom: 7px;
+    font-size: 10.5px;
+    line-height: 1.5;
+    color: #1f2937;
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+  }
+  .conclusion-premise .tag {
+    background: #047857;
+    color: white;
+    font-size: 9.5px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 3px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
   /* タブ2: 実例サンプル */
   .sample-grid {
     display: grid;
@@ -282,6 +344,28 @@
           <div class="point">
             <span class="num">3</span>
             <div>mock の <strong>構造把握を強化</strong> する（skeleton にレイアウト情報を残す等）</div>
+          </div>
+        </div>
+
+        <div class="conclusion">
+          <div class="conclusion-label">結論 / UI における AI 活用方針（実用性優先）</div>
+          <div class="conclusion-premise">
+            <span class="tag">現案件方針</span>
+            <div>モックは顧客と <strong>1 つずつ丁寧にすり合わせ</strong> 済み。<strong>技術的に無理でなければモックの画面構成を「正」</strong> とする</div>
+          </div>
+          <div class="conclusion-grid">
+            <div class="conclusion-item">
+              <span class="tag">万能化否定</span>あらゆる要望を AI で自動解決する「万能テンプレート」は工数増。<strong>追求しない</strong>
+            </div>
+            <div class="conclusion-item">
+              <span class="tag">実用性重視</span>美しさより<strong>業務道具としての実用性</strong>（連打しやすさ等）を優先
+            </div>
+            <div class="conclusion-item">
+              <span class="tag">手作業へ切替</span>定型 7〜8 割は AI 任せ、主要画面は <strong>人間 / 対話型 AI で調整</strong>。「すり合わせフェーズ」を正式工程化
+            </div>
+            <div class="conclusion-item">
+              <span class="tag">仕様変更提案</span>AI 生成で十分な場合は上流に「このままで良いか」確認し、<strong>修正工数自体を削減</strong>
+            </div>
           </div>
         </div>
       </div>

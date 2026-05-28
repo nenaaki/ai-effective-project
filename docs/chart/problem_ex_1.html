@@ -87,6 +87,76 @@
     flex-shrink: 0;
   }
 
+  /* 結論ブロック（2 列構成） */
+  .conclusion-wrap {
+    margin-top: 10px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .conclusion {
+    border-radius: 4px;
+    padding: 8px 10px;
+    border-left: 3px solid #10b981;
+    background: #ecfdf5;
+  }
+  .conclusion.mgmt {
+    border-left-color: #6366f1;
+    background: #eef2ff;
+  }
+  .conclusion-label {
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #047857;
+    letter-spacing: 0.04em;
+    margin-bottom: 5px;
+  }
+  .conclusion.mgmt .conclusion-label { color: #4338ca; }
+  .conclusion-list { display: flex; flex-direction: column; gap: 4px; }
+  .conclusion-item {
+    font-size: 11px;
+    line-height: 1.5;
+    color: #1f2937;
+  }
+  .conclusion-item .tag {
+    display: inline-block;
+    background: #10b981;
+    color: white;
+    font-size: 9.5px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 3px;
+    margin-right: 5px;
+    vertical-align: 1px;
+  }
+  .conclusion.mgmt .conclusion-item .tag { background: #6366f1; }
+
+  /* 現案件方針バナー（結論セクション先頭、全幅） */
+  .premise-banner {
+    margin-top: 10px;
+    background: white;
+    border: 1.5px solid #047857;
+    border-radius: 4px;
+    padding: 7px 10px;
+    font-size: 11px;
+    line-height: 1.55;
+    color: #1f2937;
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+  }
+  .premise-banner .tag {
+    background: #047857;
+    color: white;
+    font-size: 9.5px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 3px;
+    flex-shrink: 0;
+    margin-top: 1px;
+    letter-spacing: 0.03em;
+  }
+
   /* タブ2: 検知能力 */
   .cap-panel { width: 100%; }
   .cap-list { font-size: 13px; line-height: 1.9; padding-left: 20px; margin: 0; }
@@ -244,6 +314,43 @@
           <div class="point">
             <span class="num">4</span>
             <div>回答があったものを<strong>どう組み込むか</strong></div>
+          </div>
+        </div>
+
+        <div class="premise-banner">
+          <span class="tag">現案件方針</span>
+          <div>要件確認用の <strong>Excel シート（質問表）を用意</strong>。シートに変更を加えた際は <strong>Slack で確認を依頼</strong> する</div>
+        </div>
+
+        <div class="conclusion-wrap">
+          <div class="conclusion">
+            <div class="conclusion-label">結論① エスカレーションルール</div>
+            <div class="conclusion-list">
+              <div class="conclusion-item">
+                <span class="tag">基本方針</span>手を止めず <strong>PMに戻して確認</strong>
+              </div>
+              <div class="conclusion-item">
+                <span class="tag">仮決め</span>即答が無ければ AIDD 側で <strong>説明可能なロジックで仮決め</strong>（根拠をプロンプト/コメントに記録）
+              </div>
+              <div class="conclusion-item">
+                <span class="tag">再計算</span>仕様変更時は <strong>再生成（リビルド）</strong>。スピード優先
+              </div>
+            </div>
+          </div>
+
+          <div class="conclusion mgmt">
+            <div class="conclusion-label">結論② マネジメント透明性（管理チャネル統一）</div>
+            <div class="conclusion-list">
+              <div class="conclusion-item">
+                <span class="tag">チャット禁止</span>Slack 等は情報が埋もれ管理不能になるため、重要な確認には<strong>使わない</strong>
+              </div>
+              <div class="conclusion-item">
+                <span class="tag">確認リスト</span><strong>質問表で一覧管理</strong>。未回答番号を識別できる状態に（大規模PJの変更管理シートと同じ考え方）
+              </div>
+              <div class="conclusion-item">
+                <span class="tag">役割分担</span>起票後は <strong>PMの仕事</strong> として切り分ける
+              </div>
+            </div>
           </div>
         </div>
       </div>
