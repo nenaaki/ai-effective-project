@@ -45,6 +45,7 @@
 <div class="tabs">
   <button class="tab-btn active" data-tab="calendar">予実管理カレンダー</button>
   <button class="tab-btn" data-tab="worklist">作業一覧</button>
+  <button class="tab-btn" data-tab="evm">EVM</button>
 </div>
 <div id="tab-calendar" class="tab-panel active">
   <h3 style="margin-top:8px;">予実管理 (5/25- 週次 / 2名 × 8h/日 × 稼働90% = 14.4h/日 ※5/25は0名・5/26は1名(7.2h)・5/27以降2名)</h3>
@@ -83,6 +84,11 @@
   <table id="t-screens" style="margin-top:8px;"><thead><tr id="th-screens"></tr></thead><tbody></tbody></table>
   <h2>IF</h2>
   <table id="t-ifs"><thead><tr id="th-ifs"></tr></thead><tbody></tbody></table>
+</div>
+<div id="tab-evm" class="tab-panel">
+  <h3 style="margin-top:8px;">EVM (Earned Value Management)</h3>
+  <p style="font-size:12px; color:#666;">PV=計画値(線形キャパベース) / EV=出来高(進捗加味) / AC=実コスト(実工数h)　・　EAC = AC + (BAC−EV) / (CPI × SPI)　・　進捗率: 実装完了=100% / レビュー中=70% / 着手中=50%</p>
+  <div id="evm-content"></div>
 </div>
 <script>
 const SCREEN_COLS = ["優先","ドメイン","画面ID","画面名","管理ID","処理区分","処理名","データモデル","画面項目定義","状況","工数(h)","担当者","実施順","実工数(h)"];
@@ -372,7 +378,7 @@ const STATUS_MAP = {
 };
 SCREENS.forEach(r=>{ if (r.画面名 in STATUS_MAP) r.状況 = STATUS_MAP[r.画面名]; });
 // 状況→進捗率 (バーンダウンの消化スコープに加味。完了=実工数>0 は別途100%扱い)
-const STATUS_PROGRESS = { "実装完了": 1.0, "レビュー中": 0.5 };
+const STATUS_PROGRESS = { "実装完了": 1.0, "レビュー中": 0.7, "着手中": 0.5 };
 // 備考と状況を統合: 状況が空欄でない場合は状況優先 / 空欄なら備考の内容を状況に取り込む
 [...SCREENS, ...IFS].forEach(r=>{ if (!r.状況) r.状況 = r.備考; });
 // 実工数 (h)。画面単位の合計を最初の行に設定
@@ -474,8 +480,8 @@ function ganttWorkDates(count){
 function ganttWeekday(d){ return ['日','月','火','水','木','金','土'][d.getDay()]; }
 // 休暇カレンダー: 人員別の不就業日 (work-day index に変換) — 現状なし
 const VACATIONS_BY_DATE = {
-  1: [],
-  2: []
+  1: ["2026-06-01"],
+  2: ["2026-06-05"]
 };
 function dateToWorkdayIndex(isoDate){
   const [y, m, dd] = isoDate.split("-").map(Number);
@@ -790,7 +796,7 @@ function buildGantt(sortedScreens, containerId, title, palette, mode){
         }
       });
     }
-    // バー (この週の範囲に該当するセグメント)
+    // バー (この週の範囲に該当するセグメント。休暇日は除いて分割描画=休みをよける / フェードなし)
     bars.forEach(b=>{
       const overlapStart = Math.max(b.start, wStart);
       const overlapEnd = Math.min(b.end, wEnd + 1);
@@ -800,27 +806,38 @@ function buildGantt(sortedScreens, containerId, title, palette, mode){
       const color = isDone ? DONE_COLOR : (isReview ? REVIEW_COLOR : LANE_COLORS[b.lane]);
       const slot = b.slot || 0;
       const top = laneTops[b.lane] + slot * subRowH + 3;
-      const left = labelW + (overlapStart - wStart) * dayW + 2;
-      const width = Math.max((overlapEnd - overlapStart) * dayW - 4, 2);
       const height = subRowH - 6;
-      const vacSet = VACATIONS[b.lane];
-      const hitsVacation = vacSet && [...vacSet].some(v => v >= Math.floor(b.start) && v < b.end);
-      const opacity = hitsVacation ? 0.5 : 1.0;
-      const contFromPrev = b.start < wStart;
-      const contToNext = b.end > wEnd + 1;
-      const lRad = contFromPrev ? '0' : '3px';
-      const rRad = contToNext ? '0' : '3px';
+      const vacSet = VACATIONS[b.lane] || new Set();
+      // 休暇日でセグメントに分割 (休暇日は描画しない=よける)
+      const vacInRange = [...vacSet].filter(v => v >= overlapStart && v < overlapEnd).sort((a,b)=>a-b);
+      const segments = [];
+      let segStart = overlapStart;
+      for (const v of vacInRange) {
+        if (v > segStart) segments.push([segStart, v]);
+        segStart = v + 1;
+      }
+      if (segStart < overlapEnd) segments.push([segStart, overlapEnd]);
       const planH = (b.工数 * 7.2).toFixed(1);
       const doneH = isDone ? b.実工数.toFixed(1) : '';
       const titleExtra = isDone ? ` [完了 ${doneH}h/${planH}h]` : (isReview ? ` [レビュー中 ${planH}h]` : ` (${planH}h)`);
-      html += `<div style="position:absolute; top:${top}px; left:${left}px; width:${width}px; height:${height}px; background:${color.bg}; border:1px solid ${color.bd}; border-radius:${lRad} ${rRad} ${rRad} ${lRad}; font-size:11px; padding:0 6px; box-sizing:border-box; overflow:hidden; opacity:${opacity}; display:flex; align-items:center;" title="${esc(b.画面名)}${hitsVacation?' [休暇またぐ]':''} ${b.start.toFixed(2)}→${b.end.toFixed(2)}日${titleExtra}">
-        <div style="display:flex; justify-content:space-between; align-items:baseline; gap:6px; width:100%;">
-          <div style="font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1 1 auto;">${contFromPrev?'…':''}${esc(b.画面名)}${contToNext?'…':''}</div>
-          ${isDone ? `<div style="font-size:10px; color:#084; font-weight:bold; white-space:nowrap; flex:0 0 auto;">実 ${doneH}h</div>` : ''}
-          ${isReview ? `<div style="font-size:10px; color:#6a3a9a; font-weight:bold; white-space:nowrap; flex:0 0 auto;">🔍レビュー中</div>` : ''}
-          <div style="font-size:10px; color:#444; white-space:nowrap; flex:0 0 auto;">${planH}h</div>
-        </div>
-      </div>`;
+      segments.forEach(([sS, sE]) => {
+        const isFirstSeg = (sS === b.start);
+        const isLastSeg = (sE === b.end);
+        const left = labelW + (sS - wStart) * dayW + 2;
+        const width = Math.max((sE - sS) * dayW - 4, 2);
+        const lRad = isFirstSeg ? '3px' : '0';
+        const rRad = isLastSeg ? '3px' : '0';
+        const prefix = isFirstSeg ? '' : '…';
+        const suffix = isLastSeg ? '' : '…';
+        html += `<div style="position:absolute; top:${top}px; left:${left}px; width:${width}px; height:${height}px; background:${color.bg}; border:1px solid ${color.bd}; border-radius:${lRad} ${rRad} ${rRad} ${lRad}; font-size:11px; padding:0 6px; box-sizing:border-box; overflow:hidden; display:flex; align-items:center;" title="${esc(b.画面名)}${titleExtra}">
+          <div style="display:flex; justify-content:space-between; align-items:baseline; gap:6px; width:100%;">
+            <div style="font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1 1 auto;">${prefix}${esc(b.画面名)}${suffix}</div>
+            ${isDone ? `<div style="font-size:10px; color:#084; font-weight:bold; white-space:nowrap; flex:0 0 auto;">実 ${doneH}h</div>` : ''}
+            ${isReview ? `<div style="font-size:10px; color:#6a3a9a; font-weight:bold; white-space:nowrap; flex:0 0 auto;">🔍レビュー中</div>` : ''}
+            <div style="font-size:10px; color:#444; white-space:nowrap; flex:0 0 auto;">${planH}h</div>
+          </div>
+        </div>`;
+      });
     });
     // カレンダー注記 (プランニング等。工数管理外)
     noteBars.forEach(n=>{
@@ -850,7 +867,9 @@ const ACTUAL_BY_DATE = {
 // → 5/25(idx0)=0名、5/26(idx1)=1名(人員2)、5/27(idx2)以降=2名
 function teamHoursAt(idx){
   let people = 0;
-  for (let li = 0; li < 2; li++) if ((LANE_START_INDICES[li] || 0) <= idx) people++;
+  for (let li = 0; li < 2; li++) {
+    if ((LANE_START_INDICES[li] || 0) <= idx && !VACATIONS[li].has(idx)) people++;
+  }
   return people * PERSON_DAY_HOURS;
 }
 function cumCapacity(days){ let s = 0; for (let i = 0; i < days; i++) s += teamHoursAt(i); return s; }
@@ -950,6 +969,163 @@ function buildBurndown(containerId){
   </div>
 </div>`;
 }
+// EVM (Earned Value Management) =====================================================
+// 日付別の累積EV/ACスナップショット (空ならその日付の自動計算値=今日値のみ使用)
+const EVM_SNAPSHOTS = {
+  // "2026-05-26": { ev: 5.0, ac: 4.0 },   // 例: その日終了時点の累積EV/AC(h)
+};
+function buildEvm(containerId){
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  const all = [...SCREENS, ...IFS].filter(r => !isPreStartDone(r.画面名 || ""));
+  const BAC = all.reduce((a,r)=>a+(r["工数(h)"]||0), 0);
+  if (BAC <= 0) { el.innerHTML = ""; return; }
+  // 今日時点 EV/AC を集計
+  const planByScreen = {}, actualByScreen = {}, statusByScreen = {};
+  all.forEach(r=>{
+    const k = r.画面名 || r.IFID || "";
+    planByScreen[k]   = (planByScreen[k]||0)   + (r["工数(h)"]||0);
+    actualByScreen[k] = (actualByScreen[k]||0) + (parseFloat(r["実工数(h)"])||0);
+    if (r.状況 && !statusByScreen[k]) statusByScreen[k] = r.状況;
+  });
+  let ev = 0, ac = 0;
+  Object.keys(planByScreen).forEach(k=>{
+    let ratio = 0;
+    if (actualByScreen[k] > 0) ratio = 1;
+    else if (STATUS_PROGRESS[statusByScreen[k]]) ratio = STATUS_PROGRESS[statusByScreen[k]];
+    ev += planByScreen[k] * ratio;
+    ac += actualByScreen[k];
+  });
+  const todayIdx = dateToWorkdayIndex(TODAY_ISO);
+  // 計画完了日 (workday index)。線形キャパベース
+  let span = 0; while (cumCapacity(span) < BAC) span++;
+  span = Math.max(1, span);
+  // 今日のPV
+  const pv = Math.min(BAC, cumCapacity(todayIdx));
+  // EVM指標
+  const sv  = ev - pv;
+  const cv  = ev - ac;
+  const spi = pv > 0 ? ev / pv : null;
+  const cpi = ac > 0 ? ev / ac : null;
+  let eac = null;
+  if (spi != null && cpi != null && spi > 0 && cpi > 0) eac = ac + (BAC - ev) / (cpi * spi);     // 複合式
+  else if (ac === 0 && spi != null && spi > 0) eac = BAC / spi;                                     // AC=0時のフォールバック
+  const etc = eac != null ? Math.max(0, eac - ac) : null;
+  const vac = eac != null ? BAC - eac : null;
+  // 完了予測日 (workday index)
+  let forecastDayIdx = null;
+  if (ev >= BAC) forecastDayIdx = todayIdx;
+  else if (spi != null && spi > 0) forecastDayIdx = Math.ceil(span / spi);
+  // 描画用に十分な日付配列
+  const dates = ganttWorkDates(Math.max(span, forecastDayIdx || 0) + 3);
+  const forecastDate = forecastDayIdx != null ? dates[Math.min(Math.max(forecastDayIdx - 1, 0), dates.length - 1)] : null;
+  const planEndDate  = dates[Math.min(Math.max(span - 1, 0), dates.length - 1)];
+  // EV/AC スナップショット履歴
+  const evByDay = {}, acByDay = {};
+  Object.keys(EVM_SNAPSHOTS).forEach(d => {
+    const idx = dateToWorkdayIndex(d);
+    if (EVM_SNAPSHOTS[d].ev != null) evByDay[idx] = EVM_SNAPSHOTS[d].ev;
+    if (EVM_SNAPSHOTS[d].ac != null) acByDay[idx] = EVM_SNAPSHOTS[d].ac;
+  });
+  if (!(todayIdx in evByDay)) evByDay[todayIdx] = ev;
+  if (!(todayIdx in acByDay)) acByDay[todayIdx] = ac;
+  const evPts = [{x:0,y:0}, ...Object.keys(evByDay).map(k=>({x:+k, y:evByDay[k]})).sort((a,b)=>a.x-b.x)];
+  const acPts = [{x:0,y:0}, ...Object.keys(acByDay).map(k=>({x:+k, y:acByDay[k]})).sort((a,b)=>a.x-b.x)];
+  // SVG
+  const xMax = Math.max(span, forecastDayIdx || 0) + 1;
+  const yMax = Math.max(BAC, eac || 0) * 1.05;
+  const W = 660, H = 360, mL = 60, mR = 20, mT = 28, mB = 56;
+  const plotW = W - mL - mR, plotH = H - mT - mB;
+  const X = d => mL + (d / xMax) * plotW;
+  const Y = v => mT + plotH - (v / yMax) * plotH;
+  let svg = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="font-family:inherit;">`;
+  // y グリッド
+  for (let i = 0; i <= 5; i++) {
+    const val = yMax * i / 5, py = Y(val);
+    svg += `<line x1="${mL}" y1="${py}" x2="${W-mR}" y2="${py}" stroke="#eee"/>`;
+    svg += `<text x="${mL-6}" y="${py+3}" text-anchor="end" font-size="10" fill="#888">${val.toFixed(0)}</text>`;
+  }
+  // x グリッド (週単位)
+  const xStep = Math.max(1, Math.ceil(xMax / 8));
+  for (let d = 0; d <= xMax; d += xStep) {
+    const px = X(d), dt = dates[Math.min(d, dates.length-1)];
+    svg += `<line x1="${px}" y1="${mT}" x2="${px}" y2="${H-mB}" stroke="#f4f4f4"/>`;
+    if (dt) svg += `<text x="${px}" y="${H-mB+14}" text-anchor="middle" font-size="10" fill="#888">${dt.getMonth()+1}/${dt.getDate()}</text>`;
+  }
+  // 軸
+  svg += `<line x1="${mL}" y1="${mT}" x2="${mL}" y2="${H-mB}" stroke="#999"/>`;
+  svg += `<line x1="${mL}" y1="${H-mB}" x2="${W-mR}" y2="${H-mB}" stroke="#999"/>`;
+  svg += `<text x="14" y="${mT+plotH/2}" transform="rotate(-90 14 ${mT+plotH/2})" text-anchor="middle" font-size="10" fill="#666">累積工数 (h)</text>`;
+  // 計画完了マーカー
+  if (span <= xMax) {
+    const px = X(span);
+    svg += `<line x1="${px}" y1="${mT}" x2="${px}" y2="${H-mB}" stroke="#aaa" stroke-width="1" stroke-dasharray="2 4"/>`;
+    svg += `<text x="${px}" y="${mT-4}" text-anchor="middle" font-size="9" fill="#888">計画完了</text>`;
+  }
+  // 今日マーカー
+  if (todayIdx >= 0 && todayIdx <= xMax) {
+    const px = X(todayIdx);
+    svg += `<line x1="${px}" y1="${mT}" x2="${px}" y2="${H-mB}" stroke="#e09b00" stroke-width="1" stroke-dasharray="3 3"/>`;
+    svg += `<text x="${px}" y="${mT-4}" text-anchor="middle" font-size="9" fill="#c80">今日</text>`;
+  }
+  // PV (線形キャパベース) - 青
+  const pvLine = [];
+  for (let d = 0; d <= xMax; d++) pvLine.push(`${X(d)},${Y(Math.min(BAC, cumCapacity(d)))}`);
+  svg += `<polyline points="${pvLine.join(' ')}" fill="none" stroke="#3b78c6" stroke-width="2.5"/>`;
+  // EV (出来高) - 緑
+  svg += `<polyline points="${evPts.map(p=>`${X(p.x)},${Y(p.y)}`).join(' ')}" fill="none" stroke="#1c9b6a" stroke-width="2.5"/>`;
+  if (forecastDayIdx != null && forecastDayIdx > todayIdx) {
+    svg += `<polyline points="${X(todayIdx)},${Y(ev)} ${X(forecastDayIdx)},${Y(BAC)}" fill="none" stroke="#1c9b6a" stroke-width="2" stroke-dasharray="5 4"/>`;
+    svg += `<circle cx="${X(forecastDayIdx)}" cy="${Y(BAC)}" r="4" fill="#1c9b6a"/>`;
+  }
+  evPts.forEach(p=>{ svg += `<circle cx="${X(p.x)}" cy="${Y(p.y)}" r="3" fill="#1c9b6a"/>`; });
+  // AC (実コスト) - 橙
+  svg += `<polyline points="${acPts.map(p=>`${X(p.x)},${Y(p.y)}`).join(' ')}" fill="none" stroke="#d96b3a" stroke-width="2.5"/>`;
+  if (eac != null && forecastDayIdx != null && forecastDayIdx > todayIdx) {
+    svg += `<polyline points="${X(todayIdx)},${Y(ac)} ${X(forecastDayIdx)},${Y(Math.min(eac, yMax))}" fill="none" stroke="#d96b3a" stroke-width="2" stroke-dasharray="5 4"/>`;
+    svg += `<circle cx="${X(forecastDayIdx)}" cy="${Y(Math.min(eac, yMax))}" r="4" fill="#d96b3a"/>`;
+  }
+  acPts.forEach(p=>{ svg += `<circle cx="${X(p.x)}" cy="${Y(p.y)}" r="3" fill="#d96b3a"/>`; });
+  svg += `</svg>`;
+  // 指標表
+  const fmtH    = v => v == null ? '—' : v.toFixed(1) + ' h';
+  const fmtSgn  = v => v == null ? '—' : ((v >= 0 ? '+' : '') + v.toFixed(1) + ' h');
+  const fmtIdx  = v => v == null ? '—' : v.toFixed(2);
+  const fmtDate = d => d ? `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}` : '—';
+  const colSV   = v => v == null ? '#888' : (v >= 0 ? '#1c9b6a' : '#d33');
+  const colIdx  = v => v == null ? '#888' : (v >= 1 ? '#1c9b6a' : '#d33');
+  const tdL = 'text-align:left; padding:5px 10px;';
+  const tdR = 'text-align:right; padding:5px 10px; font-family:monospace;';
+  const sect = 'background:#f0f4f8; font-weight:bold;';
+  const table = `
+    <table style="font-size:13px; border-collapse:collapse; width:100%; border:1px solid #ccc;">
+      <tr><th style="${tdL}${sect}">BAC</th><td style="${tdR}${sect}">${fmtH(BAC)}</td></tr>
+      <tr><th style="${tdL}">PV (計画値@今日)</th><td style="${tdR}">${fmtH(pv)}</td></tr>
+      <tr><th style="${tdL}">EV (出来高@今日)</th><td style="${tdR}">${fmtH(ev)}</td></tr>
+      <tr><th style="${tdL}">AC (実コスト@今日)</th><td style="${tdR}">${fmtH(ac)}</td></tr>
+      <tr><th style="${tdL}${sect}">SV (EV−PV)</th><td style="${tdR}${sect}; color:${colSV(sv)};">${fmtSgn(sv)}</td></tr>
+      <tr><th style="${tdL}">CV (EV−AC)</th><td style="${tdR} color:${colSV(cv)}; font-weight:bold;">${fmtSgn(cv)}</td></tr>
+      <tr><th style="${tdL}">SPI (EV/PV)</th><td style="${tdR} color:${colIdx(spi)}; font-weight:bold;">${fmtIdx(spi)}</td></tr>
+      <tr><th style="${tdL}">CPI (EV/AC)</th><td style="${tdR} color:${colIdx(cpi)}; font-weight:bold;">${fmtIdx(cpi)}</td></tr>
+      <tr><th style="${tdL}${sect}">EAC (予測総コスト)</th><td style="${tdR}${sect}">${fmtH(eac)}</td></tr>
+      <tr><th style="${tdL}">ETC (残見込み)</th><td style="${tdR}">${fmtH(etc)}</td></tr>
+      <tr><th style="${tdL}">VAC (BAC−EAC)</th><td style="${tdR} color:${colSV(vac)}; font-weight:bold;">${fmtSgn(vac)}</td></tr>
+      <tr><th style="${tdL}${sect}">計画完了日</th><td style="${tdR}${sect}">${fmtDate(planEndDate)}</td></tr>
+      <tr><th style="${tdL}${sect}">完了予測日</th><td style="${tdR}${sect}; font-weight:bold;">${fmtDate(forecastDate)}</td></tr>
+    </table>`;
+  const legend = `
+    <div style="font-size:12px; margin-top:8px; line-height:1.9;">
+      <span style="display:inline-block;width:20px;border-top:2.5px solid #3b78c6;vertical-align:middle;"></span> PV (計画値)
+      ／<span style="display:inline-block;width:20px;border-top:2.5px solid #1c9b6a;vertical-align:middle;"></span> EV (出来高)
+      ／<span style="display:inline-block;width:20px;border-top:2.5px solid #d96b3a;vertical-align:middle;"></span> AC (実コスト)
+      ／<span style="display:inline-block;width:20px;border-top:2px dashed #888;vertical-align:middle;"></span> 予測 (破線)
+    </div>`;
+  el.innerHTML = `
+    <div style="display:flex; gap:24px; align-items:flex-start; flex-wrap:wrap;">
+      <div style="flex:0 0 auto;">${svg}${legend}</div>
+      <div style="flex:0 0 340px;">${table}</div>
+    </div>`;
+}
 function redraw(){
   const cmp = cbScore.checked ? sortByScore : sortDefault;
   const sortedScreens = [...SCREENS].sort(cmp);
@@ -957,6 +1133,7 @@ function redraw(){
   render("t-ifs","th-ifs",IF_COLS,[...IFS].sort(cmp));
   buildGantt(sortedScreens, "gantt-plan", "計画", { bg:'#9cd', bd:'#468' }, "plan");
   buildBurndown("burndown");
+  buildEvm("evm-content");
 }
 cbScore.addEventListener("change",redraw);
 cbGroup.addEventListener("change",redraw);
