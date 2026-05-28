@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>議事まとめ 2026-05-28 / 今後のアクション・決定事項</title>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body {
+    font-family: -apple-system, "Hiragino Kaku Gothic ProN", "Yu Gothic", system-ui, sans-serif;
+    color: #1f2937;
+    background: #fafafa;
+    padding: 28px 32px;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+  .page { max-width: 1240px; margin: 0 auto; height: 100%; display: flex; flex-direction: column; }
+  h1 { font-size: 19px; margin: 0; border-bottom: 3px solid #2563eb; padding-bottom: 6px; }
+  .sub { color: #6b7280; font-size: 12px; margin: 6px 0 14px; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1.25fr 1fr;
+    gap: 18px;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+  }
+  .panel {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: auto;
+  }
+  h2 { font-size: 13px; margin: 0 0 10px; padding-left: 8px; border-left: 3px solid #2563eb; }
+
+  /* セクション内グループ */
+  .group { margin-bottom: 12px; }
+  .group:last-child { margin-bottom: 0; }
+  .group-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #2563eb;
+    letter-spacing: 0.03em;
+    margin: 4px 0 6px;
+  }
+
+  /* アクションアイテム行 */
+  .items { display: flex; flex-direction: column; gap: 6px; }
+  .item {
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 12px;
+    line-height: 1.55;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .item .num {
+    background: #2563eb;
+    color: white;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 11px;
+    flex-shrink: 0;
+  }
+  .item .title {
+    font-weight: 600;
+    color: #1f2937;
+  }
+  .item .desc {
+    color: #4b5563;
+    margin-top: 2px;
+    font-size: 11.5px;
+  }
+  .item .owner {
+    display: inline-block;
+    background: #eef2ff;
+    color: #4338ca;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 3px;
+    margin-left: 4px;
+    vertical-align: 1px;
+  }
+
+  /* 実施済みアイテム */
+  .item.done {
+    background: #f9fafb;
+    border-color: #d1d5db;
+  }
+  .item.done .num {
+    background: #10b981;
+  }
+  .item.done .num::before {
+    content: "✓";
+    font-size: 13px;
+  }
+  .item.done .num .n { display: none; }
+  .item.done .title {
+    color: #6b7280;
+    text-decoration: line-through;
+    text-decoration-color: #9ca3af;
+  }
+  .item.done .desc { color: #6b7280; }
+  .item .badge-done {
+    display: inline-block;
+    background: #10b981;
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 3px;
+    margin-left: 6px;
+    vertical-align: 1px;
+    letter-spacing: 0.04em;
+  }
+  .item .badge-wip {
+    display: inline-block;
+    background: #f59e0b;
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 3px;
+    margin-left: 6px;
+    vertical-align: 1px;
+    letter-spacing: 0.04em;
+  }
+
+  /* 意図 / 補足ブロック（アクション項目の内訳） */
+  .item-detail {
+    margin-top: 6px;
+    background: #f9fafb;
+    border-left: 2px solid #9ca3af;
+    border-radius: 3px;
+    padding: 6px 9px;
+    font-size: 11px;
+    line-height: 1.55;
+    color: #374151;
+  }
+  .item-detail .head {
+    font-size: 10px;
+    font-weight: 700;
+    color: #6b7280;
+    letter-spacing: 0.04em;
+    margin-bottom: 3px;
+  }
+  .item-detail + .item-detail { margin-top: 4px; }
+  .item-detail.action {
+    border-left-color: #f59e0b;
+    background: #fffbeb;
+  }
+  .item-detail.action .head { color: #92400e; }
+
+  /* 決定事項 */
+  .decisions { display: flex; flex-direction: column; gap: 6px; }
+  .decision {
+    background: #ecfdf5;
+    border-left: 3px solid #10b981;
+    border-radius: 4px;
+    padding: 8px 10px;
+    font-size: 11.5px;
+    line-height: 1.55;
+  }
+  .decision .tag {
+    display: inline-block;
+    background: #10b981;
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 3px;
+    margin-right: 6px;
+    vertical-align: 1px;
+  }
+
+  /* 全体総括 */
+  .summary {
+    margin-top: 14px;
+    background: #fffbeb;
+    border: 1px solid #fcd34d;
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-size: 11.5px;
+    line-height: 1.65;
+    color: #1f2937;
+  }
+  .summary-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #92400e;
+    letter-spacing: 0.04em;
+    margin-bottom: 5px;
+  }
+  .summary strong { color: #92400e; }
+  .summary .next {
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px dashed #fcd34d;
+    color: #4b5563;
+    font-size: 11px;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>議事まとめ 2026-05-28 — 今後のアクション / 決定事項</h1>
+  <div class="sub">AIDD 定例</div>
+
+  <div class="grid">
+
+    <!-- 左: アクションアイテム -->
+    <div class="panel">
+      <h2>今後のアクションアイテム</h2>
+
+      <div class="group">
+        <div class="group-label">進捗管理・指標関連</div>
+        <div class="items">
+          <div class="item">
+            <span class="num">1</span>
+            <div>
+              <div class="title">全体進捗表（WBS）の再作成<span class="badge-wip">実施中</span></div>
+              <div class="desc">全体像を網羅し、<strong>瞬時に進捗率が分かるシンプルな表</strong> を作成する</div>
+              <div class="item-detail">
+                <div class="head">意図</div>
+                現在の「一部のタスクのみが順次追加される」ビューでは、マネジメント観点で <strong>全体像（300 画面なら全て）に対する進捗</strong> が見えない。
+                コロコロ変わる「生きた情報」は実務で使えばよいが、経営・マネジメント層向けには <strong>「固定された枠組み（予算・全タスク一覧）」の中で進捗を更新するシンプルな形式</strong> が重要。
+              </div>
+              <div class="item-detail action">
+                <div class="head">解消に向けたアクション</div>
+                まずは <strong>全タスクがカレンダー上に表示された状態</strong> を作る（実施中）
+              </div>
+            </div>
+          </div>
+          <div class="item done">
+            <span class="num"><span class="n">2</span></span>
+            <div>
+              <div class="title">EVM 指標の組み込み<span class="badge-done">実施済</span></div>
+              <div class="desc">バーンダウンチャート等に、<strong>完了予測日を算出できる計算式</strong> を反映させる</div>
+            </div>
+          </div>
+          <div class="item done">
+            <span class="num"><span class="n">3</span></span>
+            <div>
+              <div class="title">工数記録の精緻化<span class="badge-done">実施済</span></div>
+              <div class="desc"><strong>「仕組み構築（オーバーヘッド）」と「実開発」</strong> の工数を分離して記録し、改善効果の根拠を組み立てる</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="group-label">効果測定・標準化関連</div>
+        <div class="items">
+          <div class="item">
+            <span class="num">4</span>
+            <div>
+              <div class="title">通常開発工数の見積もり<span class="badge-wip">実施中</span></div>
+              <div class="desc">対象機能について、<strong>AI を使わない場合の見積もり</strong> を合議の上で算出する</div>
+              <div class="item-detail action">
+                <div class="head">実施中</div>
+                全タスクについて <strong>AsIs（人力）を算出</strong> し、<strong>現案件チームの PM に認識齟齬がないか確認</strong> してもらう（タスクの列挙後の作業）
+              </div>
+            </div>
+          </div>
+          <div class="item">
+            <span class="num">5</span>
+            <div>
+              <div class="title">試行錯誤フェーズの期限設定<span class="badge-wip">調整中</span></div>
+              <div class="desc">AIDD の仕掛けを <strong>いつまでに暫定確定させるか</strong>、マイルストーンを置く</div>
+              <div class="item-detail action">
+                <div class="head">方針 / 状況</div>
+                日付ではなく <strong>「どこまでが終わったら」という形で区切り</strong> をつける方針。<strong>チーム内で調整中</strong>
+              </div>
+            </div>
+          </div>
+          <div class="item">
+            <span class="num">6</span>
+            <div>
+              <div class="title">工数記録の分類</div>
+              <div class="desc"><strong>「試行錯誤（オーバーヘッド）」と「標準運用」</strong> を区別して記録する体制を維持し、集計時に <strong>限界利益率</strong> を算出できるようにする</div>
+              <div class="item-detail action">
+                <div class="head">進め方</div>
+                <strong>⑤ を定めたタイミングで集計できるよう整える</strong>。具体的な検討項目:
+                <ul style="margin: 3px 0 0; padding-left: 18px;">
+                  <li>人力で画面等を修正した工数の記録</li>
+                  <li>要件確認が発生した場合の記録方法を検討する</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右: 決定事項 + 全体総括 -->
+    <div class="panel">
+      <h2>決定事項まとめ</h2>
+      <div class="decisions">
+        <div class="decision">
+          <span class="tag">要件不足時</span>PM への <strong>「差し戻し」を基本</strong> とし、説明可能な範囲での <strong>「仮決め」を許容</strong> する
+        </div>
+        <div class="decision">
+          <span class="tag">管理手段</span>チャットを避け、<strong>一覧性のある「確認リスト」</strong> による運用を徹底する
+        </div>
+        <div class="decision">
+          <span class="tag">デザイン</span>無理な 100% 自動化は目指さず、AI 生成後の <strong>「人間によるすり合わせ・微調整」</strong> を工程に加える
+        </div>
+      </div>
+
+      <div class="summary">
+        <div class="summary-label">全体総括</div>
+        <div>
+          今回の会議により、AIDD の効果を単なる「時短」としてではなく、<strong>「標準化後の圧倒的な利益率」を証明するための経営的なデータ収集プロセス</strong> として運用していく方針が明確化された。
+          迷いや技術的課題は <strong>「仕組み」や「人間の運用（ジョーカーとしての手作業）」</strong> で解決する方向で合意。
+        </div>
+        <div class="next">次回定例: 来週の同時刻 / 1 時間</div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+</body>
+</html>
