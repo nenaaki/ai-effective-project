@@ -68,7 +68,7 @@
   <details><summary style="cursor:pointer; font-weight:bold; padding:4px 0; color:#444;">列凡例</summary>
     <ul>
       <li>データモデル: ✅完了 / 🔄作業中 / ・未着手 (空欄=元資料に画面名の言及なし)</li>
-      <li>状況: 備考と統合表示。進捗ラベル(実装完了=100% / レビュー中=50% / 着手中等)はバーンダウンに加味 (実工数あり=100%は別途) / 空欄なら備考の内容(着手可能・実装不可・待機中・バックエンドのみ)を表示</li>
+      <li>状況: 備考と統合表示。進捗ラベル(実装完了=100% / レビュー中=70% / 着手中=50%)はバーンダウン・EVMに加味 / 空欄なら備考の内容(着手可能・実装不可・待機中・バックエンドのみ)を表示</li>
       <li>画面項目定義: ✅シートあり(画面項目定義書/管理画面項目定義書 にシート作成済) / 📐モックあり / 🔄作成予定 / ⏸Ph.2以降 / (空欄=画面一覧に該当なし) — 📐 と ✅ は併記しうる</li>
     </ul>
   </details>
@@ -383,7 +383,10 @@ const STATUS_PROGRESS = { "実装完了": 1.0, "レビュー中": 0.7, "着手�
 [...SCREENS, ...IFS].forEach(r=>{ if (!r.状況) r.状況 = r.備考; });
 // 実工数 (h)。画面単位の合計を最初の行に設定
 const JISSI_KOUSU_H = {
-  "デポマスタ": 14.5
+  "デポマスタ": 14.5,
+  "ユーザマスタ": 3.3,
+  "エリアマスタ": 2.5,
+  "商品マスタ": 2.5
 };
 // 画面の完了日 (実績)。GANTT_START(5/25)より前に完了した画面はカレンダー・バーンダウン対象外
 const DONE_DATE = {
@@ -880,7 +883,8 @@ function buildBurndown(containerId){
   const totalH = all.reduce((a,r)=> a + (r["工数(h)"]||0), 0);
   if (totalH <= 0) { el.innerHTML = ""; return; }
   // バーンダウンは「予定工数(スコープ)」の進捗消化で測る。
-  //   完了(実工数>0)=100% / 状況レビュー中=50% など、画面の進捗率 × 予定工数 を消化済みとする
+  //   状況 (実装完了=100% / レビュー中=70% / 着手中=50%) × 予定工数 を消化済みとする
+  //   実工数(h) はACとして別途集計し、進捗判定には使わない
   const planByScreen = {}, actualByScreen = {}, statusByScreen = {};
   all.forEach(r=>{
     const k = r.画面名 || r.IFID || "";
@@ -888,12 +892,11 @@ function buildBurndown(containerId){
     actualByScreen[k] = (actualByScreen[k]||0) + (parseFloat(r["実工数(h)"])||0);
     if (r.状況 && !statusByScreen[k]) statusByScreen[k] = r.状況;
   });
-  let burnedH = 0, spentH = 0;   // burnedH=進捗加味の消化スコープ / spentH=完了画面の実投入
+  let burnedH = 0, spentH = 0;   // burnedH=進捗加味の消化スコープ / spentH=実工数(AC)合計
   Object.keys(planByScreen).forEach(k=>{
-    let ratio = 0;
-    if (actualByScreen[k] > 0) ratio = 1;                                              // 完了
-    else if (STATUS_PROGRESS[statusByScreen[k]]) ratio = STATUS_PROGRESS[statusByScreen[k]];  // レビュー中=50% 等
-    if (ratio > 0) { burnedH += planByScreen[k] * ratio; spentH += actualByScreen[k]; }
+    const ratio = STATUS_PROGRESS[statusByScreen[k]] || 0;
+    if (ratio > 0) burnedH += planByScreen[k] * ratio;
+    spentH += actualByScreen[k];
   });
   // 理想完了までの営業日数 (日次キャパを累積して総工数に到達する日。初日2日は1名)
   let span = 0; while (cumCapacity(span) < totalH) span++;
@@ -961,7 +964,7 @@ function buildBurndown(containerId){
   el.innerHTML = `
 <div style="border:1px solid #ccc; border-radius:4px; padding:12px; background:#fff;">
   <div style="font-weight:bold; color:#2a6; margin-bottom:4px;">バーンダウンチャート（全体工数ベース）</div>
-  <div style="font-size:11px; color:#666; margin-bottom:8px;">総工数 ${totalH.toFixed(1)}h ／ 消化スコープ ${burnedH.toFixed(1)}h (${pct}%) ／ 残 ${remNow.toFixed(1)}h<br>※完了=100% / レビュー中=50% で進捗加味</div>
+  <div style="font-size:11px; color:#666; margin-bottom:8px;">総工数 ${totalH.toFixed(1)}h ／ 消化スコープ ${burnedH.toFixed(1)}h (${pct}%) ／ 残 ${remNow.toFixed(1)}h<br>※実装完了=100% / レビュー中=70% / 着手中=50% で進捗加味</div>
   ${svg}
   <div style="font-size:11px; margin-top:8px; line-height:1.8;">
     <span style="display:inline-block;width:18px;border-top:2px dashed #bbb;vertical-align:middle;"></span> 理想線 (5/25=0名, 5/26=1名7.2h, 5/27以降2名14.4h/日)
@@ -972,7 +975,8 @@ function buildBurndown(containerId){
 // EVM (Earned Value Management) =====================================================
 // 日付別の累積EV/ACスナップショット (空ならその日付の自動計算値=今日値のみ使用)
 const EVM_SNAPSHOTS = {
-  // "2026-05-26": { ev: 5.0, ac: 4.0 },   // 例: その日終了時点の累積EV/AC(h)
+  // 各日付の終了時点の累積EV/AC(h)。ev/ac いずれか一方のみの記録も可
+  "2026-05-27": { ev: 12.6, ac: 8.3 }   // 今日(基準日)時点 / EV: ユーザ3.2 + エリア5.1 + 商品4.3 / AC: ユーザ3.3 + エリア2.5 + 商品2.5
 };
 function buildEvm(containerId){
   const el = document.getElementById(containerId);
@@ -990,11 +994,9 @@ function buildEvm(containerId){
   });
   let ev = 0, ac = 0;
   Object.keys(planByScreen).forEach(k=>{
-    let ratio = 0;
-    if (actualByScreen[k] > 0) ratio = 1;
-    else if (STATUS_PROGRESS[statusByScreen[k]]) ratio = STATUS_PROGRESS[statusByScreen[k]];
+    const ratio = STATUS_PROGRESS[statusByScreen[k]] || 0;   // 進捗率は状況に基づく (実装完了=100% / レビュー中=70% / 着手中=50%)
     ev += planByScreen[k] * ratio;
-    ac += actualByScreen[k];
+    ac += actualByScreen[k];                                 // ACは実工数(h)を常に集計
   });
   const todayIdx = dateToWorkdayIndex(TODAY_ISO);
   // 計画完了日 (workday index)。線形キャパベース
