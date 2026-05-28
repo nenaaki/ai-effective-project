@@ -1040,8 +1040,20 @@
     `;
   }
 
+  // URL ハッシュからシナリオタブを開く (#depot-master / #user-master 等)
+  function applyHashTab() {
+    const h = (location.hash || "").replace(/^#/, "");
+    if (h && scenarios[h]) {
+      currentKey = h;
+      renderTabs();
+      renderScenario();
+    }
+  }
+  window.addEventListener("hashchange", applyHashTab);
+
   renderTabs();
   renderScenario();
+  applyHashTab();
 </script>
 </body>
 </html>

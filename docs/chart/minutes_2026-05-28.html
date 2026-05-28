@@ -137,6 +137,26 @@
     vertical-align: 1px;
     letter-spacing: 0.04em;
   }
+  .item .open-link {
+    display: inline-block;
+    font-size: 10.5px;
+    font-weight: 600;
+    color: #2563eb;
+    text-decoration: none;
+    margin-left: 8px;
+    padding: 1px 6px;
+    border: 1px solid #bfdbfe;
+    border-radius: 3px;
+    background: #eff6ff;
+    vertical-align: 1px;
+  }
+  .item .open-link:hover {
+    background: #dbeafe;
+    border-color: #93c5fd;
+  }
+  .item.done .open-link {
+    color: #2563eb;
+  }
 
   /* 意図 / 補足ブロック（アクション項目の内訳） */
   .item-detail {
@@ -246,15 +266,19 @@
           <div class="item done">
             <span class="num"><span class="n">2</span></span>
             <div>
-              <div class="title">EVM 指標の組み込み<span class="badge-done">実施済</span></div>
+              <div class="title">EVM 指標の組み込み<span class="badge-done">実施済</span><a class="open-link" href="workitems.html#evm" target="_blank" rel="noopener">workitems の EVM タブを開く →</a></div>
               <div class="desc">バーンダウンチャート等に、<strong>完了予測日を算出できる計算式</strong> を反映させる</div>
             </div>
           </div>
-          <div class="item done">
-            <span class="num"><span class="n">3</span></span>
+          <div class="item">
+            <span class="num">3</span>
             <div>
-              <div class="title">工数記録の精緻化<span class="badge-done">実施済</span></div>
+              <div class="title">工数記録の精緻化<span class="badge-wip">試行中</span><a class="open-link" href="aidd_report.html#depot-master" target="_blank" rel="noopener">aidd_report のデポマスタを開く →</a></div>
               <div class="desc"><strong>「仕組み構築（オーバーヘッド）」と「実開発」</strong> の工数を分離して記録し、改善効果の根拠を組み立てる</div>
+              <div class="item-detail action">
+                <div class="head">対処（試行中）</div>
+                <strong>試行錯誤オーバーヘッドを記録するように変更</strong>（実施済）。<strong>他に有効な記録方法があるか検討中</strong>
+              </div>
             </div>
           </div>
         </div>
