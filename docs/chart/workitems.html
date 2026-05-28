@@ -804,7 +804,7 @@ function buildGantt(sortedScreens, containerId, title, palette, mode){
       const overlapStart = Math.max(b.start, wStart);
       const overlapEnd = Math.min(b.end, wEnd + 1);
       if (overlapStart >= overlapEnd) return;
-      const isDone = (b.実工数 || 0) > 0;
+      const isDone = b.状況 === "実装完了";   // 完了判定は状況に基づく (実工数の有無では判定しない)
       const isReview = !isDone && b.状況 === "レビュー中";
       const color = isDone ? DONE_COLOR : (isReview ? REVIEW_COLOR : LANE_COLORS[b.lane]);
       const slot = b.slot || 0;
@@ -821,8 +821,10 @@ function buildGantt(sortedScreens, containerId, title, palette, mode){
       }
       if (segStart < overlapEnd) segments.push([segStart, overlapEnd]);
       const planH = (b.工数 * 7.2).toFixed(1);
-      const doneH = isDone ? b.実工数.toFixed(1) : '';
-      const titleExtra = isDone ? ` [完了 ${doneH}h/${planH}h]` : (isReview ? ` [レビュー中 ${planH}h]` : ` (${planH}h)`);
+      const spentH = (b.実工数 || 0) > 0 ? b.実工数.toFixed(1) : '';   // 消費した実工数 (h)
+      const titleExtra = isDone ? ` [完了 ${spentH}h/${planH}h]`
+                       : isReview ? ` [レビュー中${spentH ? ` 実${spentH}h` : ''} / 予定${planH}h]`
+                       : ` (${spentH ? `実${spentH}h / ` : ''}予定${planH}h)`;
       segments.forEach(([sS, sE]) => {
         const isFirstSeg = (sS === b.start);
         const isLastSeg = (sE === b.end);
@@ -835,7 +837,7 @@ function buildGantt(sortedScreens, containerId, title, palette, mode){
         html += `<div style="position:absolute; top:${top}px; left:${left}px; width:${width}px; height:${height}px; background:${color.bg}; border:1px solid ${color.bd}; border-radius:${lRad} ${rRad} ${rRad} ${lRad}; font-size:11px; padding:0 6px; box-sizing:border-box; overflow:hidden; display:flex; align-items:center;" title="${esc(b.画面名)}${titleExtra}">
           <div style="display:flex; justify-content:space-between; align-items:baseline; gap:6px; width:100%;">
             <div style="font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1 1 auto;">${prefix}${esc(b.画面名)}${suffix}</div>
-            ${isDone ? `<div style="font-size:10px; color:#084; font-weight:bold; white-space:nowrap; flex:0 0 auto;">実 ${doneH}h</div>` : ''}
+            ${spentH ? `<div style="font-size:10px; color:#084; font-weight:bold; white-space:nowrap; flex:0 0 auto;">実 ${spentH}h</div>` : ''}
             ${isReview ? `<div style="font-size:10px; color:#6a3a9a; font-weight:bold; white-space:nowrap; flex:0 0 auto;">🔍レビュー中</div>` : ''}
             <div style="font-size:10px; color:#444; white-space:nowrap; flex:0 0 auto;">${planH}h</div>
           </div>
