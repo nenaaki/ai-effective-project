@@ -248,6 +248,8 @@ SCREENS.forEach(r=>{
 // 状況 (進捗ステータス)。タスク一覧に表示し、バーンダウンの進捗率に反映
 const STATUS_MAP = data.STATUS_MAP;
 SCREENS.forEach(r=>{ if (r.画面名 in STATUS_MAP) r.状況 = STATUS_MAP[r.画面名]; });
+// IFは一律「実装不可」(STATUS_PROGRESSに無いため進捗率0%扱い)
+IFS.forEach(r=>{ r.状況 = "実装不可"; });
 // 状況→進捗率 (バーンダウンの消化スコープに加味。完了=実工数>0 は別途100%扱い)
 const STATUS_PROGRESS = { "実装完了": 1.0, "レビュー中": 0.7, "着手中": 0.5 };
 // 備考と状況を統合: 状況が空欄でない場合は状況優先 / 空欄なら備考の内容を状況に取り込む
@@ -551,11 +553,11 @@ function buildGantt(sortedScreens, containerId, title, palette, mode){
   bars.forEach(b=>{ if (b.end > laneEnds[b.lane]) laneEnds[b.lane] = b.end; });
   const total = Math.max(0, ...laneEnds);
   const totalEffort = bars.reduce((a,b)=>a+b.工数,0);
-  // グリッドは3週(15営業日 = 5/25〜6/12)まで表示し、4週以降は非表示。
+  // グリッドは5週(24営業日 = 5/25〜6/25)まで表示し、6週以降は非表示。
   // 日付配列はマイルストーン表記用に全期間ぶん確保する
-  const fullDays = Math.max(15, Math.ceil(total), screenCompletionDay, ifCompletionDay);
+  const fullDays = Math.max(24, Math.ceil(total), screenCompletionDay, ifCompletionDay);
   const dates = ganttWorkDates(fullDays + 1);
-  const dayCount = 15;
+  const dayCount = 24;
   // 週境界 (月曜日で区切る)
   const weekStarts = [0];
   for (let i = 1; i < dayCount; i++) {
