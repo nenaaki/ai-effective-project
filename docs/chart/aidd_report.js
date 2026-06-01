@@ -267,12 +267,15 @@
   function generateWorkitemsScenarios() {
     if (typeof WORKITEMS_DATA === 'undefined' ||
         typeof sortByScore     === 'undefined' ||
-        typeof groupTasks      === 'undefined') {
+        typeof groupTasks      === 'undefined' ||
+        typeof postprocessWorkitems === 'undefined') {
       return { keys: [] };
     }
-    const sortedScreens  = [...WORKITEMS_DATA.SCREENS].sort(sortByScore);
+    // workitems と同じ後処理を適用したうえで score 順 + groupTasks
+    const { SCREENS, IFS }  = postprocessWorkitems(WORKITEMS_DATA);
+    const sortedScreens  = [...SCREENS].sort(sortByScore);
     const groupedScreens = groupTasks(sortedScreens);
-    const sortedIfs      = [...WORKITEMS_DATA.IFS].sort(sortByScore);
+    const sortedIfs      = [...IFS].sort(sortByScore);
     const keys = [];
     groupedScreens.forEach(row => {
       const id  = row.管理ID || row.画面ID;
@@ -294,5 +297,27 @@
   }
   const _wi = generateWorkitemsScenarios();
 
-  scenarios.total = buildTotalScenario(scenarios, REAL_KEYS);
-  const TAB_ORDER = [...REAL_KEYS, ..._wi.keys, "total"];
+  // 既存の手書き scenario を workitems 由来の wi-screen-* タブに統合。
+  // tabLabel は workitems 由来 ("デポマスタ"/"ユーザマスタ"/"エリアマスタ") を維持、
+  // 元キーは削除。→ 重複タブ解消 + 実測値・課題リンクは workitems タブで参照できる。
+  const MERGE_MAP = {
+    'depot-master': 'wi-screen-DM07FE021',   // デポマスタ (FE021)
+    'user-master':  'wi-screen-DM07FE020',   // ユーザマスタ (FE020)
+    'area-master':  'wi-screen-DM07FE023',   // エリアマスタ (FE023)
+  };
+  const REAL_KEYS_FOR_TOTAL = REAL_KEYS.map(k => MERGE_MAP[k] || k);
+  Object.entries(MERGE_MAP).forEach(([from, to]) => {
+    if (scenarios[from] && scenarios[to]) {
+      const label = scenarios[to].tabLabel;
+      scenarios[to] = {
+        ...scenarios[from],
+        tabLabel: label,
+        title:    `${label} 開発工数比較 (AsIs / ToBe)`,
+      };
+    }
+    delete scenarios[from];
+  });
+
+  scenarios.total = buildTotalScenario(scenarios, REAL_KEYS_FOR_TOTAL);
+  const REAL_KEYS_TABS = REAL_KEYS.filter(k => !MERGE_MAP[k]);
+  const TAB_ORDER = [...REAL_KEYS_TABS, ..._wi.keys, "total"];

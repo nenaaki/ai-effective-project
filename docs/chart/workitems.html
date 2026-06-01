@@ -70,6 +70,7 @@
       <li>データモデル: ✅完了 / 🔄作業中 / ・未着手 (空欄=元資料に画面名の言及なし)</li>
       <li>状況: 備考と統合表示。進捗ラベル(実装完了=100% / レビュー中=70% / 着手中=50%)はバーンダウン・EVMに加味 / 空欄なら備考の内容(着手可能・実装不可・待機中・バックエンドのみ)を表示</li>
       <li>画面項目定義: ✅シートあり(画面項目定義書/管理画面項目定義書 にシート作成済) / 📐モックあり / 🔄作成予定 / ⏸Ph.2以降 / (空欄=画面一覧に該当なし) — 📐 と ✅ は併記しうる</li>
+      <li>実工数(h): 人間が消費した工数を記録する。</li>
     </ul>
   </details>
   <hr>
@@ -92,13 +93,15 @@
 </div>
 <script src="workitems.js"></script>
 <script src="task_logic.js"></script>
+<script src="workitems_postprocess.js"></script>
 <script>
-const SCREEN_COLS = ["優先","ドメイン","画面ID","画面名","管理ID","処理区分","処理名","データモデル","画面項目定義","状況","工数(h)","担当者","実施順","実工数(h)"];
-const IF_COLS     = ["優先","IFID","カテゴリ","送受信","IF名","From","To","データモデル","画面項目定義","状況","工数(h)","担当者","実施順","実工数(h)"];
+// 担当者・実施順 は r.担当者 / r.実施順 として別フィールド維持。表示時のみ「担当者/実施順」列で結合表示。
+const SCREEN_COLS = ["優先","ドメイン","画面ID","画面名","管理ID","処理区分","処理名","データモデル","画面項目定義","状況","工数(h)","担当者/実施順","実工数(h)"];
+const IF_COLS     = ["優先","IFID","カテゴリ","送受信","IF名","From","To","データモデル","画面項目定義","状況","工数(h)","担当者/実施順","実工数(h)"];
 // データ読込: 同じフォルダの workitems.js (WORKITEMS_DATA) を <script src> で先に読み込む
 const data = WORKITEMS_DATA;
-const SCREENS = data.SCREENS;
-const IFS = data.IFS;
+// SCREENS / IFS は postprocessWorkitems() で後処理 (workitems_postprocess.js) を適用済の配列
+const { SCREENS, IFS } = postprocessWorkitems(data);
 // ============================================================================
 // ガント / バーンダウン / EVM 設定 (画面・IFデータの直後にまとめて集約)
 // ============================================================================
@@ -120,181 +123,61 @@ const TODAY_ISO = "2026-05-27";
 const ACTUAL_BY_DATE = data.ACTUAL_BY_DATE;
 // EVM: 日付別の累積EV/ACスナップショット (各日付の終了時点の累積。ev/ac いずれか一方のみの記録も可)
 const EVM_SNAPSHOTS = data.EVM_SNAPSHOTS;
-// 優先順位調整: マスタ画面=0, 非マスタの 0→1 / 1→2, それ以外(10/50)は変更なし
-SCREENS.forEach(r=>{
-  const isMaster = (r.画面名||"").indexOf("マスタ") >= 0;
-  if (isMaster) r.優先 = 0;
-  else if (r.優先 === 0) r.優先 = 1;
-  else if (r.優先 === 1) r.優先 = 2;
-});
-// 画面項目定義書 + 管理画面項目定義書 のシートと項目数 (画面シートのみ。ナビ/テンプレ/サブシートは除外)
-const SHEET_ITEMS = data.SHEET_ITEMS;
-// 画面名が両定義書のシート名に一致する場合:
-//   - 空欄/作成予定 → ✅シートあり (X項目)
-//   - 📐モックあり/📐モックあり → 既存値 / ✅シートあり (X項目) で併記
-//   - 既に ✅シートあり 表示済 → スキップ
-SCREENS.forEach(r=>{
-  if (!(r.画面名 in SHEET_ITEMS)) return;
-  const itemCount = SHEET_ITEMS[r.画面名];
-  const sheetTag = `✅シートあり (${itemCount}項目)`;
-  const ui = r.画面項目定義 || "";
-  if (ui.indexOf("✅") >= 0) return;
-  if (ui === "" || ui.indexOf("🔄") >= 0) {
-    r.画面項目定義 = sheetTag;
-  } else {
-    r.画面項目定義 = `${ui} / ${sheetTag}`;
-  }
-});
-// 処理名 / 画面+処理名 単位の想定項目数 (シートはないが工数計算用に項目数を仮設定)
-// 画面項目定義 列には表示しない (📐モックあり のみ) — 工数計算でフォールバック参照
-const PROC_ITEMS = data.PROC_ITEMS;
-const SCREEN_PROC_ITEMS = data.SCREEN_PROC_ITEMS;
-// 全画面モック完了: すべての行に 📐モックあり を確保 (🔄作成予定 は削除)
-// PROC_ITEMS / SCREEN_PROC_ITEMS にある行はモックあり (X項目) で項目数併記
-SCREENS.forEach(r=>{
-  let ui = r.画面項目定義 || "";
-  ui = ui.replace(/🔄作成予定\s*\/\s*/g, "")
-         .replace(/\s*\/\s*🔄作成予定/g, "")
-         .replace(/^🔄作成予定$/g, "");
-  if (ui.indexOf("📐") === -1) {
-    const key = `${r.画面名}|${r.処理名}`;
-    const items = (key in SCREEN_PROC_ITEMS) ? SCREEN_PROC_ITEMS[key]
-                : (r.処理名 in PROC_ITEMS ? PROC_ITEMS[r.処理名] : null);
-    const mockTag = items != null ? `📐モックあり (${items}項目)` : "📐モックあり";
-    ui = ui ? `${mockTag} / ${ui}` : mockTag;
-  }
-  r.画面項目定義 = ui;
-});
-// 項目数が2つ表示される行 (📐モックあり (A項目) / ✅シートあり (B項目)) のみ、
-// シート側の実項目数 B を採用して 📐モックあり (B項目) の単一表示に統合する
-SCREENS.forEach(r=>{
-  const ui = r.画面項目定義 || "";
-  const mockM  = ui.match(/📐モックあり\s*\((\d+)項目\)/);
-  const sheetM = ui.match(/✅シートあり\s*\((\d+)項目\)/);
-  if (mockM && sheetM) r.画面項目定義 = `📐モックあり (${sheetM[1]}項目)`;
-});
-// 備考にスコープ判定:
-// IF行=バックエンドのみ
-// 画面行: DM✅完成 ありなら BE可能、UI 📐/📐/✅ ありなら BE側の制約のみ
-//   DM✅ + UI ready → "" / DM✅ + UI not ready → バックエンドのみ
-//   DM未完成 + UI 📐or📐 (ビジュアル確定) → フロントエンドのみ
-//   それ以外 (シートあり単独/UI未準備) → 実装不可
-function scope(r){
-  if (r.IFID) return "バックエンドのみ";
-  const dm = r.データモデル || "";
-  const ui = r.画面項目定義 || "";
-  const beReady = dm.indexOf("✅")>=0;
-  const beWip = dm.indexOf("🔄")>=0;   // データモデル作業中
-  const feAnyReady = ui.indexOf("📐")>=0 || ui.indexOf("✅")>=0;
-  if (beReady && feAnyReady) return "";
-  if (beReady && !feAnyReady) return "バックエンドのみ";
-  if (beWip) return "待機中";   // データモデル作業中は待機中 (タイムライン表示対象)
-  return "実装不可";
-}
-[...SCREENS, ...IFS].forEach(r=>{
-  const s = scope(r);
-  if (s) r.備考 = r.備考 ? `${s} / ${r.備考}` : s;
-});
-// 工数 (h/行) C案ハイブリッド計算 (BASE_HOURS=3.0 = 0.375 人日 × 8h)
-// 実装不可でも 画面項目定義 が入っていれば DM完成を仮定して計算する (空欄なら 0)
-const EFFORT = {
-  BASE_HOURS: 3.0,
-  ITEM_WEIGHT: 0.005,
-  IF_HOURS: 4,
-  PROC:  { 閲覧: 0.7, 編集: 1.0, 新規登録: 1.3, DL印刷: 1.1 },
-  SCOPE: { 両方: 1.0, BEのみ: 0.5 },
-  ASSET: { 両方: 0.85, 片方: 0.95, なし: 1.0 }
-};
-function procFactor(k){
-  if (k.indexOf("閲覧") >= 0) return EFFORT.PROC.閲覧;
-  if (k.indexOf("新規登録") >= 0) return EFFORT.PROC.新規登録;
-  if (k.indexOf("編集") >= 0) return EFFORT.PROC.編集;
-  if (k.indexOf("DL") >= 0 || k.indexOf("印刷") >= 0) return EFFORT.PROC.DL印刷;
-  return EFFORT.PROC.編集;
-}
-function assetFactor(hasMock, hasSheet){
-  if (hasMock && hasSheet) return EFFORT.ASSET.両方;
-  if (hasMock || hasSheet) return EFFORT.ASSET.片方;
-  return EFFORT.ASSET.なし;
-}
-function calcEffort(r){
-  const bk = r.備考 || "";
-  if (r.IFID) return EFFORT.IF_HOURS;
-  if (bk.indexOf("実装不可") >= 0 && !r.画面項目定義) return 0;
-  const ui = r.画面項目定義 || "";
-  const m = ui.match(/\((\d+)項目\)/);
-  let items = m ? parseInt(m[1], 10) : 0;
-  if (!items) {
-    const key = `${r.画面名}|${r.処理名}`;
-    items = SCREEN_PROC_ITEMS[key] ?? PROC_ITEMS[r.処理名] ?? 0;
-  }
-  const kC = procFactor(r.処理区分 || "");
-  const sC = bk.indexOf("バックエンドのみ") >= 0 ? EFFORT.SCOPE.BEのみ : EFFORT.SCOPE.両方;
-  const aC = assetFactor(ui.indexOf("📐") >= 0, ui.indexOf("✅") >= 0);
-  const v = (1 + items * EFFORT.ITEM_WEIGHT) * kC * sC * aC * EFFORT.BASE_HOURS;
-  return Math.round(v * 10) / 10;
-}
-[...SCREENS, ...IFS].forEach(r=>{ r["工数(h)"] = calcEffort(r); });
-// 備考が空欄の行 (両方ready) のみ「着手可能」と記載
-[...SCREENS, ...IFS].forEach(r=>{
-  if (!r.備考) r.備考 = "着手可能";
-});
-// 担当者・実施順の事前割当 (画面名単位)
-const TANTOU_MAP = data.TANTOU_MAP;
-const JISSI_MAP = data.JISSI_MAP;
-SCREENS.forEach(r=>{
-  if (r.画面名 in TANTOU_MAP) r.担当者 = TANTOU_MAP[r.画面名];
-  if (r.画面名 in JISSI_MAP) r.実施順 = JISSI_MAP[r.画面名];
-});
-// 状況 (進捗ステータス)。タスク一覧に表示し、バーンダウンの進捗率に反映
-const STATUS_MAP = data.STATUS_MAP;
-SCREENS.forEach(r=>{ if (r.画面名 in STATUS_MAP) r.状況 = STATUS_MAP[r.画面名]; });
-// IFは一律「実装不可」(STATUS_PROGRESSに無いため進捗率0%扱い)
-IFS.forEach(r=>{ r.状況 = "実装不可"; });
-// 状況→進捗率 (バーンダウンの消化スコープに加味。完了=実工数>0 は別途100%扱い)
-const STATUS_PROGRESS = { "実装完了": 1.0, "レビュー中": 0.7, "着手中": 0.5 };
-// 備考と状況を統合: 状況が空欄でない場合は状況優先 / 空欄なら備考の内容を状況に取り込む
-[...SCREENS, ...IFS].forEach(r=>{ if (!r.状況) r.状況 = r.備考; });
-// 実工数 (h)。画面単位の合計を最初の行に設定
-const JISSI_KOUSU_H = data.JISSI_KOUSU_H;
 // 画面の完了日 (実績)。GANTT_START(5/25)より前に完了した画面はカレンダー・バーンダウン対象外
 const DONE_DATE = data.DONE_DATE;
 // 5/25(プロジェクト開始)より前に完了済みの画面か (前週までに完了 → 予実対象外)
 function isPreStartDone(name){ return !!(DONE_DATE[name] && DONE_DATE[name] < "2026-05-25"); }
 // 予実対象の全行 (画面+IF)。プロジェクト開始前完了は除外
 function activeRows(){ return [...SCREENS, ...IFS].filter(r => !isPreStartDone(r.画面名 || "")); }
-// 画面名(またはIFID)ごとに 予定工数(h) / 実工数(h) / 状況 を集計
+// 画面名(またはIFID)ごとに 予定工数(h) / 実工数(h) / 状況 / 進捗率 を集計
+// r.進捗率 は postprocessWorkitems で別フィールドとして設定済み (0-1)
 function aggregatePlanActualStatus(rows){
-  const plan = {}, actual = {}, status = {};
+  const plan = {}, actual = {}, status = {}, progress = {};
   rows.forEach(r=>{
     const k = r.画面名 || r.IFID || "";
     plan[k]   = (plan[k]   || 0) + (r["工数(h)"]              || 0);
     actual[k] = (actual[k] || 0) + (parseFloat(r["実工数(h)"]) || 0);
     if (r.状況 && !status[k]) status[k] = r.状況;
+    if (r.進捗率 != null && !(k in progress)) progress[k] = r.進捗率;
   });
-  return { plan, actual, status };
+  return { plan, actual, status, progress };
 }
 // EV (進捗加味の予定工数消化) / AC (実工数合計) を集計
-function aggregateEvAc({ plan, actual, status }){
+function aggregateEvAc({ plan, actual, progress }){
   let ev = 0, ac = 0;
   Object.keys(plan).forEach(k=>{
-    const ratio = STATUS_PROGRESS[status[k]] || 0;
+    const ratio = progress[k] || 0;
     ev += plan[k] * ratio;
     ac += actual[k];
   });
   return { ev, ac };
 }
-const _firstSeen = {};
-SCREENS.forEach(r=>{
-  if ((r.画面名 in JISSI_KOUSU_H) && !_firstSeen[r.画面名]) {
-    _firstSeen[r.画面名] = true;
-    r["実工数(h)"] = JISSI_KOUSU_H[r.画面名];
-  }
-});
 function esc(s){return String(s==null?"":s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));}
+// 「担当者/実施順」列: 別フィールド r.担当者 / r.実施順 を 1 セルに結合表示 ("1 / 2"。両方空なら空)
+// 「状況」列: 1行目=状況 / 2行目=進捗率 (例: "レビュー中" + "70%")。td の white-space:pre-line で改行表示。
+function cellValue(r, c){
+  if (c === "担当者/実施順") {
+    const t = (r.担当者 != null && r.担当者 !== "") ? r.担当者 : "";
+    const o = (r.実施順 != null && r.実施順 !== "") ? r.実施順 : "";
+    if (t === "" && o === "") return "";
+    return `${t === "" ? "—" : t} / ${o === "" ? "—" : o}`;
+  }
+  if (c === "状況") {
+    const s = r.状況 || "";
+    const p = r.進捗率;
+    if (p == null || p === 0) return s;
+    return `${s}\n${Math.round(p * 100)}%`;
+  }
+  return r[c];
+}
+// ヘッダ表示: 「担当者/実施順」は縦に折り返して "担当者" / "/実施順" の2行で表示
+function headerHtml(c){
+  if (c === "担当者/実施順") return "担当者<br>/実施順";
+  return esc(c);
+}
 function render(tid,hid,cols,data){
-  document.getElementById(hid).innerHTML = "<th>No.</th>" + cols.map(c=>"<th>"+esc(c)+"</th>").join("");
-  const dataRows = data.map((r, idx)=>"<tr><td>"+(idx+1)+"</td>"+cols.map(c=>"<td>"+esc(r[c])+"</td>").join("")+"</tr>").join("");
+  document.getElementById(hid).innerHTML = "<th>No.</th>" + cols.map(c=>"<th>"+headerHtml(c)+"</th>").join("");
+  const dataRows = data.map((r, idx)=>"<tr><td>"+(idx+1)+"</td>"+cols.map(c=>"<td>"+esc(cellValue(r,c))+"</td>").join("")+"</tr>").join("");
   const SUM_COLS = ["工数(h)", "実工数(h)"];
   const sums = {};
   SUM_COLS.forEach(c => { sums[c] = data.reduce((a, r) => a + (parseFloat(r[c]) || 0), 0); });
