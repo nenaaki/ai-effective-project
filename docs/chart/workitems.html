@@ -91,6 +91,7 @@
   <div id="evm-content"></div>
 </div>
 <script src="workitems.js"></script>
+<script src="task_logic.js"></script>
 <script>
 const SCREEN_COLS = ["優先","ドメイン","画面ID","画面名","管理ID","処理区分","処理名","データモデル","画面項目定義","状況","工数(h)","担当者","実施順","実工数(h)"];
 const IF_COLS     = ["優先","IFID","カテゴリ","送受信","IF名","From","To","データモデル","画面項目定義","状況","工数(h)","担当者","実施順","実工数(h)"];
@@ -305,49 +306,9 @@ function render(tid,hid,cols,data){
   }).join("");
   document.querySelector("#"+tid+" tbody").innerHTML = dataRows + `<tr>${totalCells}</tr>`;
 }
-function score(r){
-  // 実装不可 (画面行で DM未完成) は最下位扱い
-  if (!r.IFID && (r.備考||"").indexOf("実装不可") >= 0) return 0;
-  let s = 0;
-  const dm = r.データモデル || "";
-  if (dm.indexOf("✅") >= 0) s += 10;
-  else if (dm.indexOf("🔄") >= 0) s += 5;
-  const ui = r.画面項目定義 || "";
-  if (ui.indexOf("📐") >= 0 || ui.indexOf("📐") >= 0) s += 7;
-  if (ui.indexOf("✅") >= 0) s += 3;
-  return s;
-}
-function sortByScore(a,b){ return (score(b)-score(a)) || (a.優先-b.優先); }
-function sortDefault(a,b){
-  return (a.優先-b.優先) || String(a.管理ID||a.IFID||"").localeCompare(String(b.管理ID||b.IFID||""));
-}
+// スコア計算 (score) / ソート (sortByScore, sortDefault) / グルーピング (groupTasks) は task_logic.js に分離
 const cbScore = document.getElementById("sort-score");
 const cbGroup = document.getElementById("group-tasks");
-// タスクをまとめる: ソート後、優先～管理ID が同じ行を1行に統合
-//   データモデル/画面項目定義/担当者/実施順/備考 = 先頭行採用 / 工数・実工数 = 合計 / 処理区分・処理名 = 改行結合
-function groupTasks(data){
-  const KEY_COLS = ["優先","ドメイン","画面ID","画面名","管理ID"];
-  // 例外: DL・印刷 の行は結合しない (まとめるチェックでも単独行のまま)
-  const isDL = r => { const k = r.処理区分 || ""; return k.indexOf("DL") >= 0 || k.indexOf("印刷") >= 0; };
-  const groups = new Map();
-  const order = [];
-  data.forEach((r, i)=>{
-    const key = isDL(r) ? `__dl__${i}` : KEY_COLS.map(c=>r[c]).join("|");
-    if (!groups.has(key)) { groups.set(key, []); order.push(key); }
-    groups.get(key).push(r);
-  });
-  return order.map(key=>{
-    const rows = groups.get(key);
-    if (rows.length === 1) return { ...rows[0] };   // 単独行 (DL・印刷含む) はそのまま
-    const merged = { ...rows[0] };   // 優先～管理ID + データモデル/画面項目定義/担当者/実施順/備考 は先頭行
-    merged.処理区分 = rows.map(r=>r.処理区分).join("\n");
-    merged.処理名   = rows.map(r=>r.処理名).join("\n");
-    merged["工数(h)"] = Math.round(rows.reduce((a,r)=>a+(parseFloat(r["工数(h)"])||0),0)*10)/10;
-    const eff = rows.reduce((a,r)=>a+(parseFloat(r["実工数(h)"])||0),0);
-    merged["実工数(h)"] = eff > 0 ? Math.round(eff*10)/10 : "";
-    return merged;
-  });
-}
 function ganttIsoDate(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
 function ganttIsWorkday(d){
   const dow = d.getDay();
@@ -403,7 +364,11 @@ function placeBarLane(cursor, work, vacationSet){
 function buildGantt(sortedScreens, containerId, title, palette, mode){
   // 5/25より前に完了した画面 (前週までに完了済み) はカレンダー対象外
   sortedScreens = sortedScreens.filter(r => !isPreStartDone(r.画面名 || ""));
-  // 画面名ごとに工数集計 (先に出現した順)
+  // 画面名ごとに工数集計 (先に出現した順)。
+  // ただし DL・印刷 行 (例: データ出力・抽出) は タスクをまとめない: 行ごとに別バーへ
+  const isDLPrint = r => TASK_GROUP_EXCLUDE_PROC_KEYWORDS.some(p => (r.処理区分||"").indexOf(p) >= 0);
+  const ganttKey   = r => isDLPrint(r) ? `${r.画面名}::${r.処理名}` : (r.画面名 || "");
+  const ganttLabel = r => isDLPrint(r) ? `${r.処理名}（${r.画面名}）` : r.画面名;
   const order = [];
   const summary = {};
   const LANES = 2;
@@ -412,15 +377,16 @@ function buildGantt(sortedScreens, containerId, title, palette, mode){
     sortedScreens.forEach(r=>{
       const effH = parseFloat(r["実工数(h)"]);
       if (!effH || isNaN(effH) || effH <= 0) return;
-      if (!summary[r.画面名]) {
-        summary[r.画面名] = { 画面名: r.画面名, ドメイン: r.ドメイン, 工数: 0, isFeOnly: false, 担当者: null, 実施順: null };
-        order.push(r.画面名);
+      const key = ganttKey(r);
+      if (!summary[key]) {
+        summary[key] = { 画面名: ganttLabel(r), ドメイン: r.ドメイン, 工数: 0, isFeOnly: false, 担当者: null, 実施順: null };
+        order.push(key);
       }
-      summary[r.画面名].工数 += effH / 8;
+      summary[key].工数 += effH / 8;
       const t = parseInt(r.担当者);
-      if (!isNaN(t) && summary[r.画面名].担当者 == null) summary[r.画面名].担当者 = t;
+      if (!isNaN(t) && summary[key].担当者 == null) summary[key].担当者 = t;
       const ord = parseFloat(r.実施順);
-      if (!isNaN(ord) && summary[r.画面名].実施順 == null) summary[r.画面名].実施順 = ord;
+      if (!isNaN(ord) && summary[key].実施順 == null) summary[key].実施順 = ord;
     });
   } else {
     // 計画: 画面処理 + IF。データモデル✅完了のみカレンダー対象。1日 = PERSON_DAY_HOURS (8h × 稼働率90%) で日数換算
@@ -429,18 +395,19 @@ function buildGantt(sortedScreens, containerId, title, palette, mode){
       if (hH === 0) return;
       const dmv = r.データモデル || "";
       if (!dmv.includes("✅") && !dmv.includes("🔄")) return;  // DM未着手は非表示 (✅完了/🔄作業中=待機中 は表示)
-      if (!summary[r.画面名]) {
-        summary[r.画面名] = { 画面名: r.画面名, ドメイン: r.ドメイン, 工数: 0, isFeOnly: false, 担当者: null, 実施順: null, 実工数: 0, kind: "screen", 状況: null };
-        order.push(r.画面名);
+      const key = ganttKey(r);
+      if (!summary[key]) {
+        summary[key] = { 画面名: ganttLabel(r), ドメイン: r.ドメイン, 工数: 0, isFeOnly: false, 担当者: null, 実施順: null, 実工数: 0, kind: "screen", 状況: null };
+        order.push(key);
       }
-      summary[r.画面名].工数 += hH / PERSON_DAY_HOURS;
+      summary[key].工数 += hH / PERSON_DAY_HOURS;
       const effH = parseFloat(r["実工数(h)"]) || 0;
-      if (effH > 0) summary[r.画面名].実工数 += effH;
-      if (r.状況 && summary[r.画面名].状況 == null) summary[r.画面名].状況 = r.状況;
+      if (effH > 0) summary[key].実工数 += effH;
+      if (r.状況 && summary[key].状況 == null) summary[key].状況 = r.状況;
       const t = parseInt(r.担当者);
-      if (!isNaN(t) && summary[r.画面名].担当者 == null) summary[r.画面名].担当者 = t;
+      if (!isNaN(t) && summary[key].担当者 == null) summary[key].担当者 = t;
       const ord = parseFloat(r.実施順);
-      if (!isNaN(ord) && summary[r.画面名].実施順 == null) summary[r.画面名].実施順 = ord;
+      if (!isNaN(ord) && summary[key].実施順 == null) summary[key].実施順 = ord;
     });
     // IF処理は現時点ではガント上に表示しない (完了マイルストーンのみ計算)
   }

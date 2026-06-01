@@ -455,6 +455,8 @@
 </div>
 </div>
 
+<script src="workitems.js"></script>
+<script src="task_logic.js"></script>
 <script src="aidd_report.js"></script>
 <script>
   let currentKey = TAB_ORDER[0];
@@ -523,6 +525,21 @@
     // 集計
     const totalAsis    = sum(tasks, "asis");
     const totalTobe    = sum(tasks, "tobe");
+
+    // テンプレート (実測値未入力) はチャート計算をスキップしてプレースホルダ表示
+    if (totalAsis === 0 && totalTobe === 0) {
+      const placeholder = '<p class="notes" style="color: var(--sub); padding: 18px 0; text-align:center;">（実測値はこれから記入予定です）</p>';
+      document.getElementById("summary").innerHTML =
+        '<div class="stat" style="grid-column: 1/-1; text-align:center; color: var(--sub);">実測値はこれから記入予定です</div>';
+      document.getElementById("axis").innerHTML = "";
+      document.getElementById("bars").innerHTML  = placeholder;
+      document.getElementById("bugs").innerHTML  = placeholder;
+      document.getElementById("bug-legend").innerHTML = "";
+      document.getElementById("breakdown").innerHTML =
+        '<tbody><tr><td style="text-align:center; color: var(--sub); padding: 18px 0;">作業内訳は未入力です。</td></tr></tbody>';
+      return;
+    }
+
     const totalTobeEng = tasks.reduce((a, t) => a + (t.tobeEng || 0), 0);
     const totalTobeAI  = totalTobe - totalTobeEng;
     const maxTotal     = Math.max(totalAsis, totalTobe);

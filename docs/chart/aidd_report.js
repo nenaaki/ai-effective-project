@@ -228,5 +228,71 @@
 
   const HOURS_PER_DAY = 8;
   const REAL_KEYS = ["depot-master", "user-master", "area-master"];
+
+  // ====== workitems データからテンプレート scenario を生成 ======
+  // workitems.html の「スコア順でソート」ON + 「タスクをまとめる」ON と同じ順序で
+  // 画面名 (グルーピング後) / IF名 ごとに 1 タブを生成 (中身は 0 値テンプレート)
+  function createTemplateScenario(name, sourceType) {
+    const labelHint = sourceType === 'if' ? `${name} (IF)` : name;
+    return {
+      tabLabel: labelHint,
+      title: `${name} 開発工数比較 (AsIs / ToBe)`,
+      lede: "<em>テンプレート: 実測値はこれから入力します。</em>",
+      tasks: [
+        { key: "data-design", label: "データモデル設計",                color: "var(--c-data-design)", loc: null, asis: 0, tobe: 0, tobeEng: 0, agents: [] },
+        { key: "data-impl",   label: "データモデル実装",                color: "var(--c-data-impl)",   loc: null, asis: 0, tobe: 0, tobeEng: 0, agents: [] },
+        { key: "api-impl",    label: "API設計・実装",                   color: "var(--c-api-impl)",    loc: null, asis: 0, tobe: 0, tobeEng: 0, agents: [] },
+        { key: "api-test",    label: "API単体テスト",                   color: "var(--c-api-test)",    loc: null, asis: 0, tobe: 0, tobeEng: 0, agents: [] },
+        { key: "api-review",  label: "APIレビュー (エンジニア)",        color: "var(--c-eng-review)",  loc: null, asis: 0, tobe: 0, tobeEng: 0, agents: [] },
+        { key: "ux",          label: "UX設計",                          color: "var(--c-ux)",          loc: null, asis: 0, tobe: 0, tobeEng: 0, agents: [] },
+        { key: "fe-design",   label: "フロントエンド設計",              color: "var(--c-fe-design)",   loc: null, asis: 0, tobe: 0, tobeEng: 0, agents: [] },
+        { key: "fe-impl",     label: "フロントエンド実装",              color: "var(--c-fe-impl)",     loc: null, asis: 0, tobe: 0, tobeEng: 0, agents: [] },
+        { key: "fe-test",     label: "フロントエンド単体テスト",        color: "var(--c-fe-test)",     loc: null, asis: 0, tobe: 0, tobeEng: 0, agents: [] },
+        { key: "fe-review",   label: "フロントエンドレビュー (エンジニア)", color: "var(--c-eng-review)", loc: null, asis: 0, tobe: 0, tobeEng: 0, agents: [] },
+        { key: "verify",      label: "動作確認",                        color: "var(--c-verify)",      loc: null, asis: 0, tobe: 0, tobeEng: 0, agents: [] },
+      ],
+      bugCategories: [
+        { key: "syntax", label: "構文/型エラー",    color: "#ef4444", asis: 0, tobe: 0 },
+        { key: "logic",  label: "ロジックバグ",     color: "#f59e0b", asis: 0, tobe: 0 },
+        { key: "edge",   label: "エッジケース漏れ", color: "#8b5cf6", asis: 0, tobe: 0 },
+        { key: "spec",   label: "仕様解釈ミス",     color: "#ec4899", asis: 0, tobe: 0 },
+        { key: "ui",     label: "UI 細部の不整合",  color: "#06b6d4", asis: 0, tobe: 0 },
+      ],
+      bugRateNote: "<em>記入予定</em>",
+      contextNotes: ["<em>記入予定: 本シナリオの前提・実測値・改善余地を後から追記する</em>"],
+      _template: true,
+    };
+  }
+
+  function generateWorkitemsScenarios() {
+    if (typeof WORKITEMS_DATA === 'undefined' ||
+        typeof sortByScore     === 'undefined' ||
+        typeof groupTasks      === 'undefined') {
+      return { keys: [] };
+    }
+    const sortedScreens  = [...WORKITEMS_DATA.SCREENS].sort(sortByScore);
+    const groupedScreens = groupTasks(sortedScreens);
+    const sortedIfs      = [...WORKITEMS_DATA.IFS].sort(sortByScore);
+    const keys = [];
+    groupedScreens.forEach(row => {
+      const id  = row.管理ID || row.画面ID;
+      if (!id) return;
+      const key = `wi-screen-${id}`;
+      if (scenarios[key]) return;   // 既存があれば上書きしない
+      scenarios[key] = createTemplateScenario(row.画面名 || id, 'screen');
+      keys.push(key);
+    });
+    sortedIfs.forEach(row => {
+      const id  = row.IFID;
+      if (!id) return;
+      const key = `wi-if-${id}`;
+      if (scenarios[key]) return;
+      scenarios[key] = createTemplateScenario(row.IF名 || id, 'if');
+      keys.push(key);
+    });
+    return { keys };
+  }
+  const _wi = generateWorkitemsScenarios();
+
   scenarios.total = buildTotalScenario(scenarios, REAL_KEYS);
-  const TAB_ORDER = [...REAL_KEYS, "total"];
+  const TAB_ORDER = [...REAL_KEYS, ..._wi.keys, "total"];
