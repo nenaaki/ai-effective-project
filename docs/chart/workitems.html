@@ -409,7 +409,17 @@ function buildGantt(sortedScreens, containerId, title, palette, mode){
       const ord = parseFloat(r.実施順);
       if (!isNaN(ord) && summary[key].実施順 == null) summary[key].実施順 = ord;
     });
-    // IF処理は現時点ではガント上に表示しない (完了マイルストーンのみ計算)
+    // IFs: 末尾に並べる (工数は EFFORT.IF_HOURS 固定)
+    IFS.forEach(r=>{
+      const hH = r["工数(h)"] || 0;
+      if (hH === 0) return;
+      const key = `if::${r.IFID}`;
+      if (!summary[key]) {
+        summary[key] = { 画面名: r.IF名 || r.IFID, ドメイン: r.カテゴリ || "IF", 工数: 0, isFeOnly: false, 担当者: null, 実施順: null, 実工数: 0, kind: "if", 状況: null };
+        order.push(key);
+      }
+      summary[key].工数 += hH / PERSON_DAY_HOURS;
+    });
   }
   let bars = [];
   if (mode === "actual") {
@@ -436,10 +446,18 @@ function buildGantt(sortedScreens, containerId, title, palette, mode){
     const laneTasks = [[], []];
     const fixedScreens = order.filter(n => summary[n].担当者 != null && summary[n].実施順 != null);
     const remaining = order.filter(n => !(summary[n].担当者 != null && summary[n].実施順 != null));
+    // remaining を 画面行 / IF行 に分離 (IFは末尾)
+    const remainingScreens = remaining.filter(n => summary[n].kind !== "if");
+    const remainingIfs     = remaining.filter(n => summary[n].kind === "if");
     fixedScreens.forEach(n => laneTasks[summary[n].担当者 - 1].push(n));
     laneTasks.forEach(arr => arr.sort((a, b) => summary[a].実施順 - summary[b].実施順));
     const laneTotals = laneTasks.map(arr => arr.reduce((s, n) => s + summary[n].工数, 0));
-    remaining.forEach(n => {
+    remainingScreens.forEach(n => {
+      const li = laneTotals[0] <= laneTotals[1] ? 0 : 1;
+      laneTasks[li].push(n);
+      laneTotals[li] += summary[n].工数;
+    });
+    remainingIfs.forEach(n => {
       const li = laneTotals[0] <= laneTotals[1] ? 0 : 1;
       laneTasks[li].push(n);
       laneTotals[li] += summary[n].工数;
