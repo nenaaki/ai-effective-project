@@ -35,41 +35,65 @@
     background: var(--bg);
     color: var(--text);
     margin: 0;
-    padding: 32px 24px 64px;
+    padding: 0;
     line-height: 1.6;
   }
 
-  .container { max-width: 1100px; margin: 0 auto; }
+  /* レイアウト: 左サイドバー (タブ) + 右コンテンツ */
+  .layout {
+    display: flex;
+    align-items: stretch;
+    min-height: 100vh;
+  }
+  .sidebar {
+    flex: 0 0 240px;
+    background: #fff;
+    border-right: 1px solid var(--border);
+    padding: 16px 10px;
+    position: sticky;
+    top: 0;
+    align-self: flex-start;
+    height: 100vh;
+    overflow-y: auto;
+  }
+  .container {
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: 1100px;
+    padding: 32px 24px 64px;
+  }
 
-  /* タブ */
+  /* タブ (左サイドバー縦並び) */
   .tabs {
     display: flex;
-    gap: 6px;
-    margin-bottom: 20px;
-    border-bottom: 1px solid var(--border);
+    flex-direction: column;
+    gap: 2px;
   }
   .tab {
-    padding: 10px 20px;
+    padding: 8px 12px;
     cursor: pointer;
     border: 1px solid transparent;
-    border-bottom: none;
-    border-radius: 8px 8px 0 0;
+    border-left: 3px solid transparent;
+    border-radius: 0 6px 6px 0;
     background: transparent;
     color: var(--sub);
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
-    margin-bottom: -1px;
     font-family: inherit;
-    transition: color .15s, background .15s;
+    text-align: left;
+    width: 100%;
+    transition: color .15s, background .15s, border-color .15s;
   }
-  .tab:hover { color: var(--text); }
+  .tab:hover { color: var(--text); background: #f3f4f6; }
   .tab.active {
-    background: var(--card);
-    border-color: var(--border);
+    background: #eef4ff;
+    border-left-color: var(--accent);
     color: var(--accent);
   }
   .tab.highlight {
-    margin-left: 12px;
+    margin-top: 8px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
     font-weight: 700;
   }
   .tab.highlight:not(.active) { color: #7c3aed; }
@@ -380,9 +404,11 @@
 </style>
 </head>
 <body>
-<div class="container">
-
+<div class="layout">
+<aside class="sidebar">
   <div class="tabs" id="tabs"></div>
+</aside>
+<div class="container">
 
   <h1 id="title"></h1>
   <p class="lede" id="lede"></p>
@@ -426,6 +452,7 @@
     </div>
   </div>
 
+</div>
 </div>
 
 <script src="aidd_report.js"></script>
