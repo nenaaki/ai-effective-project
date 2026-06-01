@@ -84,6 +84,7 @@ function postprocessWorkitems(rawData){
     TANTOU_MAP = {},
     JISSI_MAP = {},
     STATUS_MAP = {},
+    PROGRESS_MAP = {},
     JISSI_KOUSU_H = {},
   } = rawData;
   const SCREENS = rawData.SCREENS.map(r => ({ ...r }));
@@ -166,10 +167,16 @@ function postprocessWorkitems(rawData){
   // IFは一律「実装不可」(進捗率 0)
   IFS.forEach(r=>{ r.状況 = "実装不可"; r.進捗率 = 0; });
 
-  // 10. 状況 fallback: 空欄なら備考の内容を取り込む。進捗率も未設定なら 0 で確定。
+  // 10. 状況 fallback: 空欄なら備考の内容を取り込む。進捗率も未設定なら 状況から推定。
   [...SCREENS, ...IFS].forEach(r=>{
     if (!r.状況) r.状況 = r.備考;
     if (r.進捗率 == null) r.進捗率 = STATUS_PROGRESS[r.状況] ?? 0;
+  });
+
+  // 11. PROGRESS_MAP (画面名 / IFID 別) があれば 進捗率 を個別上書き (0-100 % で指定 → 0-1 に変換)
+  [...SCREENS, ...IFS].forEach(r=>{
+    const k = r.画面名 || r.IFID || "";
+    if (k && (k in PROGRESS_MAP)) r.進捗率 = PROGRESS_MAP[k] / 100;
   });
 
   // 11. 実工数(h): 画面単位の合計を最初の行に設定

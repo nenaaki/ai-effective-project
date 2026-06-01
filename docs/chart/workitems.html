@@ -116,13 +116,14 @@ const LANE_START_DATES = data.LANE_START_DATES;
 const GANTT_NOTES = data.GANTT_NOTES;
 // 1人1営業日の稼働時間 (8h × 90%)
 const PERSON_DAY_HOURS = 7.2;
-// 基準日 (今日)
-const TODAY_ISO = "2026-05-27";
 // バーンダウン: 実績を日付別に描きたい場合のみ使用。日付→その日までの累積「完了スコープ(予定工数h)」
 // (空なら 実工数>0 の画面の予定工数合計を当日値として使用)
 const ACTUAL_BY_DATE = data.ACTUAL_BY_DATE;
 // EVM: 日付別の累積EV/ACスナップショット (各日付の終了時点の累積。ev/ac いずれか一方のみの記録も可)
 const EVM_SNAPSHOTS = data.EVM_SNAPSHOTS;
+// 基準日 (今日): EVM_SNAPSHOTS の最新日付を採用 (記録されたデータの範囲内で扱う)。
+// 未登録の場合は GANTT_START (プロジェクト開始日) にフォールバック。
+const TODAY_ISO = Object.keys(EVM_SNAPSHOTS).sort().pop() || "2026-05-25";
 // 画面の完了日 (実績)。GANTT_START(5/25)より前に完了した画面はカレンダー・バーンダウン対象外
 const DONE_DATE = data.DONE_DATE;
 // 5/25(プロジェクト開始)より前に完了済みの画面か (前週までに完了 → 予実対象外)
@@ -153,14 +154,14 @@ function aggregateEvAc({ plan, actual, progress }){
   return { ev, ac };
 }
 function esc(s){return String(s==null?"":s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));}
-// 「担当者/実施順」列: 別フィールド r.担当者 / r.実施順 を 1 セルに結合表示 ("1 / 2"。両方空なら空)
+// 「担当者/実施順」列: 別フィールド r.担当者 / r.実施順 を 1 セルに結合表示 ("1 - 2"。両方空なら空)
 // 「状況」列: 1行目=状況 / 2行目=進捗率 (例: "レビュー中" + "70%")。td の white-space:pre-line で改行表示。
 function cellValue(r, c){
   if (c === "担当者/実施順") {
     const t = (r.担当者 != null && r.担当者 !== "") ? r.担当者 : "";
     const o = (r.実施順 != null && r.実施順 !== "") ? r.実施順 : "";
     if (t === "" && o === "") return "";
-    return `${t === "" ? "—" : t} / ${o === "" ? "—" : o}`;
+    return `${t === "" ? "—" : t} - ${o === "" ? "—" : o}`;
   }
   if (c === "状況") {
     const s = r.状況 || "";
@@ -170,9 +171,9 @@ function cellValue(r, c){
   }
   return r[c];
 }
-// ヘッダ表示: 「担当者/実施順」は縦に折り返して "担当者" / "/実施順" の2行で表示
+// ヘッダ表示: 「担当者/実施順」は縦に折り返して "担当者" / "-実施順" の2行で表示
 function headerHtml(c){
-  if (c === "担当者/実施順") return "担当者<br>/実施順";
+  if (c === "担当者/実施順") return "担当者<br>-実施順";
   return esc(c);
 }
 function render(tid,hid,cols,data){
@@ -661,11 +662,12 @@ function buildBurndown(containerId){
   svg += `<line x1="${m.l}" y1="${m.t}" x2="${m.l}" y2="${H-m.b}" stroke="#999"/>`;
   svg += `<line x1="${m.l}" y1="${H-m.b}" x2="${W-m.r}" y2="${H-m.b}" stroke="#999"/>`;
   svg += `<text x="14" y="${m.t+plotH/2}" transform="rotate(-90 14 ${m.t+plotH/2})" text-anchor="middle" font-size="10" fill="#666">残工数 (h)</text>`;
-  // 今日マーカー
+  // 今日マーカー (日付付き)
   if (todayIdx >= 0 && todayIdx <= xMax) {
     const px = X(todayIdx);
+    const [, _mT, _dT] = TODAY_ISO.split("-").map(Number);
     svg += `<line x1="${px}" y1="${m.t}" x2="${px}" y2="${H-m.b}" stroke="#e09b00" stroke-width="1" stroke-dasharray="3 3"/>`;
-    svg += `<text x="${px}" y="${m.t-5}" text-anchor="middle" font-size="9" fill="#c80">今日</text>`;
+    svg += `<text x="${px}" y="${m.t-5}" text-anchor="middle" font-size="9" fill="#c80">今日 ${_mT}/${_dT}</text>`;
   }
   // 理想線 (総工数 → 0。日次キャパに応じて初日2日は緩やかに降下)
   const idealPts = [];
@@ -698,8 +700,13 @@ function buildEvm(containerId){
   const all = activeRows();
   const BAC = all.reduce((a,r)=>a+(r["工数(h)"]||0), 0);
   if (BAC <= 0) { el.innerHTML = ""; return; }
-  // 今日時点 EV/AC を集計 (進捗率は状況に基づく: 実装完了=100% / レビュー中=70% / 着手中=50%)
-  const { ev, ac } = aggregateEvAc(aggregatePlanActualStatus(all));
+  // EVM の「今日」は TODAY_ISO (= EVM_SNAPSHOTS の最新日付派生)。
+  // EVM_SNAPSHOTS が空なら EVM 表示自体をスキップ。
+  if (Object.keys(EVM_SNAPSHOTS).length === 0) { el.innerHTML = ""; return; }
+  const _live = aggregateEvAc(aggregatePlanActualStatus(all));
+  const _snap = EVM_SNAPSHOTS[TODAY_ISO];
+  const ev = (_snap && _snap.ev != null) ? _snap.ev : _live.ev;
+  const ac = (_snap && _snap.ac != null) ? _snap.ac : _live.ac;
   const todayIdx = dateToWorkdayIndex(TODAY_ISO);
   // 計画完了日 (workday index)。線形キャパベース
   let span = 0; while (cumCapacity(span) < BAC) span++;
@@ -766,11 +773,12 @@ function buildEvm(containerId){
     svg += `<line x1="${px}" y1="${mT}" x2="${px}" y2="${H-mB}" stroke="#aaa" stroke-width="1" stroke-dasharray="2 4"/>`;
     svg += `<text x="${px}" y="${mT-4}" text-anchor="middle" font-size="9" fill="#888">計画完了</text>`;
   }
-  // 今日マーカー
+  // 今日マーカー (日付付き)
   if (todayIdx >= 0 && todayIdx <= xMax) {
     const px = X(todayIdx);
+    const [, _mE, _dE] = TODAY_ISO.split("-").map(Number);
     svg += `<line x1="${px}" y1="${mT}" x2="${px}" y2="${H-mB}" stroke="#e09b00" stroke-width="1" stroke-dasharray="3 3"/>`;
-    svg += `<text x="${px}" y="${mT-4}" text-anchor="middle" font-size="9" fill="#c80">今日</text>`;
+    svg += `<text x="${px}" y="${mT-4}" text-anchor="middle" font-size="9" fill="#c80">今日 ${_mE}/${_dE}</text>`;
   }
   // PV (線形キャパベース) - 青
   const pvLine = [];

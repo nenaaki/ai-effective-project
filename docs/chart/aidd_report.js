@@ -318,6 +318,75 @@
     delete scenarios[from];
   });
 
+  // === シナリオ別 AsIs / 概算コード量 / 実測値の注入 ===
+  // workitems 由来テンプレートを実データで上書き。指定キーの工程だけ差分マージ、
+  // 残工程は 0 のまま (= 未測定)。tasks.<key>.{asis, tobe, tobeEng, loc, agents} を任意指定。
+  const SCENARIO_OVERRIDES = {
+    // 商品マスタ (FE022) - AsIs 見積もり / 担当はデポマスタと同じ
+    // ToBe: 固定工程 (api-review/ux/verify) + 実装系 6工程に AsIs比で 2.5h 分配 + レイアウト調整 2h
+    // バグ数: 約 1.9 KLOC × 参考レート (人力 12/KLOC ≒ 23件 / AI 5/KLOC ≒ 10件) で推定
+    'wi-screen-DM07FE022': {
+      bugCategories: [
+        { key: "syntax", label: "構文/型エラー",                                color: "#ef4444", asis: 3, tobe: 0 },
+        { key: "logic",  label: "ロジックバグ (検索・ソート・カテゴリ階層)",       color: "#f59e0b", asis: 7, tobe: 2 },
+        { key: "edge",   label: "エッジケース漏れ (空値・特殊文字・ステータス遷移)", color: "#8b5cf6", asis: 5, tobe: 2 },
+        { key: "spec",   label: "仕様解釈ミス (商品コード規則・カテゴリ階層)",       color: "#ec4899", asis: 3, tobe: 4 },
+        { key: "ui",     label: "UI 細部の不整合 (バッジ色・列幅・フォーム配置)",    color: "#06b6d4", asis: 5, tobe: 2 },
+      ],
+      bugRateNote: "※ 商品マスタ 約 1.9 KLOC × 参考レート（人力 12/KLOC ≒ 23件 / AI 5/KLOC ≒ 10件）で推定。マスタ一覧+登録更新の典型的 CRUD 構成で、論点は <strong>商品コード規則・カテゴリ階層の解釈</strong>。AI でも業務固有の命名規則・階層構造は仕様で明示しないと <strong>仕様解釈ミス</strong> が残りやすい (デポマスタ・ユーザマスタと同傾向)。",
+      tasks: {
+        'data-design': { asis: 3,            tobe: 0.2,                 agents: ["DBアーキテクトAI"] },
+        'data-impl':   { asis: 2,  loc: 56,  tobe: 0.1,                 agents: ["DBアーキテクトAI"] },
+        'api-impl':    { asis: 10, loc: 450, tobe: 0.6,                 agents: ["バックエンドAI"] },
+        'api-test':    { asis: 8,  loc: 580, tobe: 0.5,                 agents: ["バックエンドAI"] },
+        'api-review':  { asis: 2,            tobe: 2.0, tobeEng: 2.0,   agents: ["バックエンドレビュワーAI", "エンジニア"] },
+        'ux':          { asis: 4,            tobe: 2.0, tobeEng: 1.0,   agents: ["プランナーAI", "エンジニア"] },
+        'fe-design':   { asis: 2,            tobe: 0.1,                 agents: ["フロントエンドAI"] },
+        'fe-impl':     { asis: 16, loc: 810, tobe: 1.0,                 agents: ["フロントエンドAI"] },
+        'fe-test':     {                                                agents: ["—"] },
+        'fe-review':   {                                                agents: ["フロントエンドレビュワーAI", "エンジニア"] },
+        'verify':      { asis: 4,            tobe: 4.0, tobeEng: 4.0,   agents: ["バックエンドテスターAI", "フロントエンドテスターAI", "エンジニア"] },
+        'layout-adjust': {
+          label: "レイアウト調整",
+          color: "#fbbf24",
+          asis: 0,
+          tobe: 2.0, tobeEng: 1.0,
+          agents: ["フロントエンドAI", "エンジニア"],
+        },
+      },
+    },
+  };
+  Object.entries(SCENARIO_OVERRIDES).forEach(([key, override]) => {
+    const s = scenarios[key];
+    if (!s) return;
+    if (override.tasks) {
+      Object.entries(override.tasks).forEach(([tkey, patch]) => {
+        const existing = s.tasks.find(t => t.key === tkey);
+        if (existing) {
+          Object.assign(existing, patch);
+        } else {
+          // 既存テンプレートに無いキーは末尾に新規追加
+          s.tasks.push({
+            key: tkey,
+            label: patch.label || tkey,
+            color: patch.color || 'var(--c-verify)',
+            loc: patch.loc ?? null,
+            asis: patch.asis ?? 0,
+            tobe: patch.tobe ?? 0,
+            tobeEng: patch.tobeEng ?? 0,
+            agents: patch.agents ?? [],
+          });
+        }
+      });
+    }
+    if (override.title)        s.title = override.title;
+    if (override.lede)         s.lede = override.lede;
+    if (override.bugCategories) s.bugCategories = override.bugCategories;
+    if (override.contextNotes) s.contextNotes = override.contextNotes;
+    if (override.bugRateNote)  s.bugRateNote = override.bugRateNote;
+    s._template = false;
+  });
+
   scenarios.total = buildTotalScenario(scenarios, REAL_KEYS_FOR_TOTAL);
   const REAL_KEYS_TABS = REAL_KEYS.filter(k => !MERGE_MAP[k]);
   const TAB_ORDER = [...REAL_KEYS_TABS, ..._wi.keys, "total"];

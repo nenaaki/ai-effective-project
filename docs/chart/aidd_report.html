@@ -676,7 +676,12 @@
 
     // 内訳テーブル（asis/tobe/loc すべて 0 の行は非表示）
     const rows = tasks.filter(t => (t.asis||0) > 0 || (t.tobe||0) > 0 || (t.loc||0) > 0).map(t => {
-      const pct = t.asis > 0 ? Math.round((1 - t.tobe / t.asis) * 100) : 0;
+      // 削減率: 正 = 削減 (時間が減った) / 負 = 増加 (時間が増えた)
+      // AsIs > 0       → (1 - tobe/asis) × 100
+      // AsIs = 0, ToBe > 0 → 単純増加 +100% (=削減率 -100%)
+      const pct = t.asis > 0 ? Math.round((1 - t.tobe / t.asis) * 100)
+                : ((t.tobe || 0) > 0 ? -100 : 0);
+      const pctStr = pct > 0 ? `-${pct}%` : pct < 0 ? `+${-pct}%` : '-0%';
       const agentChips = (t.agents || [])
         .filter(a => a !== "—")
         .map(a => `<span class="agent-chip${isEngineer(a) ? " human" : ""}">${a}</span>`)
@@ -691,7 +696,7 @@
           <td class="num">${fmtH(t.tobe)}</td>
           <td class="num">${engCell}</td>
           <td>${agentChips}</td>
-          <td class="num reduction">-${pct}%</td>
+          <td class="num reduction">${pctStr}</td>
         </tr>
       `;
     }).join("");
