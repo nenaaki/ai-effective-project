@@ -228,6 +228,7 @@
   <div class="tabs">
     <button class="tab active" data-tab="issue">課題と論点</button>
     <button class="tab" data-tab="capability">planner の検知能力</button>
+    <button class="tab" data-tab="operation">PWでの運用</button>
   </div>
 
   <!-- ====================== タブ1: 課題と論点 ====================== -->
@@ -370,6 +371,88 @@
         <li><strong>テスト要件が定義できない箇所の検知</strong> <span>— 業務判断未確定として記録</span></li>
         <li><strong>画面実装に必要な情報の網羅チェック</strong> <span>— 必要 9 項目（ビジュアル / ルーティング / API / マッピング / 表示変換 / 操作 / 確認待ち事項 / 入力制約 / テスト要件）が揃っているか</span></li>
       </ul>
+    </div>
+  </div>
+
+  <!-- ====================== タブ3: PWでの運用 ====================== -->
+  <div class="tab-content" id="tab-operation">
+    <div class="grid">
+
+      <!-- 左: 運用フロー（不明点管理サイクル） -->
+      <div class="panel">
+        <h2>運用フロー（不明点管理サイクル）</h2>
+        <svg viewBox="0 0 560 230" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="oa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#374151"/></marker>
+            <marker id="ob" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#2563eb"/></marker>
+          </defs>
+
+          <!-- 往路（上段 左→右） -->
+          <rect x="8" y="22" width="168" height="54" rx="6" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+          <text x="92" y="44" text-anchor="middle" font-size="11" font-weight="bold" fill="#92400e">AI</text>
+          <text x="92" y="62" text-anchor="middle" font-size="10" fill="#1f2937">疑問点を TSV 出力</text>
+
+          <line x1="176" y1="49" x2="200" y2="49" stroke="#374151" stroke-width="1.5" marker-end="url(#oa)"/>
+
+          <rect x="200" y="22" width="168" height="54" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+          <text x="284" y="44" text-anchor="middle" font-size="11" font-weight="bold" fill="#1e40af">担当者</text>
+          <text x="284" y="62" text-anchor="middle" font-size="9" fill="#1f2937">Excel(SharePoint)に貼付</text>
+
+          <line x1="368" y1="49" x2="392" y2="49" stroke="#374151" stroke-width="1.5" marker-end="url(#oa)"/>
+
+          <rect x="392" y="22" width="160" height="54" rx="6" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
+          <text x="472" y="44" text-anchor="middle" font-size="10" font-weight="bold" fill="#991b1b">谷さん・千葉さん</text>
+          <text x="472" y="62" text-anchor="middle" font-size="10" fill="#1f2937">回答（2ルート）</text>
+
+          <!-- 下り -->
+          <line x1="472" y1="76" x2="472" y2="110" stroke="#374151" stroke-width="1.5" marker-end="url(#oa)"/>
+
+          <!-- 復路（下段 右→左） -->
+          <rect x="392" y="110" width="160" height="54" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+          <text x="472" y="132" text-anchor="middle" font-size="11" font-weight="bold" fill="#1e40af">担当者</text>
+          <text x="472" y="150" text-anchor="middle" font-size="10" fill="#1f2937">回答を TSV で再貼付</text>
+
+          <line x1="392" y1="137" x2="368" y2="137" stroke="#374151" stroke-width="1.5" marker-end="url(#oa)"/>
+
+          <rect x="200" y="110" width="168" height="54" rx="6" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+          <text x="284" y="132" text-anchor="middle" font-size="11" font-weight="bold" fill="#92400e">AI</text>
+          <text x="284" y="150" text-anchor="middle" font-size="9.5" fill="#1f2937">TSVを読取り実装へ反映</text>
+
+          <!-- ループ -->
+          <path d="M 200 137 H 92 V 76" fill="none" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#ob)"/>
+          <text x="98" y="100" font-size="9" font-weight="bold" fill="#2563eb">繰り返し</text>
+        </svg>
+      </div>
+
+      <!-- 右: 決定事項と回答ルート -->
+      <div class="panel">
+        <h2>決定事項と回答ルート</h2>
+        <div class="premise-banner">
+          <span class="tag">決定</span>
+          <div>谷さん・千葉さんと協議し、不明点は <strong>SharePoint 上の Excel で一元管理</strong> することを決定</div>
+        </div>
+
+        <div class="points-label">回答の 2 ルート</div>
+        <div class="points">
+          <div class="point">
+            <span class="num">1</span>
+            <div>不明点を追加したら <strong>都度 手動で連絡</strong> し、回答をもらう</div>
+          </div>
+          <div class="point">
+            <span class="num">2</span>
+            <div>週 2〜3 回の <strong>チーム MTG でまとめて回答</strong> をもらう</div>
+          </div>
+        </div>
+
+        <div class="conclusion" style="margin-top: 12px;">
+          <div class="conclusion-label">AIDD への反映</div>
+          <div class="conclusion-list">
+            <div class="conclusion-item"><span class="tag">出力</span>AI が疑問点を <strong>TSV で出力</strong> → Excel に貼付して一覧管理</div>
+            <div class="conclusion-item"><span class="tag">取込</span>回答を担当者が <strong>TSV で再貼付</strong> → AI が読取り不明点を解消し <strong>実装へ反映</strong></div>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 

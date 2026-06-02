@@ -240,6 +240,7 @@
   <div class="tabs">
     <button class="tab active" data-tab="issue">課題と論点</button>
     <button class="tab" data-tab="sample">実例サンプル</button>
+    <button class="tab" data-tab="operation">PWでの運用</button>
   </div>
 
   <!-- ====================== タブ1: 課題と論点 ====================== -->
@@ -433,6 +434,95 @@
           </div>
         </div>
         <div class="sample-note">8 項目を 1 列縦並びで配置。スクロールが必要で、視覚的に別物。</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ====================== タブ3: PWでの運用 ====================== -->
+  <div class="tab-content" id="tab-operation">
+    <div class="grid">
+
+      <!-- 左: 運用フロー -->
+      <div class="panel">
+        <h2>運用フロー（人手修正 + スクショ活用）</h2>
+        <svg viewBox="0 0 540 180" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="oa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#374151"/></marker>
+            <marker id="oar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#dc2626"/></marker>
+            <marker id="oag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#047857"/></marker>
+          </defs>
+
+          <!-- 上段: AI 出力 -->
+          <rect x="8" y="28" width="120" height="50" rx="6" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+          <text x="68" y="50" text-anchor="middle" font-size="11" font-weight="bold" fill="#92400e">AI</text>
+          <text x="68" y="68" text-anchor="middle" font-size="10" fill="#1f2937">画面を出力</text>
+
+          <!-- 条件分岐: mock と乖離がある場合のみ 人へ -->
+          <text x="186" y="18" text-anchor="middle" font-size="8" font-weight="bold" fill="#dc2626">mock と乖離がある場合</text>
+          <line x1="128" y1="53" x2="244" y2="53" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#oar)"/>
+
+          <rect x="244" y="28" width="138" height="50" rx="6" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
+          <text x="313" y="50" text-anchor="middle" font-size="11" font-weight="bold" fill="#991b1b">人</text>
+          <text x="313" y="68" text-anchor="middle" font-size="10" fill="#1f2937">mock スクショを与える</text>
+
+          <line x1="382" y1="53" x2="404" y2="53" stroke="#374151" stroke-width="1.5" marker-end="url(#oa)"/>
+
+          <rect x="404" y="28" width="128" height="50" rx="6" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+          <text x="468" y="50" text-anchor="middle" font-size="11" font-weight="bold" fill="#92400e">AI</text>
+          <text x="468" y="68" text-anchor="middle" font-size="9" fill="#1f2937">突合しレイアウト調整</text>
+
+          <!-- 下り -->
+          <line x1="468" y1="78" x2="468" y2="114" stroke="#374151" stroke-width="1.5" marker-end="url(#oa)"/>
+
+          <!-- 下段: 人 手修正 → 完成 -->
+          <rect x="404" y="114" width="128" height="50" rx="6" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
+          <text x="468" y="136" text-anchor="middle" font-size="11" font-weight="bold" fill="#991b1b">人</text>
+          <text x="468" y="154" text-anchor="middle" font-size="10" fill="#1f2937">残差を手修正</text>
+
+          <line x1="404" y1="139" x2="382" y2="139" stroke="#374151" stroke-width="1.5" marker-end="url(#oa)"/>
+
+          <rect x="244" y="114" width="138" height="50" rx="6" fill="#ecfdf5" stroke="#10b981" stroke-width="1.5"/>
+          <text x="313" y="136" text-anchor="middle" font-size="11" font-weight="bold" fill="#047857">完成</text>
+          <text x="313" y="154" text-anchor="middle" font-size="10" fill="#1f2937">mock 通りに再現</text>
+
+          <!-- 意図通りなら そのまま完成 -->
+          <path d="M 68 78 V 139 H 244" fill="none" stroke="#047857" stroke-width="1.5" marker-end="url(#oag)"/>
+          <text x="74" y="104" text-anchor="start" font-size="8" font-weight="bold" fill="#047857">乖離なし</text>
+        </svg>
+      </div>
+
+      <!-- 右: PWで決定した運用 -->
+      <div class="panel">
+        <h2>PW で決定した運用</h2>
+        <div class="conclusion-premise">
+          <span class="tag">決定</span>
+          <div>AI が作成したものに対して、<strong>人が修正を加える</strong> 方針で決定</div>
+        </div>
+
+        <div class="points-label">進め方（mock と乖離がある場合）</div>
+        <div class="points">
+          <div class="point">
+            <span class="num">1</span>
+            <div>人が <strong>mock のスクリーンショットを与える</strong></div>
+          </div>
+          <div class="point">
+            <span class="num">2</span>
+            <div>AI が突合し <strong>レイアウトを限りなく一致</strong> へ近づける</div>
+          </div>
+          <div class="point">
+            <span class="num">3</span>
+            <div>残差を <strong>人の手で修正</strong> して仕上げる</div>
+          </div>
+        </div>
+
+        <div class="conclusion">
+          <div class="conclusion-label">前提 / 位置づけ</div>
+          <div class="conclusion-grid">
+            <div class="conclusion-item"><span class="tag">前提</span>mock は顧客と合意済み → レイアウト・デザインも基本 <strong>そのまま再現</strong></div>
+            <div class="conclusion-item"><span class="tag">位置づけ</span>万能 AI は追わず <strong>実用性優先</strong>（タブ1の結論と同じ）</div>
+          </div>
+        </div>
       </div>
 
     </div>

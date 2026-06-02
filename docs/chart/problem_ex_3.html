@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>課題事例: mock とデータモデルの差分（PW-122）</title>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body {
+    font-family: -apple-system, "Hiragino Kaku Gothic ProN", "Yu Gothic", system-ui, sans-serif;
+    color: #1f2937;
+    background: #fafafa;
+    padding: 28px 32px;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+  .page { max-width: 1240px; margin: 0 auto; height: 100%; display: flex; flex-direction: column; }
+  h1 { font-size: 19px; margin: 0; border-bottom: 3px solid #2563eb; padding-bottom: 6px; }
+  .sub { color: #6b7280; font-size: 12px; margin: 6px 0 14px; }
+
+  .tabs { display: flex; gap: 4px; margin-bottom: 14px; border-bottom: 1px solid #e5e7eb; }
+  .tab {
+    padding: 8px 16px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-bottom: none;
+    border-radius: 6px 6px 0 0;
+    cursor: pointer;
+    font-size: 13px;
+    font-family: inherit;
+    color: #6b7280;
+    margin-bottom: -1px;
+  }
+  .tab.active { background: white; border-color: #e5e7eb; color: #2563eb; font-weight: 600; }
+  .tab:hover { color: #1f2937; }
+
+  .tab-content { display: none; flex: 1; min-height: 0; }
+  .tab-content.active { display: flex; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 18px;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+  }
+  .panel {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  h2 { font-size: 13px; margin: 0 0 10px; padding-left: 8px; border-left: 3px solid #2563eb; }
+  svg { display: block; width: 100%; height: auto; flex: 1; }
+
+  /* タブ1 右パネル: 1 つの課題 + 論点 */
+  .issue-block {
+    background: #fef3c7;
+    border-left: 3px solid #f59e0b;
+    padding: 12px 14px;
+    border-radius: 4px;
+    margin-bottom: 12px;
+  }
+  .issue-block .label { font-size: 11px; color: #92400e; font-weight: 600; }
+  .issue-block .title { font-size: 14px; font-weight: 600; color: #1f2937; margin-top: 4px; line-height: 1.5; }
+
+  .points-label { font-size: 12px; font-weight: 600; color: #2563eb; margin: 6px 0; }
+  .points { display: flex; flex-direction: column; gap: 8px; }
+  .point {
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 9px 12px;
+    font-size: 12px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .point .num {
+    background: #2563eb; color: white;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-weight: bold; font-size: 11px;
+    flex-shrink: 0;
+  }
+
+  /* 結論ブロック */
+  .conclusion {
+    margin-top: 10px;
+    background: #ecfdf5;
+    border-left: 3px solid #10b981;
+    border-radius: 4px;
+    padding: 8px 10px;
+  }
+  .conclusion-label {
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #047857;
+    letter-spacing: 0.04em;
+    margin-bottom: 6px;
+  }
+  .conclusion-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5px 10px;
+  }
+  .conclusion-item {
+    font-size: 10.5px;
+    line-height: 1.5;
+    color: #1f2937;
+  }
+  .conclusion-item .tag {
+    display: inline-block;
+    background: #10b981;
+    color: white;
+    font-size: 9.5px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 3px;
+    margin-right: 5px;
+    vertical-align: 1px;
+  }
+
+  /* 案件基本方針バナー（結論先頭） */
+  .conclusion-premise {
+    background: white;
+    border: 1.5px solid #047857;
+    border-radius: 4px;
+    padding: 6px 9px;
+    margin-bottom: 7px;
+    font-size: 10.5px;
+    line-height: 1.5;
+    color: #1f2937;
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+  }
+  .conclusion-premise .tag {
+    background: #047857;
+    color: white;
+    font-size: 9.5px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 3px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  /* タブ2: 実例サンプル */
+  .sample-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+  }
+  .sample-panel {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .sample-header { font-size: 13px; font-weight: 600; margin: 0 0 10px; padding-left: 8px; border-left: 3px solid #2563eb; }
+  .mockup-frame {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 10px;
+    font-size: 11px;
+    flex: 1;
+  }
+  .mockup-section { background: white; border-radius: 4px; padding: 8px; margin-bottom: 6px; }
+  .mockup-section-title { font-size: 10px; font-weight: 600; color: #6b7280; margin-bottom: 6px; }
+
+  /* mockup: grid-cols-4 横並び密集 */
+  .mockup-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .mockup-field { background: #f3f4f6; border-radius: 3px; padding: 5px 6px; }
+  .mockup-field-label { font-size: 9px; color: #6b7280; }
+  .mockup-field-value { font-size: 10px; color: #1f2937; font-weight: 500; margin-top: 2px; height: 14px; background: white; border-radius: 2px; }
+
+  /* 実装: 縦リスト */
+  .impl-list { display: flex; flex-direction: column; gap: 4px; }
+  .impl-row { display: flex; border-bottom: 1px solid #e5e7eb; padding: 6px 0; align-items: center; }
+  .impl-row-label { font-size: 10px; color: #6b7280; width: 80px; flex-shrink: 0; }
+  .impl-row-value { font-size: 10px; color: #1f2937; flex: 1; background: #f3f4f6; height: 16px; border-radius: 2px; }
+
+  .sample-note { font-size: 11px; color: #6b7280; margin-top: 8px; padding: 6px 8px; background: #fef3c7; border-left: 3px solid #f59e0b; border-radius: 3px; }
+
+  /* 通常業務だとどうなるか（左パネル下部） */
+  .normal-flow {
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    padding: 10px 12px;
+    background: #f3f4f6;
+    margin-top: 12px;
+  }
+  .normal-flow-head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+  .normal-flow-tag {
+    background: #6b7280;
+    color: white;
+    padding: 2px 7px;
+    border-radius: 3px;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+  .normal-flow-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: #4b5563;
+  }
+  .normal-flow-single {
+    font-size: 11px;
+    color: #1f2937;
+    background: white;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    padding: 6px 10px;
+    line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>課題事例: mock とデータモデルの差分で、実装の正解が定まらず進められないことがある</h1>
+  <div class="sub">AIDD 試行で見つかった構造的課題 / PW-122 エリアマスタ試行で発見 / 2026-06-02</div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="issue">課題と論点</button>
+    <button class="tab" data-tab="sample">実例サンプル</button>
+  </div>
+
+  <!-- ====================== タブ1: 課題と論点 ====================== -->
+  <div class="tab-content active" id="tab-issue">
+    <div class="grid">
+
+      <!-- 左: 現状フロー -->
+      <div class="panel">
+        <h2>現状フロー（mock とデータモデルの差分）</h2>
+        <svg viewBox="0 0 560 224" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#374151"/></marker>
+            <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#dc2626"/></marker>
+          </defs>
+
+          <!-- 2 ソース -->
+          <rect x="40" y="16" width="220" height="46" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+          <text x="150" y="38" text-anchor="middle" font-size="11" font-weight="bold" fill="#1e40af">mock（現行踏襲）</text>
+          <text x="150" y="54" text-anchor="middle" font-size="9.5" fill="#1f2937">現行システムの項目を表示</text>
+
+          <rect x="300" y="16" width="220" height="46" rx="6" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+          <text x="410" y="38" text-anchor="middle" font-size="10" font-weight="bold" fill="#92400e">データモデル定義（新システム）</text>
+          <text x="410" y="54" text-anchor="middle" font-size="9.5" fill="#1f2937">新システムに合わせ設計</text>
+
+          <!-- 収束 -->
+          <line x1="150" y1="62" x2="250" y2="90" stroke="#374151" stroke-width="1.5" marker-end="url(#a)"/>
+          <line x1="410" y1="62" x2="310" y2="90" stroke="#374151" stroke-width="1.5" marker-end="url(#a)"/>
+          <text x="280" y="80" text-anchor="middle" font-size="9" font-weight="bold" fill="#6b7280">差分</text>
+
+          <!-- 乖離 -->
+          <rect x="140" y="92" width="280" height="50" rx="6" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
+          <text x="280" y="113" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#991b1b">登録画面で データモデルの項目の</text>
+          <text x="280" y="129" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#991b1b">入力欄が mock に無い（差分）</text>
+
+          <!-- 差し戻し -->
+          <line x1="280" y1="142" x2="280" y2="168" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#ar)"/>
+          <text x="292" y="160" text-anchor="start" font-size="8.5" font-weight="bold" fill="#dc2626">課題①: 差し戻し（対応決定済み）</text>
+
+          <!-- 課題 -->
+          <rect x="120" y="168" width="320" height="48" rx="6" fill="white" stroke="#dc2626" stroke-width="2" stroke-dasharray="5 3"/>
+          <text x="134" y="188" font-size="9" font-weight="bold" fill="#dc2626">課題</text>
+          <text x="280" y="188" text-anchor="middle" font-size="10" font-weight="bold" fill="#991b1b">判断が下りるまで、確定済みでも</text>
+          <text x="280" y="206" text-anchor="middle" font-size="10" font-weight="bold" fill="#991b1b">実装に進められないことがある</text>
+        </svg>
+
+        <div class="normal-flow">
+          <div class="normal-flow-head">
+            <span class="normal-flow-tag">通常業務</span>
+            <span class="normal-flow-title">仕様と mock に差分があるときの一般的な対応</span>
+          </div>
+          <div class="normal-flow-single">
+            データモデル（仕様）の確定を待ち、確定箇所から実装する。差分は <strong>関係者に確認</strong> してから該当項目を作る。
+          </div>
+        </div>
+      </div>
+
+      <!-- 右: 課題 + 論点 -->
+      <div class="panel">
+        <h2>課題と論点</h2>
+        <div class="issue-block">
+          <div class="label">課題</div>
+          <div class="title">mock とデータモデルの差分があると、どちらを正とするかの判断が要り、確定済みの項目でも実装に進められないことがある</div>
+        </div>
+
+        <div class="points-label">背景</div>
+        <div class="points">
+          <div class="point">
+            <div>
+              mock は <strong>現行システムを踏襲</strong> して項目を表示しているが、データモデル定義は <strong>新システムに合わせて設計</strong> されている。両者の差分により、データモデルにある項目が mock の登録画面に無いことがある。
+            </div>
+          </div>
+        </div>
+
+        <div class="points-label" style="margin-top: 12px;">論点</div>
+        <div class="points">
+          <div class="point">
+            <span class="num">1</span>
+            <div>差分があるとき <strong>「どちらを正とするか」</strong> をどう早く判断し、差し戻しの回答待ちを短くするか　<span class="sample-link" data-tab="sample" style="color:#2563eb; cursor:pointer; text-decoration:underline;">実例 →</span></div>
+          </div>
+          <div class="point">
+            <span class="num">2</span>
+            <div><strong>デフォルトの優先</strong>（mock か データモデルか）をルール化できるか</div>
+          </div>
+          <div class="point">
+            <span class="num">3</span>
+            <div>判断待ちの項目を <strong>保留／仮実装</strong> のどちらで進め、停滞を避けるか</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ====================== タブ2: 実例サンプル ====================== -->
+  <div class="tab-content" id="tab-sample">
+    <div class="sample-grid">
+
+      <!-- 左: mock 登録ドロワー（現行踏襲） -->
+      <div class="sample-panel">
+        <div class="sample-header">mock 登録ドロワー（現行踏襲）</div>
+        <div class="mockup-frame">
+          <div class="mockup-section">
+            <div class="mockup-section-title">基本情報</div>
+            <div class="mockup-grid-4">
+              <div class="mockup-field"><div class="mockup-field-label">デポコード</div><div class="mockup-field-value"></div></div>
+              <div class="mockup-field"><div class="mockup-field-label">デポ名</div><div class="mockup-field-value"></div></div>
+              <div class="mockup-field"><div class="mockup-field-label">エリア名</div><div class="mockup-field-value"></div></div>
+              <div class="mockup-field"><div class="mockup-field-label">商品名</div><div class="mockup-field-value"></div></div>
+              <div class="mockup-field"><div class="mockup-field-label">商品ID</div><div class="mockup-field-value"></div></div>
+              <div class="mockup-field" style="outline:1px dashed #9ca3af;"><div class="mockup-field-label" style="color:#9ca3af;">商品種別</div><div class="mockup-field-value" style="background:#f9fafb; color:#9ca3af; font-size:9px; text-align:center; line-height:14px;">なし</div></div>
+            </div>
+          </div>
+          <div class="mockup-section">
+            <div class="mockup-section-title">住所・配送会社情報</div>
+            <div class="mockup-grid-4">
+              <div class="mockup-field"><div class="mockup-field-label">郵便番号</div><div class="mockup-field-value"></div></div>
+              <div class="mockup-field"><div class="mockup-field-label">電話番号</div><div class="mockup-field-value"></div></div>
+              <div class="mockup-field"><div class="mockup-field-label">都道府県名</div><div class="mockup-field-value"></div></div>
+              <div class="mockup-field"><div class="mockup-field-label">市区町村名</div><div class="mockup-field-value"></div></div>
+              <div class="mockup-field"><div class="mockup-field-label">管理配送会社コード</div><div class="mockup-field-value"></div></div>
+              <div class="mockup-field"><div class="mockup-field-label">管理配送会社名</div><div class="mockup-field-value"></div></div>
+              <div class="mockup-field"><div class="mockup-field-label">配送会社コード</div><div class="mockup-field-value"></div></div>
+              <div class="mockup-field"><div class="mockup-field-label">配送会社名</div><div class="mockup-field-value"></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="sample-note">現行踏襲のため <strong>商品種別</strong> の入力欄が無い。</div>
+      </div>
+
+      <!-- 右: 開発した画面（データモデル準拠） -->
+      <div class="sample-panel">
+        <div class="sample-header">開発した画面（データモデル準拠）</div>
+        <div class="mockup-frame">
+          <div class="mockup-section">
+            <div class="mockup-section-title">基本情報</div>
+            <div class="mockup-grid-4">
+              <div class="mockup-field"><div class="mockup-field-label">デポコード</div><div class="mockup-field-value"></div></div>
+              <div class="mockup-field"><div class="mockup-field-label">デポ名</div><div class="mockup-field-value"></div></div>
+              <div class="mockup-field"><div class="mockup-field-label">エリア名</div><div class="mockup-field-value"></div></div>
+              <div class="mockup-field"><div class="mockup-field-label">商品名</div><div class="mockup-field-value"></div></div>
+              <div class="mockup-field"><div class="mockup-field-label">商品ID</div><div class="mockup-field-value"></div></div>
+              <div class="mockup-field" style="background:#ecfdf5; outline:2px solid #10b981;"><div class="mockup-field-label" style="color:#047857; font-weight:700;">＋ 商品種別</div><div class="mockup-field-value" style="background:white;"></div></div>
+            </div>
+          </div>
+          <div class="mockup-section">
+            <div class="mockup-section-title">住所・配送会社情報</div>
+            <div class="mockup-grid-4">
+              <div class="mockup-field"><div class="mockup-field-label">郵便番号</div><div class="mockup-field-value"></div></div>
+              <div class="mockup-field"><div class="mockup-field-label">電話番号</div><div class="mockup-field-value"></div></div>
+              <div class="mockup-field"><div class="mockup-field-label">都道府県名</div><div class="mockup-field-value"></div></div>
+              <div class="mockup-field"><div class="mockup-field-label">市区町村名</div><div class="mockup-field-value"></div></div>
+              <div class="mockup-field"><div class="mockup-field-label">管理配送会社コード</div><div class="mockup-field-value"></div></div>
+              <div class="mockup-field"><div class="mockup-field-label">管理配送会社名</div><div class="mockup-field-value"></div></div>
+              <div class="mockup-field"><div class="mockup-field-label">配送会社コード</div><div class="mockup-field-value"></div></div>
+              <div class="mockup-field"><div class="mockup-field-label">配送会社名</div><div class="mockup-field-value"></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="sample-note">データモデルに合わせ <strong style="color:#047857;">商品種別</strong> を追加（mock に無かった項目）。</div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const switchTab = (target) => {
+    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    document.querySelector(`.tab[data-tab="${target}"]`)?.classList.add('active');
+    document.getElementById('tab-' + target).classList.add('active');
+  };
+  document.querySelectorAll('.tab').forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+  });
+  document.querySelectorAll('.sample-link').forEach(el => {
+    el.addEventListener('click', () => switchTab(el.dataset.tab));
+  });
+</script>
+</body>
+</html>
