@@ -91,9 +91,9 @@
     color: var(--accent);
   }
   .tab.highlight {
-    margin-top: 8px;
-    padding-top: 12px;
-    border-top: 1px solid var(--border);
+    margin-bottom: 8px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
     font-weight: 700;
   }
   .tab.highlight:not(.active) { color: #7c3aed; }
@@ -101,6 +101,22 @@
   .tab.highlight::before {
     content: "Σ ";
     font-weight: 700;
+  }
+  .tab.is-empty:not(.active) { color: #b6bcc6; }
+  .tab-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #10b981;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+  .tab-trial {
+    margin-left: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    color: #9333ea;
   }
 
   h1 {
@@ -471,12 +487,27 @@
   const fmtLoc = (n) => (n == null ? "—" : `約${n}行`);
 
   // ====== タブ ======
+  // 値が記入済みか (工数 or バグ数のいずれかが入力されている)
+  function scenarioHasData(s) {
+    if (!s) return false;
+    const hasTask = (s.tasks || []).some(t => (t.asis || 0) > 0 || (t.tobe || 0) > 0 || (t.loc || 0) > 0);
+    const hasBug  = (s.bugCategories || []).some(c => (c.asis || 0) > 0 || (c.tobe || 0) > 0);
+    return hasTask || hasBug;
+  }
+  // 「[試行特有]」の工程を含むか
+  function scenarioHasTrial(s) {
+    return !!s && (s.tasks || []).some(t => (t.label || "").includes("[試行特有]"));
+  }
   function renderTabs() {
     document.getElementById("tabs").innerHTML = TAB_ORDER.map(k => {
       const cls = ["tab"];
       if (k === currentKey) cls.push("active");
       if (k === "total")    cls.push("highlight");
-      return `<button type="button" class="${cls.join(" ")}" data-key="${k}">${scenarios[k].tabLabel}</button>`;
+      const hasData = scenarioHasData(scenarios[k]);
+      if (!hasData) cls.push("is-empty");
+      const dot   = hasData ? '<span class="tab-dot" title="値が記入済み"></span>' : "";
+      const trial = scenarioHasTrial(scenarios[k]) ? '<span class="tab-trial" title="試行特有の工程を含む">(試行)</span>' : "";
+      return `<button type="button" class="${cls.join(" ")}" data-key="${k}">${scenarios[k].tabLabel}${dot}${trial}</button>`;
     }).join("");
   }
   // クリックは初期化時に一度だけ委譲バインド
@@ -542,6 +573,8 @@
     }
 
     const totalTobeEng = tasks.reduce((a, t) => a + (t.tobeEng || 0), 0);
+    // 「[試行特有]」を含むラベルの「うちエンジニア(tobeEng)」合計 (0 または該当なしなら非表示)
+    const totalTobeTrial = tasks.reduce((a, t) => a + ((t.label && t.label.includes("[試行特有]")) ? (t.tobeEng || 0) : 0), 0);
     const totalTobeAI  = totalTobe - totalTobeEng;
     const maxTotal     = Math.max(totalAsis, totalTobe);
     const reduction    = (1 - totalTobe / totalAsis) * 100;
@@ -561,6 +594,7 @@
         <div class="v tobe">${fmtH(totalTobe)}</div>
         <div class="sub">${fmtDays(totalTobe)} (うち AI ${fmtH(totalTobeAI)})</div>
         <div class="sub eng-line">└ うちエンジニア ${fmtH(totalTobeEng)} <span class="frac">(${engPct}%)</span></div>
+        ${totalTobeTrial > 0 ? `<div class="sub eng-line">　└ うち試行特有 ${fmtH(totalTobeTrial)}</div>` : ""}
       </div>
       <div class="stat">
         <div class="k">削減率</div>

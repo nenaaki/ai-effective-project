@@ -347,10 +347,41 @@
         'fe-review':   {                                                agents: ["フロントエンドレビュワーAI", "エンジニア"] },
         'verify':      { asis: 4,            tobe: 4.0, tobeEng: 4.0,   agents: ["バックエンドテスターAI", "フロントエンドテスターAI", "エンジニア"] },
         'layout-adjust': {
-          label: "レイアウト調整",
+          label: "[試行特有]レイアウト調整",
           color: "#fbbf24",
           asis: 0,
           tobe: 2.0, tobeEng: 1.0,
+          agents: ["フロントエンドAI", "エンジニア"],
+        },
+      },
+    },
+    // お知らせ登録 (FE015) - 作業内訳の項目は商品マスタをコピー。AsIs/ToBe 等は一旦 0 (後で記入)。
+    'wi-screen-DM04FE015': {
+      bugCategories: [
+        { key: "syntax", label: "構文/型エラー",                              color: "#ef4444", asis: 4, tobe: 0 },
+        { key: "logic",  label: "ロジックバグ (公開期間・並び順・対象範囲)",     color: "#f59e0b", asis: 9, tobe: 3 },
+        { key: "edge",   label: "エッジケース漏れ (空値・公開前後・添付有無)",    color: "#8b5cf6", asis: 7, tobe: 3 },
+        { key: "spec",   label: "仕様解釈ミス (公開範囲・通知対象の解釈)",        color: "#ec4899", asis: 4, tobe: 5 },
+        { key: "ui",     label: "UI 細部の不整合 (一覧列・フォーム配置)",         color: "#06b6d4", asis: 6, tobe: 2 },
+      ],
+      bugRateNote: "※ お知らせ登録 約 2.5 KLOC × 参考レート（人力 12/KLOC ≒ 30件 / AI 5/KLOC ≒ 13件）で推定。一覧+登録の CRUD 構成で、論点は <strong>公開期間・公開範囲・通知対象の解釈</strong>。AI でも業務固有の公開ルール・通知条件は仕様で明示しないと <strong>仕様解釈ミス</strong> が残りやすい (商品マスタ等と同傾向)。",
+      tasks: {
+        'data-design': { asis: 4,   loc: 0,    tobe: 0.2, tobeEng: 0, agents: ["DBアーキテクトAI"] },
+        'data-impl':   { asis: 6,   loc: 166,  tobe: 0.3, tobeEng: 0, agents: ["DBアーキテクトAI"] },
+        'api-impl':    { asis: 8,   loc: 369,  tobe: 0.4, tobeEng: 0, agents: ["バックエンドAI"] },
+        'api-test':    { asis: 3.5, loc: 256,  tobe: 0.2, tobeEng: 0, agents: ["バックエンドAI"] },
+        'api-review':  { asis: 2,              tobe: 2, tobeEng: 2, agents: ["バックエンドレビュワーAI", "エンジニア"] },
+        'ux':          { asis: 5.5,            tobe: 1.5, tobeEng: 1.0, agents: ["プランナーAI", "エンジニア"] },
+        'fe-design':   { asis: 3,              tobe: 0.2, tobeEng: 0, agents: ["フロントエンドAI"] },
+        'fe-impl':     { asis: 33.5, loc: 1694, tobe: 1.7, tobeEng: 0, agents: ["フロントエンドAI"] },
+        'fe-test':     {                                       agents: ["—"] },
+        'fe-review':   {                                       agents: ["フロントエンドレビュワーAI", "エンジニア"] },
+        'verify':      { asis: 2.0,       tobe: 2.0, tobeEng: 1.5, agents: ["バックエンドテスターAI", "フロントエンドテスターAI", "エンジニア"] },
+        'layout-adjust': {
+          label: "レイアウト調整",
+          color: "#fbbf24",
+          asis: 0,
+          tobe: 1, tobeEng: 0.5,
           agents: ["フロントエンドAI", "エンジニア"],
         },
       },
@@ -389,4 +420,4 @@
 
   scenarios.total = buildTotalScenario(scenarios, REAL_KEYS_FOR_TOTAL);
   const REAL_KEYS_TABS = REAL_KEYS.filter(k => !MERGE_MAP[k]);
-  const TAB_ORDER = [...REAL_KEYS_TABS, ..._wi.keys, "total"];
+  const TAB_ORDER = ["total", ...REAL_KEYS_TABS, ..._wi.keys];
