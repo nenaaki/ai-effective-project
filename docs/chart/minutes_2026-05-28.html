@@ -109,8 +109,6 @@
   .item.done .num .n { display: none; }
   .item.done .title {
     color: #6b7280;
-    text-decoration: line-through;
-    text-decoration-color: #9ca3af;
   }
   .item.done .desc { color: #6b7280; }
   .item .badge-done {
@@ -247,10 +245,10 @@
       <div class="group">
         <div class="group-label">進捗管理・指標関連</div>
         <div class="items">
-          <div class="item">
-            <span class="num">1</span>
+          <div class="item done">
+            <span class="num"><span class="n">1</span></span>
             <div>
-              <div class="title">全体進捗表（WBS）の再作成<span class="badge-wip">実施中</span></div>
+              <div class="title">全体進捗表（WBS）の再作成<span class="badge-done">解消済</span></div>
               <div class="desc">全体像を網羅し、<strong>瞬時に進捗率が分かるシンプルな表</strong> を作成する</div>
               <div class="item-detail">
                 <div class="head">意図</div>
@@ -258,8 +256,8 @@
                 コロコロ変わる「生きた情報」は実務で使えばよいが、経営・マネジメント層向けには <strong>「固定された枠組み（予算・全タスク一覧）」の中で進捗を更新するシンプルな形式</strong> が重要。
               </div>
               <div class="item-detail action">
-                <div class="head">解消に向けたアクション</div>
-                まずは <strong>全タスクがカレンダー上に表示された状態</strong> を作る（実施中）
+                <div class="head">解消</div>
+                <strong>AI 駆動開発対象のものをすべてカレンダー上に表示した。</strong>
               </div>
             </div>
           </div>
@@ -270,14 +268,14 @@
               <div class="desc">バーンダウンチャート等に、<strong>完了予測日を算出できる計算式</strong> を反映させる</div>
             </div>
           </div>
-          <div class="item">
-            <span class="num">3</span>
+          <div class="item done">
+            <span class="num"><span class="n">3</span></span>
             <div>
-              <div class="title">工数記録の精緻化<span class="badge-wip">試行中</span><a class="open-link" href="aidd_report.html#depot-master" target="_blank" rel="noopener">aidd_report のデポマスタを開く →</a></div>
+              <div class="title">工数記録の精緻化<span class="badge-done">解消済</span><a class="open-link" href="aidd_report.html#depot-master" target="_blank" rel="noopener">aidd_report のデポマスタを開く →</a></div>
               <div class="desc"><strong>「仕組み構築（オーバーヘッド）」と「実開発」</strong> の工数を分離して記録し、改善効果の根拠を組み立てる</div>
               <div class="item-detail action">
-                <div class="head">対処（試行中）</div>
-                <strong>試行錯誤オーバーヘッドを記録するように変更</strong>（実施済）。<strong>他に有効な記録方法があるか検討中</strong>
+                <div class="head">解消</div>
+                <strong>ToBe 側の「試行錯誤時間」を別計上・集計可能な項目とする。</strong>試行錯誤時間の有無で別集計できるようにする
               </div>
             </div>
           </div>
@@ -294,7 +292,7 @@
               <div class="desc">対象機能について、<strong>AI を使わない場合の見積もり</strong> を合議の上で算出する</div>
               <div class="item-detail action">
                 <div class="head">実施中</div>
-                全タスクについて <strong>AsIs（人力）を算出</strong> し、<strong>現案件チームの PM に認識齟齬がないか確認</strong> してもらう（タスクの列挙後の作業）
+                AI 駆動で実装後、<strong>出力されたコード量を AI に計上させ、AsIs（人力の場合の予想工数）を算出させる</strong> 方法。後で <strong>PM との間で齟齬がないか確認</strong> する
               </div>
             </div>
           </div>
@@ -316,10 +314,9 @@
               <div class="desc"><strong>「試行錯誤（オーバーヘッド）」と「標準運用」</strong> を区別して記録する体制を維持し、集計時に <strong>限界利益率</strong> を算出できるようにする</div>
               <div class="item-detail action">
                 <div class="head">進め方</div>
-                <strong>⑤ を定めたタイミングで集計できるよう整える</strong>。具体的な検討項目:
+                <strong>③ で個別集計化した。</strong>⑤ 以降は <strong>試行錯誤なしでやりきる</strong>。
                 <ul style="margin: 3px 0 0; padding-left: 18px;">
-                  <li>人力で画面等を修正した工数の記録</li>
-                  <li>要件確認が発生した場合の記録方法を検討する</li>
+                  <li>⑤ までに大幅な改善がなかった場合、<strong>⑤ 以前の計測値も有効値とすることができる</strong></li>
                 </ul>
               </div>
             </div>
