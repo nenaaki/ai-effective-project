@@ -836,7 +836,28 @@ function buildEvm(containerId){
       ／<span style="display:inline-block;width:20px;border-top:2.5px solid #d96b3a;vertical-align:middle;"></span> AC (実コスト)
       ／<span style="display:inline-block;width:20px;border-top:2px dashed #888;vertical-align:middle;"></span> 予測 (破線)
     </div>`;
+  // === 最新週スナップショット照合 (基準日 = TODAY_ISO のみ) ===
+  // ライブ _live は activeRows() = デポマスタ除外基準。スナップショットはデポマスタ含む基準で
+  // 記録されているため、照合用は全行 (プロジェクト開始前完了も含む) で再計算して突き合わせる。
+  // 過去日のスナップショットは凍結値として扱い、ここでは触らない。
+  const _recalc = aggregateEvAc(aggregatePlanActualStatus([...SCREENS, ...IFS]));
+  const _recEv = (_snap && _snap.ev != null) ? _snap.ev : null;
+  const _recAc = (_snap && _snap.ac != null) ? _snap.ac : null;
+  const _tol = 0.1;  // 丸め許容差 (h)
+  const _evOk = _recEv == null || Math.abs(_recEv - _recalc.ev) <= _tol;
+  const _acOk = _recAc == null || Math.abs(_recAc - _recalc.ac) <= _tol;
+  const _allOk = _evOk && _acOk;
+  const _mk = ok => ok ? '✅' : '⚠️';
+  const _ckCol = _allOk ? '#1c9b6a' : '#d33';
+  const reconcile = `
+    <div style="font-size:12px; border:1px solid ${_ckCol}; background:${_allOk ? '#eef7f1' : '#fdecea'}; border-radius:4px; padding:6px 10px; margin-bottom:10px;">
+      <b>週次照合 (基準日 ${TODAY_ISO})</b> ${_mk(_allOk)}
+      EV: 記録 ${_recEv == null ? '—' : _recEv.toFixed(1)} / 再計算 ${_recalc.ev.toFixed(1)} ${_mk(_evOk)}
+      AC: 記録 ${_recAc == null ? '—' : _recAc.toFixed(1)} / 再計算 ${_recalc.ac.toFixed(1)} ${_mk(_acOk)}
+      <span style="color:#888;">（再計算 = デポマスタ含む基準。グラフ/指標の値はスナップショット記録値）</span>
+    </div>`;
   el.innerHTML = `
+    ${reconcile}
     <div style="display:flex; gap:24px; align-items:flex-start; flex-wrap:wrap;">
       <div style="flex:0 0 auto;">${svg}${legend}</div>
       <div style="flex:0 0 340px;">${table}</div>
