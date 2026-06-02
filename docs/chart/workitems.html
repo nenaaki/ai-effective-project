@@ -445,9 +445,10 @@ function buildGantt(sortedScreens, containerId, title, palette, mode){
   ];
   const DONE_COLOR = { bg:'#cec', bd:'#484' };  // 完了 (実工数あり)
   const REVIEW_COLOR = { bg:'#e7d9f5', bd:'#8a5db5' };  // レビュー中
+  const SPEC_COLOR = { bg:'#fdeec2', bd:'#c89a1e' };  // 仕様確認中
   let html = '<div style="background:#fff;">';
   html += `<div style="font-size:12px; color:#666; margin-bottom:6px;"><b>${title}</b> ／ 並行2人 (8h×90%=7.2h/日) / ${bars.length} 画面 / 総工数 ${(totalEffort*7.2).toFixed(1)}h / ${total.toFixed(2)} 営業日 / 土日・祝除外</div>`;
-  html += `<div style="font-size:11px; margin-bottom:10px;">凡例: <span style="display:inline-block;width:14px;height:10px;background:#9cd;border:1px solid #468;vertical-align:middle;"></span> 人員1 ／ <span style="display:inline-block;width:14px;height:10px;background:#fc9;border:1px solid #a63;vertical-align:middle;"></span> 人員2 ／ <span style="display:inline-block;width:14px;height:10px;background:#cec;border:1px solid #484;vertical-align:middle;"></span> 完了 (実工数h表示) ／ <span style="display:inline-block;width:14px;height:10px;background:#e7d9f5;border:1px solid #8a5db5;vertical-align:middle;"></span> レビュー中</div>`;
+  html += `<div style="font-size:11px; margin-bottom:10px;">凡例: <span style="display:inline-block;width:14px;height:10px;background:#9cd;border:1px solid #468;vertical-align:middle;"></span> 人員1 ／ <span style="display:inline-block;width:14px;height:10px;background:#fc9;border:1px solid #a63;vertical-align:middle;"></span> 人員2 ／ <span style="display:inline-block;width:14px;height:10px;background:#cec;border:1px solid #484;vertical-align:middle;"></span> 完了 (実工数h表示) ／ <span style="display:inline-block;width:14px;height:10px;background:#e7d9f5;border:1px solid #8a5db5;vertical-align:middle;"></span> レビュー中 ／ <span style="display:inline-block;width:14px;height:10px;background:#fdeec2;border:1px solid #c89a1e;vertical-align:middle;"></span> 仕様確認中</div>`;
   // マイルストーンを横に伸長するタイムライン + 矢印シェイプで表現 (5/25〜6/26)。カレンダー下部に描画
   let milestoneHtml = "";
   if (mode !== "actual" && screenCompletionDay > 0) {
@@ -543,7 +544,8 @@ function buildGantt(sortedScreens, containerId, title, palette, mode){
       if (overlapStart >= overlapEnd) return;
       const isDone = b.状況 === "実装完了";   // 完了判定は状況に基づく (実工数の有無では判定しない)
       const isReview = !isDone && b.状況 === "レビュー中";
-      const color = isDone ? DONE_COLOR : (isReview ? REVIEW_COLOR : LANE_COLORS[b.lane]);
+      const isSpec = !isDone && !isReview && b.状況 === "仕様確認中";
+      const color = isDone ? DONE_COLOR : (isReview ? REVIEW_COLOR : (isSpec ? SPEC_COLOR : LANE_COLORS[b.lane]));
       const slot = b.slot || 0;
       const top = laneTops[b.lane] + slot * subRowH + 3;
       const height = subRowH - 6;
@@ -561,6 +563,7 @@ function buildGantt(sortedScreens, containerId, title, palette, mode){
       const spentH = (b.実工数 || 0) > 0 ? b.実工数.toFixed(1) : '';   // 消費した実工数 (h)
       const titleExtra = isDone ? ` [完了 ${spentH}h/${planH}h]`
                        : isReview ? ` [レビュー中${spentH ? ` 実${spentH}h` : ''} / 予定${planH}h]`
+                       : isSpec ? ` [仕様確認中${spentH ? ` 実${spentH}h` : ''} / 予定${planH}h]`
                        : ` (${spentH ? `実${spentH}h / ` : ''}予定${planH}h)`;
       segments.forEach(([sS, sE]) => {
         const isFirstSeg = (sS === b.start);
@@ -576,6 +579,7 @@ function buildGantt(sortedScreens, containerId, title, palette, mode){
             <div style="font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1 1 auto;">${prefix}${esc(b.画面名)}${suffix}</div>
             ${spentH ? `<div style="font-size:10px; color:#084; font-weight:bold; white-space:nowrap; flex:0 0 auto;">実 ${spentH}h</div>` : ''}
             ${isReview ? `<div style="font-size:10px; color:#6a3a9a; font-weight:bold; white-space:nowrap; flex:0 0 auto;">🔍レビュー中</div>` : ''}
+            ${isSpec ? `<div style="font-size:10px; color:#9a7414; font-weight:bold; white-space:nowrap; flex:0 0 auto;">📝仕様確認中</div>` : ''}
             <div style="font-size:10px; color:#444; white-space:nowrap; flex:0 0 auto;">${planH}h</div>
           </div>
         </div>`;
