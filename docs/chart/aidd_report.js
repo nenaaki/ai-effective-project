@@ -82,6 +82,7 @@
       contextNotes: [
         "対象画面: ユーザマスタ（FE020 / PW-123）。一覧 + 詳細ドロワー + 新規ドロワー + パスワード変更モーダル。4 テーブル構成 (m_user 拡張 + m_permission_group + m_user_shipper + m_user_depot)。N:N リレーション 2 本、楽観的ロック、DataLoader 3 本、認可チェック (自分のパスワードのみ変更可)。",
         "<strong>ToBe は実測値</strong>: PW-115 で生成された spec / brief / skeleton を再利用 → planner 再検証 → 各 agent 順次実行。期間 2026-05-26 23:11 〜 2026-05-27 00:35 (約 84 分)。<strong>議論時間込み</strong>。集計詳細は同階層 <code>user-master-data.md</code> 参照。",
+        "<strong>実測ログ (time-log.jsonl) 追記</strong>: 計測ルール運用後に記録できたのは 動作確認・レビュー対応サイクル 2.0h (2026-05-28) と 試行特有のオーバーヘッド 0.55h (brief §7 テスト観点の往復必須化 0.22h / Playwright 依存セットアップ整備 0.33h)。上記 84 分の初期実装は計測ルール運用前のため<strong>本シナリオの ToBe 工程値は推定を含む</strong>（部分計測）。",
         "<strong>spec / brief / skeleton.tsx の再利用が効いた</strong>: PW-115 で旧方針時代に作られた spec が残存していたため、planner 再検証モードで「再利用 / 再生成」判定 → そのまま活用できた。UX 議論時間が大幅短縮 (デポマスタ 4.95h → ユーザマスタ 2.50h)。",
         "<strong>リワーク回数</strong>: backend 1 周 (Major 3 修正) + frontend モードA 1 周 (Major 2 修正) + モードB 1 周 (Major 2 + Minor 3 修正)。デポマスタ (backend 4 周) より大幅減。試行 2 回目の学習効果が出ている。",
         "AsIs は商品マスタ一覧+登録（合計 60.3h）を以下の係数で按分: データモデル ×3 (3 テーブル新規)、API ×3.5 (拡張 + 新規モジュール + パスワードMutation)、UX ×0.85、フロント ×2 (Detail/Create 分離 + モーダル)、レビュー・動作確認 ×1.2。複雑度プレミアム (N:N 2 本・値反転マッピング・bcrypt) で +15% 想定。",
@@ -92,21 +93,25 @@
     "area-master": {
       tabLabel: "エリアマスタ",
       title: "エリアマスタ画面（一覧・登録・更新・削除 / CSV取込UI骨格） 開発工数比較 (AsIs / ToBe)",
-      lede: "AIDD 試行 #3 で実装した「エリアマスタ」（FE023 / PW-122）の開発工数比較。<strong>郵便番号マスタ (m_postal_code) を起点に エリア / デポ / 商品 / 商品種別 / 事業会社の結合ビュー</strong> を扱う応用マスタ画面。<strong>第1版で mockup フラット構造を素直に実装 → データモデル仕様未確定で破棄 → 第2版で正規化マスタとして再実装</strong>。<strong>ToBe は実測値（第1版＋第2版の合算）</strong>。「仕様不明スキップ」方針 + データモデル後追い適用の影響を直接観察できる試行。",
+      lede: "AIDD 試行 #3 で実装した「エリアマスタ」（FE023 / PW-122）の開発工数比較。<strong>郵便番号マスタ (m_postal_code) を起点に エリア / デポ / 商品 / 商品種別 / 事業会社の結合ビュー</strong> を扱う応用マスタ画面。<strong>第1版（mockupフラット）→破棄→第2版（正規化マスタ）→ mock完全整合（案B: 全項目独立入力）</strong>まで実施。<strong>ToBe はセッションログ実測</strong>: 標準開発 14.3h（今回の mock整合セッション 11.5h ＋ 第1/2版 2.8h）＋ 試行特有のオーバーヘッド 1.0h ＝ <strong>計 15.3h</strong>。通常工程（標準開発）と<span style=\"color:#9333ea\">紫セグメント（試行特有）</span>で区別できる。",
+      // ToBe は累計。元の 19.1h (第1/2版 + 推定レビュー/動作確認) に、今回 mock整合セッションの
+      // 実測 (time-log.jsonl) 12.5h を加算 = 31.6h。各工程の tobe = 元値 + 今回実測の加算分。工程配分は概算。
+      // 通常工程 = 標準開発、[試行特有] (紫セグメント = 「うち試行特有」集計) = AIDD試行オーバーヘッド
       tasks: [
-        { key: "data-design", label: "データモデル設計 (第1版破棄 → m_postal_code 新規 + m_area 拡張)", color: "var(--c-data-design)", loc: null, asis: 8,   tobe: 0.25, tobeEng: 0,    agents: ["DBアーキテクトAI"] },
-        { key: "data-impl",   label: "データモデル実装 (旧schema 破棄 + 新schema + migration 2回)",    color: "var(--c-data-impl)",   loc: 130,  asis: 4,   tobe: 0.25, tobeEng: 0,    agents: ["DBアーキテクトAI", "エンジニア(削除補助)"] },
-        { key: "api-impl",    label: "API設計・実装 (m-area-postal-code → 破棄 → m-postal-code 新規)", color: "var(--c-api-impl)",    loc: 1033, asis: 22,  tobe: 1.00, tobeEng: 0,    agents: ["バックエンドAI"] },
-        { key: "api-test",    label: "API単体テスト (api-implに内包)",                                color: "var(--c-api-test)",    loc: 280,  asis: 9,   tobe: 0,    tobeEng: 0,    agents: ["バックエンドAI"] },
-        { key: "api-review",  label: "APIレビュー (エンジニア)",                                       color: "var(--c-eng-review)",  loc: null, asis: 2.5, tobe: 2.5,  tobeEng: 2.5,  agents: ["バックエンドレビュワーAI", "エンジニア"] },
-        { key: "ux",          label: "UX設計・spec 生成 (第1版 + 第2版 再検証)",                       color: "var(--c-ux)",          loc: null, asis: 6,   tobe: 2.20, tobeEng: 1.30, agents: ["プランナーAI", "エンジニア"] },
-        { key: "fe-design",   label: "フロントエンド設計 (fe-implに内包)",                              color: "var(--c-fe-design)",   loc: null, asis: 7,   tobe: 0,    tobeEng: 0,    agents: ["フロントエンドAI"] },
-        { key: "fe-impl",     label: "フロントエンド実装 (第1版 + 第2版差し替え + 「-」固定解消)",        color: "var(--c-fe-impl)",     loc: 1929, asis: 22,  tobe: 1.20, tobeEng: 0,    agents: ["フロントエンドAI"] },
-        { key: "fe-test",     label: "フロントエンド単体テスト (実装なし)",                              color: "var(--c-fe-test)",     loc: null, asis: 0,   tobe: 0,    tobeEng: 0,    agents: ["—"] },
-        { key: "fe-review",   label: "フロントエンドレビュー (エンジニア)",                              color: "var(--c-eng-review)",  loc: null, asis: 3,   tobe: 3,    tobeEng: 3,    agents: ["フロントエンドレビュワーAI", "エンジニア"] },
-        { key: "verify",      label: "動作確認 (BE + FE / 第2版で再走)",                                color: "var(--c-verify)",      loc: null, asis: 7,   tobe: 7,    tobeEng: 7,    agents: ["バックエンドテスターAI", "フロントエンドテスターAI", "エンジニア"] },
-        { key: "trial-review",          label: "[試行特有] 試行総括・課題抽出 (mock視覚差分・データモデル後追い)", color: "#9333ea", loc: null, asis: 0, tobe: 1.40, tobeEng: 1.00, agents: ["エンジニア (人間との議論)"] },
-        { key: "structure-improvement", label: "[試行特有] 仕様確定後の再設計コスト",                                 color: "#7e22ce", loc: null, asis: 0, tobe: 0.30, tobeEng: 0.20, agents: ["エンジニア (構造判断)"] },
+        { key: "data-design", label: "データモデル設計 (第1/2版 + MCarrier/MProductClass 新規 + m_postal_code denormalize)", color: "var(--c-data-design)", loc: null, asis: 6,   tobe: 0.5, tobeEng: 0,    agents: ["DBアーキテクトAI"] },
+        { key: "data-impl",   label: "データモデル実装 (migration 計5回 + 旧schema破棄)",       color: "var(--c-data-impl)",   loc: 200,  asis: 7,   tobe: 0.5, tobeEng: 0,    agents: ["DBアーキテクトAI", "エンジニア(削除補助)"] },
+        { key: "api-impl",    label: "API設計・実装 (m-postal-code 再設計 + 配送会社/品種/denormalize + filter/ResolveField)", color: "var(--c-api-impl)", loc: 1200, asis: 27,  tobe: 2.5, tobeEng: 0,    agents: ["バックエンドAI"] },
+        { key: "api-test",    label: "API単体テスト (api-implに内包)",                          color: "var(--c-api-test)",    loc: 280,  asis: 4,   tobe: 0,   tobeEng: 0,    agents: ["バックエンドAI"] },
+        { key: "api-review",  label: "APIレビュー (backend-reviewer + 手修正)",                  color: "var(--c-eng-review)",  loc: null, asis: 2,   tobe: 3.0, tobeEng: 3.0,  agents: ["バックエンドレビュワーAI", "エンジニア"] },
+        { key: "ux",          label: "UX設計・spec同期・方針判断 (mock正本 / 案A / 案B)",        color: "var(--c-ux)",          loc: null, asis: 8,   tobe: 3.0, tobeEng: 1.9,  agents: ["プランナーAI", "エンジニア"] },
+        { key: "fe-design",   label: "フロントエンド設計 (fe-implに内包)",                       color: "var(--c-fe-design)",   loc: null, asis: 4,   tobe: 0,   tobeEng: 0,    agents: ["フロントエンドAI"] },
+        { key: "fe-impl",     label: "フロントエンド実装 (第1/2版 + 確定反映→mock整合→gridドロワー→案B全項目→管理配送会社・計6周)", color: "var(--c-fe-impl)", loc: 2100, asis: 42,  tobe: 4.7, tobeEng: 0,    agents: ["フロントエンドAI"] },
+        { key: "fe-test",     label: "フロントエンド単体テスト (実装なし)",                              color: "var(--c-fe-test)",     loc: null, asis: 0,   tobe: 0,   tobeEng: 0,    agents: ["—"] },
+        { key: "fe-review",   label: "フロントエンドレビュー (frontend-reviewer)",               color: "var(--c-eng-review)",  loc: null, asis: 2,   tobe: 3.5, tobeEng: 3.5,  agents: ["フロントエンドレビュワーAI", "エンジニア"] },
+        { key: "verify",      label: "動作確認・mock視覚比較 (BE/FEテスター + 目視・実検証)",        color: "var(--c-verify)",      loc: null, asis: 8,   tobe: 5.6, tobeEng: 4.0,  agents: ["バックエンドテスターAI", "フロントエンドテスターAI", "エンジニア"] },
+        { key: "spec-confirm", label: "仕様確認 (mock乖離→業務確認・方針判断の往復・動作確認の約半分)", color: "#d97706",              loc: null, asis: 0,   tobe: 5.6, tobeEng: 5.5,  agents: ["エンジニア (業務確認)"] },
+        { key: "trial-review",          label: "[試行特有] 試行総括・乖離の構造的記録・再発防止 (mock差分→TSV構造化+memory)", color: "#9333ea", loc: null, asis: 0, tobe: 1.9, tobeEng: 1.5,  agents: ["エンジニア (人間との議論)"] },
+        { key: "structure-improvement", label: "[試行特有] 構造改修・不明点TSV列規律の整備 (.claude/agents+README)",        color: "#7e22ce", loc: null, asis: 0, tobe: 0.8, tobeEng: 0.7,  agents: ["エンジニア (ルール整備)"] },
       ],
       bugCategories: [
         { key: "syntax", label: "構文/型エラー",                                                  color: "#ef4444", asis: 5,  tobe: 0 },
@@ -117,14 +122,13 @@
       ],
       bugRateNote: "※ エリアマスタ 約 3.0 KLOC + 第1版破棄分。データモデル仕様未確定での着手により「<strong>仕様解釈ミス</strong>」が他シナリオに比べ突出 (ToBe 9 件)。mockup の AreaData フラット構造を直接テーブル化した第1版が、正規化マスタ (m_postal_code 起点) の第2版で全面差し替えになった経緯を反映。テナント分離の FilterInput.companyId 公開は前試行 (PW-122 第1版) でも同じ Major 指摘が出ており、reviewer の検出パターンとして定着しつつある。",
       contextNotes: [
-        "対象画面: エリアマスタ (FE023 / PW-122)。一覧 + 詳細ドロワー + 新規ドロワー + ファイル取込UI (通知のみ)。<strong>第1版</strong>: m_area_postal_code (フラット結合テーブル) で実装 → 動作。<strong>第2版</strong>: データモデル設計書 (<code>要件定義/for_ai/tables/</code>) 確定により m_postal_code (正規化マスタ) に再実装。第1版 backend 10 ファイル削除 + 第2版 backend 10 ファイル新規。",
-        "<strong>ToBe は実測値 (第1版 + 第2版 合算)</strong>: 第1版 94 分 + 第2版 72 分 = 166 分 ≒ 2.77h。集計詳細は同階層 <code>area-master-data.md</code> 参照。",
-        "<strong>「仕様不明スキップ」方針の限界</strong>: 業務判断 (CSV取込仕様・削除挙動) はスキップで進められたが、<strong>データモデル設計の根幹</strong>が未確定だった第1版は構造ごとやり直しになった。「スキップしてよい不明」と「スキップしてはいけない不明」の境界の指摘材料に。",
-        "<strong>第2版の短縮効果</strong>: 同じ画面の作り直しが第1版の 76% (94 分 → 72 分) で完了。理由は (1) backend モジュール構造のパターン確立済 (2) mockup ↔ DB の責務分離が明確化 (3) reviewer 指摘パターンが先読み可能。再設計コストは想定より低い。",
-        "<strong>リワーク回数</strong>: 第1版 backend 1 周 + frontend モードB 1 周。第2版 backend 1 周 + frontend モードB 1 周 + MArea 拡張サイクル 1 周。合計でデポマスタと同等。",
-        "AsIs は商品マスタ参考レートで按分。データモデル ×3、API ×3.5、UX ×0.85、フロント ×1.9、レビュー・動作確認 ×1.1。応用パターン (CSV 取込 + 多テーブル結合) で +10% 想定。",
-        "削減率は <strong>90.5h → 19.1h で約 79%</strong>。<strong>レビュー・動作確認 (api-review 2.5h / fe-review 3h / verify 7h) はエンジニア工数で AsIs と同じ</strong>。第1版破棄分も含めての値。データモデル仕様が事前確定していれば 第1版だけで完了し、ToBe は 16h 程度・削減率 82% 程度に届く見込み。",
-        "改善余地: (a) <strong>データモデル設計書 (<code>tables/</code>) を planner 入力に必須化</strong>、(b) <strong>mockup の独自構造 (フラット結合) と DB スキーマの責務分離を最初の planner ステップで判定</strong>。「mockup を直接テーブル化しない」ガード追加で再発防止可能。",
+        "対象画面: エリアマスタ (FE023 / PW-122)。一覧 + 詳細/新規ドロワー + ファイル取込UI (通知のみ)。第1版 (m_area_postal_code フラット) → 破棄 → 第2版 (m_postal_code 正規化) → mock 完全整合 (案B: m_postal_code を denormalize し デポ/電話番号/管理配送会社/実配送会社 を直接保持・全項目独立入力)。",
+        "<strong>ToBe は累計</strong>: 元の 19.1h (第1/2版 + 推定レビュー/動作確認) に、今回 mock整合セッションの実測 (time-log.jsonl) <strong>12.5h を加算</strong> = <strong>計 31.6h</strong>。今回内訳 = 標準開発 11.5h (確定回答反映 1.2h + mock整合 10.3h) + 試行特有のオーバーヘッド 1.0h (乖離の構造的記録 0.5h + 不明点TSV列規律 0.5h)。工程配分は概算。",
+        "<strong>内訳の見方</strong>: 工程セグメント (青〜オレンジ系) = 標準開発、<span style=\"color:#9333ea\"><strong>紫セグメント = 試行特有のオーバーヘッド</strong></span> (= サマリの「うち試行特有」)。今回最も増えたのは <strong>動作確認 5.6h ＋ 仕様確認 5.6h</strong> (旧 verify 11.2h を分割。動作確認のうち約半分は mock乖離に伴う業務確認・方針判断＝仕様確認) と <strong>フロントエンド実装 4.7h</strong> (mock整合で計6周)。",
+        "<strong>手戻りの主因 (EX-2)</strong>: mock↔実装の視覚比較 (Step2-α) を初回の動作確認で回さず、乖離の発覚が遅れた。配送会社=MCarrier・電話番号=デポ・郵便番号XXX-XXXX整形・ドロワーmockグリッド化・案B全項目入力・管理配送会社追加と、段階的に mock へ収束させたため verify と fe-impl が膨らんだ。",
+        "<strong>うちエンジニア (人間) 累計 20.1h</strong> (うち今回 +5.1h): 方針判断 (mock正本/案A/案B/管理配送会社)・目視確認の往復・レビュー確認。AI が削減できるのは実装・設計・テスト生成工程で、レビュー/動作確認の人間工数は AsIs と同水準。",
+        "<strong>AsIs は商品マスタのコード変更量から算出</strong>。実装工程は商品マスタの「行あたり工数」をエリアのコード量に適用: API実装 1,200行→27h (商品 450行=10h)、FE実装 2,100行→42h (商品 810行=16h)、データ実装 200行→7h、API単体テスト 280行→4h。設計・UX・レビュー・動作確認はコード量比 (商品 1,896行 → エリア 3,780行・約2.0倍) で按分。<strong>合計 約110h</strong>。",
+        "削減率は <strong>110h → 31.6h で約 71%</strong> (手戻り含む累計実測ベース・経過時間で待ち/目視/休憩込み)。前回まで (ToBe 19.1h・約79%) から、mock 乖離の後追い修正で ToBe +12.5h、コード量増で AsIs 90.5h→110h に増加。<strong>改善余地</strong>: 視覚比較 (Step2-α) を初回動作確認で必須化すれば この +12.5h の大半 (verify +4.2h / fe-impl 6周) を圧縮可能。",
       ],
     },
   };
@@ -134,7 +138,7 @@
 
   // ====== 合計シナリオの動的生成 ======
   function buildTotalScenario(scenarios, keys) {
-    const taskKeys   = ["data-design","data-impl","api-impl","api-test","api-review","ux","fe-design","fe-impl","fe-test","fe-review","verify","trial-review","structure-improvement"];
+    const taskKeys   = ["data-design","data-impl","api-impl","api-test","api-review","ux","fe-design","fe-impl","fe-test","fe-review","verify","spec-confirm","trial-review","structure-improvement"];
     const taskLabels = {
       "data-design": "データモデル設計",
       "data-impl":   "データモデル実装",
@@ -147,6 +151,7 @@
       "fe-test":     "フロントエンド単体テスト",
       "fe-review":   "フロントエンドレビュー (エンジニア)",
       "verify":      "動作確認",
+      "spec-confirm": "仕様確認",
       "trial-review":          "[試行特有] 試行総括・課題抽出",
       "structure-improvement": "[試行特有] 構造改修",
     };
