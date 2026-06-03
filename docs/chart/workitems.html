@@ -126,10 +126,10 @@ const EVM_SNAPSHOTS = data.EVM_SNAPSHOTS;
 const TODAY_ISO = Object.keys(EVM_SNAPSHOTS).sort().pop() || "2026-05-25";
 // 画面の完了日 (実績)。GANTT_START(5/25)より前に完了した画面はカレンダー・バーンダウン対象外
 const DONE_DATE = data.DONE_DATE;
-// 5/25(プロジェクト開始)より前に完了済みの画面か (前週までに完了 → 予実対象外)
+// 5/25(プロジェクト開始)より前に完了済みの画面か (カレンダー表示対象の判定にのみ使用)
 function isPreStartDone(name){ return !!(DONE_DATE[name] && DONE_DATE[name] < "2026-05-25"); }
-// 予実対象の全行 (画面+IF)。プロジェクト開始前完了は除外
-function activeRows(){ return [...SCREENS, ...IFS].filter(r => !isPreStartDone(r.画面名 || "")); }
+// 予実対象の全行 (画面+IF)。開始前完了 (デポマスタ等) も全体スコープに含める
+function activeRows(){ return [...SCREENS, ...IFS]; }
 // 画面名(またはIFID)ごとに 予定工数(h) / 実工数(h) / 状況 / 進捗率 を集計
 // r.進捗率 は postprocessWorkitems で別フィールドとして設定済み (0-1)
 function aggregatePlanActualStatus(rows){
@@ -612,9 +612,28 @@ function teamHoursAt(idx){
   return people * PERSON_DAY_HOURS;
 }
 function cumCapacity(days){ let s = 0; for (let i = 0; i < days; i++) s += teamHoursAt(i); return s; }
+// --- バーンダウン/EVM 専用の時間軸 (起点 5/22) ---
+// 実作業の起点を 5/22 とし、5/22 を 2名稼働 (≒デポマスタ実績 14.5h) として計上する。
+// 5/25 以降は GANTT_START 軸のランプ (5/25=0名,5/26=1名,5/27=2名) をそのまま流用する。
+// ガントカレンダーは GANTT_START=5/25 のまま (この軸は EVM/バーンダウン専用)。
+const EVM_START = new Date(2026, 4, 22);
+function evmWorkDates(count){
+  const dates = []; const d = new Date(EVM_START);
+  while (dates.length < count) { if (ganttIsWorkday(d)) dates.push(new Date(d)); d.setDate(d.getDate() + 1); }
+  return dates;
+}
+function evmIndex(isoDate){
+  const [y, m, dd] = isoDate.split("-").map(Number);
+  const target = new Date(y, m-1, dd); const d = new Date(EVM_START); let idx = 0;
+  while (d < target) { if (ganttIsWorkday(d)) idx++; d.setDate(d.getDate() + 1); }
+  return idx;
+}
+// 5/22(idx0)=2名固定。idx1 以降は GANTT_START 軸の teamHoursAt(idx-1) を流用 (5/22軸 = 5/25軸 + 1)
+function evmTeamHoursAt(idx){ return idx === 0 ? 2 * PERSON_DAY_HOURS : teamHoursAt(idx - 1); }
+function evmCumCapacity(days){ let s = 0; for (let i = 0; i < days; i++) s += evmTeamHoursAt(i); return s; }
 function buildBurndown(containerId){
   const el = document.getElementById(containerId);
-  // 5/25(プロジェクト開始)より前に完了した画面はバーンダウン対象外 (総工数・消化とも除外)
+  // 全スコープ (開始前完了のデポマスタ等も含む) を総工数・消化の対象とする
   const all = activeRows();
   const totalH = all.reduce((a,r)=> a + (r["工数(h)"]||0), 0);
   if (totalH <= 0) { el.innerHTML = ""; return; }
@@ -623,20 +642,20 @@ function buildBurndown(containerId){
   //   実工数(h) はACとして別途集計し、進捗判定には使わない
   const { ev: burnedH, ac: spentH } = aggregateEvAc(aggregatePlanActualStatus(all));
   // 理想完了までの営業日数 (日次キャパを累積して総工数に到達する日。初日2日は1名)
-  let span = 0; while (cumCapacity(span) < totalH) span++;
+  let span = 0; while (evmCumCapacity(span) < totalH) span++;
   span = Math.max(1, span);
-  const dates = ganttWorkDates(span + 1);
-  const todayIdx = dateToWorkdayIndex(TODAY_ISO);
+  const dates = evmWorkDates(span + 1);
+  const todayIdx = evmIndex(TODAY_ISO);
   // 実績線の点列 (起点=総工数。完了画面の予定工数 burnedH を消化したスコープとして降下)
   const actualPts = [{ x:0, rem: totalH }];
   const keys = Object.keys(ACTUAL_BY_DATE).sort();
   if (keys.length) {
-    keys.forEach(k => actualPts.push({ x: dateToWorkdayIndex(k), rem: Math.max(0, totalH - ACTUAL_BY_DATE[k]) }));
+    keys.forEach(k => actualPts.push({ x: evmIndex(k), rem: Math.max(0, totalH - ACTUAL_BY_DATE[k]) }));
   } else {
     actualPts.push({ x: todayIdx, rem: Math.max(0, totalH - burnedH) });
   }
   const remNow = totalH - burnedH;
-  const idealRemToday = Math.max(0, totalH - cumCapacity(todayIdx));
+  const idealRemToday = Math.max(0, totalH - evmCumCapacity(todayIdx));
   const behind = remNow - idealRemToday;   // >0 なら理想線より遅れ
   // SVG 座標
   const W = 420, H = 320;
@@ -671,11 +690,11 @@ function buildBurndown(containerId){
     const px = X(todayIdx);
     const [, _mT, _dT] = TODAY_ISO.split("-").map(Number);
     svg += `<line x1="${px}" y1="${m.t}" x2="${px}" y2="${H-m.b}" stroke="#e09b00" stroke-width="1" stroke-dasharray="3 3"/>`;
-    svg += `<text x="${px}" y="${m.t-5}" text-anchor="middle" font-size="9" fill="#c80">今日 ${_mT}/${_dT}</text>`;
+    svg += `<text x="${px}" y="${m.t-5}" text-anchor="middle" font-size="9" fill="#c80">${_mT}/${_dT}</text>`;
   }
   // 理想線 (総工数 → 0。日次キャパに応じて初日2日は緩やかに降下)
   const idealPts = [];
-  for (let d = 0; d <= xMax; d++) idealPts.push(`${X(d)},${Y(Math.max(0, totalH - cumCapacity(d)))}`);
+  for (let d = 0; d <= xMax; d++) idealPts.push(`${X(d)},${Y(Math.max(0, totalH - evmCumCapacity(d)))}`);
   svg += `<polyline points="${idealPts.join(" ")}" fill="none" stroke="#bbb" stroke-width="2" stroke-dasharray="5 4"/>`;
   // 実績線
   const actColor = behind > 0 ? "#d33" : "#2a8";
@@ -692,7 +711,7 @@ function buildBurndown(containerId){
   <div style="font-size:11px; color:#666; margin-bottom:8px;">総工数 ${totalH.toFixed(1)}h ／ 消化スコープ ${burnedH.toFixed(1)}h (${pct}%) ／ 残 ${remNow.toFixed(1)}h<br>※進捗率(画面ごとに個別設定 0-100%)で進捗加味</div>
   ${svg}
   <div style="font-size:11px; margin-top:8px; line-height:1.8;">
-    <span style="display:inline-block;width:18px;border-top:2px dashed #bbb;vertical-align:middle;"></span> 理想線 (5/25=0名, 5/26=1名7.2h, 5/27以降2名14.4h/日)
+    <span style="display:inline-block;width:18px;border-top:2px dashed #bbb;vertical-align:middle;"></span> 理想線 (5/22=2名14.4h, 5/25=0名, 5/26=1名7.2h, 5/27以降2名14.4h/日)
     　<span style="display:inline-block;width:18px;border-top:2px solid ${actColor};vertical-align:middle;"></span> 実績線 (完了画面の予定工数)<br>${statusTxt}
   </div>
 </div>`;
@@ -711,12 +730,12 @@ function buildEvm(containerId){
   const _snap = EVM_SNAPSHOTS[TODAY_ISO];
   const ev = (_snap && _snap.ev != null) ? _snap.ev : _live.ev;
   const ac = (_snap && _snap.ac != null) ? _snap.ac : _live.ac;
-  const todayIdx = dateToWorkdayIndex(TODAY_ISO);
+  const todayIdx = evmIndex(TODAY_ISO);
   // 計画完了日 (workday index)。線形キャパベース
-  let span = 0; while (cumCapacity(span) < BAC) span++;
+  let span = 0; while (evmCumCapacity(span) < BAC) span++;
   span = Math.max(1, span);
   // 今日のPV
-  const pv = Math.min(BAC, cumCapacity(todayIdx));
+  const pv = Math.min(BAC, evmCumCapacity(todayIdx));
   // EVM指標
   const sv  = ev - pv;
   const cv  = ev - ac;
@@ -732,13 +751,13 @@ function buildEvm(containerId){
   if (ev >= BAC) forecastDayIdx = todayIdx;
   else if (spi != null && spi > 0) forecastDayIdx = Math.ceil(span / spi);
   // 描画用に十分な日付配列
-  const dates = ganttWorkDates(Math.max(span, forecastDayIdx || 0) + 3);
+  const dates = evmWorkDates(Math.max(span, forecastDayIdx || 0) + 3);
   const forecastDate = forecastDayIdx != null ? dates[Math.min(Math.max(forecastDayIdx - 1, 0), dates.length - 1)] : null;
   const planEndDate  = dates[Math.min(Math.max(span - 1, 0), dates.length - 1)];
   // EV/AC スナップショット履歴
   const evByDay = {}, acByDay = {};
   Object.keys(EVM_SNAPSHOTS).forEach(d => {
-    const idx = dateToWorkdayIndex(d);
+    const idx = evmIndex(d);
     if (EVM_SNAPSHOTS[d].ev != null) evByDay[idx] = EVM_SNAPSHOTS[d].ev;
     if (EVM_SNAPSHOTS[d].ac != null) acByDay[idx] = EVM_SNAPSHOTS[d].ac;
   });
@@ -782,11 +801,11 @@ function buildEvm(containerId){
     const px = X(todayIdx);
     const [, _mE, _dE] = TODAY_ISO.split("-").map(Number);
     svg += `<line x1="${px}" y1="${mT}" x2="${px}" y2="${H-mB}" stroke="#e09b00" stroke-width="1" stroke-dasharray="3 3"/>`;
-    svg += `<text x="${px}" y="${mT-4}" text-anchor="middle" font-size="9" fill="#c80">今日 ${_mE}/${_dE}</text>`;
+    svg += `<text x="${px}" y="${mT-4}" text-anchor="middle" font-size="9" fill="#c80">${_mE}/${_dE}</text>`;
   }
   // PV (線形キャパベース) - 青
   const pvLine = [];
-  for (let d = 0; d <= xMax; d++) pvLine.push(`${X(d)},${Y(Math.min(BAC, cumCapacity(d)))}`);
+  for (let d = 0; d <= xMax; d++) pvLine.push(`${X(d)},${Y(Math.min(BAC, evmCumCapacity(d)))}`);
   svg += `<polyline points="${pvLine.join(' ')}" fill="none" stroke="#3b78c6" stroke-width="2.5"/>`;
   // EV (出来高) - 緑
   svg += `<polyline points="${evPts.map(p=>`${X(p.x)},${Y(p.y)}`).join(' ')}" fill="none" stroke="#1c9b6a" stroke-width="2.5"/>`;
@@ -837,10 +856,10 @@ function buildEvm(containerId){
       ／<span style="display:inline-block;width:20px;border-top:2px dashed #888;vertical-align:middle;"></span> 予測 (破線)
     </div>`;
   // === 最新週スナップショット照合 (基準日 = TODAY_ISO のみ) ===
-  // ライブ _live は activeRows() = デポマスタ除外基準。スナップショットはデポマスタ含む基準で
-  // 記録されているため、照合用は全行 (プロジェクト開始前完了も含む) で再計算して突き合わせる。
+  // スナップショット・ライブともに activeRows() = 全行 (開始前完了のデポマスタ等を含む)
+  // 全体スコープで統一。照合も同じ全行基準で再計算する。
   // 過去日のスナップショットは凍結値として扱い、ここでは触らない。
-  const _recalc = aggregateEvAc(aggregatePlanActualStatus([...SCREENS, ...IFS]));
+  const _recalc = aggregateEvAc(aggregatePlanActualStatus(activeRows()));
   const _recEv = (_snap && _snap.ev != null) ? _snap.ev : null;
   const _recAc = (_snap && _snap.ac != null) ? _snap.ac : null;
   const _tol = 0.1;  // 丸め許容差 (h)
@@ -854,7 +873,7 @@ function buildEvm(containerId){
       <b>週次照合 (基準日 ${TODAY_ISO})</b> ${_mk(_allOk)}
       EV: 記録 ${_recEv == null ? '—' : _recEv.toFixed(1)} / 再計算 ${_recalc.ev.toFixed(1)} ${_mk(_evOk)}
       AC: 記録 ${_recAc == null ? '—' : _recAc.toFixed(1)} / 再計算 ${_recalc.ac.toFixed(1)} ${_mk(_acOk)}
-      <span style="color:#888;">（再計算 = デポマスタ含む基準。グラフ/指標の値はスナップショット記録値）</span>
+      <span style="color:#888;">（再計算 = 全行基準＝開始前完了も含む。グラフ/指標の値はスナップショット記録値）</span>
     </div>`;
   el.innerHTML = `
     ${reconcile}
