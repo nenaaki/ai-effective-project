@@ -492,12 +492,12 @@ function buildGantt(sortedScreens, containerId, title, palette, mode){
         s += `<text x="${rx + rw/2}" y="${ry + 21}" text-anchor="middle" font-size="16" font-weight="bold" fill="#fff">${txt}</text>`;
       }
     };
+    drawMs(dateToWorkdayIndex("2026-06-08") + 1, "#2a8", "AI試行錯誤・運用調整終了", 'top');
     drawMs(screenCompletionDay, "#c33", "画面実装完了", 'top');
     drawMs(ifCompletionDay, "#36a", "IF実装完了", 'bottom');
     s += `</svg>`;
-    const aiCallout = `<div class="ai-callout"><span class="ttl">AI駆動開発の課題取り組み</span>現状のマイルストーンは案件開発の実装マイルストーンとなっている。<br>AI駆動開発としての課題取り組み、マイルストーンを追加したいと考えている。</div>`;
     milestoneHtml = `<div style="font-size:14px; font-weight:bold; color:#444; margin:16px 0 4px;">マイルストーン (5/25〜6/26)</div>`
-      + `<div style="display:flex; align-items:center;"><div style="flex:0 0 auto;">${s}</div>${aiCallout}</div>`;
+      + `<div style="display:flex; align-items:center;"><div style="flex:0 0 auto;">${s}</div></div>`;
   }
   // レーン頂上位置 (累積)
   const laneTops = [headerH];
