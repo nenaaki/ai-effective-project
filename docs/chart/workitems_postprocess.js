@@ -20,9 +20,6 @@ const EFFORT = {
   SCOPE: { 両方: 1.0, BEのみ: 0.5 },
   ASSET: { 両方: 0.85, 片方: 0.95, なし: 1.0 }
 };
-// 状況→進捗率 (バーンダウン・EVMで使用)。状況からの初期値導出に使うが、
-// 後処理で r.進捗率 を別フィールドとして付与するため、以降は r.進捗率 を直接参照する。
-const STATUS_PROGRESS = { "実装完了": 1.0, "レビュー中": 0.7, "着手中": 0.5 };
 
 function procFactor(k){
   if (k.indexOf("閲覧") >= 0) return EFFORT.PROC.閲覧;
@@ -156,21 +153,17 @@ function postprocessWorkitems(rawData){
     if (r.画面名 in JISSI_MAP)  r.実施順 = JISSI_MAP[r.画面名];
   });
 
-  // 9. 状況 (進捗ステータス) + 進捗率 (別フィールド)
-  //    r.状況: テキスト / r.進捗率: 0-1 数値 — 後で個別に編集できるよう分離管理
+  // 9. 状況 (進捗ステータス)。進捗率は PROGRESS_MAP で独立管理するため、ここでは触らない
   SCREENS.forEach(r=>{
-    if (r.画面名 in STATUS_MAP) {
-      r.状況 = STATUS_MAP[r.画面名];
-      r.進捗率 = STATUS_PROGRESS[r.状況] ?? 0;
-    }
+    if (r.画面名 in STATUS_MAP) r.状況 = STATUS_MAP[r.画面名];
   });
   // IFは一律「実装不可」(進捗率 0)
   IFS.forEach(r=>{ r.状況 = "実装不可"; r.進捗率 = 0; });
 
-  // 10. 状況 fallback: 空欄なら備考の内容を取り込む。進捗率も未設定なら 状況から推定。
+  // 10. 状況 fallback: 空欄なら備考の内容を取り込む。進捗率は未設定なら 0 (PROGRESS_MAP が後で上書き)
   [...SCREENS, ...IFS].forEach(r=>{
     if (!r.状況) r.状況 = r.備考;
-    if (r.進捗率 == null) r.進捗率 = STATUS_PROGRESS[r.状況] ?? 0;
+    if (r.進捗率 == null) r.進捗率 = 0;
   });
 
   // 11. PROGRESS_MAP (画面名 / IFID 別) があれば 進捗率 を個別上書き (0-100 % で指定 → 0-1 に変換)
