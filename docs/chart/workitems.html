@@ -68,7 +68,7 @@
   <details><summary style="cursor:pointer; font-weight:bold; padding:4px 0; color:#444;">列凡例</summary>
     <ul>
       <li>データモデル: ✅完了 / 🔄作業中 / ・未着手 (空欄=元資料に画面名の言及なし)</li>
-      <li>状況: 備考と統合表示。進捗ラベル(実装完了=100% / レビュー中=70% / 着手中=50%)はバーンダウン・EVMに加味 / 空欄なら備考の内容(着手可能・実装不可・待機中・バックエンドのみ)を表示</li>
+      <li>状況: 進捗ステータス(完了・業務確認待ち・着手中・保留中 など)を表示 / 空欄なら備考の内容(着手可能・実装不可・待機中・バックエンドのみ)を表示。2行目の進捗率(画面ごとに個別設定, 0-100%)がバーンダウン・EVMに加味される</li>
       <li>画面項目定義: ✅シートあり(画面項目定義書/管理画面項目定義書 にシート作成済) / 📐モックあり / 🔄作成予定 / ⏸Ph.2以降 / (空欄=画面一覧に該当なし) — 📐 と ✅ は併記しうる</li>
       <li>実工数(h): 人間が消費した工数を記録する。</li>
     </ul>
@@ -88,7 +88,7 @@
 </div>
 <div id="tab-evm" class="tab-panel">
   <h3 style="margin-top:8px;">EVM (Earned Value Management)</h3>
-  <p style="font-size:12px; color:#666;">PV=計画値(線形キャパベース) / EV=出来高(進捗加味) / AC=実コスト(実工数h)　・　EAC = AC + (BAC−EV) / (CPI × SPI)　・　進捗率: 実装完了=100% / レビュー中=70% / 着手中=50%</p>
+  <p style="font-size:12px; color:#666;">PV=計画値(線形キャパベース) / EV=出来高(進捗加味) / AC=実コスト(実工数h)　・　EAC = AC + (BAC−EV) / (CPI × SPI)　・　進捗率=画面ごとに個別設定 (0-100%)</p>
   <div id="evm-content"></div>
 </div>
 <script src="workitems.js"></script>
@@ -444,11 +444,11 @@ function buildGantt(sortedScreens, containerId, title, palette, mode){
     { bg:'#fc9', bd:'#a63' }   // 人員2
   ];
   const DONE_COLOR = { bg:'#cec', bd:'#484' };  // 完了 (実工数あり)
-  const REVIEW_COLOR = { bg:'#e7d9f5', bd:'#8a5db5' };  // レビュー中
+  const REVIEW_COLOR = { bg:'#e7d9f5', bd:'#8a5db5' };  // 業務確認待ち
   const SPEC_COLOR = { bg:'#fdeec2', bd:'#c89a1e' };  // 仕様確認中
   let html = '<div style="background:#fff;">';
   html += `<div style="font-size:12px; color:#666; margin-bottom:6px;"><b>${title}</b> ／ 並行2人 (8h×90%=7.2h/日) / ${bars.length} 画面 / 総工数 ${(totalEffort*7.2).toFixed(1)}h / ${total.toFixed(2)} 営業日 / 土日・祝除外</div>`;
-  html += `<div style="font-size:11px; margin-bottom:10px;">凡例: <span style="display:inline-block;width:14px;height:10px;background:#9cd;border:1px solid #468;vertical-align:middle;"></span> 人員1 ／ <span style="display:inline-block;width:14px;height:10px;background:#fc9;border:1px solid #a63;vertical-align:middle;"></span> 人員2 ／ <span style="display:inline-block;width:14px;height:10px;background:#cec;border:1px solid #484;vertical-align:middle;"></span> 完了 (実工数h表示) ／ <span style="display:inline-block;width:14px;height:10px;background:#e7d9f5;border:1px solid #8a5db5;vertical-align:middle;"></span> レビュー中 ／ <span style="display:inline-block;width:14px;height:10px;background:#fdeec2;border:1px solid #c89a1e;vertical-align:middle;"></span> 仕様確認中</div>`;
+  html += `<div style="font-size:11px; margin-bottom:10px;">凡例: <span style="display:inline-block;width:14px;height:10px;background:#9cd;border:1px solid #468;vertical-align:middle;"></span> 人員1 ／ <span style="display:inline-block;width:14px;height:10px;background:#fc9;border:1px solid #a63;vertical-align:middle;"></span> 人員2 ／ <span style="display:inline-block;width:14px;height:10px;background:#cec;border:1px solid #484;vertical-align:middle;"></span> 完了 (実工数h表示) ／ <span style="display:inline-block;width:14px;height:10px;background:#e7d9f5;border:1px solid #8a5db5;vertical-align:middle;"></span> 業務確認待ち ／ <span style="display:inline-block;width:14px;height:10px;background:#fdeec2;border:1px solid #c89a1e;vertical-align:middle;"></span> 仕様確認中</div>`;
   // マイルストーンを横に伸長するタイムライン + 矢印シェイプで表現 (5/25〜6/26)。カレンダー下部に描画
   let milestoneHtml = "";
   if (mode !== "actual" && screenCompletionDay > 0) {
@@ -542,8 +542,8 @@ function buildGantt(sortedScreens, containerId, title, palette, mode){
       const overlapStart = Math.max(b.start, wStart);
       const overlapEnd = Math.min(b.end, wEnd + 1);
       if (overlapStart >= overlapEnd) return;
-      const isDone = b.状況 === "実装完了";   // 完了判定は状況に基づく (実工数の有無では判定しない)
-      const isReview = !isDone && b.状況 === "レビュー中";
+      const isDone = b.状況 === "完了";   // 完了判定は状況に基づく (実工数の有無では判定しない)
+      const isReview = !isDone && b.状況 === "業務確認待ち";
       const isSpec = !isDone && !isReview && b.状況 === "仕様確認中";
       const color = isDone ? DONE_COLOR : (isReview ? REVIEW_COLOR : (isSpec ? SPEC_COLOR : LANE_COLORS[b.lane]));
       const slot = b.slot || 0;
@@ -619,7 +619,7 @@ function buildBurndown(containerId){
   const totalH = all.reduce((a,r)=> a + (r["工数(h)"]||0), 0);
   if (totalH <= 0) { el.innerHTML = ""; return; }
   // バーンダウンは「予定工数(スコープ)」の進捗消化で測る。
-  //   状況 (実装完了=100% / レビュー中=70% / 着手中=50%) × 予定工数 を消化済みとする
+  //   進捗率 (画面ごとに個別設定 0-100%) × 予定工数 を消化済みとする
   //   実工数(h) はACとして別途集計し、進捗判定には使わない
   const { ev: burnedH, ac: spentH } = aggregateEvAc(aggregatePlanActualStatus(all));
   // 理想完了までの営業日数 (日次キャパを累積して総工数に到達する日。初日2日は1名)
@@ -689,7 +689,7 @@ function buildBurndown(containerId){
   el.innerHTML = `
 <div style="border:1px solid #ccc; border-radius:4px; padding:12px; background:#fff;">
   <div style="font-weight:bold; color:#2a6; margin-bottom:4px;">バーンダウンチャート（全体工数ベース）</div>
-  <div style="font-size:11px; color:#666; margin-bottom:8px;">総工数 ${totalH.toFixed(1)}h ／ 消化スコープ ${burnedH.toFixed(1)}h (${pct}%) ／ 残 ${remNow.toFixed(1)}h<br>※実装完了=100% / レビュー中=70% / 着手中=50% で進捗加味</div>
+  <div style="font-size:11px; color:#666; margin-bottom:8px;">総工数 ${totalH.toFixed(1)}h ／ 消化スコープ ${burnedH.toFixed(1)}h (${pct}%) ／ 残 ${remNow.toFixed(1)}h<br>※進捗率(画面ごとに個別設定 0-100%)で進捗加味</div>
   ${svg}
   <div style="font-size:11px; margin-top:8px; line-height:1.8;">
     <span style="display:inline-block;width:18px;border-top:2px dashed #bbb;vertical-align:middle;"></span> 理想線 (5/25=0名, 5/26=1名7.2h, 5/27以降2名14.4h/日)
