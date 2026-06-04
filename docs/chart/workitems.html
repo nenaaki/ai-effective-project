@@ -83,6 +83,10 @@
   処理区分係数: 閲覧0.7 / 編集1.0 / 新規登録1.3 / DL印刷1.1　・　スコープ係数: 両方ready/データモデル変更1.0 / BEまたはFEのみ0.5 / 実装不可0　・　資産係数: モック+シート両方0.85 / 片方0.95 / なし1.0　・　IF行は1件4h固定</p>
   <h2>画面処理</h2>
   <table id="t-screens" style="margin-top:8px;"><thead><tr id="th-screens"></tr></thead><tbody></tbody></table>
+  <h2>バックエンドのみ生成 <span style="font-size:13px; font-weight:normal; color:#666;">(入力画面が無く未完＝再実装要のテーブルのバックエンド生成枠／画面処理の次に実施)</span></h2>
+  <p style="font-size:12px; color:#666; margin:4px 0;">出典: <code>.work\table_gap.md</code>(入力画面なしテーブル) ＋ <code>.work\データモデル設計書.xlsx</code>(一覧シートの状況・項目数)。
+  工数 = 仕様確認(h) ＋ AI実装(h)。複雑度は総項目数(共通6項目含む)で段階化: S(〜6) 1.0/2.0 ・ M(7-10) 1.5/3.0 ・ L(11-15) 2.5/4.5 ・ XL(16-24) 3.5/6.0 ・ XXL(25-) 5.0/8.0　／　トランザクション系は AI実装 +1.0h。</p>
+  <table id="t-backend"><thead><tr id="th-backend"></tr></thead><tbody></tbody></table>
   <h2>IF</h2>
   <table id="t-ifs"><thead><tr id="th-ifs"></tr></thead><tbody></tbody></table>
   <h2>変更対応 <span style="font-size:13px; font-weight:normal; color:#666;">(後発の仕様変更バッファ枠／画面実装とは別グループ)</span></h2>
@@ -101,10 +105,11 @@
 const SCREEN_COLS = ["優先","ドメイン","画面ID","画面名","管理ID","処理区分","処理名","データモデル","画面項目定義","状況","工数(h)","担当者/実施順","実工数(h)"];
 const IF_COLS     = ["優先","IFID","カテゴリ","送受信","IF名","From","To","データモデル","画面項目定義","状況","工数(h)","担当者/実施順","実工数(h)"];
 const CHANGE_COLS = ["優先","ドメイン","画面名","処理名","状況","工数(h)","実工数(h)"];
+const BACKEND_COLS = ["優先","種別","モデル名","物理名","項目数","工数(h)","担当者/実施順","実工数(h)"];
 // データ読込: 同じフォルダの workitems.js (WORKITEMS_DATA) を <script src> で先に読み込む
 const data = WORKITEMS_DATA;
 // SCREENS / IFS は postprocessWorkitems() で後処理 (workitems_postprocess.js) を適用済の配列
-const { SCREENS, IFS, CHANGE } = postprocessWorkitems(data);
+const { SCREENS, IFS, CHANGE, BACKEND } = postprocessWorkitems(data);
 // ============================================================================
 // ガント / バーンダウン / EVM 設定 (画面・IFデータの直後にまとめて集約)
 // ============================================================================
@@ -132,7 +137,7 @@ const DONE_DATE = data.DONE_DATE;
 // 5/25(プロジェクト開始)より前に完了済みの画面か (カレンダー表示対象の判定にのみ使用)
 function isPreStartDone(name){ return !!(DONE_DATE[name] && DONE_DATE[name] < "2026-05-25"); }
 // 予実対象の全行 (画面+IF)。開始前完了 (デポマスタ等) も全体スコープに含める
-function activeRows(){ return [...SCREENS, ...IFS, ...CHANGE]; }
+function activeRows(){ return [...SCREENS, ...IFS, ...CHANGE, ...BACKEND]; }
 // 画面名(またはIFID)ごとに 予定工数(h) / 実工数(h) / 状況 / 進捗率 を集計
 // r.進捗率 は postprocessWorkitems で別フィールドとして設定済み (0-1)
 function aggregatePlanActualStatus(rows){
@@ -182,7 +187,7 @@ function headerHtml(c){
 function render(tid,hid,cols,data){
   document.getElementById(hid).innerHTML = "<th>No.</th>" + cols.map(c=>"<th>"+headerHtml(c)+"</th>").join("");
   const dataRows = data.map((r, idx)=>"<tr><td>"+(idx+1)+"</td>"+cols.map(c=>"<td>"+esc(cellValue(r,c))+"</td>").join("")+"</tr>").join("");
-  const SUM_COLS = ["工数(h)", "実工数(h)"];
+  const SUM_COLS = ["工数(h)", "実工数(h)", "仕様確認(h)", "AI実装(h)"];
   const sums = {};
   SUM_COLS.forEach(c => { sums[c] = data.reduce((a, r) => a + (parseFloat(r[c]) || 0), 0); });
   const base = 'font-weight:bold; background:#eaf0f6; border-top:2px solid #888;';
@@ -301,6 +306,20 @@ function buildGantt(sortedScreens, containerId, title, palette, mode){
         summary[key].工数 += hH / PERSON_DAY_HOURS;
         return;
       }
+      // バックエンドのみ生成行: 画面実装とは別グループ。DM条件なし、固定工数の1バー (kind="backend")
+      if (r.ドメイン === "バックエンド生成") {
+        const key = `be::${r.画面名}`;
+        if (!summary[key]) {
+          summary[key] = { 画面名: r.画面名, ドメイン: "バックエンド生成", 工数: 0, isFeOnly: false, 担当者: null, 実施順: null, 実工数: 0, kind: "backend", 状況: r.状況 || null, 進捗率: r.進捗率 ?? null };
+          order.push(key);
+        }
+        summary[key].工数 += hH / PERSON_DAY_HOURS;
+        const tBe = parseInt(r.担当者);
+        if (!isNaN(tBe) && summary[key].担当者 == null) summary[key].担当者 = tBe;
+        const ordBe = parseFloat(r.実施順);
+        if (!isNaN(ordBe) && summary[key].実施順 == null) summary[key].実施順 = ordBe;
+        return;
+      }
       const dmv = r.データモデル || "";
       if (!dmv.includes("✅") && !dmv.includes("🔄")) return;  // DM未着手は非表示 (✅完了/🔄作業中=待機中 は表示)
       const key = ganttKey(r);
@@ -406,7 +425,7 @@ function buildGantt(sortedScreens, containerId, title, palette, mode){
     // DM未完成 (非表示) 画面タスクの合算工数 (person-days)
     let hiddenTotal = 0;
     sortedScreens.forEach(r => {
-      if (r.IFID || r.ドメイン === "変更対応") return;  // IF・変更対応は画面実装の集計対象外
+      if (r.IFID || r.ドメイン === "変更対応" || r.ドメイン === "バックエンド生成") return;  // IF・変更対応・バックエンド生成は画面実装の集計対象外
       const hH = r["工数(h)"] || 0;
       if (hH === 0) return;
       const dmv = r.データモデル || "";
@@ -417,23 +436,15 @@ function buildGantt(sortedScreens, containerId, title, palette, mode){
     const balanced = Math.ceil((laneEndsScreen[0] + laneEndsScreen[1] + hiddenTotal) / 2);
     screenCompletionDay = Math.max(laneEndsScreen[0], laneEndsScreen[1], balanced);
   }
-  // IF実装完了日: screen完了日 の後に IF全件を2人並行で消化した想定
-  let ifCompletionDay = 0;
-  if (mode !== "actual" && screenCompletionDay > 0) {
-    const ifTotalH = IFS.reduce((a, r) => a + (r["工数(h)"] || 0), 0);
-    if (ifTotalH > 0) {
-      const ifDays = ifTotalH / 7.2;
-      ifCompletionDay = screenCompletionDay + Math.ceil(ifDays / 2);
-    }
-  }
-  // 変更対応完了日: IF完了 (なければ画面完了) の後に 変更対応枠を2人並行で消化した想定
-  let changeCompletionDay = 0;
+  // 各グループ(IF/変更対応/バックエンド生成)の完了日 = 実際に配置されたバーの最終終了日。
+  //   バー配置は「担当者+実施順が固定のものを先に、それ以外は優先順位のみ」で2レーンに割り付けた結果。
+  //   画面→バックエンド→IF→変更対応 のようなグループ単位の固定連鎖はせず、優先順位のみで決まる実スケジュールから算出する。
+  const kindMaxEnd = k => bars.reduce((m, b) => (b.kind === k && b.end > m) ? b.end : m, 0);
+  let backendCompletionDay = 0, ifCompletionDay = 0, changeCompletionDay = 0;
   if (mode !== "actual") {
-    const prior = ifCompletionDay || screenCompletionDay;
-    const changeTotalH = CHANGE.reduce((a, r) => a + (r["工数(h)"] || 0), 0);
-    if (prior > 0 && changeTotalH > 0) {
-      changeCompletionDay = prior + Math.ceil((changeTotalH / 7.2) / 2);
-    }
+    backendCompletionDay = kindMaxEnd("backend");
+    ifCompletionDay      = kindMaxEnd("if");
+    changeCompletionDay  = kindMaxEnd("change");
   }
   const laneEnds = Array(LANES).fill(0);
   bars.forEach(b=>{ if (b.end > laneEnds[b.lane]) laneEnds[b.lane] = b.end; });
@@ -466,14 +477,15 @@ function buildGantt(sortedScreens, containerId, title, palette, mode){
   const SPEC_COLOR = { bg:'#fdeec2', bd:'#c89a1e' };  // 仕様確認中
   const PROGRESS_COLOR = { bg:'#dbeafe', bd:'#3b78c6' };  // 進捗あり (着手中・保留中など、完了/確認待ち以外)
   const CHANGE_COLOR = { bg:'#fce4ec', bd:'#c2407a' };  // 変更対応 (画面実装とは別グループの予約枠)
+  const BACKEND_COLOR = { bg:'#e0f2f1', bd:'#2a8a7e' };  // バックエンドのみ生成 (画面実装とは別グループ)
   let html = '<div style="background:#fff;">';
   html += `<div style="font-size:12px; color:#666; margin-bottom:6px;"><b>${title}</b> ／ 並行2人 (8h×90%=7.2h/日) / ${bars.length} 画面 / 総工数 ${(totalEffort*7.2).toFixed(1)}h / ${total.toFixed(2)} 営業日 / 土日・祝除外</div>`;
-  html += `<div style="font-size:11px; margin-bottom:10px;">凡例: <span style="display:inline-block;width:14px;height:10px;background:#9cd;border:1px solid #468;vertical-align:middle;"></span> 人員1 ／ <span style="display:inline-block;width:14px;height:10px;background:#fc9;border:1px solid #a63;vertical-align:middle;"></span> 人員2 ／ <span style="display:inline-block;width:14px;height:10px;background:#cec;border:1px solid #484;vertical-align:middle;"></span> 完了 (実工数h表示) ／ <span style="display:inline-block;width:14px;height:10px;background:#e7d9f5;border:1px solid #8a5db5;vertical-align:middle;"></span> 業務確認待ち ／ <span style="display:inline-block;width:14px;height:10px;background:#fdeec2;border:1px solid #c89a1e;vertical-align:middle;"></span> 仕様確認中 ／ <span style="display:inline-block;width:14px;height:10px;background:#dbeafe;border:1px solid #3b78c6;vertical-align:middle;"></span> 進捗あり (%表示) ／ <span style="display:inline-block;width:14px;height:10px;background:#fce4ec;border:1px solid #c2407a;vertical-align:middle;"></span> 変更対応 (別グループ)</div>`;
+  html += `<div style="font-size:11px; margin-bottom:10px;">凡例: <span style="display:inline-block;width:14px;height:10px;background:#9cd;border:1px solid #468;vertical-align:middle;"></span> 人員1 ／ <span style="display:inline-block;width:14px;height:10px;background:#fc9;border:1px solid #a63;vertical-align:middle;"></span> 人員2 ／ <span style="display:inline-block;width:14px;height:10px;background:#cec;border:1px solid #484;vertical-align:middle;"></span> 完了 (実工数h表示) ／ <span style="display:inline-block;width:14px;height:10px;background:#e7d9f5;border:1px solid #8a5db5;vertical-align:middle;"></span> 業務確認待ち ／ <span style="display:inline-block;width:14px;height:10px;background:#fdeec2;border:1px solid #c89a1e;vertical-align:middle;"></span> 仕様確認中 ／ <span style="display:inline-block;width:14px;height:10px;background:#dbeafe;border:1px solid #3b78c6;vertical-align:middle;"></span> 進捗あり (%表示) ／ <span style="display:inline-block;width:14px;height:10px;background:#fce4ec;border:1px solid #c2407a;vertical-align:middle;"></span> 変更対応 (別グループ) ／ <span style="display:inline-block;width:14px;height:10px;background:#e0f2f1;border:1px solid #2a8a7e;vertical-align:middle;"></span> バックエンドのみ生成 (別グループ)</div>`;
   // マイルストーンを横に伸長するタイムライン + 矢印シェイプで表現 (5/25〜6/26)。カレンダー下部に描画
   let milestoneHtml = "";
   if (mode !== "actual" && screenCompletionDay > 0) {
     const endTarget = dateToWorkdayIndex("2026-06-26");
-    const axisMax = Math.max(endTarget, screenCompletionDay, ifCompletionDay, changeCompletionDay, 1);
+    const axisMax = Math.max(endTarget, screenCompletionDay, ifCompletionDay, changeCompletionDay, backendCompletionDay, 1);
     const tlDates = ganttWorkDates(axisMax + 2);
     const W = 920, H = 152, axisY = 76, mL = 24, mR = 56;
     const x0 = mL, x1 = W - mR;
@@ -516,6 +528,7 @@ function buildGantt(sortedScreens, containerId, title, palette, mode){
     drawMs(screenCompletionDay, "#c33", "画面実装完了", 'top');
     drawMs(ifCompletionDay, "#36a", "IF実装完了", 'bottom');
     if (changeCompletionDay > 0) drawMs(changeCompletionDay, "#c2407a", "変更対応完了", 'top');
+    if (backendCompletionDay > 0) drawMs(backendCompletionDay, "#2a8a7e", "バックエンド生成完了", 'bottom');
     s += `</svg>`;
     milestoneHtml = `<div style="font-size:14px; font-weight:bold; color:#444; margin:16px 0 4px;">マイルストーン (5/25〜6/26)</div>`
       + `<div style="display:flex; align-items:center;"><div style="flex:0 0 auto;">${s}</div></div>`;
@@ -571,6 +584,7 @@ function buildGantt(sortedScreens, containerId, title, palette, mode){
       const pct = hasProgress ? Math.round(pr * 100) : null;
       // 変更対応グループは専用色。以降は 完了/確認待ち/仕様確認/進捗あり の順で色付け
       const color = b.kind === "change" ? CHANGE_COLOR
+                  : b.kind === "backend" ? BACKEND_COLOR
                   : isDone ? DONE_COLOR : (isReview ? REVIEW_COLOR : (isSpec ? SPEC_COLOR : (hasProgress ? PROGRESS_COLOR : LANE_COLORS[b.lane])));
       const slot = b.slot || 0;
       const top = laneTops[b.lane] + slot * subRowH + 3;
@@ -915,7 +929,11 @@ function redraw(){
   render("t-screens","th-screens",SCREEN_COLS, cbGroup.checked ? groupTasks(sortedScreens) : sortedScreens);
   render("t-ifs","th-ifs",IF_COLS,[...IFS].sort(cmp));
   render("t-change","th-change",CHANGE_COLS,[...CHANGE].sort(cmp));
-  buildGantt([...SCREENS, ...IFS, ...CHANGE].sort(cmp), "gantt-plan", "計画", { bg:'#9cd', bd:'#468' }, "plan");
+  render("t-backend","th-backend",BACKEND_COLS,[...BACKEND].sort(cmp));
+  // ガントの配置は「担当者+実施順が決まっているもの以外は優先順位のみ」で順位付けする。
+  // スコア順(readiness)で並べると、DM/UIマーカーを持たないバックエンド生成(score0)が優先1でも末尾に落ちるため、
+  // 配置用の並びは常に優先昇順(sortDefault)を用いる。
+  buildGantt([...SCREENS, ...IFS, ...CHANGE, ...BACKEND].sort(sortDefault), "gantt-plan", "計画", { bg:'#9cd', bd:'#468' }, "plan");
   buildBurndown("burndown");
   buildEvm("evm-content");
 }

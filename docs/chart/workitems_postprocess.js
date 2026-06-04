@@ -87,15 +87,8 @@ function postprocessWorkitems(rawData){
   const SCREENS = rawData.SCREENS.map(r => ({ ...r }));
   const IFS     = rawData.IFS.map(r => ({ ...r }));
 
-  // 1. 優先順位調整: マスタ画面=0, 非マスタの 0→1 / 1→2
-  SCREENS.forEach(r=>{
-    const isMaster = (r.画面名||"").indexOf("マスタ") >= 0;
-    if (isMaster) r.優先 = 0;
-    else if (r.優先 === 0) r.優先 = 1;
-    else if (r.優先 === 1) r.優先 = 2;
-  });
-  // IF行は優先に +100 の下駄を履かせ、画面と混在ソートしても末尾に張り付くようにする
-  IFS.forEach(r=>{ r.優先 = (r.優先 || 0) + 100; });
+  // 1. 優先順位はソースデータ(workitems.js)に直接記載する方針。ここでの動的調整は行わない。
+  //    (マスタ画面=0 / 非マスタ 1・5・10・50 / IF=101 を WORKITEMS_DATA 側で直接指定済み)
 
   // 2. SHEET_ITEMS 統合 (画面名一致行に ✅シートあり (X項目) を付与)
   SCREENS.forEach(r=>{
@@ -204,5 +197,32 @@ function postprocessWorkitems(rawData){
     実施順: null,
   }));
 
-  return { SCREENS, IFS, CHANGE };
+  // 13. バックエンドのみ生成グループ: 入力画面が無く未完(再実装要)のテーブルの
+  //   バックエンド(スキーマ＋Service)生成枠。calcEffort は通さず、工数 = 仕様確認(h) + AI実装(h)。
+  //   画面実装の集計・完了判定には含めない別グループ (SCREENS には混ぜず別配列で返す)。
+  //   ガント/EVMの集計キー用に 画面名 = モデル名 を持たせる。
+  //   優先1: グループ内のタスクは一律 優先1 (画面処理と同等の最優先で実施)。
+  const BACKEND = (rawData.BACKEND_TASKS || []).map(t=>{
+    const spec = t["仕様確認(h)"] ?? 0;
+    const impl = t["AI実装(h)"] ?? 0;
+    return {
+      優先: t.優先 ?? 1,
+      ドメイン: "バックエンド生成",
+      種別: t.種別 || "",
+      モデル名: t.モデル名 || "",
+      物理名: t.物理名 || "",
+      画面名: t.モデル名 || "",
+      項目数: t.項目数 ?? "",
+      状況: t.状況 || "予定",
+      進捗率: 0,
+      "仕様確認(h)": spec,
+      "AI実装(h)": impl,
+      "工数(h)": Math.round((spec + impl) * 10) / 10,
+      "実工数(h)": "",
+      担当者: t.担当者 ?? null,
+      実施順: t.実施順 ?? null,
+    };
+  });
+
+  return { SCREENS, IFS, CHANGE, BACKEND };
 }
