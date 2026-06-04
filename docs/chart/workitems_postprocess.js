@@ -94,6 +94,8 @@ function postprocessWorkitems(rawData){
     else if (r.優先 === 0) r.優先 = 1;
     else if (r.優先 === 1) r.優先 = 2;
   });
+  // IF行は優先に +100 の下駄を履かせ、画面と混在ソートしても末尾に張り付くようにする
+  IFS.forEach(r=>{ r.優先 = (r.優先 || 0) + 100; });
 
   // 2. SHEET_ITEMS 統合 (画面名一致行に ✅シートあり (X項目) を付与)
   SCREENS.forEach(r=>{
@@ -181,5 +183,26 @@ function postprocessWorkitems(rawData){
     }
   });
 
-  return { SCREENS, IFS };
+  // 12. 変更対応グループ: 画面実装とは別枠の独立グループ。
+  //   後発の仕様変更に対応するためのバッファ枠。calcEffort を通さず工数は固定値。
+  //   SCREENS には混ぜない (画面実装の集計・完了判定に含めないため、別配列で返す)。
+  const CHANGE = (rawData.CHANGE_TASKS || []).map(c=>({
+    優先: c.優先 ?? 200,
+    ドメイン: "変更対応",
+    画面ID: "",
+    画面名: c.画面名 || "変更対応",
+    管理ID: "",
+    処理区分: "",
+    処理名: "変更対応",
+    データモデル: "",
+    画面項目定義: "",
+    状況: "予定",
+    進捗率: 0,
+    "工数(h)": c["工数(h)"] ?? 46,
+    "実工数(h)": "",
+    担当者: null,
+    実施順: null,
+  }));
+
+  return { SCREENS, IFS, CHANGE };
 }
