@@ -187,7 +187,7 @@ function headerHtml(c){
 function render(tid,hid,cols,data){
   document.getElementById(hid).innerHTML = "<th>No.</th>" + cols.map(c=>"<th>"+headerHtml(c)+"</th>").join("");
   const dataRows = data.map((r, idx)=>"<tr><td>"+(idx+1)+"</td>"+cols.map(c=>"<td>"+esc(cellValue(r,c))+"</td>").join("")+"</tr>").join("");
-  const SUM_COLS = ["工数(h)", "実工数(h)", "仕様確認(h)", "AI実装(h)"];
+  const SUM_COLS = ["工数(h)", "実工数(h)"];
   const sums = {};
   SUM_COLS.forEach(c => { sums[c] = data.reduce((a, r) => a + (parseFloat(r[c]) || 0), 0); });
   const base = 'font-weight:bold; background:#eaf0f6; border-top:2px solid #888;';
