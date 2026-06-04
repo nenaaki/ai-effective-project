@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>議事まとめ 2026-06-03 / 今後のアクション・決定事項</title>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body {
+    font-family: -apple-system, "Hiragino Kaku Gothic ProN", "Yu Gothic", system-ui, sans-serif;
+    color: #1f2937;
+    background: #fafafa;
+    padding: 28px 32px;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+  .page { max-width: 1240px; margin: 0 auto; height: 100%; display: flex; flex-direction: column; }
+  h1 { font-size: 19px; margin: 0; border-bottom: 3px solid #2563eb; padding-bottom: 6px; }
+  .sub { color: #6b7280; font-size: 12px; margin: 6px 0 14px; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1.25fr 1fr;
+    gap: 18px;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+  }
+  .panel {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: auto;
+  }
+  h2 { font-size: 13px; margin: 0 0 10px; padding-left: 8px; border-left: 3px solid #2563eb; }
+
+  .group { margin-bottom: 12px; }
+  .group:last-child { margin-bottom: 0; }
+  .group-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #2563eb;
+    letter-spacing: 0.03em;
+    margin: 4px 0 6px;
+  }
+
+  .items { display: flex; flex-direction: column; gap: 6px; }
+  .item {
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 12px;
+    line-height: 1.55;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .item .num {
+    background: #2563eb;
+    color: white;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 11px;
+    flex-shrink: 0;
+  }
+  .item .title { font-weight: 600; color: #1f2937; }
+  .item .desc { color: #4b5563; margin-top: 2px; font-size: 11.5px; }
+
+  .item .badge-wip {
+    display: inline-block;
+    background: #f59e0b;
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 3px;
+    margin-left: 6px;
+    vertical-align: 1px;
+    letter-spacing: 0.04em;
+  }
+  .item .open-link {
+    display: inline-block;
+    font-size: 10.5px;
+    font-weight: 600;
+    color: #2563eb;
+    text-decoration: none;
+    margin-left: 8px;
+    padding: 1px 6px;
+    border: 1px solid #bfdbfe;
+    border-radius: 3px;
+    background: #eff6ff;
+    vertical-align: 1px;
+  }
+  .item .open-link:hover { background: #dbeafe; border-color: #93c5fd; }
+
+  .item-detail {
+    margin-top: 6px;
+    background: #f9fafb;
+    border-left: 2px solid #9ca3af;
+    border-radius: 3px;
+    padding: 6px 9px;
+    font-size: 11px;
+    line-height: 1.55;
+    color: #374151;
+  }
+  .item-detail .head {
+    font-size: 10px;
+    font-weight: 700;
+    color: #6b7280;
+    letter-spacing: 0.04em;
+    margin-bottom: 3px;
+  }
+  .item-detail.action { border-left-color: #f59e0b; background: #fffbeb; }
+  .item-detail.action .head { color: #92400e; }
+
+  /* 決定事項 */
+  .decisions { display: flex; flex-direction: column; gap: 6px; }
+  .decision {
+    background: #ecfdf5;
+    border-left: 3px solid #10b981;
+    border-radius: 4px;
+    padding: 8px 10px;
+    font-size: 11.5px;
+    line-height: 1.55;
+  }
+  .decision .tag {
+    display: inline-block;
+    background: #10b981;
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 3px;
+    margin-right: 6px;
+    vertical-align: 1px;
+  }
+
+  /* マイルストーン強調 */
+  .milestone {
+    margin-top: 12px;
+    background: #eef2ff;
+    border: 1px solid #c7d2fe;
+    border-radius: 6px;
+    padding: 10px 12px;
+  }
+  .milestone-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #4338ca;
+    letter-spacing: 0.04em;
+    margin-bottom: 5px;
+  }
+  .milestone .date {
+    display: inline-block;
+    background: #4338ca;
+    color: white;
+    font-size: 13px;
+    font-weight: 800;
+    padding: 2px 10px;
+    border-radius: 4px;
+    margin-right: 8px;
+    letter-spacing: 0.03em;
+  }
+  .milestone .flow {
+    font-size: 11.5px;
+    line-height: 1.6;
+    color: #1f2937;
+    margin-top: 6px;
+  }
+  .milestone strong { color: #4338ca; }
+
+  /* 全体総括 */
+  .summary {
+    margin-top: 12px;
+    background: #fffbeb;
+    border: 1px solid #fcd34d;
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-size: 11.5px;
+    line-height: 1.65;
+    color: #1f2937;
+  }
+  .summary-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #92400e;
+    letter-spacing: 0.04em;
+    margin-bottom: 5px;
+  }
+  .summary strong { color: #92400e; }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>議事まとめ 2026-06-03 — 今後のアクション / 決定事項</h1>
+  <div class="sub">金子社長MTG（参加: 金子社長・山本・水野） / テーマ: AIDD 進捗・課題共有</div>
+
+  <div class="grid">
+
+    <!-- 左: アクションアイテム -->
+    <div class="panel">
+      <h2>今後のアクションアイテム</h2>
+
+      <div class="group">
+        <div class="group-label">思考錯誤の可視化・EVM</div>
+        <div class="items">
+          <div class="item">
+            <span class="num">1</span>
+            <div>
+              <div class="title">思考錯誤（オーバーヘッド）工数の可視化<span class="badge-wip">実施中</span></div>
+              <div class="desc">各タスクに <strong>「思考特有」マーク</strong> を付与し、<strong>思考錯誤を含む合計値</strong> と <strong>含まない純粋な開発工数</strong> の2系統で集計する</div>
+              <div class="item-detail action">
+                <div class="head">意図</div>
+                標準化後の To-Be では思考特有工数は <strong>ゼロになる想定</strong>。2系統集計により AI 導入の真の改善効果を測定可能にする。
+              </div>
+            </div>
+          </div>
+          <div class="item">
+            <span class="num">2</span>
+            <div>
+              <div class="title">EVM による完了予測・着地工数の算出<span class="badge-wip">実施中</span><a class="open-link" href="aidd_report.html#evm" target="_blank" rel="noopener">aidd_report の EVM を開く →</a></div>
+              <div class="desc">マネジメントが見たい <strong>「いつ完了するのか」「最終的な着地工数はいくらか」</strong> の2点を精度高く算出するため、パラメータ入力を継続する</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="group-label">タスク運用ルール（簿外排除）</div>
+        <div class="items">
+          <div class="item">
+            <span class="num">3</span>
+            <div>
+              <div class="title">仕様変更は新規タスクで起票</div>
+              <div class="desc">完了タスクの <strong>進捗率は戻さない（100%→80%等はしない）</strong>。変更作業は <strong>「仕様変更対応」等の大項目</strong> を別途作成し、追加工数を透明化する</div>
+            </div>
+          </div>
+          <div class="item">
+            <span class="num">4</span>
+            <div>
+              <div class="title">簿外タスクの徹底排除</div>
+              <div class="desc"><strong>「画面がないからDB・バックエンドだけ先に」</strong> 等を強く禁止。UI がなくても作業が発生するなら必ず起票し、作業一覧とカレンダーを連動させてデータの一貫性を担保する</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="group-label">課題管理・プッシュ型マネジメント</div>
+        <div class="items">
+          <div class="item">
+            <span class="num">5</span>
+            <div>
+              <div class="title">確認リストの一元管理＋プッシュ型リマインド</div>
+              <div class="desc">SharePoint 上の Excel で <strong>谷氏・千葉氏ら PM 層と一元管理</strong>。回答待ちでの <strong>リードタイム浪費を防ぐため、回答期限を逆算してエンジニア側から能動的に催促</strong> する</div>
+            </div>
+          </div>
+          <div class="item">
+            <span class="num">6</span>
+            <div>
+              <div class="title">顧客・外部要因による遅延への能動対応</div>
+              <div class="desc">単に相手名で「待ち」を置かない。<strong>「お目付け役（張り付き担当）」をアサイン</strong> し、<strong>説明資料作成・会議同行でその場で決めさせる</strong> など遅延の因果を断ち切る</div>
+            </div>
+          </div>
+          <div class="item">
+            <span class="num">7</span>
+            <div>
+              <div class="title">仮決めによる開発継続とリスク管理</div>
+              <div class="desc">即答が得られない不明点は <strong>説明可能なロジックで「仮決め」</strong> して進める。<strong>「なぜ・どこを仮決めしたか」を再現可能な形で記録</strong> し、<strong>仕様確定時の修正タスクをバッファとして WBS に積む</strong></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右: 決定事項 + マイルストーン + 総括 -->
+    <div class="panel">
+      <h2>決定事項まとめ</h2>
+      <div class="decisions">
+        <div class="decision">
+          <span class="tag">進捗管理</span>進捗管理に <strong>EVM を完全適用</strong> し、WBS と実績の <strong>一貫性を保持</strong> する
+        </div>
+        <div class="decision">
+          <span class="tag">仕様変更</span>仕様変更は <strong>別タスクとして起票</strong> し、<strong>進捗率の巻き戻しは行わない</strong>
+        </div>
+        <div class="decision">
+          <span class="tag">確認運用</span>確認事項は <strong>「確認リスト」で管理</strong> し、エンジニア側からも積極的に PM へリマインドする
+        </div>
+        <div class="decision">
+          <span class="tag">フェーズ</span><strong>6/8 より「標準化フェーズ」に移行</strong> し、生産性を最大化させる
+        </div>
+      </div>
+
+      <div class="milestone">
+        <div class="milestone-label">今後のマイルストーン</div>
+        <div><span class="date">6/8</span><strong>思考錯誤フェーズ 終了</strong></div>
+        <div class="flow">
+          運用ルールの確立と AI 機能の検証に目処がついたため、6/8 をもって思考錯誤フェーズを終了。
+          以降は <strong>一定のルールに基づき思考錯誤を挟まない効率的な開発（標準化）フェーズ</strong> へ移行する。
+        </div>
+      </div>
+
+      <div class="summary">
+        <div class="summary-label">全体総括</div>
+        <div>
+          EVM 適用と WBS 運用ルールを詰め、<strong>思考錯誤（オーバーヘッド）と純粋な開発工数を分離</strong> して効果測定する体制を確認。
+          マネジメントが見たいのは <strong>「いつ完了するか」「着地工数はいくらか」</strong> の2点であり、簿外タスクを排除しデータの一貫性を徹底することで、標準化後の改善効果を経営データとして証明していく。
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+</body>
+</html>
