@@ -423,6 +423,84 @@
     s._template = false;
   });
 
+  // ====== BACKEND_TASKS (バックエンドのみ生成グループ) からタブを生成 ======
+  // 入力画面が無く再実装が必要なテーブルの BE(スキーマ+Service)生成枠。
+  // 工数(h) = 仕様確認 + AI実装 の合算見積りのみで AsIs/ToBe 内訳を持たないため、
+  // lede / contextNotes に工数・状況・項目数を載せた簡易表示 (チャートはプレースホルダ)。
+  function createBackendScenario(t) {
+    const phys = t.物理名 ? `（物理名: <code>${t.物理名}</code>）` : "";
+    return {
+      tabLabel: t.モデル名,
+      title: `${t.モデル名}（バックエンドのみ生成）`,
+      lede: `入力画面を持たない<strong>バックエンドのみ生成</strong>のテーブル${phys}。種別: <strong>${t.種別 || "—"}</strong> ／ 項目数: <strong>${t.項目数 || "—"}</strong> ／ 状況: <strong>${t.状況 || "—"}</strong>。見積り工数（仕様確認 + AI実装）は <strong>${t["工数(h)"]}h</strong>。`,
+      tasks: [],
+      bugCategories: [],
+      bugRateNote: "<em>バックエンドのみ生成のため想定バグ数は未記入。</em>",
+      contextNotes: [
+        "スキーマ（Prisma）＋ Service のバックエンド生成枠。入力画面は無く、画面実装の完了判定には含めない別グループ（出典: <code>.work/table_gap.md</code> ＋ データモデル設計書）。",
+        `見積り工数 <strong>${t["工数(h)"]}h</strong> は仕様確認 + AI実装の合算（テーブルの複雑度・項目数で個別設定）。AsIs/ToBe の内訳は未測定。`,
+        `状況: <strong>${t.状況 || "—"}</strong>。`,
+      ],
+      _template: true,
+      _backend: true,
+    };
+  }
+  function generateBackendScenarios() {
+    if (typeof WORKITEMS_DATA === 'undefined' ||
+        typeof postprocessWorkitems === 'undefined') {
+      return { keys: [] };
+    }
+    const { BACKEND } = postprocessWorkitems(WORKITEMS_DATA);
+    const keys = [];
+    (BACKEND || []).forEach((t, i) => {
+      const key = `wi-be-${i}`;
+      if (scenarios[key]) return;
+      scenarios[key] = createBackendScenario(t);
+      keys.push(key);
+    });
+    return { keys };
+  }
+  const _be = generateBackendScenarios();
+
+  // === バックエンド生成タブの実績注入 (予実管理) ===
+  // 入力画面が無いテーブルでも、お知らせ登録(FE015)の「データモデル設計〜APIレビュー」工程に倣って
+  // AsIs(人力想定)/ToBe(AI実績) を記録する。AsIs は実績LOCの規模から推定、ToBe は実測値。
+  // tasks を丸ごと差し替え、lede/contextNotes も実績版に上書きして _template=false にする。
+  const BACKEND_OVERRIDES = {
+    // 荷主(m_shipper)・事業会社(m_company)・時間区分(m_time_slot) の 3 マスタ (32項目)。
+    // AsIs: お知らせ登録の「行あたり工数」を実績LOCに適用 (data-impl 6h/166行・api-impl 8h/369行・api-test 3.5h/256行)。
+    //       data-design はデータ実装の規模比 (399/166)、api-review は総コード量比 (2005/791) で按分。
+    // ToBe: APIレビュー 1.5h(エンジニア) + その他工程 合計 1.5h(AI)。
+    'wi-be-2': {
+      lede: "<strong>荷主</strong>(<code>m_shipper</code>)・<strong>事業会社</strong>(<code>m_company</code>)・<strong>時間区分</strong>(<code>m_time_slot</code>) の 3 マスタを<strong>バックエンドのみ生成</strong>（入力画面なし・32項目）。実績コード量は計 <strong>2,005行</strong>（データモデル実装 399 / API設計・実装 902 / API単体テスト 704）。工程はお知らせ登録(FE015)の「データモデル設計〜APIレビュー」に準拠。<strong>AsIs は行数規模から推定</strong>、<strong>ToBe は実測</strong>（APIレビュー 3.5h + その他工程 合計 1.5h）。APIレビューは人がコードを確認する工数として AsIs / ToBe とも 3.5h でそろえている。",
+      tasks: [
+        { key: "data-design", label: "データモデル設計",        color: "var(--c-data-design)", loc: null, asis: 9.6,  tobe: 0.3, tobeEng: 0,   agents: ["DBアーキテクトAI"] },
+        { key: "data-impl",   label: "データモデル実装",        color: "var(--c-data-impl)",   loc: 399,  asis: 14.4, tobe: 0.4, tobeEng: 0,   agents: ["DBアーキテクトAI"] },
+        { key: "api-impl",    label: "API設計・実装",           color: "var(--c-api-impl)",    loc: 902,  asis: 19.6, tobe: 0.5, tobeEng: 0,   agents: ["バックエンドAI"] },
+        { key: "api-test",    label: "API単体テスト",           color: "var(--c-api-test)",    loc: 704,  asis: 9.6,  tobe: 0.3, tobeEng: 0,   agents: ["バックエンドAI"] },
+        { key: "api-review",  label: "APIレビュー (エンジニア)", color: "var(--c-eng-review)",  loc: null, asis: 3.5,  tobe: 3.5, tobeEng: 3.5, agents: ["バックエンドレビュワーAI", "エンジニア"] },
+      ],
+      contextNotes: [
+        "対象: 荷主(m_shipper)・事業会社(m_company)・時間区分(m_time_slot) の 3 マスタ。入力画面を持たないバックエンド(Prisma スキーマ + Service)生成枠で、画面実装の完了判定には含めない別グループ（出典: <code>.work/table_gap.md</code> ＋ データモデル設計書）。",
+        "<strong>実績コード量</strong>: データモデル実装 <strong>399行</strong> / API設計・実装 <strong>902行</strong> / API単体テスト <strong>704行</strong>（計 2,005行）。工程区分はお知らせ登録(FE015)のデータモデル設計〜APIレビューを流用。",
+        "<strong>AsIs（人力想定）は行数規模から推定</strong>: お知らせ登録の『行あたり工数』を実績LOCに適用（data-impl 6h/166行・api-impl 8h/369行・api-test 3.5h/256行）。データモデル設計はデータ実装の規模比で按分。APIレビューは人の確認工数として AsIs / ToBe とも 3.5h でそろえる。合計 約57h。",
+        "<strong>ToBe（AI駆動）は実測 5.0h</strong>: APIレビュー 3.5h（エンジニア）＋ その他工程（設計・実装・テスト生成）合計 1.5h（AI）。削減率 約91%。レビューはAIが書いたコードを人が確認する工数で AsIs と同水準。",
+        "想定バグ数は未記入（バックエンド生成のため別途記録予定）。",
+      ],
+    },
+  };
+  Object.entries(BACKEND_OVERRIDES).forEach(([key, override]) => {
+    const s = scenarios[key];
+    if (!s) return;
+    Object.assign(s, override);
+    s._template = false;
+  });
+
   scenarios.total = buildTotalScenario(scenarios, REAL_KEYS_FOR_TOTAL);
   const REAL_KEYS_TABS = REAL_KEYS.filter(k => !MERGE_MAP[k]);
   const TAB_ORDER = ["total", ...REAL_KEYS_TABS, ..._wi.keys];
+  // BACKEND_TASKS のタブをデポマスタ (wi-screen-DM07FE021) の直前に挿入
+  if (_be.keys.length) {
+    const depotIdx = TAB_ORDER.indexOf('wi-screen-DM07FE021');
+    TAB_ORDER.splice(depotIdx >= 0 ? depotIdx : 1, 0, ..._be.keys);
+  }

@@ -119,6 +119,44 @@
     color: #9333ea;
   }
 
+  /* 折りたたみグループ */
+  .tab-group { margin-top: 6px; }
+  .tab-group-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    padding: 6px 8px;
+    background: #f3f4f6;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--sub);
+    letter-spacing: 0.02em;
+    text-align: left;
+  }
+  .tab-group-header:hover { background: #e5e7eb; color: var(--text); }
+  .tab-group-caret { font-size: 10px; width: 10px; text-align: center; }
+  .tab-group-name { flex: 1; }
+  .tab-group-count {
+    font-size: 10px;
+    font-weight: 600;
+    color: #9ca3af;
+    background: #fff;
+    border-radius: 999px;
+    padding: 1px 7px;
+  }
+  .tab-group-body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-top: 2px;
+  }
+  .tab-group.collapsed .tab-group-body { display: none; }
+
   h1 {
     font-size: 24px;
     margin: 0 0 8px;
@@ -498,23 +536,68 @@
   function scenarioHasTrial(s) {
     return !!s && (s.tasks || []).some(t => (t.label || "").includes("[試行特有]"));
   }
+  // タブのグループ分類: バックエンド実装 / IF / 画面処理 (total はグループ外で先頭固定)
+  function classifyGroup(k) {
+    if (k.startsWith("wi-be-")) return "バックエンド実装";
+    if (k.startsWith("wi-if-")) return "IF";
+    return "画面処理";
+  }
+  // 折りたたみ状態 (バックエンド実装 / IF は初期折りたたみ、画面処理は展開)
+  const groupCollapsed = { "バックエンド実装": true, "IF": true, "画面処理": false };
+  // currentKey の属するグループは必ず開く
+  function ensureGroupVisible(k) {
+    if (k !== "total") groupCollapsed[classifyGroup(k)] = false;
+  }
+  function tabButtonHTML(k) {
+    const cls = ["tab"];
+    if (k === currentKey) cls.push("active");
+    if (k === "total")    cls.push("highlight");
+    const hasData = scenarioHasData(scenarios[k]);
+    if (!hasData) cls.push("is-empty");
+    const dot   = hasData ? '<span class="tab-dot" title="値が記入済み"></span>' : "";
+    const trial = scenarioHasTrial(scenarios[k]) ? '<span class="tab-trial" title="試行特有の工程を含む">(試行)</span>' : "";
+    return `<button type="button" class="${cls.join(" ")}" data-key="${k}">${scenarios[k].tabLabel}${dot}${trial}</button>`;
+  }
   function renderTabs() {
-    document.getElementById("tabs").innerHTML = TAB_ORDER.map(k => {
-      const cls = ["tab"];
-      if (k === currentKey) cls.push("active");
-      if (k === "total")    cls.push("highlight");
-      const hasData = scenarioHasData(scenarios[k]);
-      if (!hasData) cls.push("is-empty");
-      const dot   = hasData ? '<span class="tab-dot" title="値が記入済み"></span>' : "";
-      const trial = scenarioHasTrial(scenarios[k]) ? '<span class="tab-trial" title="試行特有の工程を含む">(試行)</span>' : "";
-      return `<button type="button" class="${cls.join(" ")}" data-key="${k}">${scenarios[k].tabLabel}${dot}${trial}</button>`;
-    }).join("");
+    // total は先頭固定、それ以外を出現順にグループ化
+    const groups = [];
+    const byName = {};
+    TAB_ORDER.forEach(k => {
+      if (k === "total") return;
+      const g = classifyGroup(k);
+      if (!byName[g]) { byName[g] = { name: g, keys: [] }; groups.push(byName[g]); }
+      byName[g].keys.push(k);
+    });
+    let html = tabButtonHTML("total");
+    groups.forEach(g => {
+      const collapsed = !!groupCollapsed[g.name];
+      const caret = collapsed ? "▸" : "▾";
+      const body  = g.keys.map(tabButtonHTML).join("");
+      html += `
+        <div class="tab-group${collapsed ? " collapsed" : ""}">
+          <button type="button" class="tab-group-header" data-group="${g.name}">
+            <span class="tab-group-caret">${caret}</span>
+            <span class="tab-group-name">${g.name}</span>
+            <span class="tab-group-count">${g.keys.length}</span>
+          </button>
+          <div class="tab-group-body">${body}</div>
+        </div>`;
+    });
+    document.getElementById("tabs").innerHTML = html;
   }
   // クリックは初期化時に一度だけ委譲バインド
   document.getElementById("tabs").addEventListener("click", e => {
+    const header = e.target.closest(".tab-group-header");
+    if (header) {
+      const g = header.dataset.group;
+      groupCollapsed[g] = !groupCollapsed[g];
+      renderTabs();
+      return;
+    }
     const btn = e.target.closest(".tab");
     if (!btn) return;
     currentKey = btn.dataset.key;
+    ensureGroupVisible(currentKey);
     renderTabs();
     renderScenario();
   });
@@ -699,14 +782,21 @@
         </div>
       `;
     }
-    document.getElementById("bugs").innerHTML =
-      buildBugBlock("asis", bugAsis) + buildBugBlock("tobe", bugTobe);
+    if (bugCategories.length === 0 || bugMax === 0) {
+      // 想定バグ数が未記入 (バックエンド生成タブ等) は空チャートを出さずプレースホルダ表示
+      document.getElementById("bugs").innerHTML =
+        '<p class="notes" style="color: var(--sub); padding: 12px 0; text-align:center;">想定バグ数は未記入です。</p>';
+      document.getElementById("bug-legend").innerHTML = "";
+    } else {
+      document.getElementById("bugs").innerHTML =
+        buildBugBlock("asis", bugAsis) + buildBugBlock("tobe", bugTobe);
 
-    document.getElementById("bug-legend").innerHTML = bugCategories.map(c => `
-      <span class="legend-item">
-        <span class="legend-swatch" style="background:${c.color}"></span>${c.label}
-      </span>
-    `).join("");
+      document.getElementById("bug-legend").innerHTML = bugCategories.map(c => `
+        <span class="legend-item">
+          <span class="legend-swatch" style="background:${c.color}"></span>${c.label}
+        </span>
+      `).join("");
+    }
 
     // 内訳テーブル（asis/tobe/loc すべて 0 の行は非表示）
     const rows = tasks.filter(t => (t.asis||0) > 0 || (t.tobe||0) > 0 || (t.loc||0) > 0).map(t => {
@@ -766,6 +856,7 @@
     const h = (location.hash || "").replace(/^#/, "");
     if (h && scenarios[h]) {
       currentKey = h;
+      ensureGroupVisible(currentKey);
       renderTabs();
       renderScenario();
     }
