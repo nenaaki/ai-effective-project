@@ -578,7 +578,7 @@
           <button type="button" class="tab-group-header" data-group="${g.name}">
             <span class="tab-group-caret">${caret}</span>
             <span class="tab-group-name">${g.name}</span>
-            <span class="tab-group-count">${g.keys.length}</span>
+            <span class="tab-group-count" title="記入済みタスク数 / タスク数">${g.keys.filter(k => scenarioHasData(scenarios[k])).length}/${g.keys.length}</span>
           </button>
           <div class="tab-group-body">${body}</div>
         </div>`;
