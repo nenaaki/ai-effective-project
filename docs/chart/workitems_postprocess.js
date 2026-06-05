@@ -11,28 +11,8 @@
 // 使い方:
 //   const { SCREENS, IFS } = postprocessWorkitems(WORKITEMS_DATA);
 
-// === 工数計算用 定数・係数 ===
-const EFFORT = {
-  BASE_HOURS: 3.0,
-  ITEM_WEIGHT: 0.005,
-  IF_HOURS: 4,
-  PROC:  { 閲覧: 0.7, 編集: 1.0, 新規登録: 1.3, DL印刷: 1.1 },
-  SCOPE: { 両方: 1.0, BEのみ: 0.5 },
-  ASSET: { 両方: 0.85, 片方: 0.95, なし: 1.0 }
-};
-
-function procFactor(k){
-  if (k.indexOf("閲覧") >= 0) return EFFORT.PROC.閲覧;
-  if (k.indexOf("新規登録") >= 0) return EFFORT.PROC.新規登録;
-  if (k.indexOf("編集") >= 0) return EFFORT.PROC.編集;
-  if (k.indexOf("DL") >= 0 || k.indexOf("印刷") >= 0) return EFFORT.PROC.DL印刷;
-  return EFFORT.PROC.編集;
-}
-function assetFactor(hasMock, hasSheet){
-  if (hasMock && hasSheet) return EFFORT.ASSET.両方;
-  if (hasMock || hasSheet) return EFFORT.ASSET.片方;
-  return EFFORT.ASSET.なし;
-}
+// 工数(h) は各タスク行に固定値で登録する方針 (旧: 係数ベースの自動計算は廃止)。
+// SCREENS / IFS は workitems.js の各行 "工数(h)"、CHANGE / BACKEND も同様にデータ側で保持する。
 
 // スコープ判定:
 //   IF行 = バックエンドのみ
@@ -51,24 +31,6 @@ function scope(r){
   if (beReady && !feAnyReady) return "バックエンドのみ";
   if (beWip) return "待機中";
   return "実装不可";
-}
-
-function calcEffort(r, PROC_ITEMS, SCREEN_PROC_ITEMS){
-  const bk = r.備考 || "";
-  if (r.IFID) return EFFORT.IF_HOURS;
-  if (bk.indexOf("実装不可") >= 0 && !r.画面項目定義) return 0;
-  const ui = r.画面項目定義 || "";
-  const m = ui.match(/\((\d+)項目\)/);
-  let items = m ? parseInt(m[1], 10) : 0;
-  if (!items) {
-    const key = `${r.画面名}|${r.処理名}`;
-    items = SCREEN_PROC_ITEMS[key] ?? PROC_ITEMS[r.処理名] ?? 0;
-  }
-  const kC = procFactor(r.処理区分 || "");
-  const sC = bk.indexOf("バックエンドのみ") >= 0 ? EFFORT.SCOPE.BEのみ : EFFORT.SCOPE.両方;
-  const aC = assetFactor(ui.indexOf("📐") >= 0, ui.indexOf("✅") >= 0);
-  const v = (1 + items * EFFORT.ITEM_WEIGHT) * kC * sC * aC * EFFORT.BASE_HOURS;
-  return Math.round(v * 10) / 10;
 }
 
 // === メインパイプライン (純粋関数) ===
@@ -138,8 +100,8 @@ function postprocessWorkitems(rawData){
     if (s) r.備考 = r.備考 ? `${s} / ${r.備考}` : s;
   });
 
-  // 6. 工数(h) 計算
-  ALL.forEach(r=>{ r["工数(h)"] = calcEffort(r, PROC_ITEMS, SCREEN_PROC_ITEMS); });
+  // 6. 工数(h): データ側の固定値をそのまま採用 (未指定は 0)
+  ALL.forEach(r=>{ r["工数(h)"] = Number(r["工数(h)"]) || 0; });
 
   // 7. 備考が空欄の行 (両方ready) は「着手可能」と表示
   ALL.forEach(r=>{
@@ -181,7 +143,7 @@ function postprocessWorkitems(rawData){
   });
 
   // 13. 変更対応グループ: 画面実装とは別枠の独立グループ。
-  //   後発の仕様変更に対応するためのバッファ枠。calcEffort を通さず工数は固定値。
+  //   後発の仕様変更に対応するためのバッファ枠。工数は固定値。
   //   SCREENS には混ぜない (画面実装の集計・完了判定に含めないため、別配列で返す)。
   const CHANGE = (rawData.CHANGE_TASKS || []).map(c=>({
     優先: c.優先 ?? 200,
@@ -202,7 +164,7 @@ function postprocessWorkitems(rawData){
   }));
 
   // 14. バックエンドのみ生成グループ: 入力画面が無く未完(再実装要)のテーブルの
-  //   バックエンド(スキーマ＋Service)生成枠。calcEffort は通さず、工数 = 仕様確認(h) + AI実装(h)。
+  //   バックエンド(スキーマ＋Service)生成枠。工数 = 仕様確認(h) + AI実装(h) の固定値。
   //   画面実装の集計・完了判定には含めない別グループ (SCREENS には混ぜず別配列で返す)。
   //   ガント/EVMの集計キー用に 画面名 = モデル名 を持たせる。
   //   優先1: グループ内のタスクは一律 優先1 (画面処理と同等の最優先で実施)。

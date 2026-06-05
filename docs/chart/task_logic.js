@@ -1,13 +1,5 @@
-// 作業一覧の共通ロジック: スコア計算 / ソート / グルーピング
+// 作業一覧の共通ロジック: ソート / グルーピング
 // workitems.html などから <script src="task_logic.js"></script> で読込
-
-// スコア加算ウェイト (備考に「実装不可」を含む画面行は 0 固定)
-const TASK_SCORE_WEIGHTS = {
-  DM_DONE:  10,   // データモデル ✅ 完了
-  DM_WIP:    5,   // データモデル 🔄 作業中
-  UI_MOCK:   7,   // 画面項目定義 📐 モックあり
-  UI_SHEET:  3,   // 画面項目定義 ✅ シートあり
-};
 
 // タスクまとめ用キー列 (これらが同じ行を1行に統合)
 const TASK_GROUP_KEY_COLS = ["優先","ドメイン","画面ID","画面名","管理ID"];
@@ -15,20 +7,7 @@ const TASK_GROUP_KEY_COLS = ["優先","ドメイン","画面ID","画面名","管
 // グルーピング対象外とする処理区分の部分一致キーワード (DL・印刷 行は単独行のまま)
 const TASK_GROUP_EXCLUDE_PROC_KEYWORDS = ["DL", "印刷"];
 
-function score(r){
-  // 実装不可 (画面行で DM未完成) は最下位扱い
-  if (!r.IFID && (r.備考||"").indexOf("実装不可") >= 0) return 0;
-  let s = 0;
-  const dm = r.データモデル || "";
-  if (dm.indexOf("✅") >= 0) s += TASK_SCORE_WEIGHTS.DM_DONE;
-  else if (dm.indexOf("🔄") >= 0) s += TASK_SCORE_WEIGHTS.DM_WIP;
-  const ui = r.画面項目定義 || "";
-  if (ui.indexOf("📐") >= 0) s += TASK_SCORE_WEIGHTS.UI_MOCK;
-  if (ui.indexOf("✅") >= 0) s += TASK_SCORE_WEIGHTS.UI_SHEET;
-  return s;
-}
-
-function sortByScore(a,b){ return (score(b)-score(a)) || (a.優先-b.優先); }
+// 並び順: 優先昇順 → 管理ID/IFID 昇順 (タスク優先度は 優先度・実施順 で管理する)
 function sortDefault(a,b){
   return (a.優先-b.優先) || String(a.管理ID||a.IFID||"").localeCompare(String(b.管理ID||b.IFID||""));
 }

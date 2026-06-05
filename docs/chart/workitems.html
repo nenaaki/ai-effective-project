@@ -39,7 +39,7 @@
   <div class="purpose-title">このシートの目的</div>
   <ol>
     <li><b>AI駆動開発としての予実管理</b> — AIによる実装を前提に、各画面・IFの計画工数と実工数を対比し、進捗と完了見込み（マイルストーン）を可視化する。</li>
-    <li><b>作業タスクの割り振り</b> — データモデル／画面項目定義の整備状況からスコア・着手可否を判定し、担当者・実施順を割り当てて並行作業を計画する。</li>
+    <li><b>作業タスクの割り振り</b> — データモデル／画面項目定義の整備状況から着手可否を判定し、担当者・実施順を割り当てて並行作業を計画する。</li>
   </ol>
 </div>
 <div class="tabs">
@@ -75,12 +75,10 @@
   </details>
   <hr>
   <p>
-    <label><input type="checkbox" id="sort-score" checked> スコア順でソート</label>
-    　<label><input type="checkbox" id="group-tasks" checked> タスクをまとめる</label>
-    <span style="color:#666;font-size:12px;">(データモデル完成 +10 / データモデル作業中 +5 / モックあり +7 / シートあり +3 (併存可・加算) / 実装不可は0点 → 同点は優先昇順)</span>
+    <label><input type="checkbox" id="group-tasks" checked> タスクをまとめる</label>
+    <span style="color:#666;font-size:12px;">(優先昇順で表示 → 同じ優先内は管理ID順。タスク優先度は 優先度・実施順 で管理)</span>
   </p>
-  <p style="font-size:12px; color:#666;">工数計算式: 行工数 = (1 + 項目数×0.005) × 処理区分係数 × スコープ係数 × 資産係数 × 3.0 (h)　※1人日=8h<br>
-  処理区分係数: 閲覧0.7 / 編集1.0 / 新規登録1.3 / DL印刷1.1　・　スコープ係数: 両方ready/データモデル変更1.0 / BEまたはFEのみ0.5 / 実装不可0　・　資産係数: モック+シート両方0.85 / 片方0.95 / なし1.0　・　IF行は1件4h固定</p>
+  <p style="font-size:12px; color:#666;">工数(h) は各タスクに固定値で登録（旧:係数ベースの自動計算は廃止）。調整は workitems.js の各行 "工数(h)" を直接編集する　※1人日=8h</p>
   <h2>画面処理</h2>
   <table id="t-screens" style="margin-top:8px;"><thead><tr id="th-screens"></tr></thead><tbody></tbody></table>
   <h2>バックエンドのみ生成 <span style="font-size:13px; font-weight:normal; color:#666;">(入力画面が無く未完＝再実装要のテーブルのバックエンド生成枠／画面処理の次に実施)</span></h2>
@@ -198,8 +196,7 @@ function render(tid,hid,cols,data){
   }).join("");
   document.querySelector("#"+tid+" tbody").innerHTML = dataRows + `<tr>${totalCells}</tr>`;
 }
-// スコア計算 (score) / ソート (sortByScore, sortDefault) / グルーピング (groupTasks) は task_logic.js に分離
-const cbScore = document.getElementById("sort-score");
+// ソート (sortDefault) / グルーピング (groupTasks) は task_logic.js に分離
 const cbGroup = document.getElementById("group-tasks");
 function ganttIsoDate(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
 function ganttIsWorkday(d){
@@ -762,6 +759,22 @@ function buildBurndown(containerId){
 </div>`;
 }
 // EVM (Earned Value Management) =====================================================
+// 貼り付け用スナップショット行をクリップボードへコピー (clipboard API → execCommand フォールバック)
+function copyEvmSnap(btn){
+  const el = document.getElementById('evmSnapLine');
+  if (!el) return;
+  const txt = el.textContent;
+  const done = () => { const o = btn.textContent; btn.textContent = '✓ コピー済'; setTimeout(() => btn.textContent = o, 1200); };
+  const fallback = () => {
+    const r = document.createRange(); r.selectNodeContents(el);
+    const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+    try { document.execCommand('copy'); done(); } catch (e) {}
+    s.removeAllRanges();
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(txt).then(done).catch(fallback);
+  } else { fallback(); }
+}
 function buildEvm(containerId){
   const el = document.getElementById(containerId);
   if (!el) return;
@@ -913,12 +926,25 @@ function buildEvm(containerId){
   const _allOk = _evOk && _acOk;
   const _mk = ok => ok ? '✅' : '⚠️';
   const _ckCol = _allOk ? '#1c9b6a' : '#d33';
+  // 貼り付け用スナップショット行 (基準日のライブ再計算値)。
+  // workitems.js の EVM_SNAPSHOTS にそのまま貼れる形にして、EV/AC の手計算・式探しを不要にする。
+  const _snapLine = `"${TODAY_ISO}": { "ev": ${_recalc.ev.toFixed(1)}, "ac": ${_recalc.ac.toFixed(1)} }`;
   const reconcile = `
-    <div style="font-size:12px; border:1px solid ${_ckCol}; background:${_allOk ? '#eef7f1' : '#fdecea'}; border-radius:4px; padding:6px 10px; margin-bottom:10px;">
-      <b>週次照合 (基準日 ${TODAY_ISO})</b> ${_mk(_allOk)}
-      EV: 記録 ${_recEv == null ? '—' : _recEv.toFixed(1)} / 再計算 ${_recalc.ev.toFixed(1)} ${_mk(_evOk)}
-      AC: 記録 ${_recAc == null ? '—' : _recAc.toFixed(1)} / 再計算 ${_recalc.ac.toFixed(1)} ${_mk(_acOk)}
-      <span style="color:#888;">（再計算 = 全行基準＝開始前完了も含む。グラフ/指標の値はスナップショット記録値）</span>
+    <div style="position:relative; font-size:12px; border:1px solid ${_ckCol}; background:${_allOk ? '#eef7f1' : '#fdecea'}; border-radius:4px; padding:6px 10px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
+      <div>
+        <b>週次照合 (基準日 ${TODAY_ISO})</b> ${_mk(_allOk)}
+        EV: 記録 ${_recEv == null ? '—' : _recEv.toFixed(1)} / 再計算 ${_recalc.ev.toFixed(1)} ${_mk(_evOk)}
+        AC: 記録 ${_recAc == null ? '—' : _recAc.toFixed(1)} / 再計算 ${_recalc.ac.toFixed(1)} ${_mk(_acOk)}
+        <span style="color:#888;">（再計算 = 全行基準＝開始前完了も含む。グラフ/指標の値はスナップショット記録値）</span>
+      </div>
+      <details style="flex:0 0 auto;">
+        <summary style="font-size:11px; color:#bbb; cursor:pointer; user-select:none; white-space:nowrap;">開発用</summary>
+        <div style="position:absolute; margin-top:4px; right:10px; padding:5px 8px; background:#fff; border:1px dashed #999; border-radius:3px; white-space:nowrap; z-index:5; box-shadow:0 2px 6px rgba(0,0,0,.15); display:flex; align-items:center; gap:8px;"
+             title="workitems.js の EVM_SNAPSHOTS に貼り付け">
+          <button type="button" onclick="copyEvmSnap(this)" style="font-size:11px; padding:2px 8px; border:1px solid #888; border-radius:3px; background:#f3f3f3; cursor:pointer; white-space:nowrap;">コピー</button>
+          <code id="evmSnapLine" style="font-family:monospace; user-select:all; cursor:text;">${esc(_snapLine)}</code>
+        </div>
+      </details>
     </div>`;
   el.innerHTML = `
     ${reconcile}
@@ -928,20 +954,17 @@ function buildEvm(containerId){
     </div>`;
 }
 function redraw(){
-  const cmp = cbScore.checked ? sortByScore : sortDefault;
+  const cmp = sortDefault;
   const sortedScreens = [...SCREENS].sort(cmp);
   render("t-screens","th-screens",SCREEN_COLS, cbGroup.checked ? groupTasks(sortedScreens) : sortedScreens);
   render("t-ifs","th-ifs",IF_COLS,[...IFS].sort(cmp));
   render("t-change","th-change",CHANGE_COLS,[...CHANGE].sort(cmp));
   render("t-backend","th-backend",BACKEND_COLS,[...BACKEND].sort(cmp));
-  // ガントの配置は「担当者+実施順が決まっているもの以外は優先順位のみ」で順位付けする。
-  // スコア順(readiness)で並べると、DM/UIマーカーを持たないバックエンド生成(score0)が優先1でも末尾に落ちるため、
-  // 配置用の並びは常に優先昇順(sortDefault)を用いる。
+  // ガント／テーブルともに 優先昇順(sortDefault) で順位付けする。
   buildGantt([...SCREENS, ...IFS, ...CHANGE, ...BACKEND].sort(sortDefault), "gantt-plan", "計画", { bg:'#9cd', bd:'#468' }, "plan");
   buildBurndown("burndown");
   buildEvm("evm-content");
 }
-cbScore.addEventListener("change",redraw);
 cbGroup.addEventListener("change",redraw);
 // タブ切替
 function activateTab(name){
