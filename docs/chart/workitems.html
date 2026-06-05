@@ -314,6 +314,8 @@ function buildGantt(sortedScreens, containerId, title, palette, mode){
           order.push(key);
         }
         summary[key].工数 += hH / PERSON_DAY_HOURS;
+        const effHBe = parseFloat(r["実工数(h)"]) || 0;
+        if (effHBe > 0) summary[key].実工数 += effHBe;
         const tBe = parseInt(r.担当者);
         if (!isNaN(tBe) && summary[key].担当者 == null) summary[key].担当者 = tBe;
         const ordBe = parseFloat(r.実施順);
@@ -582,10 +584,11 @@ function buildGantt(sortedScreens, containerId, title, palette, mode){
       const pr = b.進捗率;                 // 0-1 (未設定は null)
       const hasProgress = pr != null && pr > 0;
       const pct = hasProgress ? Math.round(pr * 100) : null;
-      // 変更対応グループは専用色。以降は 完了/確認待ち/仕様確認/進捗あり の順で色付け
+      // 変更対応グループは専用色。完了は backend でも DONE_COLOR を優先。以降は 確認待ち/仕様確認/進捗あり の順
       const color = b.kind === "change" ? CHANGE_COLOR
+                  : isDone ? DONE_COLOR
                   : b.kind === "backend" ? BACKEND_COLOR
-                  : isDone ? DONE_COLOR : (isReview ? REVIEW_COLOR : (isSpec ? SPEC_COLOR : (hasProgress ? PROGRESS_COLOR : LANE_COLORS[b.lane])));
+                  : (isReview ? REVIEW_COLOR : (isSpec ? SPEC_COLOR : (hasProgress ? PROGRESS_COLOR : LANE_COLORS[b.lane])));
       const slot = b.slot || 0;
       const top = laneTops[b.lane] + slot * subRowH + 3;
       const height = subRowH - 6;
