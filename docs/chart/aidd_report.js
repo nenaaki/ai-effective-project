@@ -510,6 +510,28 @@
         "想定バグ数は未記入（バックエンド生成のため別途記録予定）。",
       ],
     },
+    // 顧客(m_customer) のマスタ (29項目)。荷主(wi-be-2)・カレンダー(wi-be-13)と同じ構成。
+    // 実績LOC: DBスキーマ(data-impl) 143 / バックエンド実装(api-impl) 624 / ユニットテスト(api-test) 377 (計1,144行)。
+    // AsIs: お知らせ登録の「行あたり工数」を実績LOCに適用 (data-impl 6h/166行・api-impl 8h/369行・api-test 3.5h/256行)。
+    //       data-design はデータ実装の規模比 (143/166) で按分、api-review は人の確認工数として ToBe とそろえる。
+    // ToBe: APIレビュー 1.0h(エンジニア) + その他工程 合計 0.7h(AI)。
+    'wi-be-0': {
+      lede: "<strong>顧客</strong>(<code>m_customer</code>) のマスタを<strong>バックエンドのみ生成</strong>（入力画面なし・29項目）。実績コード量は計 <strong>1,144行</strong>（DBスキーマ 143 / バックエンド実装 624 / ユニットテスト 377）。工程はお知らせ登録(FE015)の「データモデル設計〜APIレビュー」に準拠。<strong>AsIs は行数規模から推定</strong>、<strong>ToBe は実測</strong>（APIレビュー 1.0h + その他工程 合計 0.7h）。APIレビューは人がコードを確認する工数として AsIs / ToBe とも 1.0h でそろえている。",
+      tasks: [
+        { key: "data-design", label: "データモデル設計",        color: "var(--c-data-design)", loc: null, asis: 3.4,  tobe: 0.1, tobeEng: 0,   agents: ["DBアーキテクトAI"] },
+        { key: "data-impl",   label: "データモデル実装",        color: "var(--c-data-impl)",   loc: 143,  asis: 5.2,  tobe: 0.1, tobeEng: 0,   agents: ["DBアーキテクトAI"] },
+        { key: "api-impl",    label: "API設計・実装",           color: "var(--c-api-impl)",    loc: 624,  asis: 13.5, tobe: 0.3, tobeEng: 0,   agents: ["バックエンドAI"] },
+        { key: "api-test",    label: "API単体テスト",           color: "var(--c-api-test)",    loc: 377,  asis: 5.2,  tobe: 0.2, tobeEng: 0,   agents: ["バックエンドAI"] },
+        { key: "api-review",  label: "APIレビュー (エンジニア)", color: "var(--c-eng-review)",  loc: null, asis: 1.0,  tobe: 1.0, tobeEng: 1.0, agents: ["バックエンドレビュワーAI", "エンジニア"] },
+      ],
+      contextNotes: [
+        "対象: 顧客(m_customer) のマスタ。入力画面を持たないバックエンド(Prisma スキーマ + Service)生成枠で、画面実装の完了判定には含めない別グループ（出典: <code>.work/table_gap.md</code> ＋ データモデル設計書）。",
+        "<strong>実績コード量</strong>: DBスキーマ <strong>143行</strong> / バックエンド実装 <strong>624行</strong> / ユニットテスト <strong>377行</strong>（計 1,144行）。工程区分はお知らせ登録(FE015)のデータモデル設計〜APIレビューを流用。",
+        "<strong>AsIs（人力想定）は行数規模から推定</strong>: お知らせ登録の『行あたり工数』を実績LOCに適用（data-impl 6h/166行・api-impl 8h/369行・api-test 3.5h/256行）。データモデル設計はデータ実装の規模比で按分。APIレビューは人の確認工数として AsIs / ToBe とも 1.0h でそろえる。合計 約28.3h。",
+        "<strong>ToBe（AI駆動）は実測 1.7h</strong>: APIレビュー 1.0h（エンジニア）＋ その他工程（設計・実装・テスト生成）合計 0.7h（AI）。削減率 約94%。レビューはAIが書いたコードを人が確認する工数で AsIs と同水準。",
+        "想定バグ数は未記入（バックエンド生成のため別途記録予定）。",
+      ],
+    },
     // カレンダー(m_business_date) のマスタ (5項目)。荷主(wi-be-2)と同じ構成。
     // 実績LOC: DBスキーマ(data-impl) 34 / バックエンド実装(api-impl) 269 / ユニットテスト(api-test) 314 (計617行)。
     // AsIs: お知らせ登録の「行あたり工数」を実績LOCに適用 (data-impl 6h/166行・api-impl 8h/369行・api-test 3.5h/256行)。
