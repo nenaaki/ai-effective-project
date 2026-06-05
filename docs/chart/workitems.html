@@ -530,7 +530,8 @@ function buildGantt(sortedScreens, containerId, title, palette, mode){
     drawMs(screenCompletionDay, "#c33", "画面実装完了", 'top');
     drawMs(ifCompletionDay, "#36a", "IF実装完了", 'bottom');
     if (changeCompletionDay > 0) drawMs(changeCompletionDay, "#c2407a", "変更対応完了", 'top');
-    if (backendCompletionDay > 0) drawMs(backendCompletionDay, "#2a8a7e", "バックエンド生成完了", 'bottom');
+    // バックエンド生成完了は計算結果ではなく特例として 6/8 固定で表示する
+    if (backendCompletionDay > 0) drawMs(dateToWorkdayIndex("2026-06-08") + 1, "#2a8a7e", "バックエンド生成完了", 'bottom');
     s += `</svg>`;
     milestoneHtml = `<div style="font-size:14px; font-weight:bold; color:#444; margin:16px 0 4px;">マイルストーン (5/25〜6/26)</div>`
       + `<div style="display:flex; align-items:center;"><div style="flex:0 0 auto;">${s}</div></div>`;
