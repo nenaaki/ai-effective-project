@@ -269,6 +269,18 @@
     };
   }
 
+  // postprocessWorkitems は純粋関数だが workitems / backend の両シナリオ生成で
+  // 同じ結果を使うため、1 回だけ実行して結果をキャッシュする。
+  let _postCache;
+  function getPostprocessed() {
+    if (_postCache === undefined) {
+      _postCache = (typeof WORKITEMS_DATA !== 'undefined' && typeof postprocessWorkitems !== 'undefined')
+        ? postprocessWorkitems(WORKITEMS_DATA)
+        : null;
+    }
+    return _postCache;
+  }
+
   function generateWorkitemsScenarios() {
     if (typeof WORKITEMS_DATA === 'undefined' ||
         typeof sortByScore     === 'undefined' ||
@@ -277,7 +289,7 @@
       return { keys: [] };
     }
     // workitems と同じ後処理を適用したうえで score 順 + groupTasks
-    const { SCREENS, IFS }  = postprocessWorkitems(WORKITEMS_DATA);
+    const { SCREENS, IFS }  = getPostprocessed();
     const sortedScreens  = [...SCREENS].sort(sortByScore);
     const groupedScreens = groupTasks(sortedScreens);
     const sortedIfs      = [...IFS].sort(sortByScore);
@@ -450,7 +462,7 @@
         typeof postprocessWorkitems === 'undefined') {
       return { keys: [] };
     }
-    const { BACKEND } = postprocessWorkitems(WORKITEMS_DATA);
+    const { BACKEND } = getPostprocessed();
     const keys = [];
     (BACKEND || []).forEach((t, i) => {
       const key = `wi-be-${i}`;

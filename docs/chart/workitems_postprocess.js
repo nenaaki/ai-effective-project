@@ -128,17 +128,21 @@ function postprocessWorkitems(rawData){
     if (mockM && sheetM) r.画面項目定義 = `📐モックあり (${sheetM[1]}項目)`;
   });
 
+  // SCREENS / IFS は同一オブジェクト参照を共有 (mutate するだけ) なので、
+  // 全行走査用の結合配列は 1 回だけ作って使い回す。
+  const ALL = [...SCREENS, ...IFS];
+
   // 5. 備考にスコープ判定を反映
-  [...SCREENS, ...IFS].forEach(r=>{
+  ALL.forEach(r=>{
     const s = scope(r);
     if (s) r.備考 = r.備考 ? `${s} / ${r.備考}` : s;
   });
 
   // 6. 工数(h) 計算
-  [...SCREENS, ...IFS].forEach(r=>{ r["工数(h)"] = calcEffort(r, PROC_ITEMS, SCREEN_PROC_ITEMS); });
+  ALL.forEach(r=>{ r["工数(h)"] = calcEffort(r, PROC_ITEMS, SCREEN_PROC_ITEMS); });
 
   // 7. 備考が空欄の行 (両方ready) は「着手可能」と表示
-  [...SCREENS, ...IFS].forEach(r=>{
+  ALL.forEach(r=>{
     if (!r.備考) r.備考 = "着手可能";
   });
 
@@ -156,18 +160,18 @@ function postprocessWorkitems(rawData){
   IFS.forEach(r=>{ r.状況 = "実装不可"; r.進捗率 = 0; });
 
   // 10. 状況 fallback: 空欄なら備考の内容を取り込む。進捗率は未設定なら 0 (PROGRESS_MAP が後で上書き)
-  [...SCREENS, ...IFS].forEach(r=>{
+  ALL.forEach(r=>{
     if (!r.状況) r.状況 = r.備考;
     if (r.進捗率 == null) r.進捗率 = 0;
   });
 
   // 11. PROGRESS_MAP (画面名 / IFID 別) があれば 進捗率 を個別上書き (0-100 % で指定 → 0-1 に変換)
-  [...SCREENS, ...IFS].forEach(r=>{
+  ALL.forEach(r=>{
     const k = r.画面名 || r.IFID || "";
     if (k && (k in PROGRESS_MAP)) r.進捗率 = PROGRESS_MAP[k] / 100;
   });
 
-  // 11. 実工数(h): 画面単位の合計を最初の行に設定
+  // 12. 実工数(h): 画面単位の合計を最初の行に設定
   const _firstSeen = {};
   SCREENS.forEach(r=>{
     if ((r.画面名 in JISSI_KOUSU_H) && !_firstSeen[r.画面名]) {
@@ -176,7 +180,7 @@ function postprocessWorkitems(rawData){
     }
   });
 
-  // 12. 変更対応グループ: 画面実装とは別枠の独立グループ。
+  // 13. 変更対応グループ: 画面実装とは別枠の独立グループ。
   //   後発の仕様変更に対応するためのバッファ枠。calcEffort を通さず工数は固定値。
   //   SCREENS には混ぜない (画面実装の集計・完了判定に含めないため、別配列で返す)。
   const CHANGE = (rawData.CHANGE_TASKS || []).map(c=>({
@@ -197,7 +201,7 @@ function postprocessWorkitems(rawData){
     実施順: null,
   }));
 
-  // 13. バックエンドのみ生成グループ: 入力画面が無く未完(再実装要)のテーブルの
+  // 14. バックエンドのみ生成グループ: 入力画面が無く未完(再実装要)のテーブルの
   //   バックエンド(スキーマ＋Service)生成枠。calcEffort は通さず、工数 = 仕様確認(h) + AI実装(h)。
   //   画面実装の集計・完了判定には含めない別グループ (SCREENS には混ぜず別配列で返す)。
   //   ガント/EVMの集計キー用に 画面名 = モデル名 を持たせる。
