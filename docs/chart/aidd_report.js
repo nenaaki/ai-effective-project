@@ -446,6 +446,73 @@
         "想定バグ数は規模（約0.84 KLOC）から推定。閲覧専用画面のため検索条件・並び順・該当なし境界・帳票種別の解釈が論点。",
       ],
     },
+    // 配送情報照会 (FE001 / PW-134) — 閲覧スコープ。ToBe は実測 (time-log.jsonl): 標準開発 8.0h + 試行特有 1.43h = 計9.43h。
+    // AsIs は実装系工程を実績LOC(概算)から推定、レビュー/動作確認/仕様確認は人間工数として AsIs=ToBe。試行特有(紫)= 系統B。
+    'wi-screen-DM01FE001': {
+      lede: "AIDD 試行「配送情報照会」(FE001 / PW-134) の開発工数比較。<strong>t_delivery_history を根に 検索16条件・一覧15列・代表行(最新のみ)表示</strong>を扱う<strong>閲覧スコープ</strong>の画面。<strong>第1版(縮退8列)を撤回し v2 で mock 完全準拠</strong>へ作り直し、PR#79 レビュー対応・main 取り込みまで実施。<strong>ToBe は実測</strong>(time-log.jsonl): 標準開発 8.0h ＋ <span style=\"color:#9333ea\">試行特有 1.43h</span> ＝ 計 9.43h。AsIs は実績コード量(概算)から推定。",
+      bugCategories: [
+        { key: "syntax", label: "構文/型エラー",                                              color: "#ef4444", asis: 6,  tobe: 0 },
+        { key: "logic",  label: "ロジックバグ (DISTINCT ON最新表示・担当者検索・認可・楽観ロック)", color: "#f59e0b", asis: 12, tobe: 4 },
+        { key: "edge",   label: "エッジケース漏れ (電話番号ハイフン正規化・日付範囲・空検索)",        color: "#8b5cf6", asis: 9,  tobe: 4 },
+        { key: "spec",   label: "仕様解釈ミス (配送ステータス語彙差 mock12種 vs uc10種・縮退撤回)",   color: "#ec4899", asis: 4,  tobe: 8 },
+        { key: "ui",     label: "UI 細部の不整合 (15列・複数OR検索タグ・履歴表示方法)",              color: "#06b6d4", asis: 8,  tobe: 5 },
+      ],
+      bugRateNote: "※ 配送情報照会 約 1.9 KLOC。データモデル仕様(配送ステータス語彙)未確定での着手により「<strong>仕様解釈ミス</strong>」が突出 (ToBe 8件): mock COMPLETION_STATUS 12種 vs backend uc準拠10種の語彙差、第1版の縮退8列を v2 で mock 完全準拠へ撤回した経緯を反映。電話番号のハイフン有無正規化・最新行表示(DISTINCT ON)の担当者検索バグは実測で発生し修正済。",
+      tasks: {
+        'data-design': { asis: 4,             tobe: 0.2,                 agents: ["DBアーキテクトAI"] },
+        'data-impl':   { asis: 4,   loc: 120, tobe: 0.3,                 agents: ["DBアーキテクトAI"] },
+        'api-impl':    { asis: 15,  loc: 700, tobe: 1.4,                 agents: ["バックエンドAI"] },
+        'api-test':    { asis: 3.5, loc: 250, tobe: 0.2,                 agents: ["バックエンドAI"] },
+        'api-review':  { asis: 1.8,           tobe: 1.8, tobeEng: 1.8,   agents: ["バックエンドレビュワーAI", "エンジニア"] },
+        'ux':          { asis: 6,             tobe: 0.8, tobeEng: 0.5,   agents: ["プランナーAI", "エンジニア"] },
+        'fe-design':   { asis: 4,             tobe: 0,                   agents: ["フロントエンドAI"] },
+        'fe-impl':     { asis: 18,  loc: 900, tobe: 1.3,                 agents: ["フロントエンドAI"] },
+        'fe-test':     {                                                 agents: ["—"] },
+        'fe-review':   { asis: 0.5,           tobe: 0.5, tobeEng: 0.5,   agents: ["フロントエンドレビュワーAI", "エンジニア"] },
+        'verify':      { asis: 1.3,           tobe: 1.3, tobeEng: 1.2,   agents: ["バックエンドテスターAI", "フロントエンドテスターAI", "エンジニア"] },
+        'spec-confirm':          { label: "仕様確認 (配送ステータス語彙・縮退撤回の方針判断)",            color: "#d97706", asis: 0, tobe: 0.5, tobeEng: 0.5, agents: ["エンジニア (業務確認)"] },
+        'trial-review':          { label: "[試行特有] 縮退ルート禁止ドクトリン確立・課題抽出",            color: "#9333ea", asis: 0, tobe: 0.6, tobeEng: 0.6, agents: ["エンジニア (人間との議論)"] },
+        'structure-improvement': { label: "[試行特有] 構造改修 (validate-brief §2-5/2-6・tester raw diff)", color: "#7e22ce", asis: 0, tobe: 0.5, tobeEng: 0.4, agents: ["エンジニア (ルール整備)"] },
+      },
+      contextNotes: [
+        "対象画面: 配送情報照会 (FE001 / PW-134)。t_delivery_history を根に 検索16条件 + 一覧15列 + 代表行(最新のみ)表示。閲覧スコープ(CRUD なし)。第1版の縮退8列/6条件を撤回し v2 で mock 完全準拠(全15列16条件・暫定backing列+denormalize)へ作り直し。",
+        "<strong>ToBe は実測</strong> (time-log.jsonl・2026-06-04〜06-08): 標準開発(系統A) 8.0h ＋ <span style=\"color:#9333ea\">試行特有(系統B) 1.43h</span> ＝ 計 9.43h。系統B内訳 = 縮退課題の構造分析 0.6h(cat2) + ルール実装 0.5h(cat1) + チェック漏れ是正 0.33h(cat2)。",
+        "<strong>手戻りの主因</strong>: 第1版で『API/DB未対応』を理由に8列へ縮退 → mock と乖離 → v2 で全面 mock 準拠へ撤回。縮退ルートの自己判断が後追い修正(verify/fe-impl/仕様確認)を生んだ。再発防止として validate-brief に承認記録チェック(§2-6)・tester に raw diff 主義を組込み(紫: 構造改修)。",
+        "<strong>AsIs は実績コード量(概算)から推定</strong>: 実装系工程に商品マスタ参考レート(api 8h/369行・fe 16h/810行・data 6h/166行・test 3.5h/256行)を適用。レビュー/動作確認/仕様確認は人間工数として AsIs=ToBe。合計 約58h → ToBe 9.43h(削減 約84%)。LOC は概算。",
+      ],
+    },
+    // 代引き確認 (FE053 / PW-141) — 閲覧スコープ。ToBe は実測 (time-log.jsonl): 標準開発 1.5h(試行特有 0h)。
+    // 確立済みフローを1セッションで通過。スキーマ変更なし(既存 invoicePrintings 拡張)。LOC は PR#84 diff (fe 約596 / api 約77 / seed 47)。
+    'wi-screen-DM14FE053': {
+      lede: "AIDD 試行「代引き確認」(FE053 / PW-141) の開発工数比較。<strong>t_invoice_printing を根に 一覧10列・検索3条件・代引き額合計</strong>を表示する<strong>閲覧スコープ</strong>の画面。<strong>スキーマ変更なし</strong>(既存 invoicePrintings を拡張)。<strong>確立済みフローを1セッションで通過し ToBe 実測 1.5h</strong>(試行特有オーバーヘッド 0h)。AsIs は実績コード量から推定。",
+      bugCategories: [
+        { key: "syntax", label: "構文/型エラー",                                          color: "#ef4444", asis: 3, tobe: 0 },
+        { key: "logic",  label: "ロジックバグ (代引き額合計の絞り込み連動・DataLoader N+1)",      color: "#f59e0b", asis: 6, tobe: 2 },
+        { key: "edge",   label: "エッジケース漏れ (代引き有無混在・日付範囲・@db.Date TZ)",        color: "#8b5cf6", asis: 5, tobe: 2 },
+        { key: "spec",   label: "仕様解釈ミス (エリア名/配送担当者名 源なし・お問い合わせ番号正本)", color: "#ec4899", asis: 3, tobe: 4 },
+        { key: "ui",     label: "UI 細部の不整合 (10列維持・Excel未実装通知文言)",                color: "#06b6d4", asis: 4, tobe: 2 },
+      ],
+      bugRateNote: "※ 代引き確認 約 0.7 KLOC(フロント 596行 + API拡張 77行)。スキーマ変更なしの閲覧画面で論点は <strong>源なし列(エリア名・配送担当者名)の扱い</strong>と <strong>お問い合わせ番号の正本</strong>(ifSlipNo か ifCustomerControlNo)。mock 列は縮退せず暫定『-』で維持し questions/PW-141.tsv に記録。確立済みフローで手戻りは reviewer Major 2件(内部ID漏洩・any型)のみ。",
+      tasks: {
+        'data-design': { asis: 1,             tobe: 0.05,                agents: ["—"] },
+        'data-impl':   { asis: 0.5, loc: 47,  tobe: 0.1,                 agents: ["バックエンドAI(seed)"] },
+        'api-impl':    { asis: 1.7, loc: 77,  tobe: 0.3,                 agents: ["バックエンドAI"] },
+        'api-test':    { asis: 0,             tobe: 0,                   agents: ["—"] },
+        'api-review':  { asis: 0.2,           tobe: 0.2, tobeEng: 0.2,   agents: ["バックエンドレビュワーAI", "エンジニア"] },
+        'ux':          { asis: 2,             tobe: 0.15, tobeEng: 0.1,  agents: ["プランナーAI", "エンジニア"] },
+        'fe-design':   { asis: 1,             tobe: 0,                   agents: ["フロントエンドAI"] },
+        'fe-impl':     { asis: 11.7, loc: 596, tobe: 0.45,              agents: ["フロントエンドAI"] },
+        'fe-test':     {                                                 agents: ["—"] },
+        'fe-review':   { asis: 0.1,           tobe: 0.1, tobeEng: 0.1,   agents: ["フロントエンドレビュワーAI", "エンジニア"] },
+        'verify':      { asis: 0.15,          tobe: 0.15, tobeEng: 0.15, agents: ["フロントエンドテスターAI", "エンジニア"] },
+      },
+      contextNotes: [
+        "対象画面: 代引き確認 (FE053 / PW-141)。t_invoice_printing を根に 一覧10列 + 検索3条件(デポ複数/エリア複数/配送完了日範囲) + 代引き額合計フッタ + Excel出力(未実装通知)。閲覧スコープ。<strong>スキーマ変更なし</strong>(既存 invoicePrintings に depotIds/日付範囲 filter・depot ResolveField・codAmountTotal 集計を追加)。",
+        "<strong>ToBe は実測</strong> (time-log.jsonl・2026-06-08): 標準開発(系統A) <strong>1.5h</strong> を1セッションで通過。<span style=\"color:#9333ea\">試行特有(系統B) 0h</span>。/start-task→planner→backend(seed+API)→reviewer+Major2件修正→frontend(skeleton/A/実装/B)→tester→サイドバー導線→PR まで。",
+        "<strong>確立済みフローの効果</strong>: PW-134 までに投じた構造改修(縮退ルート禁止・raw diff・不明点TSV規律)が効き、手戻りは reviewer Major 2件(DataLoader内部ID漏洩→null・where any→Prisma型)のみ。PW-134(系統A 8.0h)比で大幅短縮。暫定(エリア名/配送担当者名=源なし『-』・お問い合わせ番号=ifSlipNo・Excel未実装通知)は questions/PW-141.tsv に記録(mock 列は縮退せず維持)。",
+        "<strong>AsIs は実績コード量から推定</strong>: フロント 596行→11.7h(商品マスタ 16h/810行)、API拡張 77行→1.7h、seed 47行→0.5h。レビュー/動作確認は人間工数として AsIs=ToBe。合計 約18.3h → ToBe 1.5h(削減 約92%)。",
+      ],
+    },
   };
   Object.entries(SCENARIO_OVERRIDES).forEach(([key, override]) => {
     const s = scenarios[key];
