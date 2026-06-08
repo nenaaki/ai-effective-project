@@ -403,6 +403,49 @@
         },
       },
     },
+    // 帳票作成通知 (FE012 / DM04) - 閲覧画面（条件検索 + 帳票通知一覧表示）。帳票ファイル・バッチログ
+    // （バックエンドのみ生成テーブル）を参照する読み取り専用画面のため DB 工程は発生しない（実績 DB 0 行）。
+    // AsIs: お知らせ登録(FE015) の「行あたり工数」を実績LOCに適用 (api-impl 8h/369行・fe-impl 33.5h/1694行)。
+    //       設計・UX は LOC 規模比で按分 (fe-design は fe-impl 比 767/1694、UX は実装LOC合計比 842/2485)。
+    // ToBe: AI実装 0.75h + APIレビュー 0.25h(エンジニア) + 動作確認 0.5h(エンジニア) = 1.5h。
+    'wi-screen-DM04FE012': {
+      lede: "<strong>帳票作成通知</strong>（FE012 / DM04 管理情報通知）の開発工数比較。<strong>条件検索 + 帳票通知一覧表示</strong>の読み取り専用（閲覧）画面で、帳票ファイル・バッチログ（バックエンドのみ生成テーブル）を参照するため<strong>DB 工程は発生しない</strong>（実績 DB 0 行）。実績コード量はバックエンド <strong>75 行</strong>・フロントエンド <strong>767 行</strong>。工程はお知らせ登録(FE015)のフォーマットに準拠。<strong>AsIs は行数規模から推定</strong>（FE015 の行あたり工数を適用）、<strong>ToBe は AI 実装 0.75h + APIレビュー 0.25h + 動作確認 0.5h + レイアウト調整 1.0h</strong>。レビュー・動作確認は人がコードを確認する工数として AsIs / ToBe をそろえている。",
+      bugCategories: [
+        { key: "syntax", label: "構文/型エラー",                              color: "#ef4444", asis: 1, tobe: 0 },
+        { key: "logic",  label: "ロジックバグ (検索条件・並び順・絞り込み)",     color: "#f59e0b", asis: 3, tobe: 1 },
+        { key: "edge",   label: "エッジケース漏れ (該当なし・期間境界・空結果)",  color: "#8b5cf6", asis: 2, tobe: 1 },
+        { key: "spec",   label: "仕様解釈ミス (帳票種別・通知対象の解釈)",        color: "#ec4899", asis: 2, tobe: 2 },
+        { key: "ui",     label: "UI 細部の不整合 (一覧列・検索フォーム配置)",     color: "#06b6d4", asis: 2, tobe: 1 },
+      ],
+      bugRateNote: "※ 帳票作成通知 約 0.84 KLOC × 参考レート（人力 12/KLOC ≒ 10件 / AI 5/KLOC ≒ 4件）で推定。条件検索 + 一覧表示の読み取り専用画面で、論点は <strong>検索条件・並び順・帳票種別/通知対象の解釈</strong>。AI でも業務固有の帳票種別・通知条件は仕様で明示しないと <strong>仕様解釈ミス</strong> が残りやすい（お知らせ登録・商品マスタと同傾向）。",
+      tasks: {
+        'data-design': { asis: 0,    loc: 0,   tobe: 0,    tobeEng: 0,    agents: ["—"] },
+        'data-impl':   { asis: 0,    loc: 0,   tobe: 0,    tobeEng: 0,    agents: ["—"] },
+        'api-impl':    { asis: 1.6,  loc: 75,  tobe: 0.10, tobeEng: 0,    agents: ["バックエンドAI"] },
+        'api-test':    { asis: 0,    loc: 0,   tobe: 0,    tobeEng: 0,    agents: ["—"] },
+        'api-review':  { asis: 0.25,           tobe: 0.25, tobeEng: 0.25, agents: ["バックエンドレビュワーAI", "エンジニア"] },
+        'ux':          { asis: 1.9,            tobe: 0.15, tobeEng: 0,    agents: ["プランナーAI", "エンジニア"] },
+        'fe-design':   { asis: 1.4,            tobe: 0.05, tobeEng: 0,    agents: ["フロントエンドAI"] },
+        'fe-impl':     { asis: 15.2, loc: 767, tobe: 0.45, tobeEng: 0,    agents: ["フロントエンドAI"] },
+        'fe-test':     {                                                  agents: ["—"] },
+        'fe-review':   {                                                  agents: ["フロントエンドレビュワーAI", "エンジニア"] },
+        'verify':      { asis: 0.5,            tobe: 0.5,  tobeEng: 0.3,  agents: ["バックエンドテスターAI", "フロントエンドテスターAI", "エンジニア"] },
+        'layout-adjust': {
+          label: "レイアウト調整",
+          color: "#fbbf24",
+          asis: 0,
+          tobe: 1, tobeEng: 0.75,
+          agents: ["フロントエンドAI", "エンジニア"],
+        },
+      },
+      contextNotes: [
+        "対象画面: 帳票作成通知（FE012 / DM04 管理情報通知）。条件検索 + 帳票通知一覧表示の読み取り専用（閲覧）画面。帳票ファイル・バッチログ（バックエンドのみ生成テーブル）を参照するため、画面側に DB 工程は発生しない（実績 DB 0 行・ユニットテスト 0 行）。",
+        "<strong>実績コード量</strong>: バックエンド <strong>75 行</strong> / フロントエンド <strong>767 行</strong>（DB 0・ユニットテスト 0）。工程区分はお知らせ登録(FE015)のフォーマットを流用。",
+        "<strong>AsIs（人力想定）は行数規模から推定</strong>: お知らせ登録の『行あたり工数』を実績LOCに適用（api-impl 8h/369行・fe-impl 33.5h/1694行）。設計・UX 工程は LOC 規模比で按分（fe-design は fe-impl 比 767/1694、UX は実装LOC合計比 842/2485）。APIレビュー・動作確認は人の確認工数として AsIs / ToBe をそろえる。合計 約20.9h。",
+        "<strong>ToBe（AI駆動）は 2.5h</strong>: AI 実装 0.75h（API実装 0.10 / UX 0.15 / FE設計 0.05 / FE実装 0.45）＋ APIレビュー 0.25h（エンジニア）＋ 動作確認 0.5h（うちエンジニア 0.3h）＋ レイアウト調整 1.0h（うちエンジニア 0.75h）。削減率 <strong>約88%</strong>。AI が削減できるのは実装・設計工程で、レビュー・動作確認・レイアウト調整の人間工数は AsIs と同水準。",
+        "想定バグ数は規模（約0.84 KLOC）から推定。閲覧専用画面のため検索条件・並び順・該当なし境界・帳票種別の解釈が論点。",
+      ],
+    },
   };
   Object.entries(SCENARIO_OVERRIDES).forEach(([key, override]) => {
     const s = scenarios[key];

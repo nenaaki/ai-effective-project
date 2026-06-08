@@ -926,9 +926,14 @@ function buildEvm(containerId){
   const _allOk = _evOk && _acOk;
   const _mk = ok => ok ? '✅' : '⚠️';
   const _ckCol = _allOk ? '#1c9b6a' : '#d33';
-  // 貼り付け用スナップショット行 (基準日のライブ再計算値)。
+  // 貼り付け用スナップショット行 (ライブ再計算値)。日付キーは実際の今日 (ローカル) を採用し、
+  // EVM_SNAPSHOTS に新しい日付エントリとして貼れるようにする (TODAY_ISO=既存最新日付とは別)。
   // workitems.js の EVM_SNAPSHOTS にそのまま貼れる形にして、EV/AC の手計算・式探しを不要にする。
-  const _snapLine = `"${TODAY_ISO}": { "ev": ${_recalc.ev.toFixed(1)}, "ac": ${_recalc.ac.toFixed(1)} }`;
+  const _copyIso = (() => {
+    const t = new Date(); const p = n => String(n).padStart(2, '0');
+    return `${t.getFullYear()}-${p(t.getMonth()+1)}-${p(t.getDate())}`;
+  })();
+  const _snapLine = `"${_copyIso}": { "ev": ${_recalc.ev.toFixed(1)}, "ac": ${_recalc.ac.toFixed(1)} }`;
   const reconcile = `
     <div style="position:relative; font-size:12px; border:1px solid ${_ckCol}; background:${_allOk ? '#eef7f1' : '#fdecea'}; border-radius:4px; padding:6px 10px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
       <div>
