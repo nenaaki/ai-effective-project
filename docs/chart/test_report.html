@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>テスト実装の現状（参考資料）</title>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body {
+    font-family: -apple-system, "Hiragino Kaku Gothic ProN", "Yu Gothic", system-ui, sans-serif;
+    color: #1f2937;
+    background: #fafafa;
+    padding: 28px 32px;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+  .page { max-width: 1240px; margin: 0 auto; height: 100%; display: flex; flex-direction: column; }
+  h1 { font-size: 19px; margin: 0; border-bottom: 3px solid #2563eb; padding-bottom: 6px; }
+  .sub { color: #6b7280; font-size: 12px; margin: 6px 0 14px; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 18px;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+  }
+  .panel {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: auto;
+  }
+  h2 {
+    font-size: 13px; margin: 0 0 10px; padding-left: 8px;
+    border-left: 3px solid #2563eb;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .tag { font-size: 10px; font-weight: 700; color: white; padding: 1px 7px; border-radius: 3px; letter-spacing: 0.03em; }
+  .tag.be { background: #2563eb; }
+  .tag.fe { background: #6366f1; }
+
+  .lead { font-size: 12px; line-height: 1.6; color: #1f2937; margin-bottom: 10px; }
+  .lead2 { font-size: 11.5px; line-height: 1.55; color: #1f2937; margin-bottom: 6px; }
+
+  .group { margin-bottom: 12px; }
+  .group:last-child { margin-bottom: 0; }
+  .group-label { font-size: 11px; font-weight: 700; color: #2563eb; letter-spacing: 0.03em; margin: 4px 0 6px; }
+
+  ul.tlist { list-style: none; margin: 0; padding: 0; }
+  ul.tlist li { font-size: 11.5px; line-height: 1.5; padding: 5px 0; border-bottom: 1px dashed #eef0f2; }
+  ul.tlist li:last-child { border-bottom: none; }
+  ul.tlist b { color: #1e40af; margin-right: 4px; }
+
+  code { background: #f3f4f6; border-radius: 3px; padding: 0 4px; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 10.5px; color: #374151; }
+
+  ul.check, ul.nocheck { list-style: none; margin: 0; padding: 0; }
+  ul.check li, ul.nocheck li { font-size: 11.5px; line-height: 1.5; padding: 4px 0 4px 20px; position: relative; }
+  ul.check li::before { content: "✓"; position: absolute; left: 0; color: #10b981; font-weight: bold; }
+  ul.nocheck li { color: #9ca3af; }
+  ul.nocheck li::before { content: "—"; position: absolute; left: 0; color: #9ca3af; }
+
+  pre.out {
+    background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 4px;
+    padding: 8px 10px; margin: 0;
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    font-size: 10px; line-height: 1.5; color: #334155;
+    white-space: pre; overflow: auto;
+  }
+  .firstline { font-weight: 700; color: #047857; }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>テスト実装の現状（参考資料）</h1>
+  <div class="sub">pw-dms のテスト実装・レポート形式まとめ ／ 調査ブランチ f/PW-144 ／ 2026-06-10</div>
+
+  <div class="grid">
+
+    <!-- 左: Backend -->
+    <div class="panel">
+      <h2>Backend（API）— Jest ユニットテスト <span class="tag be">CRUD 対象</span></h2>
+      <div class="lead">
+        現状の対象は <strong>CRUD のみ</strong>。CRUD パターンを <strong>テストファースト（テスト作成 → 実装）</strong> で検証する。Prisma をモックした DB 非依存のユニットテスト（api-core のみ・<strong>52 ファイル / 821 ケース</strong>）。
+      </div>
+
+      <div class="group">
+        <div class="group-label">CRUD のテスト観点</div>
+        <ul class="tlist">
+          <li><b>一覧</b>ページネーション／フィルタ／<code>deletedAt:null</code> 除外</li>
+          <li><b>取得</b>ID 取得／存在しない → <code>NotFound</code></li>
+          <li><b>作成</b>フィールド受渡し／UNIQUE 違反(P2002) → <code>Conflict</code></li>
+          <li><b>更新</b>差分更新／<strong>楽観ロック（version 不一致 → Conflict）</strong></li>
+          <li><b>削除</b><strong>論理削除（deletedAt）</strong>・物理削除しない</li>
+          <li><b>例外</b>NestJS 例外へマッピング（NotFound / Conflict / BadRequest）</li>
+        </ul>
+      </div>
+
+      <div class="group">
+        <div class="group-label">テスト結果（レポート形式）</div>
+        <div class="lead2"><strong>Jest 実行時のコンソール出力のみ</strong>。別ファイル（HTML / JUnit 等）への保存は行っていない。</div>
+        <pre class="out"><span class="firstline">PASS  m-depot.service.spec.ts</span>
+  MDepotService
+    ✓ ページネーション付きで一覧を返す
+    ✓ 営業所CD重複(P2002)で ConflictException
+    ✓ version 不一致で ConflictException
+Test Suites: 1 passed   Tests: 22 passed</pre>
+      </div>
+    </div>
+
+    <!-- 右: Frontend -->
+    <div class="panel">
+      <h2>Frontend（画面）— UI スモークテスト <span class="tag fe">Playwright</span></h2>
+      <div class="lead">
+        ユニット / コンポーネントテストは <strong>実装していない</strong>。代わりに <strong>Playwright の UI スモークテスト</strong> で、実アプリ（app-admin / app-driver）の表示・操作を確認している。
+      </div>
+
+      <div class="group">
+        <div class="group-label">検証している（UI スモーク）</div>
+        <ul class="check">
+          <li>ページタイトル・見出し・ボタンの表示</li>
+          <li>トグルの開閉（検索条件・お知らせ・ドロワー）</li>
+          <li>入力バリデーション（必須項目 等）</li>
+          <li>送信中のボタン無効化・ローディング表示</li>
+          <li>未認証ユーザーのログイン画面へのリダイレクト</li>
+        </ul>
+      </div>
+
+      <div class="group">
+        <div class="group-label">検証していない</div>
+        <ul class="nocheck">
+          <li>UI 経由の CRUD 実行・登録/更新の永続化</li>
+          <li>一覧データの中身・検索結果の正しさ・API 突合</li>
+        </ul>
+      </div>
+
+      <div class="group">
+        <div class="group-label">テスト結果（レポート形式）</div>
+        <div class="lead2"><strong>Playwright の HTML レポート</strong>（<code>playwright-report/</code>）＋ コンソール出力。</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>
