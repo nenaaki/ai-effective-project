@@ -524,13 +524,18 @@ function buildGantt(sortedScreens, containerId, title, palette, mode){
       }
     };
     drawMs(dateToWorkdayIndex("2026-06-08") + 1, "#2a8", "AI試行錯誤・運用調整終了", 'top');
-    drawMs(screenCompletionDay, "#c33", "画面実装完了", 'top');
+    // 画面実装完了は計算結果ではなく特例として 6/24 固定で表示する (As-Is/To-Be 資料 約4人日の挿入で約2日後ろ倒し)
+    drawMs(dateToWorkdayIndex("2026-06-24") + 1, "#c33", "画面実装完了", 'top');
     drawMs(ifCompletionDay, "#36a", "IF実装完了", 'bottom');
     if (changeCompletionDay > 0) drawMs(changeCompletionDay, "#c2407a", "変更対応完了", 'top');
     // バックエンド生成完了は計算結果ではなく特例として 6/8 固定で表示する
     if (backendCompletionDay > 0) drawMs(dateToWorkdayIndex("2026-06-08") + 1, "#2a8a7e", "バックエンド生成完了", 'bottom');
     s += `</svg>`;
-    milestoneHtml = `<div style="font-size:14px; font-weight:bold; color:#444; margin:16px 0 4px;">マイルストーン (5/25〜6/26)</div>`
+    // ラベルの範囲はタイムラインの実際の開始〜終端 (軸 axisMax) から動的生成する
+    const _msStart = tlDates[0];
+    const _msEnd = tlDates[axisMax] || tlDates[tlDates.length - 1];
+    const _msRange = `${_msStart.getMonth() + 1}/${_msStart.getDate()}〜${_msEnd.getMonth() + 1}/${_msEnd.getDate()}`;
+    milestoneHtml = `<div style="font-size:14px; font-weight:bold; color:#444; margin:16px 0 4px;">マイルストーン (${_msRange})</div>`
       + `<div style="display:flex; align-items:center;"><div style="flex:0 0 auto;">${s}</div></div>`;
   }
   // レーン頂上位置 (累積)

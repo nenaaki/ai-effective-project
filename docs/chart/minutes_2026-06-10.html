@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>相談・質問まとめ 2026-06-10</title>
+<title>議事まとめ 2026-06-10 / 今後のアクション・決定事項</title>
 <style>
   html, body { margin: 0; padding: 0; height: 100%; }
   body {
@@ -19,7 +19,7 @@
 
   .grid {
     display: grid;
-    grid-template-columns: 1.1fr 1fr;
+    grid-template-columns: 1.25fr 1fr;
     gap: 18px;
     flex: 1;
     min-height: 0;
@@ -63,7 +63,8 @@
   }
   .item .title { font-weight: 600; color: #1f2937; }
   .item .desc { color: #4b5563; margin-top: 2px; font-size: 11.5px; }
-  .item .badge-open {
+
+  .item .badge-todo {
     display: inline-block;
     background: #f59e0b;
     color: white;
@@ -83,7 +84,7 @@
     border-radius: 3px;
     padding: 6px 9px;
     font-size: 11px;
-    line-height: 1.6;
+    line-height: 1.55;
     color: #374151;
   }
   .item-detail .head {
@@ -91,70 +92,199 @@
     font-weight: 700;
     color: #92400e;
     letter-spacing: 0.04em;
-    margin-bottom: 4px;
+    margin-bottom: 3px;
   }
-  .item-detail ul { margin: 0; padding-left: 16px; }
-  .item-detail li { margin: 2px 0; }
 
-  /* 依頼原文（右パネル） */
-  .quote-meta { font-size: 11px; color: #6b7280; margin-bottom: 8px; }
-  .quote {
-    background: #f9fafb;
-    border: 1px solid #e5e7eb;
-    border-left: 3px solid #2563eb;
-    border-radius: 6px;
-    padding: 12px 14px;
-    font-size: 12px;
-    line-height: 1.75;
-    color: #374151;
-    white-space: pre-wrap;
-  }
-  .quote .from {
-    font-weight: 700;
-    color: #1e40af;
+  .note-line {
+    margin-top: 8px;
     font-size: 11px;
-    margin-bottom: 6px;
+    color: #6b7280;
+    padding-left: 4px;
   }
+
+  /* 決定事項 */
+  .decisions { display: flex; flex-direction: column; gap: 6px; }
+  .decision {
+    background: #ecfdf5;
+    border-left: 3px solid #10b981;
+    border-radius: 4px;
+    padding: 8px 10px;
+    font-size: 11.5px;
+    line-height: 1.55;
+  }
+  .decision .tag {
+    display: inline-block;
+    background: #10b981;
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 3px;
+    margin-right: 6px;
+    vertical-align: 1px;
+  }
+
+  /* マイルストーン強調 */
+  .milestone {
+    margin-top: 12px;
+    background: #eef2ff;
+    border: 1px solid #c7d2fe;
+    border-radius: 6px;
+    padding: 10px 12px;
+  }
+  .milestone-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #4338ca;
+    letter-spacing: 0.04em;
+    margin-bottom: 5px;
+  }
+  .milestone .date {
+    display: inline-block;
+    background: #4338ca;
+    color: white;
+    font-size: 13px;
+    font-weight: 800;
+    padding: 2px 10px;
+    border-radius: 4px;
+    margin-right: 8px;
+    letter-spacing: 0.03em;
+  }
+  .milestone .date-old {
+    text-decoration: line-through;
+    color: #9ca3af;
+    font-size: 14px;
+    font-weight: 700;
+    margin-right: 4px;
+  }
+  .milestone .arrow {
+    color: #dc2626;
+    font-size: 16px;
+    font-weight: 800;
+    margin-right: 6px;
+  }
+  .milestone .date.shifted {
+    background: #dc2626;
+    font-size: 15px;
+  }
+  .milestone .flow {
+    font-size: 11.5px;
+    line-height: 1.6;
+    color: #1f2937;
+    margin-top: 6px;
+  }
+  .milestone strong { color: #4338ca; }
+
+  /* 全体総括 */
+  .summary {
+    margin-top: 12px;
+    background: #fffbeb;
+    border: 1px solid #fcd34d;
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-size: 11.5px;
+    line-height: 1.65;
+    color: #1f2937;
+  }
+  .summary-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #92400e;
+    letter-spacing: 0.04em;
+    margin-bottom: 5px;
+  }
+  .summary strong { color: #92400e; }
 </style>
 </head>
 <body>
 <div class="page">
-  <h1>相談・質問まとめ 2026-06-10</h1>
+  <h1>議事まとめ 2026-06-10 — 今後のアクション / 決定事項</h1>
   <div class="sub">AIDD</div>
 
   <div class="grid">
 
-    <!-- 左: 相談事項 -->
+    <!-- 左: アクションアイテム -->
     <div class="panel">
-      <h2>相談事項</h2>
+      <h2>今後のアクションアイテム</h2>
       <div class="items">
         <div class="item">
           <span class="num">1</span>
           <div>
-            <div class="title">他部署・他チームからの情報共有依頼への対応方針<span class="badge-open">要相談</span></div>
-            <div class="desc">「AI開発の取り組み内容・状況・今後の展望を説明してほしい」と依頼された場合、<strong>いつまで・どこまで・誰が・どう対応するか</strong> の方針を決めたい（例: TNOさん）。</div>
+            <div class="title">「As-Is vs To-Be」比較資料の作成<span class="badge-todo">来週水曜目途</span></div>
+            <div class="desc">AI 駆動開発による削減ポイントを具体化した <strong>スライド資料</strong> を作成し、効率化を <strong>ホワイトボックス化（説明可能に）</strong> する</div>
             <div class="item-detail">
-              <div class="head">相談ポイント</div>
-              <ul>
-                <li><strong>対応可否と窓口</strong> — 応じるか／誰が説明役を担うか</li>
-                <li><strong>資料の提示可否</strong> — chart の資料・AI駆動の概略図などを見せても良いか？良いならその範囲は？</li>
-                <li><strong>事前承認の要否</strong></li>
-              </ul>
+              <div class="head">具体化の指示</div>
+              データモデル設計・画面処理・IF 作成などの <strong>カテゴリごと</strong>に、どの作業が省略・短縮され時間が縮んだのか、<strong>決定的な削減ポイントを第三者が初見で認識できる具体性</strong>で記述。観点ごと <strong>1〜2 ページ</strong> にまとめ「この進め方ならこれだけの効果」という運用モデルとして提示する。本作業 <strong>約 4 人日</strong> を <strong>6/22 マイルストーンの前に挿入</strong>し、全体を <strong>約 2 日後ろ倒し</strong>することが承認された。
             </div>
           </div>
         </div>
+        <div class="item">
+          <span class="num">2</span>
+          <div>
+            <div class="title">テスト設計フレームワークの修正</div>
+            <div class="desc">「開発者の作業確認」でなく <strong>「納品物の品質保証」を主眼</strong> に置いたテストプロセスへ再構成する</div>
+          </div>
+        </div>
+        <div class="item">
+          <span class="num">3</span>
+          <div>
+            <div class="title">WBS の更新</div>
+            <div class="desc">資料作成工数を考慮し、マイルストーン（<strong>6/22 画面実装完了</strong>）に向けてタスクを再調整する</div>
+          </div>
+        </div>
+        <div class="item">
+          <span class="num">4</span>
+          <div>
+            <div class="title">他部署・他チームへの情報共有</div>
+            <div class="desc">合意したストーリーラインに基づき、<strong>現在地と削減効果の暫定値</strong> を共有。<strong>不完全な情報である旨</strong>と、<strong>使用責任は受け取り側にあること</strong>を必ず念押しする</div>
+          </div>
+        </div>
       </div>
+      <div class="note-line">次回定例: 1 時間を予定</div>
     </div>
 
-    <!-- 右: 依頼内容（原文） -->
+    <!-- 右: 決定事項 + マイルストーン + 総括 -->
     <div class="panel">
-      <h2>依頼内容（メッセージ / 例: TNOさん）</h2>
-      <div class="quote-meta">情報共有を求められたメッセージ</div>
-      <div class="quote"><div class="from">TNOさん より</div>いまAI開発の何かをやってると思いますが、その取り組み内容とか状況とか今後の展望などを私に説明いただくこと可能でしょうか？
+      <h2>決定事項まとめ</h2>
+      <div class="decisions">
+        <div class="decision">
+          <span class="tag">進捗(EVM)</span>理想線に対し 2 人で <strong>約 0.5 日の僅差</strong>。<strong>1 週間以内に理想線へ合流</strong>する見込み
+        </div>
+        <div class="decision">
+          <span class="tag">可視化</span>AI 開発をブラックボックス化させず、<strong>As-Is / To-Be の差異</strong> をカテゴリごとに資料化して説明可能にする
+        </div>
+        <div class="decision">
+          <span class="tag">テスト</span>テスト観点を <strong>「納品時の品質保証の物差し」へ再定義</strong>。裏付けは <strong>単機能テスト項目書</strong>（情報元から正しく同期して存在）
+        </div>
+        <div class="decision">
+          <span class="tag">テスト</span>テスト項目書は <strong>情報元から AI で自動生成</strong>し、機能の変更時も <strong>自動で同期</strong>。実装とテストが常に「対」で最新を保つ
+        </div>
+        <div class="decision">
+          <span class="tag">粒度</span>テストの <strong>メッシュ（粒度）は現状維持</strong>。細分化はチェックのリードタイムが増えるだけで実益が薄い
+        </div>
+        <div class="decision">
+          <span class="tag">役割</span><strong>顧客への保証（メイン）</strong> と <strong>開発者支援テスト（付録）</strong> を混同せず、納品レベルを主軸に据える
+        </div>
+        <div class="decision">
+          <span class="tag">情報共有</span><strong>ビッグピクチャー → 局所的な積み上げ（CRUD 等）→ 工数差分（削減効果）</strong> の順で説明するストーリーラインに統一
+        </div>
+      </div>
 
-いまXXXXXXXX様の設備設計チームとAI検討を行ってるのですが（6月からですが）、どんなAI開発の取り組みをされているのか説明してほしい、と言われており、一度〇〇さんの活動を把握しておきたいなと思ったためです。
+      <div class="milestone">
+        <div class="milestone-label">今後のマイルストーン</div>
+        <div><span class="date-old">6/22</span><span class="arrow">→</span><span class="date shifted">6/24</span><strong>画面実装完了</strong></div>
+        <div class="flow">
+          バックエンド実装は完了済み。画面実装完了の前に アクションアイテム①（As-Is/To-Be 比較資料）<strong>約 4 人日</strong>を挿入し、<strong>約 2 日後ろ倒し（6/22 → 6/24）</strong>することが承認された。
+        </div>
+      </div>
 
-ご検討よろしくお願いします。</div>
+      <div class="summary">
+        <div class="summary-label">全体総括</div>
+        <div>
+          EVM で進捗を定量管理しつつ、AI 駆動の効果を <strong>As-Is / To-Be でホワイトボックス化</strong>して説明可能にする方針を確認。
+          テストは <strong>「納品品質の物差し」へ再定義</strong>し、実装とテスト項目書を AI で「対」管理する。社外・他チームへの共有も <strong>統一ストーリーライン</strong>で対応する体制を合意した。
+        </div>
+      </div>
     </div>
 
   </div>
