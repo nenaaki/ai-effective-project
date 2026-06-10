@@ -950,3 +950,33 @@
     const depotIdx = TAB_ORDER.indexOf('wi-screen-DM07FE021');
     TAB_ORDER.splice(depotIdx >= 0 ? depotIdx : 1, 0, ..._be.keys);
   }
+
+  // === 合計の下の小計2種 ===
+  // サイドバーで「(試行)」が付くシナリオ (= [試行特有] 工程を含む) / 付かないシナリオを、
+  // それぞれ別に合算した小計タブを生成して 合計 の直後に並べる。
+  (function buildTrialSubtotals() {
+    const hasTrial = s => !!s && (s.tasks || []).some(t => (t.label || "").includes("[試行特有]"));
+    const hasData  = s => {
+      if (!s) return false;
+      const t = (s.tasks || []).some(x => (x.asis || 0) > 0 || (x.tobe || 0) > 0 || (x.loc || 0) > 0);
+      const b = (s.bugCategories || []).some(c => (c.asis || 0) > 0 || (c.tobe || 0) > 0);
+      return t || b;
+    };
+    const tabKeys      = TAB_ORDER.filter(k => k !== "total");
+    const trialKeys    = tabKeys.filter(k => hasData(scenarios[k]) && hasTrial(scenarios[k]));
+    const nonTrialKeys = tabKeys.filter(k => hasData(scenarios[k]) && !hasTrial(scenarios[k]));
+
+    scenarios["total-trial"] = Object.assign(buildTotalScenario(scenarios, trialKeys), {
+      tabLabel: "小計 (試行あり)",
+      title: `小計: サイドバーで「(試行)」が付く ${trialKeys.length} シナリオ合計 (AsIs / ToBe)`,
+      lede: `サイドバーで <strong>(試行)</strong> が付く ${trialKeys.length} シナリオ（AIDD 試行の [試行特有] 工程を含む）の工数・コード量・想定バグ数を合算した小計です。`,
+    });
+    scenarios["total-nontrial"] = Object.assign(buildTotalScenario(scenarios, nonTrialKeys), {
+      tabLabel: "小計 (試行なし)",
+      title: `小計: サイドバーで「(試行)」が付かない ${nonTrialKeys.length} シナリオ合計 (AsIs / ToBe)`,
+      lede: `サイドバーで <strong>(試行)</strong> が付かない ${nonTrialKeys.length} シナリオ（[試行特有] 工程を含まない）の工数・コード量・想定バグ数を合算した小計です。`,
+    });
+
+    const ti = TAB_ORDER.indexOf("total");
+    TAB_ORDER.splice(ti + 1, 0, "total-trial", "total-nontrial");
+  })();

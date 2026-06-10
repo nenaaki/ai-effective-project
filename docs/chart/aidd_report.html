@@ -91,9 +91,6 @@
     color: var(--accent);
   }
   .tab.highlight {
-    margin-bottom: 8px;
-    padding-bottom: 12px;
-    border-bottom: 1px solid var(--border);
     font-weight: 700;
   }
   .tab.highlight:not(.active) { color: #7c3aed; }
@@ -101,6 +98,22 @@
   .tab.highlight::before {
     content: "Σ ";
     font-weight: 700;
+  }
+  /* 合計直下の小計 (試行あり / 試行なし) */
+  .tab.subtotal {
+    padding-top: 5px;
+    padding-bottom: 5px;
+    padding-left: 24px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .tab.subtotal:not(.active) { color: #7c3aed; }
+  .tab.subtotal:not(.active):hover { color: #6d28d9; }
+  .tab.subtotal::before { content: "↳ "; color: #9333ea; }
+  .tab.subtotal-last {
+    margin-bottom: 8px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
   }
   .tab.is-empty:not(.active) { color: #b6bcc6; }
   .tab-dot {
@@ -548,14 +561,19 @@
   function ensureGroupVisible(k) {
     if (k !== "total") groupCollapsed[classifyGroup(k)] = false;
   }
+  const SUBTOTAL_KEYS = ["total-trial", "total-nontrial"];
+  const TOP_KEYS = ["total", ...SUBTOTAL_KEYS];
   function tabButtonHTML(k) {
     const cls = ["tab"];
     if (k === currentKey) cls.push("active");
     if (k === "total")    cls.push("highlight");
+    if (SUBTOTAL_KEYS.includes(k)) cls.push("subtotal");
+    if (k === SUBTOTAL_KEYS[SUBTOTAL_KEYS.length - 1]) cls.push("subtotal-last");
     const hasData = scenarioHasData(scenarios[k]);
     if (!hasData) cls.push("is-empty");
     const dot   = hasData ? '<span class="tab-dot" title="値が記入済み"></span>' : "";
-    const trial = scenarioHasTrial(scenarios[k]) ? '<span class="tab-trial" title="試行特有の工程を含む">(試行)</span>' : "";
+    // 小計タブはラベル自体に (試行あり)/(試行なし) を持つため (試行) バッジは付けない
+    const trial = (!SUBTOTAL_KEYS.includes(k) && scenarioHasTrial(scenarios[k])) ? '<span class="tab-trial" title="試行特有の工程を含む">(試行)</span>' : "";
     return `<button type="button" class="${cls.join(" ")}" data-key="${k}">${scenarios[k].tabLabel}${dot}${trial}</button>`;
   }
   function renderTabs() {
@@ -563,12 +581,12 @@
     const groups = [];
     const byName = {};
     TAB_ORDER.forEach(k => {
-      if (k === "total") return;
+      if (TOP_KEYS.includes(k)) return;
       const g = classifyGroup(k);
       if (!byName[g]) { byName[g] = { name: g, keys: [] }; groups.push(byName[g]); }
       byName[g].keys.push(k);
     });
-    let html = tabButtonHTML("total");
+    let html = TOP_KEYS.filter(k => scenarios[k]).map(tabButtonHTML).join("");
     groups.forEach(g => {
       const collapsed = !!groupCollapsed[g.name];
       const caret = collapsed ? "▸" : "▾";
