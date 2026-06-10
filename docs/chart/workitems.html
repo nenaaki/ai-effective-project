@@ -87,7 +87,7 @@
   <table id="t-backend"><thead><tr id="th-backend"></tr></thead><tbody></tbody></table>
   <h2>IF</h2>
   <table id="t-ifs"><thead><tr id="th-ifs"></tr></thead><tbody></tbody></table>
-  <h2>変更対応 <span style="font-size:13px; font-weight:normal; color:#666;">(後発の仕様変更バッファ枠／画面実装とは別グループ)</span></h2>
+  <h2>変更対応・資料整理など <span style="font-size:13px; font-weight:normal; color:#666;">(後発の仕様変更バッファ枠・資料整理／画面実装とは別グループ)</span></h2>
   <table id="t-change"><thead><tr id="th-change"></tr></thead><tbody></tbody></table>
 </div>
 <div id="tab-evm" class="tab-panel">
@@ -293,11 +293,11 @@ function buildGantt(sortedScreens, containerId, title, palette, mode){
         summary[key].工数 += hH / PERSON_DAY_HOURS;
         return;
       }
-      // 変更対応行: 画面実装とは別グループ。DM条件なし、固定工数の1バー (kind="change")
-      if (r.ドメイン === "変更対応") {
+      // 変更対応・資料整理行: 画面実装とは別グループ。DM条件なし、固定工数の1バー (kind="change")
+      if (r.ドメイン === "変更対応" || r.ドメイン === "資料整理") {
         const key = `chg::${r.画面名}`;
         if (!summary[key]) {
-          summary[key] = { 画面名: r.画面名, ドメイン: "変更対応", 工数: 0, isFeOnly: false, 担当者: null, 実施順: null, 実工数: 0, kind: "change", 状況: r.状況 || null, 進捗率: r.進捗率 ?? null };
+          summary[key] = { 画面名: r.画面名, ドメイン: r.ドメイン, 工数: 0, isFeOnly: false, 担当者: null, 実施順: null, 実工数: 0, kind: "change", 状況: r.状況 || null, 進捗率: r.進捗率 ?? null };
           order.push(key);
         }
         summary[key].工数 += hH / PERSON_DAY_HOURS;
@@ -424,7 +424,7 @@ function buildGantt(sortedScreens, containerId, title, palette, mode){
     // DM未完成 (非表示) 画面タスクの合算工数 (person-days)
     let hiddenTotal = 0;
     sortedScreens.forEach(r => {
-      if (r.IFID || r.ドメイン === "変更対応" || r.ドメイン === "バックエンド生成") return;  // IF・変更対応・バックエンド生成は画面実装の集計対象外
+      if (r.IFID || r.ドメイン === "変更対応" || r.ドメイン === "資料整理" || r.ドメイン === "バックエンド生成") return;  // IF・変更対応・資料整理・バックエンド生成は画面実装の集計対象外
       const hH = r["工数(h)"] || 0;
       if (hH === 0) return;
       const dmv = r.データモデル || "";
@@ -479,7 +479,7 @@ function buildGantt(sortedScreens, containerId, title, palette, mode){
   const BACKEND_COLOR = { bg:'#e0f2f1', bd:'#2a8a7e' };  // バックエンドのみ生成 (画面実装とは別グループ)
   let html = '<div style="background:#fff;">';
   html += `<div style="font-size:12px; color:#666; margin-bottom:6px;"><b>${title}</b> ／ 並行2人 (8h×90%=7.2h/日) / ${bars.length} 画面 / 総工数 ${(totalEffort*7.2).toFixed(1)}h / ${total.toFixed(2)} 営業日 / 土日・祝除外</div>`;
-  html += `<div style="font-size:11px; margin-bottom:10px;">凡例: <span style="display:inline-block;width:14px;height:10px;background:#9cd;border:1px solid #468;vertical-align:middle;"></span> 人員1 ／ <span style="display:inline-block;width:14px;height:10px;background:#fc9;border:1px solid #a63;vertical-align:middle;"></span> 人員2 ／ <span style="display:inline-block;width:14px;height:10px;background:#cec;border:1px solid #484;vertical-align:middle;"></span> 完了 (実工数h表示) ／ <span style="display:inline-block;width:14px;height:10px;background:#e7d9f5;border:1px solid #8a5db5;vertical-align:middle;"></span> 業務確認待ち ／ <span style="display:inline-block;width:14px;height:10px;background:#fdeec2;border:1px solid #c89a1e;vertical-align:middle;"></span> 仕様確認中 ／ <span style="display:inline-block;width:14px;height:10px;background:#dbeafe;border:1px solid #3b78c6;vertical-align:middle;"></span> 進捗あり (%表示) ／ <span style="display:inline-block;width:14px;height:10px;background:#fce4ec;border:1px solid #c2407a;vertical-align:middle;"></span> 変更対応 (別グループ) ／ <span style="display:inline-block;width:14px;height:10px;background:#e0f2f1;border:1px solid #2a8a7e;vertical-align:middle;"></span> バックエンドのみ生成 (別グループ)</div>`;
+  html += `<div style="font-size:11px; margin-bottom:10px;">凡例: <span style="display:inline-block;width:14px;height:10px;background:#9cd;border:1px solid #468;vertical-align:middle;"></span> 人員1 ／ <span style="display:inline-block;width:14px;height:10px;background:#fc9;border:1px solid #a63;vertical-align:middle;"></span> 人員2 ／ <span style="display:inline-block;width:14px;height:10px;background:#cec;border:1px solid #484;vertical-align:middle;"></span> 完了 (実工数h表示) ／ <span style="display:inline-block;width:14px;height:10px;background:#e7d9f5;border:1px solid #8a5db5;vertical-align:middle;"></span> 業務確認待ち ／ <span style="display:inline-block;width:14px;height:10px;background:#fdeec2;border:1px solid #c89a1e;vertical-align:middle;"></span> 仕様確認中 ／ <span style="display:inline-block;width:14px;height:10px;background:#dbeafe;border:1px solid #3b78c6;vertical-align:middle;"></span> 進捗あり (%表示) ／ <span style="display:inline-block;width:14px;height:10px;background:#fce4ec;border:1px solid #c2407a;vertical-align:middle;"></span> 変更対応・資料整理 (別グループ) ／ <span style="display:inline-block;width:14px;height:10px;background:#e0f2f1;border:1px solid #2a8a7e;vertical-align:middle;"></span> バックエンドのみ生成 (別グループ)</div>`;
   // マイルストーンを横に伸長するタイムライン + 矢印シェイプで表現 (5/25〜6/26)。カレンダー下部に描画
   let milestoneHtml = "";
   if (mode !== "actual" && screenCompletionDay > 0) {
@@ -505,7 +505,9 @@ function buildGantt(sortedScreens, containerId, title, palette, mode){
     }
     // マイルストーン矢印シェイプ (上=画面 / 下=IF)
     const drawMs = (day, color, label, side) => {
-      const px = X(day);
+      // ラベルは fmt(day)=tlDates[day-1] を使うので、位置も同じ tlDates[day-1] (=X(day-1)) に揃える。
+      // (そうしないとラベルの日付より1営業日ぶん右にズレて描画される)
+      const px = X(day - 1);
       const txt = `📌 ${label} ${fmt(day)}`;
       const rw = Math.max(180, txt.length * 15 + 18), rh = 30;
       let rx = Math.max(4, Math.min(px - rw / 2, W - rw - 4));

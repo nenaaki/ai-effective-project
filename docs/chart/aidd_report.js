@@ -339,6 +339,49 @@
   // workitems 由来テンプレートを実データで上書き。指定キーの工程だけ差分マージ、
   // 残工程は 0 のまま (= 未測定)。tasks.<key>.{asis, tobe, tobeEng, loc, agents} を任意指定。
   const SCENARIO_OVERRIDES = {
+    // 顧客情報詳細 (FE002 / DM01) - 顧客・配送情報の表示 + 各種メモ編集 (荷主メモ/特記事項/作業メモ)。
+    // 実績コード量: DB 105 / API 82 / ユニットテスト 71 / フロントエンド 1,157 行。
+    // AsIs: お知らせ登録(FE015) の「行あたり工数」を実績LOCに適用 (data-impl 6h/166行・api-impl 8h/369行・api-test 3.5h/256行・fe-impl 33.5h/1694行)。
+    //       data-design/fe-design/UX は規模比で按分、api-review/動作確認は人の確認工数として AsIs=ToBe。合計 約39.6h。
+    // ToBe: AI実装 2.0h + APIレビュー 0.5h(エンジニア) + 動作確認 2.0h(エンジニア) = 4.5h (実績)。
+    'wi-screen-DM01FE002': {
+      lede: "<strong>顧客情報詳細</strong>（FE002 / DM01 配送情報確認）の開発工数比較。<strong>顧客・配送情報の表示＋荷主メモ/特記事項/作業メモの編集</strong>を行う画面。実績コード量は DB <strong>105 行</strong>・API <strong>82 行</strong>・ユニットテスト <strong>71 行</strong>・フロントエンド <strong>1,157 行</strong>。<strong>AsIs は行数規模から推定</strong>（お知らせ登録(FE015) の行あたり工数を適用）、<strong>ToBe は実績</strong>（AI 実装 2.0h ＋ APIレビュー 0.5h ＋ フロントレビュー 1.5h ＋ 動作確認 2.0h ＋ レイアウト調整・仮実装 4.5h ＝ 10.5h）。レビュー・動作確認は人がコードを確認する工数として AsIs / ToBe をそろえている。",
+      bugCategories: [
+        { key: "syntax", label: "構文/型エラー",                                color: "#ef4444", asis: 2, tobe: 0 },
+        { key: "logic",  label: "ロジックバグ (購入履歴集計・メモ更新・表示制御)", color: "#f59e0b", asis: 6, tobe: 2 },
+        { key: "edge",   label: "エッジケース漏れ (空値・長文メモ・履歴なし)",     color: "#8b5cf6", asis: 5, tobe: 2 },
+        { key: "spec",   label: "仕様解釈ミス (メモ種別・表示項目の解釈)",         color: "#ec4899", asis: 3, tobe: 3 },
+        { key: "ui",     label: "UI 細部の不整合 (詳細レイアウト・編集フォーム)",   color: "#06b6d4", asis: 4, tobe: 2 },
+      ],
+      bugRateNote: "※ 顧客情報詳細 約 1.4 KLOC × 参考レート（人力 12/KLOC ≒ 17件 / AI 5/KLOC ≒ 7件）で推定。表示＋複数メモ編集の構成で、論点は <strong>メモ種別・表示項目の解釈</strong>。AI でも業務固有の表示ルール・メモ運用は仕様で明示しないと <strong>仕様解釈ミス</strong> が残りやすい。",
+      tasks: {
+        'data-design': { asis: 2.5,             tobe: 0.15, tobeEng: 0,   agents: ["DBアーキテクトAI"] },
+        'data-impl':   { asis: 3.8,  loc: 105,  tobe: 0.20, tobeEng: 0,   agents: ["DBアーキテクトAI"] },
+        'api-impl':    { asis: 1.8,  loc: 82,   tobe: 0.10, tobeEng: 0,   agents: ["バックエンドAI"] },
+        'api-test':    { asis: 1.0,  loc: 71,   tobe: 0.05, tobeEng: 0,   agents: ["バックエンドAI"] },
+        'api-review':  { asis: 0.5,             tobe: 0.5,  tobeEng: 0.5, agents: ["バックエンドレビュワーAI", "エンジニア"] },
+        'ux':          { asis: 3.1,             tobe: 0.15, tobeEng: 0,   agents: ["プランナーAI", "エンジニア"] },
+        'fe-design':   { asis: 2.0,             tobe: 0.10, tobeEng: 0,   agents: ["フロントエンドAI"] },
+        'fe-impl':     { asis: 22.9, loc: 1157, tobe: 1.25, tobeEng: 0,   agents: ["フロントエンドAI"] },
+        'fe-test':     {                                                  agents: ["—"] },
+        'fe-review':   { asis: 1.5,             tobe: 1.5,  tobeEng: 1.5, agents: ["フロントエンドレビュワーAI", "エンジニア"] },
+        'verify':      { asis: 2.0,             tobe: 2.0,  tobeEng: 2.0, agents: ["バックエンドテスターAI", "フロントエンドテスターAI", "エンジニア"] },
+        'layout-adjust': {
+          label: "レイアウト調整・仮実装",
+          color: "#fbbf24",
+          asis: 0,
+          tobe: 4.5, tobeEng: 4.0,
+          agents: ["フロントエンドAI", "エンジニア"],
+        },
+      },
+      contextNotes: [
+        "対象画面: 顧客情報詳細（FE002 / DM01 配送情報確認）。顧客・配送情報の表示に加え、荷主メモ・特記事項・作業メモの編集を行う。",
+        "<strong>実績コード量</strong>: DB <strong>105 行</strong> / API <strong>82 行</strong> / ユニットテスト <strong>71 行</strong> / フロントエンド <strong>1,157 行</strong>（計 約1,415行）。工程区分はお知らせ登録(FE015)のフォーマットを流用。",
+        "<strong>AsIs（人力想定）は行数規模から推定</strong>: お知らせ登録の『行あたり工数』を実績LOCに適用（data-impl 6h/166行・api-impl 8h/369行・api-test 3.5h/256行・fe-impl 33.5h/1694行）。データモデル設計・フロント設計・UX は規模比で按分。APIレビュー・フロントレビュー・動作確認は人の確認工数として AsIs / ToBe をそろえる。合計 約41.1h。",
+        "<strong>ToBe（AI駆動）は実績 10.5h</strong>: AI 実装 2.0h（DB/API/テスト/UX/FE 設計・実装）＋ APIレビュー 0.5h（エンジニア）＋ フロントレビュー 1.5h（エンジニア）＋ 動作確認 2.0h（エンジニア）＋ レイアウト調整・仮実装 4.5h（うちエンジニア 4.0h）。削減率 <strong>約74%</strong>。AI が削減できるのは実装・設計工程で、レビュー・動作確認・レイアウト調整の人間工数は AsIs と同水準。",
+        "想定バグ数は規模（約1.4 KLOC）から推定。表示＋複数メモ編集のため、メモ種別・表示項目の解釈が論点。",
+      ],
+    },
     // 商品マスタ (FE022) - AsIs 見積もり / 担当はデポマスタと同じ
     // ToBe: 固定工程 (api-review/ux/verify) + 実装系 6工程に AsIs比で 2.5h 分配 + レイアウト調整 2h
     // バグ数: 約 1.9 KLOC × 参考レート (人力 12/KLOC ≒ 23件 / AI 5/KLOC ≒ 10件) で推定

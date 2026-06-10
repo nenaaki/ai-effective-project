@@ -145,14 +145,18 @@ function postprocessWorkitems(rawData){
   // 13. 変更対応グループ: 画面実装とは別枠の独立グループ。
   //   後発の仕様変更に対応するためのバッファ枠。工数は固定値。
   //   SCREENS には混ぜない (画面実装の集計・完了判定に含めないため、別配列で返す)。
-  const CHANGE = (rawData.CHANGE_TASKS || []).map(c=>({
+  const CHANGE = (rawData.CHANGE_TASKS || []).map(c=>{
+    // 「〇〇まとめ」系は資料整理グループ、それ以外は変更対応グループ (色・別枠扱いは共通)
+    const isShiryo = (c.画面名 || "").includes("まとめ");
+    const groupName = isShiryo ? "資料整理" : "変更対応";
+    return {
     優先: c.優先 ?? 200,
-    ドメイン: "変更対応",
+    ドメイン: groupName,
     画面ID: "",
-    画面名: c.画面名 || "変更対応",
+    画面名: c.画面名 || groupName,
     管理ID: "",
     処理区分: "",
-    処理名: "変更対応",
+    処理名: groupName,
     データモデル: "",
     画面項目定義: "",
     状況: "予定",
@@ -161,7 +165,8 @@ function postprocessWorkitems(rawData){
     "実工数(h)": "",
     担当者: null,
     実施順: null,
-  }));
+    };
+  });
 
   // 14. バックエンドのみ生成グループ: 入力画面が無く未完(再実装要)のテーブルの
   //   バックエンド(スキーマ＋Service)生成枠。工数 = 仕様確認(h) + AI実装(h) の固定値。
