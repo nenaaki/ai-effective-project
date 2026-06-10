@@ -577,7 +577,7 @@ function buildGantt(sortedScreens, containerId, title, palette, mode){
       const overlapEnd = Math.min(b.end, wEnd + 1);
       if (overlapStart >= overlapEnd) return;
       const isDone = b.状況 === "完了";   // 完了判定は状況に基づく (実工数の有無では判定しない)
-      const isReview = !isDone && b.状況 === "業務確認待ち";
+      const isReview = !isDone && (b.状況 === "業務確認待ち" || b.状況 === "レビュー中");
       const isSpec = !isDone && !isReview && b.状況 === "仕様確認中";
       const pr = b.進捗率;                 // 0-1 (未設定は null)
       const hasProgress = pr != null && pr > 0;

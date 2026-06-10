@@ -481,10 +481,11 @@
         "<strong>AsIs は実績コード量(概算)から推定</strong>: 実装系工程に商品マスタ参考レート(api 8h/369行・fe 16h/810行・data 6h/166行・test 3.5h/256行)を適用。レビュー/動作確認/仕様確認は人間工数として AsIs=ToBe。合計 約58h → ToBe 9.43h(削減 約84%)。LOC は概算。",
       ],
     },
-    // 代引き確認 (FE053 / PW-141) — 閲覧スコープ。ToBe は実測 (time-log.jsonl): 標準開発 1.5h(試行特有 0h)。
+    // 代引き確認 (FE010 / PW-141) — 閲覧スコープ。ToBe は実測 (time-log.jsonl): 標準開発 1.5h(試行特有 0h)。
     // 確立済みフローを1セッションで通過。スキーマ変更なし(既存 invoicePrintings 拡張)。LOC は PR#84 diff (fe 約596 / api 約77 / seed 47)。
-    'wi-screen-DM14FE053': {
-      lede: "AIDD 試行「代引き確認」(FE053 / PW-141) の開発工数比較。<strong>t_invoice_printing を根に 一覧10列・検索3条件・代引き額合計</strong>を表示する<strong>閲覧スコープ</strong>の画面。<strong>スキーマ変更なし</strong>(既存 invoicePrintings を拡張)。<strong>確立済みフローを1セッションで通過し ToBe 実測 1.5h</strong>(試行特有オーバーヘッド 0h)。AsIs は実績コード量から推定。",
+    // ※ 画面処理側の「代引き確認」は FE010(DM03 一覧表示)。FE053 は「代引き確認(DL)」(Excel出力)で別タブ。
+    'wi-screen-DM03FE010': {
+      lede: "AIDD 試行「代引き確認」(FE010 / PW-141) の開発工数比較。<strong>t_invoice_printing を根に 一覧10列・検索3条件・代引き額合計</strong>を表示する<strong>閲覧スコープ</strong>の画面。<strong>スキーマ変更なし</strong>(既存 invoicePrintings を拡張)。<strong>確立済みフローを1セッションで通過し ToBe 実測 1.5h</strong>(試行特有オーバーヘッド 0h)。AsIs は実績コード量から推定。",
       bugCategories: [
         { key: "syntax", label: "構文/型エラー",                                          color: "#ef4444", asis: 3, tobe: 0 },
         { key: "logic",  label: "ロジックバグ (代引き額合計の絞り込み連動・DataLoader N+1)",      color: "#f59e0b", asis: 6, tobe: 2 },
@@ -507,7 +508,7 @@
         'verify':      { asis: 0.15,          tobe: 0.15, tobeEng: 0.15, agents: ["フロントエンドテスターAI", "エンジニア"] },
       },
       contextNotes: [
-        "対象画面: 代引き確認 (FE053 / PW-141)。t_invoice_printing を根に 一覧10列 + 検索3条件(デポ複数/エリア複数/配送完了日範囲) + 代引き額合計フッタ + Excel出力(未実装通知)。閲覧スコープ。<strong>スキーマ変更なし</strong>(既存 invoicePrintings に depotIds/日付範囲 filter・depot ResolveField・codAmountTotal 集計を追加)。",
+        "対象画面: 代引き確認 (FE010 / PW-141)。t_invoice_printing を根に 一覧10列 + 検索3条件(デポ複数/エリア複数/配送完了日範囲) + 代引き額合計フッタ + Excel出力(未実装通知)。閲覧スコープ。<strong>スキーマ変更なし</strong>(既存 invoicePrintings に depotIds/日付範囲 filter・depot ResolveField・codAmountTotal 集計を追加)。",
         "<strong>ToBe は実測</strong> (time-log.jsonl・2026-06-08): 標準開発(系統A) <strong>1.5h</strong> を1セッションで通過。<span style=\"color:#9333ea\">試行特有(系統B) 0h</span>。/start-task→planner→backend(seed+API)→reviewer+Major2件修正→frontend(skeleton/A/実装/B)→tester→サイドバー導線→PR まで。",
         "<strong>確立済みフローの効果</strong>: PW-134 までに投じた構造改修(縮退ルート禁止・raw diff・不明点TSV規律)が効き、手戻りは reviewer Major 2件(DataLoader内部ID漏洩→null・where any→Prisma型)のみ。PW-134(系統A 8.0h)比で大幅短縮。暫定(エリア名/配送担当者名=源なし『-』・お問い合わせ番号=ifSlipNo・Excel未実装通知)は questions/PW-141.tsv に記録(mock 列は縮退せず維持)。",
         "<strong>AsIs は実績コード量から推定</strong>: フロント 596行→11.7h(商品マスタ 16h/810行)、API拡張 77行→1.7h、seed 47行→0.5h。レビュー/動作確認は人間工数として AsIs=ToBe。合計 約18.3h → ToBe 1.5h(削減 約92%)。",

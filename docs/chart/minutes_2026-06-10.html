@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>相談・質問まとめ 2026-06-10</title>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body {
+    font-family: -apple-system, "Hiragino Kaku Gothic ProN", "Yu Gothic", system-ui, sans-serif;
+    color: #1f2937;
+    background: #fafafa;
+    padding: 28px 32px;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+  .page { max-width: 1240px; margin: 0 auto; height: 100%; display: flex; flex-direction: column; }
+  h1 { font-size: 19px; margin: 0; border-bottom: 3px solid #2563eb; padding-bottom: 6px; }
+  .sub { color: #6b7280; font-size: 12px; margin: 6px 0 14px; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 18px;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+  }
+  .panel {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: auto;
+  }
+  h2 { font-size: 13px; margin: 0 0 10px; padding-left: 8px; border-left: 3px solid #2563eb; }
+
+  .items { display: flex; flex-direction: column; gap: 6px; }
+  .item {
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 12px;
+    line-height: 1.55;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .item .num {
+    background: #2563eb;
+    color: white;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 11px;
+    flex-shrink: 0;
+  }
+  .item .title { font-weight: 600; color: #1f2937; }
+  .item .desc { color: #4b5563; margin-top: 2px; font-size: 11.5px; }
+  .item .badge-open {
+    display: inline-block;
+    background: #f59e0b;
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 3px;
+    margin-left: 6px;
+    vertical-align: 1px;
+    letter-spacing: 0.04em;
+  }
+
+  .item-detail {
+    margin-top: 6px;
+    background: #fffbeb;
+    border-left: 2px solid #f59e0b;
+    border-radius: 3px;
+    padding: 6px 9px;
+    font-size: 11px;
+    line-height: 1.6;
+    color: #374151;
+  }
+  .item-detail .head {
+    font-size: 10px;
+    font-weight: 700;
+    color: #92400e;
+    letter-spacing: 0.04em;
+    margin-bottom: 4px;
+  }
+  .item-detail ul { margin: 0; padding-left: 16px; }
+  .item-detail li { margin: 2px 0; }
+
+  /* 依頼原文（右パネル） */
+  .quote-meta { font-size: 11px; color: #6b7280; margin-bottom: 8px; }
+  .quote {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-left: 3px solid #2563eb;
+    border-radius: 6px;
+    padding: 12px 14px;
+    font-size: 12px;
+    line-height: 1.75;
+    color: #374151;
+    white-space: pre-wrap;
+  }
+  .quote .from {
+    font-weight: 700;
+    color: #1e40af;
+    font-size: 11px;
+    margin-bottom: 6px;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>相談・質問まとめ 2026-06-10</h1>
+  <div class="sub">AIDD</div>
+
+  <div class="grid">
+
+    <!-- 左: 相談事項 -->
+    <div class="panel">
+      <h2>相談事項</h2>
+      <div class="items">
+        <div class="item">
+          <span class="num">1</span>
+          <div>
+            <div class="title">他部署・他チームからの情報共有依頼への対応方針<span class="badge-open">要相談</span></div>
+            <div class="desc">「AI開発の取り組み内容・状況・今後の展望を説明してほしい」と依頼された場合、<strong>どこまで・誰が・どう対応するか</strong> の方針を決めたい（例: TNOさん）。</div>
+            <div class="item-detail">
+              <div class="head">相談ポイント</div>
+              <ul>
+                <li><strong>対応可否と窓口</strong> — 応じるか／誰が説明役を担うか</li>
+                <li><strong>資料の提示可否</strong> — chart の資料・AI駆動の概略図などを見せても良いか？良いならその範囲は？</li>
+                <li><strong>事前承認の要否</strong></li>
+                <li><strong>開示制限の期間</strong></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右: 依頼内容（原文） -->
+    <div class="panel">
+      <h2>依頼内容（メッセージ / 例: TNOさん）</h2>
+      <div class="quote-meta">情報共有を求められたメッセージ</div>
+      <div class="quote"><div class="from">TNOさん より</div>いまAI開発の何かをやってると思いますが、その取り組み内容とか状況とか今後の展望などを私に説明いただくこと可能でしょうか？
+
+いまXXXXXXXX様の設備設計チームとAI検討を行ってるのですが（6月からですが）、どんなAI開発の取り組みをされているのか説明してほしい、と言われており、一度〇〇さんの活動を把握しておきたいなと思ったためです。
+
+ご検討よろしくお願いします。</div>
+    </div>
+
+  </div>
+
+</div>
+</body>
+</html>

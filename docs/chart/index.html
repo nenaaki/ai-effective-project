@@ -7,7 +7,9 @@
 <style>
   body { font-family: "Yu Gothic UI", "Meiryo", sans-serif; margin: 24px; color:#222; line-height:1.6; }
   h1 { border-bottom: 2px solid #2a6; padding-bottom: 6px; }
-  ul.links { list-style: none; padding: 0; margin: 16px 0; max-width: 640px; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; max-width: 1200px; align-items: start; }
+  .col h2 { font-size: 16px; color:#2a6; border-bottom: 1px solid #cde3d6; padding-bottom: 5px; margin: 8px 0 4px; }
+  ul.links { list-style: none; padding: 0; margin: 16px 0; }
   ul.links li { margin: 10px 0; }
   ul.links a { display: block; border: 1px solid #ccc; border-left: 4px solid #2a6; border-radius: 4px; padding: 12px 16px; text-decoration: none; color: #1a5; background: #fafdfb; }
   ul.links a:hover { background: #eef7f1; }
@@ -21,42 +23,57 @@
 <body>
 <h1>AI駆動開発PJ</h1>
 <p style="color:#666; font-size:14px; margin-top:6px;">ドキュメント一覧</p>
-<ul class="links">
-  <li><a href="workitems.html">
-    <div class="title">プロジェクト管理</div>
-    <div class="desc">タスク管理・進捗管理・マイルストーン</div>
-    <div class="path">workitems.html</div>
-  </a></li>
-  <li><a href="aidd_report.html">
-    <div class="title">AI駆動開発実施レポート</div>
-    <div class="desc">AI駆動開発の試行結果・フロー上の問題点のまとめ　新規: デポマスタ、ユーザーマスタ、エリアマスタ</div>
-    <div class="path">aidd_report.html</div>
-  </a></li>
-  <li><a href="problem_ex_1.html" class="issue">
-    <div class="title">課題事例①: 要件不明確時のフロー（PW-120 デポマスタ）</div>
-    <div class="desc">業務判断が不明・要件不足を planner が検知した際の確認導線が未整備。エスカレーション／管理チャネル統一の結論と PW での運用まで</div>
-    <div class="path">problem_ex_1.html</div>
-  </a></li>
-  <li><a href="problem_ex_2.html" class="issue">
-    <div class="title">課題事例②: モックと同一の画面が作られないケース（PW-123 ユーザマスタ）</div>
-    <div class="desc">mock と実装でレイアウト（grid 横並び vs 縦リスト）が乖離する課題。UI における AI 活用方針（実用性優先）の結論と PW での運用まで</div>
-    <div class="path">problem_ex_2.html</div>
-  </a></li>
-  <li><a href="problem_ex_3.html" class="issue">
-    <div class="title">課題事例①': 不明点の確認フロー運用で見えた課題と切り分け方針（PW-122 エリアマスタ等）</div>
-    <div class="desc">課題①で整備した谷さん・千葉さんへの確認フローを実運用。出た不明点が「即答困難（顧客確認）／AI駆動の対象外（業務ロジック・外部連携）／資料で網羅定義（Validation等）」と3種類混在し整理に時間。別チケットで切り分ける方針の確認まで</div>
-    <div class="path">problem_ex_3.html</div>
-  </a></li>
-  <li><a href="minutes_2026-05-28.html">
-    <div class="title">議事まとめ 2026-05-28（今後のアクション / 決定事項）</div>
-    <div class="desc">定例で確定したアクションアイテム（進捗管理・指標 / 効果測定・標準化）、決定事項、全体総括</div>
-    <div class="path">minutes_2026-05-28.html</div>
-  </a></li>
-  <li><a href="minutes_2026-06-03.html">
-    <div class="title">議事まとめ 2026-06-03（今後のアクション / 決定事項）</div>
-    <div class="desc">金子社長MTGで確定したアクション（思考錯誤の可視化・EVM / タスク運用・簿外排除 / 課題管理・プッシュ型）、決定事項、6/8の標準化フェーズ移行マイルストーン</div>
-    <div class="path">minutes_2026-06-03.html</div>
-  </a></li>
-</ul>
+<div class="cols">
+  <div class="col">
+    <h2>ドキュメント・課題事例</h2>
+    <ul class="links">
+      <li><a href="workitems.html">
+        <div class="title">プロジェクト管理</div>
+        <div class="desc">タスク管理・進捗管理・マイルストーン</div>
+        <div class="path">workitems.html</div>
+      </a></li>
+      <li><a href="aidd_report.html">
+        <div class="title">AI駆動開発実施レポート</div>
+        <div class="desc">AI駆動開発の試行結果・フロー上の問題点のまとめ　新規: デポマスタ、ユーザーマスタ、エリアマスタ</div>
+        <div class="path">aidd_report.html</div>
+      </a></li>
+      <li><a href="problem_ex_1.html" class="issue">
+        <div class="title">課題事例①: 要件不明確時のフロー（PW-120 デポマスタ）</div>
+        <div class="desc">業務判断が不明・要件不足を planner が検知した際の確認導線が未整備。エスカレーション／管理チャネル統一の結論と PW での運用まで</div>
+        <div class="path">problem_ex_1.html</div>
+      </a></li>
+      <li><a href="problem_ex_2.html" class="issue">
+        <div class="title">課題事例②: モックと同一の画面が作られないケース（PW-123 ユーザマスタ）</div>
+        <div class="desc">mock と実装でレイアウト（grid 横並び vs 縦リスト）が乖離する課題。UI における AI 活用方針（実用性優先）の結論と PW での運用まで</div>
+        <div class="path">problem_ex_2.html</div>
+      </a></li>
+      <li><a href="problem_ex_3.html" class="issue">
+        <div class="title">課題事例①': 不明点の確認フロー運用で見えた課題と切り分け方針（PW-122 エリアマスタ等）</div>
+        <div class="desc">課題①で整備した谷さん・千葉さんへの確認フローを実運用。出た不明点が「即答困難（顧客確認）／AI駆動の対象外（業務ロジック・外部連携）／資料で網羅定義（Validation等）」と3種類混在し整理に時間。別チケットで切り分ける方針の確認まで</div>
+        <div class="path">problem_ex_3.html</div>
+      </a></li>
+    </ul>
+  </div>
+  <div class="col">
+    <h2>議事まとめ</h2>
+    <ul class="links">
+      <li><a href="minutes_2026-05-28.html">
+        <div class="title">議事まとめ 2026-05-28（今後のアクション / 決定事項）</div>
+        <div class="desc">定例で確定したアクションアイテム（進捗管理・指標 / 効果測定・標準化）、決定事項、全体総括</div>
+        <div class="path">minutes_2026-05-28.html</div>
+      </a></li>
+      <li><a href="minutes_2026-06-03.html">
+        <div class="title">議事まとめ 2026-06-03（今後のアクション / 決定事項）</div>
+        <div class="desc">金子社長MTGで確定したアクション（試行錯誤の可視化・EVM / タスク運用・簿外排除 / 課題管理・プッシュ型）、決定事項、6/8の標準化フェーズ移行マイルストーン</div>
+        <div class="path">minutes_2026-06-03.html</div>
+      </a></li>
+      <li><a href="minutes_2026-06-10.html">
+        <div class="title">相談・質問まとめ 2026-06-10</div>
+        <div class="desc">他部署・他チームからの情報共有依頼への対応方針（対応可否・資料の提示可否・事前承認）の相談。依頼のメッセージ（例: TNOさん）を併記</div>
+        <div class="path">minutes_2026-06-10.html</div>
+      </a></li>
+    </ul>
+  </div>
+</div>
 </body>
 </html>
