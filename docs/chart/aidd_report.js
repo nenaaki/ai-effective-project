@@ -963,8 +963,18 @@
       return t || b;
     };
     const tabKeys      = TAB_ORDER.filter(k => k !== "total");
-    const trialKeys    = tabKeys.filter(k => hasData(scenarios[k]) && hasTrial(scenarios[k]));
-    const nonTrialKeys = tabKeys.filter(k => hasData(scenarios[k]) && !hasTrial(scenarios[k]));
+    const dataKeys     = tabKeys.filter(k => hasData(scenarios[k]));
+    const trialKeys    = dataKeys.filter(k => hasTrial(scenarios[k]));
+    const nonTrialKeys = dataKeys.filter(k => !hasTrial(scenarios[k]));
+
+    // 合計 = データのある全シナリオを合算 (= 小計(試行あり) + 小計(試行なし) と一致)。
+    // dataKeys は trialKeys と nonTrialKeys の互いに素な和集合なので、各工程・バグ数とも
+    // 「合計 = 小計あり + 小計なし」が必ず成り立つ。
+    scenarios.total = Object.assign(buildTotalScenario(scenarios, dataKeys), {
+      tabLabel: "合計",
+      title: `全シナリオ合計 開発工数比較 (AsIs / ToBe) (${dataKeys.length}件)`,
+      lede: `本ページでデータが入力済みの全 ${dataKeys.length} シナリオを合算した参考値です。内訳は直下の <strong>小計(試行あり)</strong> + <strong>小計(試行なし)</strong> に一致します。`,
+    });
 
     scenarios["total-trial"] = Object.assign(buildTotalScenario(scenarios, trialKeys), {
       tabLabel: "小計 (試行あり)",
