@@ -15,6 +15,9 @@
   ul.links a:hover { background: #eef7f1; }
   ul.links a.issue { border-left-color: #d97706; color: #92400e; background: #fffbf2; }
   ul.links a.issue:hover { background: #fef3c7; }
+  ul.links a.consulted { border-left-color: #9ca3af; color: #4b5563; background: #f9fafb; }
+  ul.links a.consulted:hover { background: #f3f4f6; }
+  ul.links a.consulted .badge { display: inline-block; background: #9ca3af; color: #fff; font-size: 11px; font-weight: bold; padding: 0 7px; border-radius: 3px; margin-right: 6px; vertical-align: 1px; }
   ul.links .title { font-weight: bold; font-size: 15px; }
   ul.links .desc { font-size: 13px; color: #555; margin-top: 2px; }
   ul.links .path { font-size: 12px; color: #999; margin-top: 2px; }
@@ -42,18 +45,18 @@
         <div class="desc">Backend は CRUD を Jest ユニットでテストファースト検証（結果はコンソール出力のみ）。Frontend はユニット無し・Playwright の UI スモーク。</div>
         <div class="path">test_report.html</div>
       </a></li>
-      <li><a href="problem_ex_1.html" class="issue">
-        <div class="title">課題事例①: 要件不明確時のフロー（PW-120 デポマスタ）</div>
+      <li><a href="problem_ex_1.html" class="consulted">
+        <div class="title"><span class="badge">相談済み</span>課題事例①: 要件不明確時のフロー（PW-120 デポマスタ）</div>
         <div class="desc">業務判断が不明・要件不足を planner が検知した際の確認導線が未整備。エスカレーション／管理チャネル統一の結論と PW での運用まで</div>
         <div class="path">problem_ex_1.html</div>
       </a></li>
-      <li><a href="problem_ex_2.html" class="issue">
-        <div class="title">課題事例②: モックと同一の画面が作られないケース（PW-123 ユーザマスタ）</div>
+      <li><a href="problem_ex_2.html" class="consulted">
+        <div class="title"><span class="badge">相談済み</span>課題事例②: モックと同一の画面が作られないケース（PW-123 ユーザマスタ）</div>
         <div class="desc">mock と実装でレイアウト（grid 横並び vs 縦リスト）が乖離する課題。UI における AI 活用方針（実用性優先）の結論と PW での運用まで</div>
         <div class="path">problem_ex_2.html</div>
       </a></li>
-      <li><a href="problem_ex_3.html" class="issue">
-        <div class="title">課題事例①': 不明点の確認フロー運用で見えた課題と切り分け方針（PW-122 エリアマスタ等）</div>
+      <li><a href="problem_ex_3.html" class="consulted">
+        <div class="title"><span class="badge">相談済み</span>課題事例①': 不明点の確認フロー運用で見えた課題と切り分け方針（PW-122 エリアマスタ等）</div>
         <div class="desc">課題①で整備した谷さん・千葉さんへの確認フローを実運用。出た不明点が「即答困難（顧客確認）／AI駆動の対象外（業務ロジック・外部連携）／資料で網羅定義（Validation等）」と3種類混在し整理に時間。別チケットで切り分ける方針の確認まで</div>
         <div class="path">problem_ex_3.html</div>
       </a></li>
