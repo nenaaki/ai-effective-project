@@ -514,11 +514,11 @@
         "<strong>AsIs は実績コード量から推定</strong>: フロント 596行→11.7h(商品マスタ 16h/810行)、API拡張 77行→1.7h、seed 47行→0.5h。レビュー/動作確認は人間工数として AsIs=ToBe。合計 約18.3h → ToBe 1.5h(削減 約92%)。",
       ],
     },
-    // 配車登録 (FE004 / PW-144 / DM02 配車管理) — 閲覧スコープ。ToBe は実測 (time-log.jsonl): 標準開発 3.9h + 試行特有 0.5h = 計4.4h。
+    // 配車登録 (FE004 / PW-144 / DM02 配車管理) — 閲覧スコープ。ToBe は実測 (time-log.jsonl): 標準開発 3.9h (試行特有は計測対象外)。
     // スキーマ変更なし・新規バックエンドAPIなし (既存 searchDeliveryHistory 流用)。ドロワー対応は別タスク(FE001/PW-134・FE036)との兼ね合いで見送り→後工程で吸収。
     // LOC は PR#87 diff (frontend のみ 約1,261行・backend 0)。AsIs は実績コード量から推定。
     'wi-screen-DM02FE004': {
-      lede: "AIDD 試行「配車登録」(FE004 / PW-144) の開発工数比較。<strong>t_delivery_history を searchDeliveryHistory で参照し 検索3条件(配車日/ドライバー/デポ)・配車結果一覧10列・配車状況バッジ・行クリック詳細ドロワー</strong>を扱う<strong>閲覧スコープ</strong>の画面。<strong>スキーマ変更なし・新規バックエンドAPIなし</strong>(既存 searchDeliveryHistory 流用で API追加不要と確定)。配車登録/一括操作は後続スコープ。<strong>ドロワーの内容整合は別タスク(FE001/PW-134 共有・FE036)との兼ね合いで本対応では見送り→後工程で吸収</strong>。<strong>ToBe は実測</strong>(time-log): 標準開発 3.9h ＋ <span style=\"color:#9333ea\">試行特有 0.5h</span> ＝ 計 4.4h。AsIs は実績コード量(概算)から推定。",
+      lede: "AIDD 試行「配車登録」(FE004 / PW-144) の開発工数比較。<strong>t_delivery_history を searchDeliveryHistory で参照し 検索3条件(配車日/ドライバー/デポ)・配車結果一覧10列・配車状況バッジ・行クリック詳細ドロワー</strong>を扱う<strong>閲覧スコープ</strong>の画面。<strong>スキーマ変更なし・新規バックエンドAPIなし</strong>(既存 searchDeliveryHistory 流用で API追加不要と確定)。配車登録/一括操作は後続スコープ。<strong>ドロワーの内容整合は別タスク(FE001/PW-134 共有・FE036)との兼ね合いで本対応では見送り→後工程で吸収</strong>。<strong>ToBe は実測</strong>(time-log) <strong>3.9h</strong>(標準開発のみ／試行特有は計測対象外)。AsIs は実績コード量(概算)から推定。",
       bugCategories: [
         { key: "syntax", label: "構文/型エラー",                                          color: "#ef4444", asis: 3, tobe: 0 },
         { key: "logic",  label: "ロジックバグ (3段結合の件数欠落・日付ISO・絞り込み連動)",      color: "#f59e0b", asis: 5, tobe: 2 },
@@ -539,14 +539,13 @@
         'fe-test':     {                                                 agents: ["—"] },
         'fe-review':   { asis: 0.3,           tobe: 0.3, tobeEng: 0.3,   agents: ["フロントエンドレビュワーAI", "エンジニア"] },
         'verify':      { asis: 2.4,           tobe: 2.4, tobeEng: 2.2,   agents: ["フロントエンドテスターAI", "エンジニア"] },
-        'structure-improvement': { label: "[試行特有] select-ready-task 改善 (実装済み画面の除外)", color: "#7e22ce", asis: 0, tobe: 0.5, tobeEng: 0.5, agents: ["エンジニア (ルール整備)"] },
       },
       contextNotes: [
         "対象画面: 配車登録 (FE004 / PW-144 / DM02 配車管理)。searchDeliveryHistory を根に 検索3条件(配車日/ドライバー/デポ) + 配車結果一覧10列 + 配車状況バッジ + 行クリック詳細ドロワー + 未配車情報ドロワー(静的)。閲覧スコープ(配車登録/一括配車/戻しは後続)。<strong>スキーマ変更なし・新規バックエンドAPIなし</strong>(既存 searchDeliveryHistory 流用で API追加不要と planner が確定)。",
-        "<strong>ToBe は実測</strong> (time-log.jsonl・2026-06-09〜06-10): 標準開発(系統A) <strong>3.9h</strong> (実装1.5h + 動作確認・修正2.0h + コミット/PR/CI 0.4h) ＋ <span style=\"color:#9333ea\">試行特有(系統B) 0.5h</span> (select-ready-task 改善)。コミット&PR は翌日(06-10)実施で日跨ぎ。questions 書式改善はユーザ指示で試行時間に計上せず。",
+        "<strong>ToBe は実測</strong> (time-log.jsonl・2026-06-09〜06-10): <strong>3.9h</strong> (実装1.5h + 動作確認・修正2.0h + コミット/PR/CI 0.4h)。コミット&PR は翌日(06-10)実施で日跨ぎ。select-ready-task 改善・questions 書式改善などの試行特有作業は計測対象外。",
         "<strong>ドロワー対応は本対応で見送り → 後工程で吸収</strong>: ①行クリックの詳細ドロワーは FE001 配送情報照会(PW-134)の DeliveryHistoryDetailDrawer を再利用。FE001 を別担当が作成中のため内容整合は触らず別起票(PW-144_10)。②未配車情報ドロワーは集計API未定義で mock 同等の静的表示のみ(FE005未配車リスト/FE037未配車検索 寄り・PW-144_3)。③配車一覧(全DR)の配送順/時間帯色は FE036 翌日配車の領域でスコープ外(PW-144_8/_9)。",
         "<strong>手戻り</strong>: frontend-reviewer モードB で Critical2(3段クライアント結合の件数欠落: limit1000・複数 deliveryListNo 未対応) + Major2 → spec 通り searchDeliveryHistory 単一クエリへ寄せ直して構造解消。動作確認で 日付ISO形式(スラッシュ→ハイフン)・カレンダーpopperのサイドバー背面被り・時間帯整形 を修正。planner 起動は3回中2回 Stream idle timeout で空振り。",
-        "<strong>AsIs は実績コード量(概算)から推定</strong>: フロント 約1,261行 → 24.7h(商品マスタ 16h/810行)。バックエンドは新規実装なし(0h)。UX/設計/レビュー/動作確認は人間工数として AsIs=ToBe。合計 約32h → ToBe 4.4h(削減 約86%)。LOC は概算。",
+        "<strong>AsIs は実績コード量(概算)から推定</strong>: フロント 約1,261行 → 24.7h(商品マスタ 16h/810行)。バックエンドは新規実装なし(0h)。UX/設計/レビュー/動作確認は人間工数として AsIs=ToBe。合計 約32h → ToBe 3.9h(削減 約88%)。LOC は概算。",
       ],
     },
   };
