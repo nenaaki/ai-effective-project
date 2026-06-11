@@ -138,7 +138,7 @@
 
   // ====== 合計シナリオの動的生成 ======
   function buildTotalScenario(scenarios, keys) {
-    const taskKeys   = ["data-design","data-impl","api-impl","api-test","api-review","ux","fe-design","fe-impl","fe-test","fe-review","verify","spec-confirm","trial-review","structure-improvement"];
+    const taskKeys   = ["data-design","data-impl","api-impl","api-test","api-review","ux","fe-design","fe-impl","fe-test","fe-review","verify","layout-adjust","func-adjust","spec-confirm","trial-spec-analysis","trial-review","structure-improvement"];
     const taskLabels = {
       "data-design": "データモデル設計",
       "data-impl":   "データモデル実装",
@@ -151,7 +151,10 @@
       "fe-test":     "フロントエンド単体テスト",
       "fe-review":   "フロントエンドレビュー (エンジニア)",
       "verify":      "動作確認",
+      "layout-adjust": "レイアウト調整・仮実装",
+      "func-adjust":   "機能調整",
       "spec-confirm": "仕様確認",
+      "trial-spec-analysis":   "[試行特有] 仕様解析",
       "trial-review":          "[試行特有] 試行総括・課題抽出",
       "structure-improvement": "[試行特有] 構造改修",
     };
@@ -339,6 +342,88 @@
   // workitems 由来テンプレートを実データで上書き。指定キーの工程だけ差分マージ、
   // 残工程は 0 のまま (= 未測定)。tasks.<key>.{asis, tobe, tobeEng, loc, agents} を任意指定。
   const SCENARIO_OVERRIDES = {
+    // デポ掲示板 (FE013) / 〇〇掲示板 (FE014) - 共通実装のため 2画面の実績合計を 50% ずつ按分。
+    // 実績コード量(2画面合計): DB 0 / バックエンド 378 / ユニットテスト 0 / フロントエンド 968 行。
+    // AsIs: お知らせ登録(FE015) の行あたり工数を実績LOCに適用 (api-impl 8h/369行・fe-impl 33.5h/1694行)。
+    //       fe-design/UX は規模比で按分、レビュー・動作確認は人の確認工数として AsIs=ToBe。2画面合計 約34.5h → 各画面 17.25h。
+    // ToBe(2画面合計): AI 1.5h + BEレビュー 0.5h + FEレビュー 1.0h + 動作確認 1.0h + 機能調整 1.0h = 5.0h → 各画面 2.5h。
+    'wi-screen-DM04FE013': {
+      lede: "<strong>デポ掲示板</strong>（FE013 / DM04 管理情報通知）の開発工数比較。〇〇掲示板(FE014)と共通実装のため、<strong>2掲示板の実績合計を 50% ずつ按分</strong>した値。実績コード量(2画面合計)は DB <strong>0 行</strong>・バックエンド <strong>378 行</strong>・ユニットテスト <strong>0 行</strong>・フロントエンド <strong>968 行</strong>。<strong>AsIs は行数規模から推定</strong>（お知らせ登録(FE015) の行あたり工数を適用、本画面ぶん＝50%）、<strong>ToBe は実績</strong>（AI 0.75h ＋ バックエンドレビュー 0.25h ＋ フロントレビュー 0.5h ＋ 動作確認 0.5h ＋ 機能調整 0.5h ＝ 2.5h／いずれも合計の50%）。さらに本画面は工程先頭に <strong>[試行特有]仕様解析 4.0h（人間・按分対象外）</strong>を含み、<strong>ToBe 合計は 6.5h（試行あり）</strong>。",
+      bugCategories: [
+        { key: "syntax", label: "構文/型エラー",                            color: "#ef4444", asis: 1, tobe: 0 },
+        { key: "logic",  label: "ロジックバグ (検索・並び順・掲示対象)",      color: "#f59e0b", asis: 3, tobe: 1 },
+        { key: "edge",   label: "エッジケース漏れ (空・期間境界・該当なし)",  color: "#8b5cf6", asis: 2, tobe: 1 },
+        { key: "spec",   label: "仕様解釈ミス (掲示対象・公開範囲の解釈)",    color: "#ec4899", asis: 1, tobe: 1 },
+        { key: "ui",     label: "UI 細部の不整合 (一覧列・フォーム配置)",     color: "#06b6d4", asis: 1, tobe: 1 },
+      ],
+      bugRateNote: "※ デポ掲示板 約 0.67 KLOC（2画面合計 約1.35 KLOC の50%）× 参考レート（人力 12/KLOC ≒ 8件 / AI 5/KLOC ≒ 3件）で推定。掲示板の一覧・登録構成で、論点は <strong>掲示対象・公開範囲の解釈</strong>。",
+      tasks: {
+        'data-design': { asis: 0,                tobe: 0,    tobeEng: 0,    agents: ["—"] },
+        'data-impl':   { asis: 0,    loc: 0,     tobe: 0,    tobeEng: 0,    agents: ["—"] },
+        'api-impl':    { asis: 4.1,  loc: 189,   tobe: 0.20, tobeEng: 0,    agents: ["バックエンドAI"] },
+        'api-test':    { asis: 0,    loc: 0,     tobe: 0,    tobeEng: 0,    agents: ["—"] },
+        'api-review':  { asis: 0.25,             tobe: 0.25, tobeEng: 0.25, agents: ["バックエンドレビュワーAI", "エンジニア"] },
+        'ux':          { asis: 1.5,              tobe: 0.05, tobeEng: 0,    agents: ["プランナーAI", "エンジニア"] },
+        'fe-design':   { asis: 0.85,             tobe: 0.05, tobeEng: 0,    agents: ["フロントエンドAI"] },
+        'fe-impl':     { asis: 9.55, loc: 484,   tobe: 0.45, tobeEng: 0,    agents: ["フロントエンドAI"] },
+        'fe-test':     {                                                    agents: ["—"] },
+        'fe-review':   { asis: 0.5,              tobe: 0.5,  tobeEng: 0.5,  agents: ["フロントエンドレビュワーAI", "エンジニア"] },
+        'verify':      { asis: 0.5,              tobe: 0.5,  tobeEng: 0.5,  agents: ["バックエンドテスターAI", "フロントエンドテスターAI", "エンジニア"] },
+        'func-adjust': {
+          label: "機能調整",
+          color: "#fbbf24",
+          asis: 0,
+          tobe: 0.5, tobeEng: 0.5,
+          agents: ["フロントエンドAI", "エンジニア"],
+        },
+      },
+      contextNotes: [
+        "対象画面: デポ掲示板（FE013 / DM04 管理情報通知）。〇〇掲示板(FE014)と共通実装のため、2掲示板の実績合計を 50% ずつ按分した値で表示する。",
+        "<strong>デポ掲示板のみ</strong>: 工程の先頭に <strong>[試行特有]仕様解析 4.0h（人間・按分対象外）</strong>を追加（試行特有のため AsIs なし）。本画面 ToBe は 按分分 2.5h ＋ 仕様解析 4.0h ＝ <strong>6.5h</strong>。",
+        "<strong>実績コード量（2画面合計）</strong>: DB <strong>0 行</strong> / バックエンド <strong>378 行</strong> / ユニットテスト <strong>0 行</strong> / フロントエンド <strong>968 行</strong>。本画面ぶんは各 50%（API 189 行・FE 484 行）。工程区分はお知らせ登録(FE015)のフォーマットを流用。",
+        "<strong>AsIs（人力想定）は行数規模から推定</strong>: お知らせ登録の『行あたり工数』を実績LOCに適用（api-impl 8h/369行・fe-impl 33.5h/1694行）。フロント設計・UX は規模比で按分。バックエンド/フロントレビュー・動作確認は人の確認工数として AsIs / ToBe をそろえる。2画面合計 約34.5h → 本画面（50%）約17.25h。",
+        "<strong>ToBe（AI駆動）は実績</strong>: 2画面合計 AI 1.5h ＋ バックエンドレビュー 0.5h ＋ フロントレビュー 1.0h ＋ 動作確認 1.0h ＋ 機能調整 1.0h ＝ 5.0h。本画面（50%）は 2.5h。削減率 <strong>約85%</strong>。",
+        "想定バグ数は規模（本画面 約0.67 KLOC）から推定。",
+      ],
+    },
+    'wi-screen-DM04FE014': {
+      lede: "<strong>〇〇掲示板</strong>（FE014 / DM04 管理情報通知）の開発工数比較。デポ掲示板(FE013)と共通実装のため、<strong>2掲示板の実績合計を 50% ずつ按分</strong>した値。実績コード量(2画面合計)は DB <strong>0 行</strong>・バックエンド <strong>378 行</strong>・ユニットテスト <strong>0 行</strong>・フロントエンド <strong>968 行</strong>。<strong>AsIs は行数規模から推定</strong>（お知らせ登録(FE015) の行あたり工数を適用、本画面ぶん＝50%）、<strong>ToBe は実績</strong>（AI 0.75h ＋ バックエンドレビュー 0.25h ＋ フロントレビュー 0.5h ＋ 動作確認 0.5h ＋ 機能調整 0.5h ＝ 2.5h／いずれも合計の50%）。",
+      bugCategories: [
+        { key: "syntax", label: "構文/型エラー",                            color: "#ef4444", asis: 1, tobe: 0 },
+        { key: "logic",  label: "ロジックバグ (検索・並び順・掲示対象)",      color: "#f59e0b", asis: 3, tobe: 1 },
+        { key: "edge",   label: "エッジケース漏れ (空・期間境界・該当なし)",  color: "#8b5cf6", asis: 2, tobe: 1 },
+        { key: "spec",   label: "仕様解釈ミス (掲示対象・公開範囲の解釈)",    color: "#ec4899", asis: 1, tobe: 1 },
+        { key: "ui",     label: "UI 細部の不整合 (一覧列・フォーム配置)",     color: "#06b6d4", asis: 1, tobe: 1 },
+      ],
+      bugRateNote: "※ 〇〇掲示板 約 0.67 KLOC（2画面合計 約1.35 KLOC の50%）× 参考レート（人力 12/KLOC ≒ 8件 / AI 5/KLOC ≒ 3件）で推定。掲示板の一覧・登録構成で、論点は <strong>掲示対象・公開範囲の解釈</strong>。",
+      tasks: {
+        'data-design': { asis: 0,                tobe: 0,    tobeEng: 0,    agents: ["—"] },
+        'data-impl':   { asis: 0,    loc: 0,     tobe: 0,    tobeEng: 0,    agents: ["—"] },
+        'api-impl':    { asis: 4.1,  loc: 189,   tobe: 0.20, tobeEng: 0,    agents: ["バックエンドAI"] },
+        'api-test':    { asis: 0,    loc: 0,     tobe: 0,    tobeEng: 0,    agents: ["—"] },
+        'api-review':  { asis: 0.25,             tobe: 0.25, tobeEng: 0.25, agents: ["バックエンドレビュワーAI", "エンジニア"] },
+        'ux':          { asis: 1.5,              tobe: 0.05, tobeEng: 0,    agents: ["プランナーAI", "エンジニア"] },
+        'fe-design':   { asis: 0.85,             tobe: 0.05, tobeEng: 0,    agents: ["フロントエンドAI"] },
+        'fe-impl':     { asis: 9.55, loc: 484,   tobe: 0.45, tobeEng: 0,    agents: ["フロントエンドAI"] },
+        'fe-test':     {                                                    agents: ["—"] },
+        'fe-review':   { asis: 0.5,              tobe: 0.5,  tobeEng: 0.5,  agents: ["フロントエンドレビュワーAI", "エンジニア"] },
+        'verify':      { asis: 0.5,              tobe: 0.5,  tobeEng: 0.5,  agents: ["バックエンドテスターAI", "フロントエンドテスターAI", "エンジニア"] },
+        'func-adjust': {
+          label: "機能調整",
+          color: "#fbbf24",
+          asis: 0,
+          tobe: 0.5, tobeEng: 0.5,
+          agents: ["フロントエンドAI", "エンジニア"],
+        },
+      },
+      contextNotes: [
+        "対象画面: 〇〇掲示板（FE014 / DM04 管理情報通知）。デポ掲示板(FE013)と共通実装のため、2掲示板の実績合計を 50% ずつ按分した値で表示する。",
+        "<strong>実績コード量（2画面合計）</strong>: DB <strong>0 行</strong> / バックエンド <strong>378 行</strong> / ユニットテスト <strong>0 行</strong> / フロントエンド <strong>968 行</strong>。本画面ぶんは各 50%（API 189 行・FE 484 行）。工程区分はお知らせ登録(FE015)のフォーマットを流用。",
+        "<strong>AsIs（人力想定）は行数規模から推定</strong>: お知らせ登録の『行あたり工数』を実績LOCに適用（api-impl 8h/369行・fe-impl 33.5h/1694行）。フロント設計・UX は規模比で按分。バックエンド/フロントレビュー・動作確認は人の確認工数として AsIs / ToBe をそろえる。2画面合計 約34.5h → 本画面（50%）約17.25h。",
+        "<strong>ToBe（AI駆動）は実績</strong>: 2画面合計 AI 1.5h ＋ バックエンドレビュー 0.5h ＋ フロントレビュー 1.0h ＋ 動作確認 1.0h ＋ 機能調整 1.0h ＝ 5.0h。本画面（50%）は 2.5h。削減率 <strong>約85%</strong>。",
+        "想定バグ数は規模（本画面 約0.67 KLOC）から推定。",
+      ],
+    },
     // 顧客情報詳細 (FE002 / DM01) - 顧客・配送情報の表示 + 各種メモ編集 (荷主メモ/特記事項/作業メモ)。
     // 実績コード量: DB 105 / API 82 / ユニットテスト 71 / フロントエンド 1,157 行。
     // AsIs: お知らせ登録(FE015) の「行あたり工数」を実績LOCに適用 (data-impl 6h/166行・api-impl 8h/369行・api-test 3.5h/256行・fe-impl 33.5h/1694行)。
@@ -622,6 +707,21 @@
     if (override.bugRateNote)  s.bugRateNote = override.bugRateNote;
     s._template = false;
   });
+
+  // デポ掲示板 (FE013): 工数の先頭に [試行特有]仕様解析 (人間のToBe 4.0h) を追加。
+  // override は新規キーを末尾に積むため、ここで先頭に unshift する。これによりデポ掲示板は「試行あり」側になる。
+  (function addDepotBoardTrialSpec() {
+    const s = scenarios['wi-screen-DM04FE013'];
+    if (s && !s.tasks.some(t => t.key === 'trial-spec-analysis')) {
+      s.tasks.unshift({
+        key: 'trial-spec-analysis',
+        label: '[試行特有]仕様解析',
+        color: '#9333ea',
+        loc: null, asis: 0, tobe: 4.0, tobeEng: 4.0,
+        agents: ['エンジニア'],
+      });
+    }
+  })();
 
   // ====== BACKEND_TASKS (バックエンドのみ生成グループ) からタブを生成 ======
   // 入力画面が無く再実装が必要なテーブルの BE(スキーマ+Service)生成枠。
