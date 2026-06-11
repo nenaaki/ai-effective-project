@@ -342,6 +342,48 @@
   // workitems 由来テンプレートを実データで上書き。指定キーの工程だけ差分マージ、
   // 残工程は 0 のまま (= 未測定)。tasks.<key>.{asis, tobe, tobeEng, loc, agents} を任意指定。
   const SCENARIO_OVERRIDES = {
+    // トップメニュー (FE011 / DM04) - 既存コンポーネントの細微な変更と組み合わせで解決したため実装は軽量。
+    // 実績コード量: フロントエンド 1,108 行 (DB/API/テストなし)。
+    // AsIs: お知らせ登録(FE015) の行あたり工数を実績LOCに適用 (fe-impl 33.5h/1694行)。
+    //       fe-design は規模比で按分。UX は「組み合わせ設計を要した」ため通常按分(約2.45h)の約6倍 ≒ 14.7h に設定。合計 約40.6h。
+    // ToBe: AI 2.0h + フロントレビュー 1.0h(エンジニア) + 動作確認 1.0h(エンジニア) + レイアウト調整 2.0h(うちエンジニア1.0h) = 6.0h (実績)。
+    'wi-screen-DM04FE011': {
+      lede: "<strong>トップメニュー</strong>（FE011 / DM04 管理情報通知）の開発工数比較。<strong>既存コンポーネントの細微な変更と組み合わせ</strong>で解決したため実装は軽量（フロントエンド <strong>1,108 行</strong>、DB/API なし）。<strong>AsIs は行数規模から推定</strong>（お知らせ登録(FE015) の行あたり工数を適用）。ただし<strong>クレバーな組み合わせ設計を要したため UX 設計を通常の約6倍（通常 ≒2.45h → ≒14.7h）</strong>に設定。AsIs 合計 約40.6h。<strong>ToBe は実績</strong>（AI 2.0h ＋ フロントレビュー 1.0h ＋ 動作確認 1.0h ＋ レイアウト調整 2.0h ＝ 6.0h）。削減率 <strong>約85%</strong>。",
+      bugCategories: [
+        { key: "syntax", label: "構文/型エラー",                            color: "#ef4444", asis: 1, tobe: 0 },
+        { key: "logic",  label: "ロジックバグ (一覧集約・遷移・表示制御)",    color: "#f59e0b", asis: 4, tobe: 1 },
+        { key: "edge",   label: "エッジケース漏れ (空・件数0・権限差)",       color: "#8b5cf6", asis: 3, tobe: 1 },
+        { key: "spec",   label: "仕様解釈ミス (表示項目・遷移先の解釈)",      color: "#ec4899", asis: 2, tobe: 2 },
+        { key: "ui",     label: "UI 細部の不整合 (レイアウト・コンポーネント組合せ)", color: "#06b6d4", asis: 4, tobe: 1 },
+      ],
+      bugRateNote: "※ トップメニュー 約 1.1 KLOC × 参考レート（人力 12/KLOC ≒ 13件 / AI 5/KLOC ≒ 6件）で推定。既存コンポーネントの組み合わせで構成するため、論点は <strong>表示項目・遷移先の解釈とコンポーネント組合せ</strong>。",
+      tasks: {
+        'data-design': { asis: 0,                 tobe: 0, tobeEng: 0, agents: ["—"] },
+        'data-impl':   { asis: 0,    loc: 0,      tobe: 0, tobeEng: 0, agents: ["—"] },
+        'api-impl':    { asis: 0,    loc: 0,      tobe: 0, tobeEng: 0, agents: ["—"] },
+        'api-test':    { asis: 0,    loc: 0,      tobe: 0, tobeEng: 0, agents: ["—"] },
+        'api-review':  { asis: 0,                 tobe: 0, tobeEng: 0, agents: ["—"] },
+        'ux':          { asis: 14.7,              tobe: 0.45, tobeEng: 0,   agents: ["プランナーAI", "エンジニア"] },
+        'fe-design':   { asis: 2.0,               tobe: 0.15, tobeEng: 0,   agents: ["フロントエンドAI"] },
+        'fe-impl':     { asis: 21.9, loc: 1108,   tobe: 1.4,  tobeEng: 0,   agents: ["フロントエンドAI"] },
+        'fe-test':     {                                                    agents: ["—"] },
+        'fe-review':   { asis: 1.0,               tobe: 1.0,  tobeEng: 1.0, agents: ["フロントエンドレビュワーAI", "エンジニア"] },
+        'verify':      { asis: 1.0,               tobe: 1.0,  tobeEng: 1.0, agents: ["バックエンドテスターAI", "フロントエンドテスターAI", "エンジニア"] },
+        'layout-adjust': {
+          label: "レイアウト調整",
+          color: "#fbbf24",
+          asis: 0,
+          tobe: 2.0, tobeEng: 1.0,
+          agents: ["フロントエンドAI", "エンジニア"],
+        },
+      },
+      contextNotes: [
+        "対象画面: トップメニュー（FE011 / DM04 管理情報通知）。配送日変更リスト・お知らせ・未配車リスト・掲示板などのサマリーを集約表示。既存コンポーネントの細微な変更と組み合わせで解決したため実装は軽量。",
+        "<strong>実績コード量</strong>: フロントエンド <strong>1,108 行</strong>（DB 0・API 0・ユニットテスト 0）。工程区分はお知らせ登録(FE015)のフォーマットを流用。",
+        "<strong>AsIs（人力想定）は行数規模から推定</strong>: お知らせ登録の『行あたり工数』を実績LOCに適用（fe-impl 33.5h/1694行 → 21.9h）。フロント設計は規模比で按分（2.0h）。<strong>UX 設計は『既存コンポーネントの組み合わせ設計』を要したため通常按分（約2.45h）の約6倍 ≒ 14.7h</strong>に設定。フロントレビュー・動作確認は人の確認工数として AsIs / ToBe をそろえる（各1.0h）。合計 約40.6h。",
+        "<strong>ToBe（AI駆動）は実績 6.0h</strong>: AI 2.0h（UX 0.45 / FE設計 0.15 / FE実装 1.4）＋ フロントレビュー 1.0h（エンジニア）＋ 動作確認 1.0h（エンジニア）＋ レイアウト調整 2.0h（うちエンジニア 1.0h）。削減率 <strong>約85%</strong>。AI が削減できるのは実装・設計工程で、レビュー・動作確認・レイアウト調整の人間工数は AsIs と同水準。",
+      ],
+    },
     // デポ掲示板 (FE013) / 〇〇掲示板 (FE014) - 共通実装のため 2画面の実績合計を 50% ずつ按分。
     // 実績コード量(2画面合計): DB 0 / バックエンド 378 / ユニットテスト 0 / フロントエンド 968 行。
     // AsIs: お知らせ登録(FE015) の行あたり工数を実績LOCに適用 (api-impl 8h/369行・fe-impl 33.5h/1694行)。
