@@ -377,11 +377,11 @@
       ],
     },
     // トップページ (FE028 / DM11 ドライバー業務) - お問い合わせ番号検索 + 配送状況サマリー + 本日の配送先一覧。
-    // 実績コード量: フロントエンド 3,000 行 (DB/API/テストなし)。現時点(着手中)の値。
-    // AsIs: お知らせ登録(FE015) の行あたり工数を実績LOCに適用 (fe-impl 33.5h/1694行)。fe-design/UX は規模比で按分。合計 約72.2h。
-    // ToBe: AI 0.5h + フロントレビュー 0.7h(エンジニア) + 動作確認 0.3h(エンジニア) = 1.5h (実績)。
+    // 実績コード量: API 145 / フロントエンド 3,134 行 (DB/テストなし)。現時点(着手中)の値。
+    // AsIs: お知らせ登録(FE015) の行あたり工数を実績LOCに適用 (api-impl 8h/369行・fe-impl 33.5h/1694行)。fe-design/UX は規模比で按分。合計 約79.5h。
+    // ToBe: AI 1.5h + フロントレビュー 0.7h(エンジニア) + 動作確認 0.8h(エンジニア) = 3.0h (実績)。
     'wi-screen-DM11FE028': {
-      lede: "<strong>トップページ</strong>（FE028 / DM11 ドライバー業務）の開発工数比較。<strong>お問い合わせ番号検索＋配送状況サマリー＋本日の配送先一覧</strong>を表示するドライバー用トップ。実績コード量はフロントエンド <strong>3,000 行</strong>（DB/API なし・現時点/着手中）。<strong>AsIs は行数規模から推定</strong>（お知らせ登録(FE015) の行あたり工数を適用）。合計 約72.2h。<strong>ToBe は実績</strong>（AI 0.5h ＋ フロントレビュー 0.7h ＋ 動作確認 0.3h ＝ 1.5h）。削減率 <strong>約98%</strong>。",
+      lede: "<strong>トップページ</strong>（FE028 / DM11 ドライバー業務）の開発工数比較。<strong>お問い合わせ番号検索＋配送状況サマリー＋本日の配送先一覧</strong>を表示するドライバー用トップ。実績コード量は API <strong>145 行</strong>・フロントエンド <strong>3,134 行</strong>（DB/テストなし・現時点/着手中）。<strong>AsIs は行数規模から推定</strong>（お知らせ登録(FE015) の行あたり工数を適用）。合計 約79.5h。<strong>ToBe は実績</strong>（AI 1.5h ＋ フロントレビュー 0.7h ＋ 動作確認 0.8h ＝ 3.0h）。削減率 <strong>約96%</strong>。",
       bugCategories: [
         { key: "syntax", label: "構文/型エラー",                            color: "#ef4444", asis: 3,  tobe: 0 },
         { key: "logic",  label: "ロジックバグ (検索・サマリー集計・一覧)",    color: "#f59e0b", asis: 11, tobe: 4 },
@@ -393,21 +393,21 @@
       tasks: {
         'data-design': { asis: 0,                 tobe: 0,    tobeEng: 0,   agents: ["—"] },
         'data-impl':   { asis: 0,    loc: 0,      tobe: 0,    tobeEng: 0,   agents: ["—"] },
-        'api-impl':    { asis: 0,    loc: 0,      tobe: 0,    tobeEng: 0,   agents: ["—"] },
+        'api-impl':    { asis: 3.1,  loc: 145,    tobe: 0.5,  tobeEng: 0,   agents: ["バックエンドAI"] },
         'api-test':    { asis: 0,    loc: 0,      tobe: 0,    tobeEng: 0,   agents: ["—"] },
         'api-review':  { asis: 0,                 tobe: 0,    tobeEng: 0,   agents: ["—"] },
-        'ux':          { asis: 6.6,               tobe: 0.05, tobeEng: 0,   agents: ["プランナーAI", "エンジニア"] },
-        'fe-design':   { asis: 5.3,               tobe: 0.05, tobeEng: 0,   agents: ["フロントエンドAI"] },
-        'fe-impl':     { asis: 59.3, loc: 3000,   tobe: 0.4,  tobeEng: 0,   agents: ["フロントエンドAI"] },
+        'ux':          { asis: 7.3,               tobe: 0.05, tobeEng: 0,   agents: ["プランナーAI", "エンジニア"] },
+        'fe-design':   { asis: 5.6,               tobe: 0.05, tobeEng: 0,   agents: ["フロントエンドAI"] },
+        'fe-impl':     { asis: 62.0, loc: 3134,   tobe: 0.9,  tobeEng: 0,   agents: ["フロントエンドAI"] },
         'fe-test':     {                                                    agents: ["—"] },
         'fe-review':   { asis: 0.7,               tobe: 0.7,  tobeEng: 0.7, agents: ["フロントエンドレビュワーAI", "エンジニア"] },
-        'verify':      { asis: 0.3,               tobe: 0.3,  tobeEng: 0.3, agents: ["バックエンドテスターAI", "フロントエンドテスターAI", "エンジニア"] },
+        'verify':      { asis: 0.8,               tobe: 0.8,  tobeEng: 0.8, agents: ["バックエンドテスターAI", "フロントエンドテスターAI", "エンジニア"] },
       },
       contextNotes: [
         "対象画面: トップページ（FE028 / DM11 ドライバー業務）。お問い合わせ番号検索・配送状況サマリー・本日の配送先一覧を表示するドライバー用トップ。現時点（着手中）の実績で集計。",
-        "<strong>実績コード量</strong>: フロントエンド <strong>3,000 行</strong>（DB 0・API 0・ユニットテスト 0、現時点）。工程区分はお知らせ登録(FE015)のフォーマットを流用。",
-        "<strong>AsIs（人力想定）は行数規模から推定</strong>: お知らせ登録の『行あたり工数』を実績LOCに適用（fe-impl 33.5h/1694行 → 59.3h）。フロント設計（5.3h）・UX（6.6h）は規模比で按分。フロントレビュー（0.7h）・動作確認（0.3h）は人の確認工数として AsIs / ToBe をそろえる。合計 約72.2h。",
-        "<strong>ToBe（AI駆動）は実績 1.5h</strong>: AI 0.5h（UX 0.05 / FE設計 0.05 / FE実装 0.4）＋ フロントレビュー 0.7h（エンジニア）＋ 動作確認 0.3h（エンジニア）。削減率 <strong>約98%</strong>。AI が削減できるのは実装・設計工程で、レビュー・動作確認の人間工数は AsIs と同水準。",
+        "<strong>実績コード量</strong>: API <strong>145 行</strong> / フロントエンド <strong>3,134 行</strong>（DB 0・ユニットテスト 0、現時点）。工程区分はお知らせ登録(FE015)のフォーマットを流用。",
+        "<strong>AsIs（人力想定）は行数規模から推定</strong>: お知らせ登録の『行あたり工数』を実績LOCに適用（api-impl 8h/369行 → 3.1h・fe-impl 33.5h/1694行 → 62.0h）。フロント設計（5.6h）・UX（7.3h）は規模比で按分。フロントレビュー（0.7h）・動作確認（0.8h）は人の確認工数として AsIs / ToBe をそろえる。合計 約79.5h。",
+        "<strong>ToBe（AI駆動）は実績 3.0h</strong>: AI 1.5h（API実装 0.5 / UX 0.05 / FE設計 0.05 / FE実装 0.9）＋ フロントレビュー 0.7h（エンジニア）＋ 動作確認 0.8h（エンジニア）。削減率 <strong>約96%</strong>。AI が削減できるのは実装・設計工程で、レビュー・動作確認の人間工数は AsIs と同水準。",
       ],
     },
     // トップメニュー (FE011 / DM04) - 既存コンポーネントの細微な変更と組み合わせで解決したため実装は軽量。
