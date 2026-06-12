@@ -820,6 +820,70 @@
         "<strong>AsIs は実績コード量(概算)から推定</strong>: フロント 約1,261行 → 24.7h(商品マスタ 16h/810行)。バックエンドは新規実装なし(0h)。UX/設計/レビュー/動作確認は人間工数として AsIs=ToBe。合計 約32h → ToBe 3.9h(削減 約88%)。LOC は概算。",
       ],
     },
+    // ステータスチェック (FE006 / PW-150 / DM03 配送管理) — スキャン照合・閲覧中心。ToBe は実測 (time-log.jsonl): 1.5h。
+    // 新規API・スキーマ変更なし (searchDeliveryHistory + 既存詳細ドロワー流用)。git worktree による並行開発 (PW-151 と同時)。
+    'wi-screen-DM03FE006': {
+      lede: "AIDD 試行「ステータスチェック」(FE006 / PW-150) の開発工数比較。<strong>お問い合わせ番号のスキャン照合で配送を一覧に蓄積し、12列＋クライアント集計（件数/代引き額合計）を目視チェック</strong>する画面。<strong>新規API・スキーマ変更なし</strong>（searchDeliveryHistory＋既存詳細ドロワー流用）。<strong>git worktree による並行開発</strong>（幹線スケジュールと同時進行）。<strong>ToBe は実測</strong>(time-log): 計 <strong>1.5h</strong>（実装1.1h＋人間テスト支援0.2h＋PR統合0.2h）。AsIs は実績コード量(概算)から推定。",
+      bugCategories: [
+        { key: "syntax", label: "構文/型エラー",                                       color: "#ef4444", asis: 2, tobe: 0 },
+        { key: "logic",  label: "ロジックバグ (スキャン蓄積・重複検知・集計)",              color: "#f59e0b", asis: 3, tobe: 0 },
+        { key: "edge",   label: "エッジケース漏れ (部分一致ヒット / 未ヒット / 連続スキャン)", color: "#8b5cf6", asis: 2, tobe: 1 },
+        { key: "spec",   label: "仕様解釈ミス (ステータス語彙12vs10・エリア名・完了日時)",     color: "#ec4899", asis: 2, tobe: 4 },
+        { key: "ui",     label: "UI 細部の不整合 (確認ダイアログのz-index・自動スクロール)",   color: "#06b6d4", asis: 3, tobe: 1 },
+      ],
+      bugRateNote: "※ ステータスチェック 約 0.55 KLOC(フロントのみ)。API は部分一致のため <strong>FE側の完全一致 post フィルタ</strong>が必須（検証で確認）。仕様解釈系（ステータス語彙12種vs10コード・エリア名取得経路・完了日時の表示規則・スキャン時のデポ/荷主スコープ）は questions/PW-150.tsv に記録し暫定実装で継続。テスターが共有 ConfirmModal の z-index 不足（ドロワー基盤1200未満で確認ダイアログが隠れる）を検出→ z-[1300] へ修正し再検証合格（既存画面にも効く修正）。",
+      tasks: {
+        'data-design': { asis: 0,              tobe: 0,                  agents: ["—"] },
+        'data-impl':   { asis: 0,   loc: 0,    tobe: 0,                  agents: ["—"] },
+        'api-impl':    { asis: 0,   loc: 0,    tobe: 0,                  agents: ["—"] },
+        'api-test':    { asis: 0,   loc: 0,    tobe: 0,                  agents: ["—"] },
+        'ux':          { asis: 2,              tobe: 0.1, tobeEng: 0.1,  agents: ["プランナーAI", "エンジニア"] },
+        'fe-design':   { asis: 0.5,            tobe: 0,                  agents: ["プランナーAI"] },
+        'fe-impl':     { asis: 10.6, loc: 540, tobe: 0.8, tobeEng: 0,    agents: ["フロントエンドAI"] },
+        'fe-test':     {                                                 agents: ["—"] },
+        'fe-review':   { asis: 0.3,            tobe: 0.2, tobeEng: 0.1,  agents: ["フロントエンドレビュワーAI", "エンジニア"] },
+        'verify':      { asis: 1.5,            tobe: 0.4, tobeEng: 0.3,  agents: ["フロントエンドテスターAI", "エンジニア"] },
+      },
+      contextNotes: [
+        "対象画面: ステータスチェック (FE006 / PW-150 / DM03 配送管理・mock=completion-check)。スキャンバー＋一覧12列＋クライアント集計＋既存 DeliveryHistoryDetailContent 流用の詳細ドロワー。<strong>新規API・スキーマ変更なし</strong>（detect-api-gaps でギャップ0を確認）。",
+        "<strong>ToBe は実測</strong> (time-log.jsonl・2026-06-11〜06-12): 実装 <strong>1.1h</strong>（planner 一気通貫: validate-brief→spec→実装→自己レビュー→screen-check）＋ 人間テスト支援・修正 0.2h ＋ PR統合(コンフリクト解消按分) 0.2h ＝ <strong>計 1.5h</strong>。",
+        "<strong>git worktree による並行開発</strong>: 幹線スケジュール(PW-151)と同時進行（壁時計重複あり）。ポート分離（FE:4001 / API:3000共用）で独立検証。",
+        "<strong>手戻り</strong>: テスターが ConfirmModal の z-index 不足（ドロワー表示中に削除確認が隠れる）を Major 検出 → z-[1300] へ修正・再検証合格。スキャン完全一致は API が部分一致のため FE post フィルタで実装（INV0000005 が INV00000050 にヒットしないことを実データ検証）。",
+        "<strong>AsIs は実績コード量(概算)から推定</strong>: フロント 約540行 → 10.6h（商品マスタ 16h/810行）。バックエンド新規なし(0h)。合計 約15h → ToBe 1.5h（<strong>削減 約90%</strong>）。LOC は概算。",
+      ],
+    },
+    // 幹線スケジュール (FE055 / PW-151 / DM14 帳票・ファイル入出力) — 照会スコープ。ToBe は実測: 2.0h。
+    // BE filter拡張(月範囲/複数デポ)＋seed追加＋FEマトリクス。git worktree による並行開発 (PW-150 と同時)。
+    'wi-screen-DM14FE055': {
+      lede: "AIDD 試行「幹線スケジュール」(FE055 / PW-151) の開発工数比較。<strong>対象年月×デポ（複数）でマトリクス照会</strong>（出荷元×項目19行×日別・曜日2段・本日強調・行合計）する<strong>照会スコープ</strong>の画面。backend は既存 trunkLines の <strong>filter 拡張のみ</strong>（月範囲・複数デポ・非破壊）・スキーマ変更なし。<strong>git worktree による並行開発</strong>（ステータスチェックと同時進行）。<strong>ToBe は実測</strong>(time-log): 計 <strong>2.0h</strong>（実装0.8h＋人間テスト・不具合2件修正1.0h＋PR統合0.2h）。AsIs は実績コード量(概算)から推定。",
+      bugCategories: [
+        { key: "syntax", label: "構文/型エラー",                                        color: "#ef4444", asis: 3, tobe: 0 },
+        { key: "logic",  label: "ロジックバグ (日付範囲パース・行合計・月日数生成)",          color: "#f59e0b", asis: 4, tobe: 1 },
+        { key: "edge",   label: "エッジケース漏れ (データ無し月 / 月末日数 / 必須未入力)",     color: "#8b5cf6", asis: 3, tobe: 1 },
+        { key: "spec",   label: "仕様解釈ミス (都道府県・前月残・quantity_div・水源/出荷元)",   color: "#ec4899", asis: 3, tobe: 4 },
+        { key: "ui",     label: "UI 細部の不整合 (月選択カレンダー・本日列強調・3列グリッド)",  color: "#06b6d4", asis: 4, tobe: 2 },
+      ],
+      bugRateNote: "※ 幹線スケジュール 約 1.16 KLOC(BE 約280行＋FE 約880行)。人間テストで実不具合2件を検出→即修正: ①<strong>YYYYMMDD の未パース</strong>（new Date('20260601')=Invalid Date。単体テストがISO形式で書かれており取りこぼし→YYYYMMDDケースを追加） ②<strong>対象年月が日選択カレンダーになる</strong>（共有 DatePicker が showMonthYearPicker を透過せず＋月選択用CSSが tailwind.css に丸ごと欠落→mock から移植し3列×4行グリッドで mock 同等を実機検証）。取得元未確定の列（都道府県・前月残）は「-」仮表示＋questions/PW-151.tsv 記録で縮退なし。",
+      tasks: {
+        'data-design': { asis: 0,              tobe: 0,                  agents: ["—"] },
+        'data-impl':   { asis: 0,   loc: 0,    tobe: 0,                  agents: ["—"] },
+        'api-impl':    { asis: 3,   loc: 280,  tobe: 0.2, tobeEng: 0,    agents: ["バックエンドAI"] },
+        'api-test':    { asis: 0.5, loc: 0,    tobe: 0,                  agents: ["バックエンドAI"] },
+        'ux':          { asis: 3,              tobe: 0.1, tobeEng: 0.1,  agents: ["プランナーAI", "エンジニア"] },
+        'fe-design':   { asis: 0.5,            tobe: 0,                  agents: ["プランナーAI"] },
+        'fe-impl':     { asis: 17.4, loc: 880, tobe: 0.5, tobeEng: 0,    agents: ["フロントエンドAI"] },
+        'fe-test':     {                                                 agents: ["—"] },
+        'fe-review':   { asis: 0.3,            tobe: 0.2, tobeEng: 0.1,  agents: ["フロントエンドレビュワーAI", "エンジニア"] },
+        'verify':      { asis: 2,              tobe: 1.0, tobeEng: 0.8,  agents: ["フロントエンドテスターAI", "エンジニア"] },
+      },
+      contextNotes: [
+        "対象画面: 幹線スケジュール (FE055 / PW-151 / DM14 帳票・ファイル入出力・正本の画面定義は FE025 表記)。対象年月（月選択カレンダー・必須）×デポ複数選択 → 出荷元×項目19行×日別のマトリクス。インポート/エクスポート/入力は mock 自体がスタブのため同等の通知スタブ。",
+        "<strong>backend は非破壊の filter 拡張のみ</strong>: TTrunkLineFilterInput に targetDateFrom/To・depotIds を nullable 追加（既存の単一指定の挙動不変・単体テスト26件）。seed に幹線デモデータ（3デポ×当月/前月・3,477行）と Slim系商品3種を追加。",
+        "<strong>ToBe は実測</strong> (time-log.jsonl・2026-06-11〜06-12): 実装 <strong>0.8h</strong>（planner 一気通貫。validate-brief 規則2-5 で一旦停止→brief の言い回し修正・承認行追記で再開）＋ 人間テスト支援・不具合2件修正 1.0h ＋ PR統合(コンフリクト解消按分) 0.2h ＝ <strong>計 2.0h</strong>。",
+        "<strong>手戻り（人間テストで検出・即日修正）</strong>: ①YYYYMMDD 未パース（Invalid Date）→ ISO 変換パース＋単体テスト追加 ②月選択カレンダー不全（共有 DatePicker の showMonthYearPicker 非透過＋月選択CSSの欠落）→ 透過対応＋mock の CSS 移植・実機で 3列×4行グリッドを mock と比較検証。seed 投入はフックにより人間実行（投入前はデータ無し検証で代替）。",
+        "<strong>AsIs は実績コード量(概算)から推定</strong>: バックエンド 約280行 → 3h＋テスト0.5h、フロント 約880行 → 17.4h（商品マスタ 16h/810行）。合計 約26.7h → ToBe 2.0h（<strong>削減 約93%</strong>）。LOC は概算。",
+      ],
+    },
   };
   Object.entries(SCENARIO_OVERRIDES).forEach(([key, override]) => {
     const s = scenarios[key];
