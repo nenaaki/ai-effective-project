@@ -116,6 +116,9 @@
     border-bottom: 1px solid var(--border);
   }
   .tab.is-empty:not(.active) { color: #b6bcc6; }
+  /* 工数0で完了（対応不要）のタスク: 打ち消し線 + 黒文字 */
+  .tab.struck { text-decoration: line-through; }
+  .tab.struck:not(.active) { color: #1f2937; text-decoration-color: #1f2937; }
   .tab-dot {
     display: inline-block;
     width: 6px;
@@ -563,12 +566,15 @@
   }
   const SUBTOTAL_KEYS = ["total-trial", "total-nontrial"];
   const TOP_KEYS = ["total", ...SUBTOTAL_KEYS];
+  // 工数0で完了（対応不要・実質完了）のタスク。サイドバーのタブを打ち消し線で表示する。
+  const STRIKE_TABS = new Set(["訪問不在登録", "配車戻し登録", "その他未完了登録"]);
   function tabButtonHTML(k) {
     const cls = ["tab"];
     if (k === currentKey) cls.push("active");
     if (k === "total")    cls.push("highlight");
     if (SUBTOTAL_KEYS.includes(k)) cls.push("subtotal");
     if (k === SUBTOTAL_KEYS[SUBTOTAL_KEYS.length - 1]) cls.push("subtotal-last");
+    if (scenarios[k] && STRIKE_TABS.has(scenarios[k].tabLabel)) cls.push("struck");
     const hasData = scenarioHasData(scenarios[k]);
     if (!hasData) cls.push("is-empty");
     const dot   = hasData ? '<span class="tab-dot" title="値が記入済み"></span>' : "";
