@@ -249,11 +249,7 @@
         <p>業務ロジックが厚い／視覚的な作り込みが必要／外部連携。業務固有の専門領域は人の判断比率が高い。</p>
       </div>
     </div>
-    <div class="note-strong" style="margin-top:18px; font-size:14px;">
-      <strong>現在地：</strong>6/22「画面実装完了」マイルストーンに向けて進行中（理想線にほぼ沿うペース）。
-      <a href="../chart/workitems.html" style="color:#2563eb; font-weight:700; text-decoration:none;">→ プロジェクト管理（進捗・WBS）</a>
-    </div>
-    <div class="footer"><span class="brand">PW案件 / AIDD</span><span>適用範囲の考え方・現在地</span></div>
+    <div class="footer"><span class="brand">PW案件 / AIDD</span><span>適用範囲の考え方</span></div>
   </section>
 
   <!-- 4. 効果の測り方 -->
@@ -279,9 +275,6 @@
       ポイントは <strong>工程ごとに分けて測る</strong> こと。どの工程が縮み、どこが縮まないかが見えるため、
       自チームへ適用する際の<strong>現実的な見積り</strong>に使えます。
     </div>
-    <div style="margin-top:16px; font-size:14px;">
-      <a href="../chart/aidd_report.html" style="color:#2563eb; font-weight:700; text-decoration:none;">→ 実例：AI駆動開発 実施レポート（画面別の As-Is/To-Be・工程内訳）</a>
-    </div>
     <div class="footer"><span class="brand">PW案件 / AIDD</span><span>計測の枠組み</span></div>
   </section>
 
@@ -305,10 +298,7 @@
       <strong>「実装・設計・テスト生成」</strong>工程（90%以上）。一方で
       <strong>レビューと動作確認の人間工数は通常開発と変わりません</strong>（AIが書いたコードを人が同じ時間かけて確認するため）。
     </div>
-    <div style="margin-top:16px; font-size:14px;">
-      <a href="../chart/aidd_report.html" style="color:#2563eb; font-weight:700; text-decoration:none;">→ 出典：AI駆動開発 実施レポート（画面別の工程内訳・想定バグ数）</a>
-    </div>
-    <div class="footer"><span class="brand">PW案件 / AIDD</span><span><a href="../chart/aidd_report.html" style="color:#94a3b8; text-decoration:none;">出典：As-Is/To-Be 工数比較レポート（暫定・調整予定）</a></span></div>
+    <div class="footer"><span class="brand">PW案件 / AIDD</span><span>出典：AI駆動開発 実施レポート（暫定・調整予定）※詳細は画面共有で</span></div>
   </section>
 
   <!-- 6. 残る課題 -->
@@ -320,8 +310,8 @@
       <!-- 行1: 課題（① / ①'） -->
       <div class="card amber">
         <div class="lbl-amber">課題：要件・不明点まわり</div>
-        <a class="q-link" href="../chart/problem_ex_1.html"><b>① 要件不明確時のフロー</b> — 業務判断が不明なとき、止める／確認する導線が未整備だった。<span class="src">→ 課題事例① problem_ex_1</span></a>
-        <a class="q-link" href="../chart/problem_ex_3.html"><b>①' 不明点の切り分け</b> — 不明点が「顧客確認／対象外／資料で定義」と混在し、整理に時間。<span class="src">→ 課題事例①' problem_ex_3</span></a>
+        <div class="q-link"><b>① 要件不明確時のフロー</b> — 業務判断が不明なとき、止める／確認する導線が未整備だった。</div>
+        <div class="q-link"><b>①' 不明点の切り分け</b> — 不明点が「顧客確認／対象外／資料で定義」と混在し、整理に時間。</div>
       </div>
       <!-- 行1: 対応 -->
       <div class="card green">
@@ -333,18 +323,17 @@
         </div>
       </div>
       <!-- 行2: 課題（②） -->
-      <a class="card amber" href="../chart/problem_ex_2.html" style="text-decoration:none;">
+      <div class="card amber">
         <div class="lbl-amber">課題：画面のつくり</div>
         <p class="q-text"><b style="color:#7c2d12;">② モックと実装の視覚差分</b> — レイアウトが乖離。画像での視覚比較が弱く検出に時間。</p>
-        <span class="src">→ 課題事例② problem_ex_2</span>
-      </a>
+      </div>
       <!-- 行2: 対応 -->
       <div class="card green">
         <div class="lbl-green">対応（運用）</div>
         <div class="resp-text">レビュー・動作確認の中で乖離を見つけ出し、AIの補助を受けながら人間が手動で修正する。</div>
       </div>
     </div>
-    <div class="footer"><span class="brand">PW案件 / AIDD</span><span>課題事例 problem_ex_1〜3</span></div>
+    <div class="footer"><span class="brand">PW案件 / AIDD</span><span>課題と運用での対応</span></div>
   </section>
 
   <!-- 7. お願い + 参照リンク -->
@@ -354,20 +343,10 @@
     <div class="title-rule"></div>
     <div class="callout" style="margin-top:0;">
       <span class="lbl">念押し：</span>本資料は<strong>開発の途中段階で、不完全な情報</strong>です。数値も暫定で今後調整が入ります。
-      他チームや顧客へ展開される場合は<strong>この前提を必ず添えていただき</strong>、使い方の判断（上司への相談含む）は受け取り側でお願いします。
+      他チームへ展開される場合は<strong>この前提を必ず添えていただき</strong>、使い方の判断（上司への相談含む）は受け取り側でお願いします。
     </div>
-    <div style="font-size:13px; font-weight:700; color:#64748b; margin:18px 0 8px; letter-spacing:0.04em;">▼ 詳細を見たいときの参照リンク（社内 chart）</div>
+    <div style="font-size:13px; font-weight:700; color:#64748b; margin:18px 0 8px; letter-spacing:0.04em;">▼ 進め方の詳細（参考スライド）</div>
     <div class="links">
-      <a class="link-card" href="../chart/aidd_report.html">
-        <div class="t">AI駆動開発 実施レポート（As-Is/To-Be）</div>
-        <div class="d">画面別の工数比較・工程内訳・想定バグ数。本資料の数値の出典。</div>
-        <span class="p">../chart/aidd_report.html</span>
-      </a>
-      <a class="link-card amber" href="../chart/problem_ex_1.html">
-        <div class="t">課題事例①〜③</div>
-        <div class="d">要件不明確時フロー／モック乖離／不明点の切り分け。</div>
-        <span class="p">../chart/problem_ex_1.html</span>
-      </a>
       <a class="link-card" href="../ai-04/ai_dd_process.html">
         <div class="t">AI駆動開発プロセス（全体フロー）</div>
         <div class="d">spec生成からエージェント実行までの進め方の全体像。</div>
@@ -379,7 +358,7 @@
         <span class="p">../ai-06/vmodel.html</span>
       </a>
     </div>
-    <div class="footer"><span class="brand">PW案件 / AIDD</span><span>chart/index.html に資料一覧</span></div>
+    <div class="footer"><span class="brand">PW案件 / AIDD</span><span>情報の取り扱い</span></div>
   </section>
 
   <!-- 8. 想定問答 -->
