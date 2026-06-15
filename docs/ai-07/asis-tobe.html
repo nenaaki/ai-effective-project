@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>As-Is → To-Be ｜ AI駆動開発の効果（ホワイトボックス）</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg: #11131a;
+    --paper: #fafaf7;
+    --ink: #1a1a1a;
+    --sub: #555;
+    --line: #d8dbe2;
+    /* 意味で固定した配色 */
+    --primary: #2f6fb0;     /* 青 = 主要 */
+    --primary-d: #1f4e80;
+    --issue: #d69a3a;       /* アンバー = 課題 */
+    --issue-d: #a05f1d;
+    --human: #d63a3a;       /* 赤 = 人・問題 */
+    --conclude: #2c8a5e;    /* 緑 = 結論・決定 */
+    --conclude-d: #1e6042;
+    --manage: #4d479e;      /* 藍 = 管理 */
+    --normal: #6b7280;      /* グレー = 通常業務 */
+  }
+  html, body { height: 100%; background: var(--bg); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Yu Gothic UI", sans-serif; color: var(--ink); overflow: hidden; }
+
+  /* ===== 16:9 ステージ（PowerPoint 1ページ＝1スライドに対応） ===== */
+  #viewport { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+  #stage { width: 1280px; height: 720px; transform-origin: center center; position: relative; }
+
+  .slide {
+    position: absolute; inset: 0;
+    background: var(--paper);
+    border-radius: 18px;
+    overflow: hidden;
+    display: none;
+    box-shadow: 0 30px 80px rgba(0,0,0,.5);
+  }
+  .slide.active { display: block; }
+  .pad { position: absolute; inset: 0; padding: 44px 56px 56px; display: flex; flex-direction: column; }
+
+  /* 共通：見出し */
+  .eyebrow { font-size: 13px; font-weight: 700; letter-spacing: .14em; color: var(--primary); margin-bottom: 8px; }
+  .slide h1 { font-size: 30px; font-weight: 800; line-height: 1.25; letter-spacing: .01em; }
+  .slide h2 { font-size: 26px; font-weight: 800; line-height: 1.25; }
+  .slide h2 .accent { color: var(--primary); }
+  .head-rule { height: 4px; width: 64px; background: var(--primary); border-radius: 2px; margin: 14px 0 22px; }
+  .lead { font-size: 15px; color: var(--sub); line-height: 1.75; }
+
+  /* 進行表示 */
+  .slide-no { position: absolute; right: 22px; bottom: 16px; font-size: 12px; color: #9aa0ab; font-weight: 600; }
+  .kicker { position: absolute; left: 56px; bottom: 16px; font-size: 12px; color: #9aa0ab; font-weight: 600; letter-spacing: .04em; }
+
+  /* チップ */
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { font-size: 12px; font-weight: 700; padding: 5px 11px; border-radius: 999px; background: #eef1f5; color: #475266; border: 1px solid #dfe4ea; }
+  .chip.blue   { background: #e8f0f9; color: var(--primary-d); border-color: #c4dbf0; }
+  .chip.green  { background: #e6f4ec; color: var(--conclude-d); border-color: #bfe3cd; }
+  .chip.amber  { background: #fbf0db; color: var(--issue-d); border-color: #f0d9a8; }
+  .chip.red    { background: #fdecec; color: #a32424; border-color: #f3c3c3; }
+  .chip.indigo { background: #ecebf7; color: var(--manage); border-color: #cfccec; }
+
+  /* ===== タイトルスライド ===== */
+  .title-slide .pad { justify-content: center; }
+  .title-arrow { font-size: 92px; font-weight: 800; line-height: 1; letter-spacing: -.02em; margin: 6px 0 18px; }
+  .title-arrow .asis { color: var(--normal); }
+  .title-arrow .arr  { color: var(--primary); margin: 0 18px; }
+  .title-arrow .tobe { color: var(--conclude); }
+  .title-sub { font-size: 18px; color: #333; line-height: 1.8; max-width: 860px; }
+  .title-meta { margin-top: 30px; display: flex; gap: 10px; flex-wrap: wrap; }
+  .brand-dot { display:inline-block; width:10px; height:10px; border-radius:50%; background: var(--primary); margin-right:8px; }
+
+  /* ===== サマリスライド ===== */
+  .big-metric { display: flex; align-items: flex-end; gap: 18px; margin: 4px 0 6px; }
+  .bm-num { font-size: 62px; font-weight: 800; line-height: 1; color: var(--conclude); letter-spacing: -.01em; }
+  .bm-from { font-size: 26px; font-weight: 700; color: var(--normal); }
+  .bm-arrow { font-size: 30px; font-weight: 800; color: var(--primary); }
+  .bm-cap { font-size: 14px; color: var(--sub); font-weight: 600; padding-bottom: 6px; }
+
+  .screen-bars { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-top: 6px; }
+  .sb { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+  .sb-name { font-size: 13px; font-weight: 700; color: #333; margin-bottom: 9px; }
+  .sb-track { position: relative; height: 12px; background: #eceef2; border-radius: 6px; overflow: hidden; }
+  .sb-fill { position: absolute; left:0; top:0; bottom:0; background: linear-gradient(90deg,#3a82c4,#2c8a5e); border-radius: 6px; }
+  .sb-vals { display: flex; justify-content: space-between; font-size: 12px; margin-top: 7px; color: #444; }
+  .sb-vals b { color: var(--conclude-d); }
+  .sb-cut { font-size: 12px; font-weight: 800; color: var(--conclude); }
+
+  .typo3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-top: 16px; }
+  .ty { border-radius: 12px; padding: 14px 16px; border: 1.5px solid; background: #fff; }
+  .ty.gone   { border-color: var(--conclude); }
+  .ty.shrink { border-color: var(--primary); }
+  .ty.stay   { border-color: var(--human); }
+  .ty-tag { display:inline-block; font-size: 11px; font-weight: 800; letter-spacing: .04em; padding: 2px 9px; border-radius: 999px; color:#fff; margin-bottom: 8px; }
+  .ty.gone   .ty-tag { background: var(--conclude); }
+  .ty.shrink .ty-tag { background: var(--primary); }
+  .ty.stay   .ty-tag { background: var(--human); }
+  .ty-t { font-size: 14px; font-weight: 800; margin-bottom: 4px; }
+  .ty-d { font-size: 12.5px; color: var(--sub); line-height: 1.6; }
+
+  .takeaway { margin-top: 16px; background: #eef7f1; border: 1px solid #bfe3cd; border-left: 5px solid var(--conclude); border-radius: 10px; padding: 12px 16px; font-size: 14.5px; color: var(--conclude-d); font-weight: 700; line-height: 1.6; }
+  .takeaway b { color: #0f4e34; }
+
+  /* ===== 工程マップ（対比バー） ===== */
+  .map-wrap { flex: 1; display: flex; flex-direction: column; gap: 7px; margin-top: 2px; overflow: hidden; }
+  .maprow { display: grid; grid-template-columns: 168px 1fr 96px; align-items: center; gap: 12px; }
+  .maprow .pname { font-size: 12.5px; font-weight: 700; color: #333; text-align: right; line-height: 1.25; }
+  .barzone { position: relative; height: 22px; background: #f0f2f5; border-radius: 5px; }
+  .bar-asis { position: absolute; left:0; top:0; bottom:0; border-radius: 5px; opacity: .28; }
+  .bar-tobe { position: absolute; left:0; top:0; bottom:0; border-radius: 5px; }
+  .bar-asis.gone, .bar-tobe.gone { background: var(--conclude); }
+  .bar-asis.shrink, .bar-tobe.shrink { background: var(--primary); }
+  .bar-asis.stay, .bar-tobe.stay { background: var(--human); }
+  .mapval { font-size: 12px; font-weight: 700; color: #444; text-align: left; white-space: nowrap; }
+  .mapval .a { color: var(--normal); }
+  .mapval .t { color: var(--conclude-d); }
+  .map-legend { display: flex; gap: 20px; justify-content: center; margin-top: 10px; font-size: 12px; color: #555; }
+  .ml { display: flex; align-items: center; gap: 7px; }
+  .ml .sw { width: 26px; height: 12px; border-radius: 3px; position: relative; }
+  .ml .sw .o { position:absolute; inset:0; border-radius:3px; opacity:.28; }
+  .ml.gone .sw .f, .ml.gone .sw .o { background: var(--conclude); }
+  .ml.shrink .sw .f, .ml.shrink .sw .o { background: var(--primary); }
+  .ml.stay .sw .f, .ml.stay .sw .o { background: var(--human); }
+  .ml .sw .f { position:absolute; left:0; top:0; bottom:0; width:42%; border-radius:3px; }
+
+  /* ===== カテゴリ比較スライド ===== */
+  .cat-grid { flex: 1; display: grid; grid-template-columns: 1fr 60px 1fr; gap: 0; align-items: stretch; margin-top: 4px; min-height: 0; }
+  .col { border-radius: 14px; padding: 16px 18px; display: flex; flex-direction: column; min-height: 0; }
+  .col.asis { background: #f3f4f6; border: 1.5px solid #d3d7de; }
+  .col.tobe { background: #eef6f1; border: 1.5px solid #bfe3cd; }
+  .col-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px dashed rgba(0,0,0,.14); }
+  .col-name { font-size: 14px; font-weight: 800; letter-spacing: .03em; }
+  .col.asis .col-name { color: #4b5563; }
+  .col.tobe .col-name { color: var(--conclude-d); }
+  .col-h { font-size: 22px; font-weight: 800; }
+  .col.asis .col-h { color: var(--normal); }
+  .col.tobe .col-h { color: var(--conclude); }
+
+  .step { display: flex; gap: 10px; align-items: flex-start; padding: 7px 0; }
+  .step + .step { border-top: 1px solid rgba(0,0,0,.06); }
+  .step .si { flex-shrink: 0; width: 22px; height: 22px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; color: #fff; }
+  .col.asis .si { background: var(--normal); }
+  .col.tobe .si { background: var(--conclude); }
+  .col.tobe .si.human { background: var(--human); }
+  .step .st { font-size: 13px; line-height: 1.45; }
+  .step .st b { font-weight: 800; }
+  .step .st .who { display:inline-block; font-size: 11px; font-weight: 700; padding: 0 6px; border-radius: 4px; margin-left: 2px; }
+  .who.ai { background: #e8f0f9; color: var(--primary-d); border: 1px solid #c4dbf0; }
+  .who.hu { background: #fdecec; color: #a32424; border: 1px solid #f3c3c3; }
+  .step.muted .st { color: #98a0ac; text-decoration: line-through; text-decoration-color: #c7ccd4; }
+
+  .vs-mid { display: flex; align-items: center; justify-content: center; }
+  .vs-mid .arrow { width: 46px; height: 46px; border-radius: 50%; background: var(--primary); color: #fff; display:flex; align-items:center; justify-content:center; font-size: 22px; font-weight: 800; box-shadow: 0 6px 16px rgba(47,111,176,.4); }
+
+  .cut-band { margin-top: 14px; display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: center; background: #eef7f1; border: 1px solid #bfe3cd; border-left: 5px solid var(--conclude); border-radius: 12px; padding: 13px 18px; }
+  .cut-label { font-size: 11px; font-weight: 800; letter-spacing: .06em; color: var(--conclude); margin-bottom: 4px; }
+  .cut-text { font-size: 14px; color: #143a29; line-height: 1.55; font-weight: 600; }
+  .cut-text b { color: #0f4e34; font-weight: 800; }
+  .cut-metric { text-align: right; white-space: nowrap; }
+  .cut-metric .cm { font-size: 26px; font-weight: 800; color: var(--conclude); line-height: 1; }
+  .cut-metric .cm .from { font-size: 18px; color: var(--normal); }
+  .cut-metric .cm .ar { color: var(--primary); }
+  .cut-metric .pct { font-size: 12px; font-weight: 700; color: var(--conclude-d); margin-top: 4px; }
+
+  .note-amber { margin-top: 10px; font-size: 12px; color: var(--issue-d); background: #fbf4e6; border: 1px solid #f0d9a8; border-radius: 8px; padding: 7px 12px; line-height: 1.5; }
+  .note-amber b { color: #7a4a0a; }
+
+  /* ===== 検証・人の領域スライド ===== */
+  .keep-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 6px; }
+  .keep-card { background:#fff; border:1.5px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+  .keep-card.human { border-color: #f3c3c3; }
+  .kc-head { display:flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+  .kc-name { font-size: 14px; font-weight: 800; color: #333; }
+  .kc-h { font-size: 14px; font-weight: 800; }
+  .kc-h .a { color: var(--normal); } .kc-h .ar { color: var(--primary); } .kc-h .t { color: var(--human); }
+  .kc-d { font-size: 12.5px; color: var(--sub); line-height: 1.6; }
+
+  /* ===== 運用モデルスライド ===== */
+  .flow { display: grid; grid-template-columns: 1fr 56px 1fr 56px 1fr; align-items: stretch; gap: 0; margin-top: 6px; }
+  .flow-card { border-radius: 14px; padding: 16px 18px; border: 1.5px solid; background:#fff; display:flex; flex-direction:column; }
+  .flow-card.in   { border-color: var(--manage); }
+  .flow-card.ai   { border-color: var(--primary); background:#eef5fb; }
+  .flow-card.hu   { border-color: var(--human); }
+  .fc-tag { display:inline-block; align-self:flex-start; font-size:11px; font-weight:800; letter-spacing:.04em; color:#fff; padding:2px 10px; border-radius:999px; margin-bottom:10px; }
+  .flow-card.in .fc-tag { background: var(--manage); }
+  .flow-card.ai .fc-tag { background: var(--primary); }
+  .flow-card.hu .fc-tag { background: var(--human); }
+  .fc-li { font-size: 13px; color:#333; line-height:1.5; padding:4px 0; display:flex; gap:7px; }
+  .fc-li::before { content:"›"; color:#9aa0ab; font-weight:800; }
+  .flow-arrow { display:flex; align-items:center; justify-content:center; color: var(--primary); font-size: 26px; font-weight:800; }
+
+  .scope2 { display:grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
+  .scope { border-radius:12px; padding:13px 16px; border:1.5px solid; }
+  .scope.fit { background:#eef6f1; border-color:#bfe3cd; }
+  .scope.unfit { background:#fbf4e6; border-color:#f0d9a8; }
+  .scope-h { font-size:13px; font-weight:800; margin-bottom:8px; }
+  .scope.fit .scope-h { color: var(--conclude-d); }
+  .scope.unfit .scope-h { color: var(--issue-d); }
+  .scope .tags { display:flex; flex-wrap:wrap; gap:6px; }
+  .scope .t { font-size:12px; font-weight:700; padding:3px 9px; border-radius:6px; }
+  .scope.fit .t { background:#fff; color:var(--conclude-d); border:1px solid #bfe3cd; }
+  .scope.unfit .t { background:#fff; color:var(--issue-d); border:1px solid #f0d9a8; }
+
+  /* ナビ操作ヒント */
+  #hint { position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%); color: #6b7280; font-size: 12px; background: rgba(255,255,255,.08); padding: 5px 14px; border-radius: 999px; backdrop-filter: blur(4px); }
+  #dots { position: fixed; right: 18px; top: 50%; transform: translateY(-50%); display:flex; flex-direction:column; gap: 9px; z-index: 20; }
+  #dots .d { width: 9px; height: 9px; border-radius: 50%; background: #4a5160; cursor: pointer; transition: all .2s; }
+  #dots .d.on { background: #fff; transform: scale(1.35); }
+  .navzone { position: fixed; top: 0; bottom: 0; width: 16%; z-index: 5; cursor: pointer; }
+  .navzone.left { left: 0; } .navzone.right { right: 0; }
+</style>
+</head>
+<body>
+
+<div id="viewport">
+  <div id="stage">
+
+    <!-- ============ 1. タイトル ============ -->
+    <section class="slide title-slide active">
+      <div class="pad">
+        <div class="eyebrow">AI駆動開発（AIDD）効果測定 ／ 配送管理システム PW</div>
+        <div class="title-arrow"><span class="asis">As-Is</span><span class="arr">→</span><span class="tobe">To-Be</span></div>
+        <h1>AI駆動開発は、開発工程のどこを・なぜ・どれだけ変えたか</h1>
+        <p class="title-sub" style="margin-top:18px;">
+          「通常の開発フロー（As-Is）」と「AI駆動開発（To-Be）」を<b>工程ごとに並べて</b>、
+          どの作業が<b style="color:var(--conclude)">消え／縮み</b>、どの作業が<b style="color:var(--human)">人の手元に残る</b>のかを可視化する。
+          AI開発をブラックボックスにせず、<b>説明可能な運用モデル</b>として提示する資料。
+        </p>
+        <div class="title-meta">
+          <span class="chip blue">AI駆動で実装した 26シナリオ</span>
+          <span class="chip">出典：セッションログ実測 ＋ 実績コード量からの推定</span>
+          <span class="chip">As-Is は人力開発の想定工数</span>
+        </div>
+        <div style="margin-top:26px; font-size:13px; color:#888;"><span class="brand-dot"></span>2026-06-13 ／ 金子社長MTG 指示「As-Is vs To-Be の資料化」</div>
+      </div>
+      <div class="kicker">AIDD 効果測定</div>
+      <div class="slide-no">01</div>
+    </section>
+
+    <!-- ============ 2. 結論サマリ ============ -->
+    <section class="slide">
+      <div class="pad">
+        <div class="eyebrow">結論サマリ（AI駆動で実装した 26シナリオ）</div>
+        <h2>合計工数 <span class="accent">約 90%</span> 減。削減は「実装・設計・テスト生成」に集中する</h2>
+        <div class="head-rule"></div>
+
+        <div class="big-metric">
+          <div class="bm-cap">26シナリオ 合計</div>
+          <div class="bm-from">約 700h</div>
+          <div class="bm-arrow">→</div>
+          <div class="bm-num">約 70h</div>
+          <div class="bm-cap" style="color:var(--conclude-d); font-weight:800;">削減 約 90%</div>
+        </div>
+
+        <div class="screen-bars">
+          <div class="sb">
+            <div class="sb-name">ステータスチェック（実測・確立フロー）</div>
+            <div class="sb-track"><div class="sb-fill" style="width:90%"></div></div>
+            <div class="sb-vals"><span>15h</span><span>→ <b>1.5h</b></span><span class="sb-cut">−90%</span></div>
+          </div>
+          <div class="sb">
+            <div class="sb-name">幹線スケジュール（実測・並行開発）</div>
+            <div class="sb-track"><div class="sb-fill" style="width:93%"></div></div>
+            <div class="sb-vals"><span>26.7h</span><span>→ <b>2.0h</b></span><span class="sb-cut">−93%</span></div>
+          </div>
+          <div class="sb">
+            <div class="sb-name">代引き確認（実測・1セッション）</div>
+            <div class="sb-track"><div class="sb-fill" style="width:92%"></div></div>
+            <div class="sb-vals"><span>18.3h</span><span>→ <b>1.5h</b></span><span class="sb-cut">−92%</span></div>
+          </div>
+        </div>
+
+        <div class="typo3">
+          <div class="ty gone">
+            <span class="ty-tag">消えた工程</span>
+            <div class="ty-t">設計書・単体テスト</div>
+            <div class="ty-d">中間成果物の作成・テスト実装が、生成に内包されほぼ0に。</div>
+          </div>
+          <div class="ty shrink">
+            <span class="ty-tag">縮んだ工程</span>
+            <div class="ty-t">API実装・画面実装</div>
+            <div class="ty-d">本体の実装工数が 1/25 以下に。AIのレバレッジが最大。</div>
+          </div>
+          <div class="ty stay">
+            <span class="ty-tag">残る工程</span>
+            <div class="ty-t">レビュー・動作確認・調整</div>
+            <div class="ty-d">人が保証・調整する工程は横ばい〜微増。削減は及ばない。</div>
+          </div>
+        </div>
+
+        <div class="takeaway">削減は「実装側」、保証は「人側」。<b>役割が明確に分かれる</b>のが AI駆動開発の本質的な構図。</div>
+      </div>
+      <div class="kicker">結論サマリ</div>
+      <div class="slide-no">02</div>
+    </section>
+
+    <!-- ============ 3. 工程マップ ============ -->
+    <section class="slide">
+      <div class="pad">
+        <div class="eyebrow">ホワイトボックス：工程マップ</div>
+        <h2>全工程を並べると、<span class="accent">縮む工程</span>と<span style="color:var(--human)">残る工程</span>がはっきり分かれる</h2>
+        <div class="head-rule"></div>
+        <p class="lead" style="margin-bottom:12px;">縦＝開発工程、横棒＝工数。<b>薄い帯＝As-Is</b>、<b>濃い帯＝To-Be</b>。AI駆動で実装した 26シナリオの合算（h）。</p>
+
+        <div class="map-wrap" id="mapWrap"></div>
+
+        <div class="map-legend">
+          <div class="ml gone"><span class="sw"><span class="o"></span><span class="f"></span></span>消えた（設計・テスト生成）</div>
+          <div class="ml shrink"><span class="sw"><span class="o"></span><span class="f"></span></span>縮んだ（実装本体）</div>
+          <div class="ml stay"><span class="sw"><span class="o"></span><span class="f"></span></span>残る（人の保証・判断）</div>
+        </div>
+      </div>
+      <div class="kicker">工程マップ</div>
+      <div class="slide-no">03</div>
+    </section>
+
+    <!-- ============ 4. データモデル ============ -->
+    <section class="slide">
+      <div class="pad">
+        <div class="eyebrow">カテゴリ A ／ データモデル設計・実装</div>
+        <h2>「設計書を書いてから実装」の2段階が、<span class="accent">型からの1発生成</span>に</h2>
+        <div class="head-rule"></div>
+        <div class="cat-grid">
+          <div class="col asis">
+            <div class="col-head"><span class="col-name">As-Is ｜ 通常開発</span><span class="col-h">112h</span></div>
+            <div class="step"><span class="si">1</span><span class="st"><b>テーブル設計書</b>を作成（ER・カラム定義）</span></div>
+            <div class="step"><span class="si">2</span><span class="st">設計レビュー・修正の<b>往復</b></span></div>
+            <div class="step"><span class="si">3</span><span class="st">Prisma schema を手で実装</span></div>
+            <div class="step"><span class="si">4</span><span class="st">migration 作成・適用</span></div>
+          </div>
+          <div class="vs-mid"><div class="arrow">→</div></div>
+          <div class="col tobe">
+            <div class="col-head"><span class="col-name">To-Be ｜ AI駆動開発</span><span class="col-h">4.4h</span></div>
+            <div class="step"><span class="si">1</span><span class="st">spec＋ER／型定義を<b>入力として渡す</b><span class="who hu">人</span></span></div>
+            <div class="step"><span class="si">2</span><span class="st">DBアーキテクトAIが <b>schema＋migration を直接生成</b><span class="who ai">AI</span></span></div>
+            <div class="step muted"><span class="si">—</span><span class="st">設計書という中間成果物</span></div>
+            <div class="step muted"><span class="si">—</span><span class="st">設計レビューの往復</span></div>
+          </div>
+        </div>
+        <div class="cut-band">
+          <div>
+            <div class="cut-label">決定的な削減ポイント</div>
+            <div class="cut-text">型定義・ER が入力に揃えば、<b>「設計書を書く→実装する」の中間ドキュメントと設計レビューの往復が丸ごと消える</b>。AIは型を直接スキーマに変換する。</div>
+          </div>
+          <div class="cut-metric"><div class="cm"><span class="from">112h</span> <span class="ar">→</span> 4.4h</div><div class="pct">約 96% 削減</div></div>
+        </div>
+      </div>
+      <div class="kicker">カテゴリ A：データモデル</div>
+      <div class="slide-no">04</div>
+    </section>
+
+    <!-- ============ 5. IF / API ============ -->
+    <section class="slide">
+      <div class="pad">
+        <div class="eyebrow">カテゴリ B ／ IF（API）設計・実装＋単体テスト</div>
+        <h2>入出力が<span class="accent">型で決まる領域</span>は AI の独壇場。テストは実装に内包</h2>
+        <div class="head-rule"></div>
+        <div class="cat-grid">
+          <div class="col asis">
+            <div class="col-head"><span class="col-name">As-Is ｜ 通常開発</span><span class="col-h">217h</span></div>
+            <div class="step"><span class="si">1</span><span class="st">API設計（エンドポイント・DTO設計）</span></div>
+            <div class="step"><span class="si">2</span><span class="st">CRUD／ページング／フィルタ／例外処理の<b>実装</b></span></div>
+            <div class="step"><span class="si">3</span><span class="st">単体テスト設計（観点出し）</span></div>
+            <div class="step"><span class="si">4</span><span class="st">単体テスト<b>実装</b>（合計 61h）</span></div>
+          </div>
+          <div class="vs-mid"><div class="arrow">→</div></div>
+          <div class="col tobe">
+            <div class="col-head"><span class="col-name">To-Be ｜ AI駆動開発</span><span class="col-h">8.8h</span></div>
+            <div class="step"><span class="si">1</span><span class="st">型定義・DTO で<b>入出力を確定</b><span class="who hu">人</span></span></div>
+            <div class="step"><span class="si">2</span><span class="st">バックエンドAIが <b>API実装と単体テストを一括生成</b><span class="who ai">AI</span></span></div>
+            <div class="step muted"><span class="si">—</span><span class="st">単体テストの独立工程</span></div>
+            <div class="step muted"><span class="si">—</span><span class="st">CRUD の定型実装</span></div>
+          </div>
+        </div>
+        <div class="cut-band">
+          <div>
+            <div class="cut-label">決定的な削減ポイント</div>
+            <div class="cut-text">「入力（検索条件）」と「出力（プロパティ）」が型で決まる領域は、<b>ロジックがほぼ一意に定まる＝AIが最も正確に書ける</b>。単体テストは実装に内包され、独立工数がゼロになる。</div>
+          </div>
+          <div class="cut-metric"><div class="cm"><span class="from">217h</span> <span class="ar">→</span> 8.8h</div><div class="pct">約 96% 削減</div></div>
+        </div>
+      </div>
+      <div class="kicker">カテゴリ B：IF／API</div>
+      <div class="slide-no">05</div>
+    </section>
+
+    <!-- ============ 6. 画面処理 ============ -->
+    <section class="slide">
+      <div class="pad">
+        <div class="eyebrow">カテゴリ C ／ 画面処理（UX設計・画面設計・実装）</div>
+        <h2>mock が UX仕様の正本になり、<span class="accent">「mock → 実装」の一気通貫</span>に</h2>
+        <div class="head-rule"></div>
+        <div class="cat-grid">
+          <div class="col asis">
+            <div class="col-head"><span class="col-name">As-Is ｜ 通常開発</span><span class="col-h">337h</span></div>
+            <div class="step"><span class="si">1</span><span class="st"><b>UX設計</b>（画面遷移・レイアウト方針）</span></div>
+            <div class="step"><span class="si">2</span><span class="st"><b>画面設計書</b>（コンポーネント設計）</span></div>
+            <div class="step"><span class="si">3</span><span class="st">一覧／検索・入力フォームの実装</span></div>
+            <div class="step"><span class="si">4</span><span class="st">状態遷移・ドロワー・モーダルの実装</span></div>
+          </div>
+          <div class="vs-mid"><div class="arrow">→</div></div>
+          <div class="col tobe">
+            <div class="col-head"><span class="col-name">To-Be ｜ AI駆動開発</span><span class="col-h">14.4h</span></div>
+            <div class="step"><span class="si">1</span><span class="st">mock（クリッカブルモック）＋spec を<b>入力</b><span class="who hu">人</span></span></div>
+            <div class="step"><span class="si">2</span><span class="st">フロントエンドAIが <b>UX・設計を内包して実装</b><span class="who ai">AI</span></span></div>
+            <div class="step muted"><span class="si">—</span><span class="st">UX設計書・画面設計書の作成</span></div>
+            <div class="step"><span class="si human">✓</span><span class="st">mock との<b>視覚差分は人が確認</b><span class="who hu">人</span></span></div>
+          </div>
+        </div>
+        <div class="cut-band">
+          <div>
+            <div class="cut-label">決定的な削減ポイント</div>
+            <div class="cut-text"><b>mock がそのまま UX仕様の正本</b>になることで、「UX・設計書 → 実装」が「mock → 実装」に短絡。設計工程が実装へ吸収され、最も工数の大きい領域が 1/25 以下に。</div>
+          </div>
+          <div class="cut-metric"><div class="cm"><span class="from">337h</span> <span class="ar">→</span> 14.4h</div><div class="pct">約 96% 削減</div></div>
+        </div>
+        <div class="note-amber"><b>残る課題：</b>mock の grid 配置など視覚情報が実装で落ちるケースがあり、<b>視覚差分の検証は人の動作確認で担保</b>する必要がある。</div>
+      </div>
+      <div class="kicker">カテゴリ C：画面処理</div>
+      <div class="slide-no">06</div>
+    </section>
+
+    <!-- ============ 7. 検証・人の領域 ============ -->
+    <section class="slide">
+      <div class="pad">
+        <div class="eyebrow">カテゴリ D ／ 検証・レビュー・調整（人の領域）</div>
+        <h2><span style="color:var(--human)">あえて削らない工程</span>＝ここが納品品質の砦</h2>
+        <div class="head-rule"></div>
+        <p class="lead" style="margin-bottom:6px;">AIが書いたコードを<b>人が保証・調整する工程</b>は削減されない。実装側は縮むが、保証・調整は人側に残り続ける。</p>
+
+        <div class="keep-grid">
+          <div class="keep-card human">
+            <div class="kc-head"><span class="kc-name">APIレビュー（エンジニア）</span><span class="kc-h"><span class="a">14.8h</span> <span class="ar">→</span> <span class="t">14.8h</span></span></div>
+            <div class="kc-d">AIが書いたコードを人が同じ密度でレビュー。As-Is と工数は完全に同一。</div>
+          </div>
+          <div class="keep-card human">
+            <div class="kc-head"><span class="kc-name">動作確認（BE＋FE）</span><span class="kc-h"><span class="a">13.7h</span> <span class="ar">→</span> <span class="t">11.6h</span></span></div>
+            <div class="kc-d">実機での確認・mock視覚比較。AIに委譲できず、人の目視が品質の最終ゲート。</div>
+          </div>
+          <div class="keep-card human">
+            <div class="kc-head"><span class="kc-name">フロントレビュー（エンジニア）</span><span class="kc-h"><span class="a">5.3h</span> <span class="ar">→</span> <span class="t">5.1h</span></span></div>
+            <div class="kc-d">画面コードのレビューも人が担保。生成量に関わらず確認密度は変わらない。</div>
+          </div>
+          <div class="keep-card">
+            <div class="kc-head"><span class="kc-name">AI出力後の調整（レイアウト・API最適化等）</span><span class="kc-h"><span class="a">0h</span> <span class="ar">→</span> <span class="t">+11.0h</span></span></div>
+            <div class="kc-d">AI生成物の細部調整・最適化として<b>新たに発生</b>する人の工程。大半がエンジニア工数。</div>
+          </div>
+        </div>
+
+        <div class="takeaway" style="margin-top:16px;">合計でみると <b>約 33.8h → 約 42.5h でむしろ微増</b>。AIの削減効果はこの「保証・調整」工程には及ばない —— だからこそ<b>テスト観点を「納品品質の物差し」に再定義する</b>議論につながる。</div>
+      </div>
+      <div class="kicker">カテゴリ D：人の領域</div>
+      <div class="slide-no">07</div>
+    </section>
+
+    <!-- ============ 8. 運用モデル ============ -->
+    <section class="slide">
+      <div class="pad">
+        <div class="eyebrow">運用モデル（結論）</div>
+        <h2>この進め方を前提とすれば、<span class="accent">実装は 1/25 以下・保証は人が担保</span></h2>
+        <div class="head-rule"></div>
+
+        <div class="flow">
+          <div class="flow-card in">
+            <span class="fc-tag">入力 ／ 人が用意</span>
+            <div class="fc-li">spec（一次ソースへの参照）</div>
+            <div class="fc-li">型定義・DTO</div>
+            <div class="fc-li">mock（UX仕様の正本）</div>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-card ai">
+            <span class="fc-tag">AI ／ 実装エンジン</span>
+            <div class="fc-li">データモデル設計・実装</div>
+            <div class="fc-li">API実装＋単体テスト生成</div>
+            <div class="fc-li">UX・画面設計・実装</div>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-card hu">
+            <span class="fc-tag">人 ／ 品質ゲート</span>
+            <div class="fc-li">コードレビュー</div>
+            <div class="fc-li">動作確認・視覚比較</div>
+            <div class="fc-li">AI出力後の調整・納品保証</div>
+          </div>
+        </div>
+
+        <div class="scope2">
+          <div class="scope fit">
+            <div class="scope-h">効くカテゴリ（型・仕様が明確）</div>
+            <div class="tags">
+              <span class="t">CRUD</span><span class="t">一覧・検索・抽出</span><span class="t">入力フォーム</span>
+              <span class="t">状態遷移・ワークフロー</span><span class="t">集計・レポート</span>
+            </div>
+          </div>
+          <div class="scope unfit">
+            <div class="scope-h">効きにくいカテゴリ（言語化が困難）</div>
+            <div class="tags">
+              <span class="t">横断的な整合性</span><span class="t">恣意的な例外ルール</span>
+              <span class="t">高度な対話型UI</span><span class="t">不可逆な一括操作</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="takeaway" style="margin-top:16px;">結論：<b>型・mock・spec が揃う「AIと相性の良い領域」から局所的に積み上げる</b>。実装工数は劇的に縮み、品質保証は人が担保する —— これが再現可能な運用モデル。</div>
+      </div>
+      <div class="kicker">運用モデル</div>
+      <div class="slide-no">08</div>
+    </section>
+
+  </div>
+</div>
+
+<div id="dots"></div>
+<div class="navzone left"  onclick="go(cur-1)"></div>
+<div class="navzone right" onclick="go(cur+1)"></div>
+<div id="hint">← → でスライド移動 ／ クリックでも切替</div>
+
+<script>
+  // 工程マップ（カテゴリ別の色分け）。実測合算（h）。
+  const MAP = [
+    { name: "データモデル設計", asis: 45.1,  tobe: 1.88, type: "gone" },
+    { name: "データモデル実装", asis: 67.1,  tobe: 2.52, type: "gone" },
+    { name: "API設計・実装",    asis: 155.9, tobe: 6.34, type: "shrink" },
+    { name: "API単体テスト",    asis: 61.3,  tobe: 2.41, type: "gone" },
+    { name: "フロント設計",     asis: 22.8,  tobe: 0.72, type: "gone" },
+    { name: "フロント実装",     asis: 260.5, tobe: 10.2, type: "shrink" },
+    { name: "UX設計・brief",    asis: 53.8,  tobe: 3.43, type: "shrink" },
+    { name: "レビュー(API/FE)",  asis: 20.1,  tobe: 19.9, type: "stay" },
+    { name: "動作確認",         asis: 13.7,  tobe: 11.6, type: "stay" },
+    { name: "AI出力後の調整",    asis: 0,     tobe: 11.0, type: "stay" },
+  ];
+  (function renderMap(){
+    const max = Math.max(...MAP.map(m => m.asis));
+    const wrap = document.getElementById('mapWrap');
+    wrap.innerHTML = MAP.map(m => {
+      const aw = (m.asis / max * 100).toFixed(1);
+      const tw = (m.tobe / max * 100).toFixed(1);
+      return `<div class="maprow">
+        <div class="pname">${m.name}</div>
+        <div class="barzone">
+          <div class="bar-asis ${m.type}" style="width:${aw}%"></div>
+          <div class="bar-tobe ${m.type}" style="width:${tw}%"></div>
+        </div>
+        <div class="mapval"><span class="a">${m.asis}h</span> → <span class="t">${m.tobe}h</span></div>
+      </div>`;
+    }).join('');
+  })();
+
+  // ===== スライド・ナビゲーション =====
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  let cur = 0;
+  const dotsEl = document.getElementById('dots');
+  slides.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'd' + (i === 0 ? ' on' : '');
+    d.onclick = () => go(i);
+    dotsEl.appendChild(d);
+  });
+  const dots = Array.from(dotsEl.children);
+  function go(i) {
+    if (i < 0 || i >= slides.length) return;
+    slides[cur].classList.remove('active');
+    dots[cur].classList.remove('on');
+    cur = i;
+    slides[cur].classList.add('active');
+    dots[cur].classList.add('on');
+  }
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { go(cur + 1); e.preventDefault(); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { go(cur - 1); e.preventDefault(); }
+    else if (e.key === 'Home') go(0);
+    else if (e.key === 'End') go(slides.length - 1);
+  });
+
+  // ===== 16:9 ステージのスケール調整（PowerPoint化を見据え縦横比固定） =====
+  function fit() {
+    const s = Math.min(window.innerWidth / 1280, window.innerHeight / 720) * 0.96;
+    document.getElementById('stage').style.transform = `scale(${s})`;
+  }
+  window.addEventListener('resize', fit);
+  fit();
+</script>
+</body>
+</html>
