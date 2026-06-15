@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PW案件へのAI駆動開発（AIDD） — 取り組みと現在地</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    background: #0f172a;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Yu Gothic UI", "Meiryo", sans-serif;
+    color: #1f2937;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* 16:9 ステージ（PowerPoint風） */
+  #stage {
+    position: relative;
+    width: 1280px; height: 720px;
+    transform-origin: center center;
+    flex-shrink: 0;
+  }
+  .slide {
+    position: absolute; inset: 0;
+    background: #ffffff;
+    border-radius: 6px;
+    box-shadow: 0 18px 60px rgba(0,0,0,0.45);
+    padding: 54px 64px 58px;
+    display: none;
+    flex-direction: column;
+  }
+  .slide.active { display: flex; }
+
+  /* 共通: 帯・タイトル */
+  .kicker { font-size: 14px; font-weight: 700; letter-spacing: 0.08em; color: #2563eb; margin-bottom: 8px; }
+  h1.deck-title { font-size: 30px; font-weight: 800; color: #0f172a; line-height: 1.3; }
+  .title-rule { width: 64px; height: 5px; background: #2563eb; border-radius: 3px; margin: 16px 0 22px; }
+
+  /* フッター */
+  .footer {
+    position: absolute; left: 64px; right: 180px; bottom: 22px;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 12px; color: #94a3b8; border-top: 1px solid #eef2f7; padding-top: 10px;
+  }
+  .footer .brand { font-weight: 700; color: #64748b; }
+
+  /* タグ・バッジ */
+  .badge { display: inline-block; font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px; }
+  .badge.draft { background: #fef3c7; color: #92400e; }
+  .badge.blue  { background: #dbeafe; color: #1e40af; }
+  .badge.green { background: #dcfce7; color: #166534; }
+
+  /* タイトルスライド */
+  .cover { justify-content: center; background: linear-gradient(135deg, #ffffff 0%, #f1f6ff 100%); }
+  .cover .big { font-size: 42px; font-weight: 800; color: #0f172a; line-height: 1.3; }
+  .cover .sub { font-size: 18px; color: #475569; margin-top: 18px; line-height: 1.7; }
+  .cover .meta-row { margin-top: 30px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+
+  /* 本文要素 */
+  .lead { font-size: 17px; color: #334155; line-height: 1.85; }
+  .lead strong { color: #0f172a; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 6px; }
+  .grid3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
+
+  .card {
+    background: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid #2563eb;
+    border-radius: 10px; padding: 16px 18px;
+  }
+  .card.amber { border-left-color: #d97706; background: #fffbeb; }
+  .card.green { border-left-color: #16a34a; background: #f0fdf4; }
+  .card.red   { border-left-color: #dc2626; background: #fef2f2; }
+  .card.gray  { border-left-color: #94a3b8; background: #f8fafc; }
+  .card h3 { font-size: 16px; color: #0f172a; margin-bottom: 8px; }
+  .card p { font-size: 13.5px; color: #475569; line-height: 1.7; }
+  .card .big-num { font-size: 30px; font-weight: 800; color: #2563eb; line-height: 1; }
+  .card.green .big-num { color: #16a34a; }
+  /* リンクカード化（残る課題 → 元ネタへ） */
+  a.card { text-decoration: none; color: inherit; display: block; }
+  a.card:hover { box-shadow: 0 2px 10px rgba(217,119,6,0.18); }
+  a.card .src { display: inline-block; margin-top: 8px; font-size: 11.5px; font-weight: 700; color: #b45309; }
+  /* 課題に対する「対応」ブロック（緑=対応・結論） */
+  a.card .resp { margin-top: 8px; font-size: 12px; color: #14532d; background: #f0fdf4; border-left: 3px solid #16a34a; border-radius: 4px; padding: 6px 9px; line-height: 1.6; }
+  a.card .resp .resp-lbl { font-weight: 800; color: #16a34a; margin-right: 5px; }
+
+  /* 課題 → 対応 の 2列レイアウト */
+  .case-grid { display: grid; grid-template-columns: 0.62fr 1fr; gap: 12px; align-items: stretch; }
+  .case-grid .card { padding: 13px 16px; }
+  .case-grid .lbl-amber { font-size: 12px; font-weight: 800; color: #92400e; letter-spacing: 0.03em; }
+  .case-grid .lbl-green { font-size: 12px; font-weight: 800; color: #16a34a; letter-spacing: 0.03em; margin-bottom: 4px; }
+  .case-grid .q-link { display: block; font-size: 13px; color: #92400e; text-decoration: none; margin-top: 8px; line-height: 1.55; }
+  .case-grid .q-link:hover { text-decoration: underline; }
+  .case-grid .q-link b { color: #7c2d12; }
+  .case-grid .q-link .src { display: block; font-size: 11px; font-weight: 700; color: #b45309; margin-top: 1px; }
+  .case-grid p.q-text { font-size: 13px; color: #475569; line-height: 1.6; margin-top: 6px; }
+  .case-grid .steps { display: flex; flex-direction: column; gap: 7px; margin-top: 4px; }
+  .case-grid .step-li { display: flex; gap: 8px; align-items: flex-start; font-size: 12px; color: #334155; line-height: 1.6; }
+  .case-grid .step-li strong { color: #0f172a; }
+  .case-grid .step-n { flex-shrink: 0; width: 18px; height: 18px; border-radius: 50%; background: #16a34a; color: #fff; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; margin-top: 1px; }
+  .case-grid .cats { color: #475569; }
+  .case-grid .resp-text { font-size: 12.5px; color: #14532d; line-height: 1.65; }
+
+  ul.clean { list-style: none; }
+  ul.clean li { font-size: 15px; color: #334155; line-height: 1.6; padding: 7px 0 7px 26px; position: relative; }
+  ul.clean li::before { content: "▸"; color: #2563eb; position: absolute; left: 4px; font-weight: 700; }
+  ul.clean li strong { color: #0f172a; }
+
+  /* ステップ（横並びの矢印） */
+  .steps { display: flex; align-items: stretch; gap: 0; margin-top: 8px; }
+  .step { flex: 1; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px 16px; position: relative; }
+  .step + .step { margin-left: 26px; }
+  .step + .step::before {
+    content: "→"; position: absolute; left: -22px; top: 50%; transform: translateY(-50%);
+    color: #94a3b8; font-size: 22px; font-weight: 700;
+  }
+  .step .n { font-size: 12px; font-weight: 700; color: #2563eb; }
+  .step h3 { font-size: 15px; color: #0f172a; margin: 4px 0 6px; }
+  .step p { font-size: 12.5px; color: #64748b; line-height: 1.6; }
+
+  /* テーブル */
+  table.data { width: 100%; border-collapse: collapse; margin-top: 4px; }
+  table.data th, table.data td { padding: 11px 14px; text-align: left; font-size: 15px; }
+  table.data thead th { background: #1e3a8a; color: #fff; font-weight: 700; }
+  table.data thead th:first-child { border-radius: 8px 0 0 0; }
+  table.data thead th:last-child { border-radius: 0 8px 0 0; text-align: center; }
+  table.data tbody tr { border-bottom: 1px solid #eef2f7; }
+  table.data tbody tr:nth-child(even) { background: #f8fafc; }
+  table.data td.num { text-align: right; font-variant-numeric: tabular-nums; color: #334155; }
+  table.data td.rate { text-align: center; font-weight: 800; color: #16a34a; font-size: 17px; }
+
+  .callout {
+    margin-top: 16px; background: #fffbeb; border: 1px solid #fcd34d; border-radius: 10px;
+    padding: 14px 18px; font-size: 14px; color: #78350f; line-height: 1.75;
+  }
+  .callout strong { color: #92400e; }
+  .callout .lbl { font-weight: 800; color: #b45309; margin-right: 6px; }
+
+  .note-strong {
+    margin-top: 14px; background: #f0fdf4; border: 1px solid #86efac; border-radius: 10px;
+    padding: 14px 18px; font-size: 14.5px; color: #14532d; line-height: 1.75;
+  }
+
+  /* 参照リンク */
+  .links { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 6px; }
+  a.link-card {
+    display: block; text-decoration: none; color: inherit;
+    background: #fff; border: 1px solid #e2e8f0; border-left: 4px solid #2563eb;
+    border-radius: 10px; padding: 13px 16px;
+  }
+  a.link-card.amber { border-left-color: #d97706; }
+  a.link-card .t { font-size: 14.5px; font-weight: 700; color: #1e40af; }
+  a.link-card.amber .t { color: #92400e; }
+  a.link-card .d { font-size: 12px; color: #64748b; margin-top: 3px; line-height: 1.55; }
+  a.link-card .p { font-size: 11px; color: #94a3b8; font-family: ui-monospace, Consolas, monospace; margin-top: 5px; display: inline-block; }
+
+  /* 想定問答 */
+  .qa { display: flex; flex-direction: column; gap: 12px; }
+  .qa .row { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 16px; }
+  .qa .q { font-size: 14.5px; font-weight: 700; color: #0f172a; }
+  .qa .q::before { content: "Q. "; color: #2563eb; }
+  .qa .a { font-size: 13px; color: #475569; line-height: 1.65; margin-top: 5px; }
+  .qa .a::before { content: "A. "; color: #16a34a; font-weight: 700; }
+
+  /* ナビ */
+  #nav {
+    position: fixed; bottom: 16px; right: 22px; display: flex; align-items: center; gap: 10px;
+    background: rgba(15,23,42,0.7); padding: 7px 12px; border-radius: 999px; z-index: 50;
+  }
+  #nav button { background: #fff; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 15px; color: #0f172a; }
+  #nav button:hover { background: #dbeafe; }
+  #counter { color: #e2e8f0; font-size: 13px; font-variant-numeric: tabular-nums; min-width: 44px; text-align: center; }
+
+  /* 赤ペン注釈レイヤー: 表示は最前面・入力は透過（描画判定は stage の mouse イベントで行う） */
+  #ink { position: absolute; inset: 0; width: 1280px; height: 720px; pointer-events: none; z-index: 40; border-radius: 6px; }
+
+  /* モード切替（ペン / テキスト選択） */
+  #mode { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); display: flex; gap: 4px; background: rgba(15,23,42,0.7); padding: 5px 6px; border-radius: 999px; z-index: 50; }
+  #mode button { background: transparent; border: none; color: #cbd5e1; font-size: 12px; padding: 5px 12px; border-radius: 999px; cursor: pointer; }
+  #mode button:hover { color: #fff; }
+  #mode button.active { background: #fff; color: #0f172a; font-weight: 700; }
+  #mode button#mode-pen.active { background: #fee2e2; color: #b91c1c; }
+  /* ペンモード時はステージのテキスト選択を無効化（誤選択防止） */
+  #stage.pen-mode { cursor: crosshair; user-select: none; -webkit-user-select: none; }
+</style>
+</head>
+<body>
+<div id="stage">
+
+  <!-- 1. 表紙 -->
+  <section class="slide cover active">
+    <div class="big">PW案件へのAI駆動開発（AIDD）<br>取り組みと現在地</div>
+    <div class="sub">PW案件で、AIで設計・実装・テストを進める試みと、<br>その効果・課題を、実工数の実測ベースで共有します。</div>
+    <div class="meta-row">
+      <span class="badge blue">情報共有資料</span>
+      <span class="badge draft">暫定値・開発途中の情報</span>
+      <span style="color:#64748b; font-size:14px;">2026-06 ／ 社内 他チーム向け</span>
+    </div>
+  </section>
+
+  <!-- 2. 全体像（ビッグピクチャー） -->
+  <section class="slide">
+    <div class="kicker">01　目指している姿</div>
+    <h1 class="deck-title">最終ゴールは「エージェント駆動型開発」</h1>
+    <div class="title-rule"></div>
+    <div class="lead" style="margin-bottom:20px;">
+      AIエージェントが <strong>設計・実装・テスト</strong> を一連で自律的に進め、<br>
+      人間は <strong>「何を作るか」の判断</strong> と <strong>最終レビュー</strong> に集中する形を目指しています。
+    </div>
+    <div class="grid3">
+      <div class="card"><h3>AIが担う</h3><p>定型的な実装・テストコード生成・ドキュメント生成。手を動かす工程の大半。</p></div>
+      <div class="card green"><h3>人が担う</h3><p>要件・業務判断、最終的な品質保証（レビュー・動作確認）。</p></div>
+      <div class="card amber"><h3>ただし</h3><p><strong>いきなり全自動にはしない。</strong>相性の良い領域から局所的に積み上げる方針。</p></div>
+    </div>
+    <div class="note-strong" style="margin-top:18px; font-size:14px;">
+      現在は <strong>Claude Code の「エージェント」「スキル」機能</strong>を使って、役割別のエージェント群（プランナー／実装／レビュー／テスト 等）を構築しながら進めています。
+    </div>
+    <div style="font-size:13px; font-weight:700; color:#64748b; margin:16px 0 8px; letter-spacing:0.04em;">▼ 進め方・役割分担の詳細</div>
+    <div class="links">
+      <a class="link-card" href="../ai-04/ai_dd_process.html">
+        <div class="t">AI駆動開発プロセス（全体フロー）</div>
+        <div class="d">spec生成からエージェント実行までの進め方の全体像。</div>
+        <span class="p">../ai-04/ai_dd_process.html</span>
+      </a>
+      <a class="link-card" href="../ai-06/vmodel.html">
+        <div class="t">V字モデル：AIと人の責任分界</div>
+        <div class="d">CRUD実装フローをV字モデル上に配置し、AIと人の担当範囲を可視化。</div>
+        <span class="p">../ai-06/vmodel.html</span>
+      </a>
+    </div>
+    <div class="footer"><span class="brand">PW案件 / AIDD</span><span>エージェント駆動型開発の全体像</span></div>
+  </section>
+
+  <!-- 3. 進め方（局所的な積み上げ） -->
+  <section class="slide">
+    <div class="kicker">02　進め方</div>
+    <h1 class="deck-title">相性の良い領域から「局所的に積み上げる」</h1>
+    <div class="title-rule"></div>
+    <div class="lead" style="margin-bottom:18px;">
+      現在は <strong>マスタ画面やCRUD（一覧・登録・更新・削除）</strong> など、パターンが定型的で
+      AIがレバレッジを効かせやすい領域から実証しています。
+    </div>
+    <div class="grid2">
+      <div class="card green">
+        <h3>効きやすい領域</h3>
+        <p>定型的・テキスト中心・標準パターンに近いもの。CRUD、マスタ画面、API実装、テストコード生成。<strong>実装工程は90%以上短縮</strong>することも。</p>
+      </div>
+      <div class="card red">
+        <h3>効きにくい領域（人の判断が残る）</h3>
+        <p>業務ロジックが厚い／視覚的な作り込みが必要／外部連携。業務固有の専門領域は人の判断比率が高い。</p>
+      </div>
+    </div>
+    <div class="note-strong" style="margin-top:18px; font-size:14px;">
+      <strong>現在地：</strong>6/22「画面実装完了」マイルストーンに向けて進行中（理想線にほぼ沿うペース）。
+      <a href="../chart/workitems.html" style="color:#2563eb; font-weight:700; text-decoration:none;">→ プロジェクト管理（進捗・WBS）</a>
+    </div>
+    <div class="footer"><span class="brand">PW案件 / AIDD</span><span>適用範囲の考え方・現在地</span></div>
+  </section>
+
+  <!-- 4. 効果の測り方 -->
+  <section class="slide">
+    <div class="kicker">03　効果の測り方</div>
+    <h1 class="deck-title">「印象」ではなく〈想定〉と〈実測〉で比べる（As-Is / To-Be）</h1>
+    <div class="title-rule"></div>
+    <div class="steps">
+      <div class="step">
+        <div class="n">STEP 1</div><h3>As-Is を見積る</h3>
+        <p>実際にできあがったコード（プルリクエストの内容）をもとに、<strong>人間が手で実装した場合の想定工数</strong>を <strong>AIが算出</strong>する。</p>
+      </div>
+      <div class="step">
+        <div class="n">STEP 2</div><h3>To-Be を実測する</h3>
+        <p>プランナーに指示書(spec)を渡してから<strong>実装完了までの実時間</strong>に、人間のレビュー・動作確認・レイアウト調整の時間を加えて計測。</p>
+      </div>
+      <div class="step">
+        <div class="n">STEP 3</div><h3>差分＝削減効果</h3>
+        <p>両者の差を「削減効果」として提示。工程別に内訳も把握できる。</p>
+      </div>
+    </div>
+    <div class="note-strong" style="margin-top:22px;">
+      ポイントは <strong>工程ごとに分けて測る</strong> こと。どの工程が縮み、どこが縮まないかが見えるため、
+      自チームへ適用する際の<strong>現実的な見積り</strong>に使えます。
+    </div>
+    <div style="margin-top:16px; font-size:14px;">
+      <a href="../chart/aidd_report.html" style="color:#2563eb; font-weight:700; text-decoration:none;">→ 実例：AI駆動開発 実施レポート（画面別の As-Is/To-Be・工程内訳）</a>
+    </div>
+    <div class="footer"><span class="brand">PW案件 / AIDD</span><span>計測の枠組み</span></div>
+  </section>
+
+  <!-- 5. 削減効果（実データ） -->
+  <section class="slide">
+    <div class="kicker">04　効果（実測・暫定値）</div>
+    <h1 class="deck-title">画面単位の削減効果</h1>
+    <div class="title-rule"></div>
+    <div style="font-size:12.5px; color:#64748b; margin-bottom:12px;">各画面の <strong style="color:#334155;">総工数（全工程を合算）</strong> の比較。レビュー・動作確認はAsIs/ToBe両方に同じだけ含みます（＝下の補足の内訳）。</div>
+    <table class="data">
+      <thead><tr><th>対象画面</th><th style="text-align:right">As-Is（通常）</th><th style="text-align:right">To-Be（実測）</th><th>削減率</th></tr></thead>
+      <tbody>
+        <tr><td>デポマスタ</td><td class="num">122 h</td><td class="num">27.4 h</td><td class="rate">約78%</td></tr>
+        <tr><td>ユーザマスタ</td><td class="num">95.5 h</td><td class="num">20.5 h</td><td class="rate">約79%</td></tr>
+        <tr><td>配送先詳細</td><td class="num">約6.2 h</td><td class="num">0.45 h</td><td class="rate">約93%</td></tr>
+        <tr><td>配送完了登録</td><td class="num">約41.5 h</td><td class="num">4.0 h</td><td class="rate">約90%</td></tr>
+      </tbody>
+    </table>
+    <div class="callout">
+      <span class="lbl">内訳の補足：</span>上の削減率は <strong>総工数ベース</strong>です。全工程が一律に縮むわけではなく、削減が効くのは
+      <strong>「実装・設計・テスト生成」</strong>工程（90%以上）。一方で
+      <strong>レビューと動作確認の人間工数は通常開発と変わりません</strong>（AIが書いたコードを人が同じ時間かけて確認するため）。
+    </div>
+    <div style="margin-top:16px; font-size:14px;">
+      <a href="../chart/aidd_report.html" style="color:#2563eb; font-weight:700; text-decoration:none;">→ 出典：AI駆動開発 実施レポート（画面別の工程内訳・想定バグ数）</a>
+    </div>
+    <div class="footer"><span class="brand">PW案件 / AIDD</span><span><a href="../chart/aidd_report.html" style="color:#94a3b8; text-decoration:none;">出典：As-Is/To-Be 工数比較レポート（暫定・調整予定）</a></span></div>
+  </section>
+
+  <!-- 6. 残る課題 -->
+  <section class="slide">
+    <div class="kicker">05　課題は、つど運用で解消している</div>
+    <h1 class="deck-title">課題と対応</h1>
+    <div class="title-rule"></div>
+    <div class="case-grid">
+      <!-- 行1: 課題（① / ①'） -->
+      <div class="card amber">
+        <div class="lbl-amber">課題：要件・不明点まわり</div>
+        <a class="q-link" href="../chart/problem_ex_1.html"><b>① 要件不明確時のフロー</b> — 業務判断が不明なとき、止める／確認する導線が未整備だった。<span class="src">→ 課題事例① problem_ex_1</span></a>
+        <a class="q-link" href="../chart/problem_ex_3.html"><b>①' 不明点の切り分け</b> — 不明点が「顧客確認／対象外／資料で定義」と混在し、整理に時間。<span class="src">→ 課題事例①' problem_ex_3</span></a>
+      </div>
+      <!-- 行1: 対応 -->
+      <div class="card green">
+        <div class="lbl-green">対応（運用）</div>
+        <div class="steps">
+          <div class="step-li"><span class="step-n">1</span><span>AIに仕様の不明点を出力させ <strong>Excelに集約</strong>。PM・他メンバーが回答する<span class="cats">（すぐ回答できる／チーム内で決定が必要／顧客に確認が必要）</span>。時間がかかるものは <strong>期日を設定</strong>し、必要なら <strong>WBS化</strong>。</span></div>
+          <div class="step-li"><span class="step-n">2</span><span>実装は止めず、AIが行った <strong>仮実装も記録</strong>しておく。</span></div>
+          <div class="step-li"><span class="step-n">3</span><span>仮実装からの修正・仕様変更に備え、各画面・機能の工数の <strong>約30%を「修正対応工数」</strong>として確保（切り崩してタスク化）。AI駆動開発の進捗を常に可視化する<strong>（チケットの進捗を戻すことは禁止）</strong>。</span></div>
+        </div>
+      </div>
+      <!-- 行2: 課題（②） -->
+      <a class="card amber" href="../chart/problem_ex_2.html" style="text-decoration:none;">
+        <div class="lbl-amber">課題：画面のつくり</div>
+        <p class="q-text"><b style="color:#7c2d12;">② モックと実装の視覚差分</b> — レイアウトが乖離。画像での視覚比較が弱く検出に時間。</p>
+        <span class="src">→ 課題事例② problem_ex_2</span>
+      </a>
+      <!-- 行2: 対応 -->
+      <div class="card green">
+        <div class="lbl-green">対応（運用）</div>
+        <div class="resp-text">レビュー・動作確認の中で乖離を見つけ出し、AIの補助を受けながら人間が手動で修正する。</div>
+      </div>
+    </div>
+    <div class="footer"><span class="brand">PW案件 / AIDD</span><span>課題事例 problem_ex_1〜3</span></div>
+  </section>
+
+  <!-- 7. お願い + 参照リンク -->
+  <section class="slide">
+    <div class="kicker">06　ご利用上のお願い ＆ 参照資料</div>
+    <h1 class="deck-title">この情報の扱いについて</h1>
+    <div class="title-rule"></div>
+    <div class="callout" style="margin-top:0;">
+      <span class="lbl">念押し：</span>本資料は<strong>開発の途中段階で、不完全な情報</strong>です。数値も暫定で今後調整が入ります。
+      他チームや顧客へ展開される場合は<strong>この前提を必ず添えていただき</strong>、使い方の判断（上司への相談含む）は受け取り側でお願いします。
+    </div>
+    <div style="font-size:13px; font-weight:700; color:#64748b; margin:18px 0 8px; letter-spacing:0.04em;">▼ 詳細を見たいときの参照リンク（社内 chart）</div>
+    <div class="links">
+      <a class="link-card" href="../chart/aidd_report.html">
+        <div class="t">AI駆動開発 実施レポート（As-Is/To-Be）</div>
+        <div class="d">画面別の工数比較・工程内訳・想定バグ数。本資料の数値の出典。</div>
+        <span class="p">../chart/aidd_report.html</span>
+      </a>
+      <a class="link-card amber" href="../chart/problem_ex_1.html">
+        <div class="t">課題事例①〜③</div>
+        <div class="d">要件不明確時フロー／モック乖離／不明点の切り分け。</div>
+        <span class="p">../chart/problem_ex_1.html</span>
+      </a>
+      <a class="link-card" href="../ai-04/ai_dd_process.html">
+        <div class="t">AI駆動開発プロセス（全体フロー）</div>
+        <div class="d">spec生成からエージェント実行までの進め方の全体像。</div>
+        <span class="p">../ai-04/ai_dd_process.html</span>
+      </a>
+      <a class="link-card" href="../ai-06/vmodel.html">
+        <div class="t">V字モデル：AIと人の責任分界</div>
+        <div class="d">CRUD実装フローをV字モデル上に配置し、AIと人の担当範囲を可視化。</div>
+        <span class="p">../ai-06/vmodel.html</span>
+      </a>
+    </div>
+    <div class="footer"><span class="brand">PW案件 / AIDD</span><span>chart/index.html に資料一覧</span></div>
+  </section>
+
+  <!-- 8. 想定問答 -->
+  <section class="slide">
+    <div class="kicker">付録　Q&A</div>
+    <h1 class="deck-title">導入を検討するときの論点（Q&A）</h1>
+    <div class="title-rule"></div>
+    <div class="qa">
+      <div class="row">
+        <div class="q">うちの業務でも同じ削減率が出る？</div>
+        <div class="a"><strong>領域次第</strong>です。CRUD・定型パターンほど効きますが、業務固有の専門ロジックが厚い領域は人の判断が多く残るはず。まず小さい定型領域で実工数を測ってみるのがおすすめです。</div>
+      </div>
+      <div class="row">
+        <div class="q">現行版の所在・注意点は？</div>
+        <div class="a">実際のエージェント定義やコード（Claude Code のエージェント／スキル）は <strong>PW案件のリポジトリ</strong>にあり、この資料には載せていません。現エージェントには <strong>PW案件向けのカスタマイズが一部入っている</strong>箇所もあり、他案件で使う場合は多少の調整が必要になることがあります。</div>
+      </div>
+      <div class="row">
+        <div class="q">社内標準アーキ以外の言語・フレームワークにも対応できる？</div>
+        <div class="a">可能です。AIDD の進め方自体は言語・フレームワークに依存しません。対象環境に合わせて <strong>CLAUDE.md（ルール・規約）と各エージェントを直せば</strong>、別の言語・フレームワークにも適用できます。</div>
+      </div>
+      <div class="row">
+        <div class="q">サポートは受けられる？</div>
+        <div class="a">現時点では <strong>自己責任での運用</strong>をお願いします。専任のサポート窓口はまだありません。共有する情報も暫定・開発途中のため、利用の判断（上司への相談含む）は受け取り側でお願いします。</div>
+      </div>
+      <div class="row">
+        <div class="q">全自動はいつ実現する？</div>
+        <div class="a">目指してはいますが、今は局所的な積み上げの段階。実証で効果と課題を貯めている途中です。</div>
+      </div>
+    </div>
+    <div class="footer"><span class="brand">PW案件 / AIDD</span><span>Q&A</span></div>
+  </section>
+
+  <!-- 赤ペン注釈用オーバーレイ（pointer-events:none でクリック/リンクは透過） -->
+  <canvas id="ink" width="1280" height="720"></canvas>
+
+</div>
+
+<div id="mode">
+  <button id="mode-pen" class="active">✏️ ペン</button>
+  <button id="mode-text">🖱 テキスト選択</button>
+</div>
+
+<div id="nav">
+  <button id="prev" aria-label="前へ">‹</button>
+  <span id="counter">1 / 8</span>
+  <button id="next" aria-label="次へ">›</button>
+</div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const counter = document.getElementById('counter');
+  let idx = 0;
+
+  function clamp(n) { return Math.max(0, Math.min(slides.length - 1, n)); }
+  function parseHash() {
+    const m = /^#(\d+)$/.exec(location.hash);
+    return m ? clamp(parseInt(m[1], 10) - 1) : 0;
+  }
+  // render のみ（履歴は触らない）
+  function render() {
+    slides.forEach((s, i) => s.classList.toggle('active', i === idx));
+    counter.textContent = (idx + 1) + ' / ' + slides.length;
+    clearInk(); // ページ遷移で赤ペンを消す
+  }
+  // ユーザー操作での移動 = 履歴に1ページ記録する（戻る/進むで辿れる）
+  function show(n) {
+    idx = clamp(n);
+    render();
+    const h = '#' + (idx + 1);
+    if (location.hash !== h) history.pushState({ idx }, '', h);
+  }
+  function next() { show(idx + 1); }
+  function prev() { show(idx - 1); }
+
+  // 戻る/進む（他ファイルから戻った場合も含む）でスライドを復元
+  window.addEventListener('popstate', () => { idx = parseHash(); render(); });
+
+  document.getElementById('next').onclick = next;
+  document.getElementById('prev').onclick = prev;
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { next(); e.preventDefault(); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { prev(); e.preventDefault(); }
+    else if (e.key === 'Home') show(0);
+    else if (e.key === 'End') show(slides.length - 1);
+  });
+  const stage = document.getElementById('stage');
+
+  // ===== モード切替（ペン / テキスト選択）＋ 赤ペン注釈 =====
+  // 共通: クリック（押して動かさない）= ページ遷移、線は ページ遷移 または 右クリック で消える
+  // ペンモード: ドラッグ = 赤線を描く（テキスト選択は無効）
+  // テキスト選択モード: ドラッグ = 通常のテキスト選択（描画しない）
+  const canvas = document.getElementById('ink');
+  const ctx = canvas.getContext('2d');
+  ctx.strokeStyle = '#e11d48';
+  ctx.lineWidth = 3;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  function clearInk() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
+
+  let mode = 'pen'; // 'pen' | 'text'
+  const penBtn = document.getElementById('mode-pen');
+  const textBtn = document.getElementById('mode-text');
+  function setMode(m) {
+    mode = m;
+    penBtn.classList.toggle('active', m === 'pen');
+    textBtn.classList.toggle('active', m === 'text');
+    stage.classList.toggle('pen-mode', m === 'pen');
+    if (m === 'pen') { // ペンに切替時、選択中テキストは解除
+      const sel = window.getSelection();
+      if (sel && !sel.isCollapsed) sel.removeAllRanges();
+    }
+  }
+  penBtn.onclick = () => setMode('pen');
+  textBtn.onclick = () => setMode('text');
+
+  let pressing = false, moved = false, suppressClick = false;
+  let lastX = 0, lastY = 0, startX = 0, startY = 0;
+  const DRAG_THRESHOLD = 6; // px（stage座標）これ未満の移動はクリック扱い
+
+  // mouse 座標 → stage 内部座標（scale を打ち消す）
+  function toLocal(e) {
+    const r = stage.getBoundingClientRect();
+    const scale = r.width / 1280;
+    return { x: (e.clientX - r.left) / scale, y: (e.clientY - r.top) / scale };
+  }
+
+  stage.addEventListener('mousedown', e => {
+    if (e.button !== 0) return; // 左ボタンのみ
+    pressing = true; moved = false;
+    const p = toLocal(e);
+    startX = lastX = p.x; startY = lastY = p.y;
+  });
+  stage.addEventListener('mousemove', e => {
+    if (!pressing) return;
+    const p = toLocal(e);
+    if (!moved && Math.hypot(p.x - startX, p.y - startY) < DRAG_THRESHOLD) return;
+    moved = true; // モードに関わらずドラッグ＝クリック扱いしない
+    if (mode !== 'pen') return; // テキスト選択モードは描画せず、ネイティブの選択に任せる
+    ctx.beginPath();
+    ctx.moveTo(lastX, lastY);
+    ctx.lineTo(p.x, p.y);
+    ctx.stroke();
+    lastX = p.x; lastY = p.y;
+  });
+  window.addEventListener('mouseup', () => {
+    if (!pressing) return;
+    pressing = false;
+    suppressClick = moved; // ドラッグ（描画・選択）直後の click はページ遷移させない
+  });
+
+  // 右クリックで線を消す（メニューは出さない）
+  stage.addEventListener('contextmenu', e => { e.preventDefault(); clearInk(); });
+
+  // クリックでページ遷移（リンク・ドラッグ直後は除く）
+  stage.addEventListener('click', e => {
+    if (suppressClick) { suppressClick = false; return; }
+    if (e.target.closest('a')) return;
+    const r = stage.getBoundingClientRect();
+    if (e.clientX - r.left < r.width * 0.25) prev(); else next();
+  });
+
+  // 16:9 ステージをビューポートにフィット
+  function fit() {
+    const scale = Math.min(window.innerWidth / 1280, window.innerHeight / 720);
+    stage.style.transform = 'scale(' + scale + ')';
+  }
+  window.addEventListener('resize', fit);
+  fit();
+  setMode('pen'); // 初期モード
+  // 初期表示: URL の #n があればその位置を復元（他ファイルから戻った時に効く）
+  idx = parseHash();
+  render();
+  history.replaceState({ idx }, '', '#' + (idx + 1));
+</script>
+</body>
+</html>

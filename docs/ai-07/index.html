@@ -2,7 +2,8 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<title>As-Is vs To-Be ｜ AI駆動開発の効果</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI駆動開発の効果 ｜ As-Is/To-Be ・他チーム向け共有</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { background: #fafaf7; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Yu Gothic UI", sans-serif; color: #1a1a1a; }
@@ -16,6 +17,9 @@
   .lede { color: #555; font-size: 13px; line-height: 1.7; margin-bottom: 24px; padding: 14px 18px; background: #fff; border: 1px solid #d8dbe2; border-radius: 12px; }
   .lede strong { color: #1a1a1a; }
 
+  h2.sec { font-size: 14px; color: #2f6fb0; border-bottom: 1px solid #cdd8ea; padding-bottom: 5px; margin: 28px 0 14px; }
+
+  .links { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
   .link-card {
     display: block; text-decoration: none; color: inherit;
     background: #fff; border: 1px solid #d8dbe2; border-left: 4px solid #2f6fb0;
@@ -23,44 +27,99 @@
     transition: border-color 0.1s ease, box-shadow 0.1s ease;
   }
   .link-card:hover { border-color: #2f6fb0; box-shadow: 0 2px 8px rgba(47, 111, 176, 0.12); }
+  .link-card.ref { border-left-color: #94a3b8; }
+  .link-card.ref:hover { border-color: #94a3b8; box-shadow: 0 2px 8px rgba(148,163,184,0.15); }
+  .link-card.issue { border-left-color: #d97706; }
+  .link-card.issue:hover { border-color: #d97706; box-shadow: 0 2px 8px rgba(214,154,58,0.15); }
   .link-title { font-size: 15px; font-weight: 700; color: #1f4e80; margin-bottom: 6px; }
+  .link-card.ref .link-title { color: #475569; }
+  .link-card.issue .link-title { color: #92400e; }
   .link-desc { font-size: 12px; color: #555; line-height: 1.6; }
   .link-path { display: inline-block; margin-top: 8px; font-size: 11px; color: #888; font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; }
+  .badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 999px; background: #fef3c7; color: #92400e; margin-right: 6px; vertical-align: 1px; }
 
-  .toc { margin-top: 18px; font-size: 12px; color: #666; line-height: 1.9; }
+  .toc { margin-top: 10px; font-size: 12px; color: #666; line-height: 1.9; }
   .toc b { color: #1a1a1a; }
+
+  @media (max-width: 720px) { .links { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
 <div class="container">
 
   <header class="header">
-    <h1>As-Is vs To-Be ｜ AI駆動開発の効果</h1>
-    <div class="meta">ドキュメント目次</div>
+    <h1>AI駆動開発の効果 ｜ スライド資料</h1>
+    <div class="meta">ドキュメント目次 ／ ai-07</div>
   </header>
 
   <div class="lede">
     「通常の開発フロー（<strong>As-Is</strong>）」と「AI駆動開発（<strong>To-Be</strong>）」を工程ごとに並べ、
-    <strong>どの作業が消え・縮み、どの作業が人の手元に残るか</strong>を可視化したスライド資料。
-    AI開発をブラックボックスにせず、再現可能な運用モデルとして提示する（金子社長MTG 指示「As-Is vs To-Be の資料化」）。
+    <strong>どの作業が消え・縮み、どの作業が人の手元に残るか</strong>を可視化したスライド資料群。
+    社長向けの効果説明（As-Is/To-Be）と、他チームへの情報共有用（暫定）の2デッキを収録。
   </div>
 
-  <a class="link-card" href="asis-tobe.html">
-    <div class="link-title">As-Is → To-Be スライドデッキ（全8枚）</div>
-    <div class="link-desc">AI駆動で実装した 26シナリオをもとに、データモデル・IF（API）・画面処理・検証の各カテゴリで「決定的な削減ポイント」を可視化。16:9・キーボード操作（←→）対応。</div>
-    <span class="link-path">asis-tobe.html</span>
-  </a>
+  <h2 class="sec">スライドデッキ</h2>
+  <div class="links">
+    <a class="link-card" href="asis-tobe.html">
+      <div class="link-title">As-Is → To-Be スライドデッキ（全8枚）</div>
+      <div class="link-desc">AI駆動で実装した 26シナリオをもとに、データモデル・IF（API）・画面処理・検証の各カテゴリで「決定的な削減ポイント」を可視化。社長MTG指示「As-Is vs To-Be の資料化」。16:9・←→対応。</div>
+      <span class="link-path">asis-tobe.html</span>
+    </a>
+    <a class="link-card" href="team-share.html">
+      <div class="link-title"><span class="badge">暫定・社内他チーム向け</span>チーム間共有スライド（全8枚）</div>
+      <div class="link-desc">社内の他チーム向けの共有用。目指す姿 → 局所的な積み上げ → As-Is/To-Be の測り方 → 削減効果（実測・暫定） → 残る課題 → ご利用上のお願い → 想定問答。社長合意のストーリーラインに準拠。</div>
+      <span class="link-path">team-share.html</span>
+    </a>
+  </div>
 
   <div class="toc">
-    収録スライド：
-    <b>①</b> タイトル ／
-    <b>②</b> 結論サマリ（約700h→約70h・90%減） ／
-    <b>③</b> 工程マップ（消える/縮む/残るの一覧） ／
-    <b>④</b> データモデル ／
-    <b>⑤</b> IF・API ／
-    <b>⑥</b> 画面処理 ／
-    <b>⑦</b> 検証・人の領域 ／
-    <b>⑧</b> 運用モデル（結論）
+    asis-tobe 収録：
+    <b>①</b> タイトル ／ <b>②</b> 結論サマリ（約700h→約70h・90%減） ／ <b>③</b> 工程マップ ／
+    <b>④</b> データモデル ／ <b>⑤</b> IF・API ／ <b>⑥</b> 画面処理 ／ <b>⑦</b> 検証・人の領域 ／ <b>⑧</b> 運用モデル
+  </div>
+
+  <h2 class="sec">資料中の参照リンク（社内 chart）</h2>
+  <div class="links">
+    <a class="link-card ref" href="../chart/aidd_report.html">
+      <div class="link-title">AI駆動開発 実施レポート（As-Is/To-Be）</div>
+      <div class="link-desc">画面別の工数比較・工程内訳・想定バグ数。スライドの削減率の出典。</div>
+      <span class="link-path">../chart/aidd_report.html</span>
+    </a>
+    <a class="link-card ref" href="../chart/workitems.html">
+      <div class="link-title">プロジェクト管理（進捗・WBS）</div>
+      <div class="link-desc">タスク・マイルストーン・進捗の現在地。</div>
+      <span class="link-path">../chart/workitems.html</span>
+    </a>
+    <a class="link-card issue" href="../chart/problem_ex_1.html">
+      <div class="link-title">課題事例①：要件不明確時のフロー</div>
+      <div class="link-desc">業務判断が不明・要件不足時の確認導線とエスカレーション統一。</div>
+      <span class="link-path">../chart/problem_ex_1.html</span>
+    </a>
+    <a class="link-card issue" href="../chart/problem_ex_2.html">
+      <div class="link-title">課題事例②：モックと実装の視覚差分</div>
+      <div class="link-desc">レイアウト乖離と、画像での視覚比較が弱い構造的課題。</div>
+      <span class="link-path">../chart/problem_ex_2.html</span>
+    </a>
+    <a class="link-card issue" href="../chart/problem_ex_3.html">
+      <div class="link-title">課題事例①'：不明点の切り分け</div>
+      <div class="link-desc">不明点が「顧客確認／対象外／資料定義」と混在する整理方針。</div>
+      <span class="link-path">../chart/problem_ex_3.html</span>
+    </a>
+    <a class="link-card ref" href="../chart/test_report.html">
+      <div class="link-title">テスト実装の現状（参考）</div>
+      <div class="link-desc">Backend Jest ユニット／Frontend スモークの現状。</div>
+      <span class="link-path">../chart/test_report.html</span>
+    </a>
+    <a class="link-card" href="../ai-04/ai_dd_process.html">
+      <div class="link-title">AI駆動開発プロセス（全体フロー）</div>
+      <div class="link-desc">spec生成からエージェント実行までの進め方の全体像。</div>
+      <span class="link-path">../ai-04/ai_dd_process.html</span>
+    </a>
+    <a class="link-card" href="../ai-06/vmodel.html">
+      <div class="link-title">V字モデル：AIと人の責任分界</div>
+      <div class="link-desc">CRUD実装フローをV字モデル上に配置し、AIと人の担当範囲を可視化。</div>
+      <span class="link-path">../ai-06/vmodel.html</span>
+    </a>
   </div>
 
 </div>
