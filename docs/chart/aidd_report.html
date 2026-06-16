@@ -567,7 +567,7 @@
   const SUBTOTAL_KEYS = ["total-trial", "total-nontrial"];
   const TOP_KEYS = ["total", ...SUBTOTAL_KEYS];
   // 工数0で完了（対応不要・実質完了）のタスク。サイドバーのタブを打ち消し線で表示する。
-  const STRIKE_TABS = new Set(["訪問不在登録", "配車戻し登録", "その他未完了登録"]);
+  const STRIKE_TABS = new Set(["訪問不在登録", "配車戻し登録", "その他未完了登録", "ドライバー持出登録", "未配車検索"]);
   function tabButtonHTML(k) {
     const cls = ["tab"];
     if (k === currentKey) cls.push("active");
