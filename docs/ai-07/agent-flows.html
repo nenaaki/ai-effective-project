@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>エージェント挙動フロー図</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; }
+    body {
+      font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+      background: #0f1117;
+      color: #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .slide {
+      width: 1280px;
+      height: 720px;
+      padding: 22px 32px 16px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    h1 {
+      text-align: center;
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: #f8fafc;
+    }
+    .subtitle {
+      text-align: center;
+      font-size: 0.72rem;
+      color: #64748b;
+      margin: 2px 0 6px;
+    }
+    .chart { flex: 1; min-height: 0; }
+    .chart svg { width: 100%; height: 100%; display: block; }
+
+    /* SVG text helpers */
+    .role { font-size: 9.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+    .title { font-size: 14.5px; font-weight: 700; fill: #f8fafc; }
+    .sub { font-size: 9.5px; fill: #64748b; }
+    .dlabel { font-size: 12.5px; font-weight: 700; fill: #cbd5e1; }
+    .alabel { font-size: 10px; font-weight: 700; }
+
+    /* Legend */
+    .legend {
+      margin-top: 6px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 20px;
+      justify-content: center;
+      font-size: 0.68rem;
+    }
+    .legend-item { display: flex; align-items: center; gap: 6px; }
+    .legend-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+    .legend-name { font-weight: 600; color: #cbd5e1; }
+    .legend-role { color: #64748b; }
+  </style>
+</head>
+<body>
+  <div class="slide">
+
+    <h1>エージェント挙動フロー図</h1>
+    <p class="subtitle">pw-dms マルチエージェント実装システム ― 実装〜PR と「仕様確認」差し戻しの循環</p>
+
+    <div class="chart">
+      <svg viewBox="0 0 1216 500" preserveAspectRatio="xMidYMid meet">
+        <defs>
+          <marker id="arrow" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto" markerUnits="userSpaceOnUse">
+            <path d="M0,0 L7,3 L0,6 Z" fill="#64748b" />
+          </marker>
+          <marker id="arrowR" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto" markerUnits="userSpaceOnUse">
+            <path d="M0,0 L7,3 L0,6 Z" fill="#ef4444" />
+          </marker>
+          <marker id="arrowG" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto" markerUnits="userSpaceOnUse">
+            <path d="M0,0 L7,3 L0,6 Z" fill="#34d399" />
+          </marker>
+          <marker id="arrowA" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto" markerUnits="userSpaceOnUse">
+            <path d="M0,0 L7,3 L0,6 Z" fill="#f59e0b" />
+          </marker>
+        </defs>
+
+        <!-- ===================== ARROWS (drawn first, under boxes) ===================== -->
+
+        <!-- happy path -->
+        <line x1="134" y1="100" x2="352" y2="100" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)" />
+        <line x1="464" y1="100" x2="496" y2="100" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)" />
+        <line x1="656" y1="100" x2="686" y2="100" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)" />
+        <line x1="836" y1="100" x2="874" y2="100" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)" />
+        <line x1="986" y1="100" x2="1020" y2="100" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)" />
+
+        <!-- fail: 実装不可 (D1 ↓ → 仕様確認) -->
+        <path d="M408,140 L408,350 L464,350" fill="none" stroke="#ef4444" stroke-width="2.2" marker-end="url(#arrowR)" />
+        <!-- 問題あり → triage (D2 ↓ D3) -->
+        <line x1="930" y1="140" x2="930" y2="193" stroke="#ef4444" stroke-width="2.2" marker-end="url(#arrowR)" />
+        <!-- triage: 要確定 → 仕様確認 (D3 ↓ → 差し戻し) -->
+        <path d="M930,277 L930,350 L712,350" fill="none" stroke="#ef4444" stroke-width="2.2" marker-end="url(#arrowR)" />
+        <!-- triage: 仮実装OK → PR＋チケット化 (D3 →) -->
+        <line x1="982" y1="235" x2="1020" y2="235" stroke="#f59e0b" stroke-width="2.2" marker-end="url(#arrowA)" />
+
+        <!-- return: 仕様確認 → 調査・タスク分解 (the loop) -->
+        <path d="M588,386 L588,455 L243,455 L243,136" fill="none" stroke="#34d399" stroke-width="2.2"
+              stroke-dasharray="7 5" marker-end="url(#arrowG)" />
+
+        <!-- arrow labels -->
+        <text class="alabel" x="480" y="92"  fill="#94a3b8" text-anchor="middle">可能</text>
+        <text class="alabel" x="1003" y="92" fill="#94a3b8" text-anchor="middle">問題なし</text>
+        <text class="alabel" x="418" y="250" fill="#f87171">実装不可</text>
+        <text class="alabel" x="944" y="174" fill="#f87171">問題あり</text>
+        <text class="alabel" x="820" y="342" fill="#f87171" text-anchor="end">要確定 → 差し戻し</text>
+        <text class="alabel" x="300" y="447" fill="#34d399">回答・仕様確定 → 再調査へ</text>
+
+        <!-- ===================== NODES ===================== -->
+
+        <!-- A: 実装依頼 (User) -->
+        <rect x="8" y="68" width="126" height="64" rx="10" fill="#1e2130" stroke="#34d399" stroke-width="1.6" />
+        <text class="role" x="71" y="90"  fill="#34d399" text-anchor="middle">User</text>
+        <text class="title" x="71" y="108" text-anchor="middle">実装依頼</text>
+        <text class="sub"  x="71" y="123" text-anchor="middle">画面名・機能概要</text>
+
+        <!-- B: 調査・タスク分解 (Planner) -->
+        <rect x="168" y="68" width="150" height="64" rx="10" fill="#1e2130" stroke="#fbbf24" stroke-width="1.6" />
+        <text class="role" x="243" y="90"  fill="#fbbf24" text-anchor="middle">Planner</text>
+        <text class="title" x="243" y="108" text-anchor="middle">調査・タスク分解</text>
+        <text class="sub"  x="243" y="123" text-anchor="middle">mock / schema 照合</text>
+
+        <!-- D1: 実装可能か？ -->
+        <polygon points="408,60 460,100 408,140 356,100" fill="#252a3a" stroke="#3d4461" stroke-width="1.6" stroke-dasharray="5 4" />
+        <text class="dlabel" x="408" y="97" text-anchor="middle">実装</text>
+        <text class="dlabel" x="408" y="113" text-anchor="middle">可能か？</text>
+
+        <!-- C: 実装開始（仮実装） -->
+        <rect x="500" y="68" width="156" height="64" rx="10" fill="#1e2130" stroke="#60a5fa" stroke-width="1.6" />
+        <text class="role" x="578" y="90"  fill="#60a5fa" text-anchor="middle">専門エージェント</text>
+        <text class="title" x="578" y="108" text-anchor="middle">実装開始</text>
+        <text class="sub"  x="578" y="123" text-anchor="middle">要確認箇所は仮実装で進行</text>
+
+        <!-- E: レビュー・検証 -->
+        <rect x="690" y="68" width="146" height="64" rx="10" fill="#1e2130" stroke="#22d3ee" stroke-width="1.6" />
+        <text class="role" x="763" y="90"  fill="#22d3ee" text-anchor="middle">Reviewer / Tester</text>
+        <text class="title" x="763" y="108" text-anchor="middle">レビュー・検証</text>
+        <text class="sub"  x="763" y="123" text-anchor="middle">コード検査＋動作確認</text>
+
+        <!-- D2: 問題はないか？ -->
+        <polygon points="930,60 982,100 930,140 878,100" fill="#252a3a" stroke="#3d4461" stroke-width="1.6" stroke-dasharray="5 4" />
+        <text class="dlabel" x="930" y="97" text-anchor="middle">問題は</text>
+        <text class="dlabel" x="930" y="113" text-anchor="middle">ないか？</text>
+
+        <!-- D3: 仮実装でPR可能か？（問題ありのトリアージ） -->
+        <polygon points="930,195 982,235 930,275 878,235" fill="#252a3a" stroke="#3d4461" stroke-width="1.6" stroke-dasharray="5 4" />
+        <text class="dlabel" x="930" y="231" text-anchor="middle">仮実装で</text>
+        <text class="dlabel" x="930" y="247" text-anchor="middle">PR可能？</text>
+
+        <!-- F: PR (結論) -->
+        <rect x="1024" y="68" width="160" height="64" rx="10" fill="#16241c" stroke="#34d399" stroke-width="2" />
+        <text class="role" x="1104" y="90"  fill="#34d399" text-anchor="middle">結論</text>
+        <text class="title" x="1104" y="108" text-anchor="middle">PR 作成</text>
+        <text class="sub"  x="1104" y="123" text-anchor="middle">確認事項を添えて提出</text>
+
+        <!-- F2: PR作成＋残課題チケット化（仮実装OK・確認に時間） -->
+        <rect x="1024" y="203" width="160" height="64" rx="10" fill="#16241c" stroke="#34d399" stroke-width="2" />
+        <text class="role" x="1104" y="225" fill="#fbbf24" text-anchor="middle">仮実装OK・確認に時間</text>
+        <text class="title" x="1104" y="243" text-anchor="middle">PR作成＋チケット化</text>
+        <text class="sub"  x="1104" y="258" text-anchor="middle">残課題は別チケットで追跡</text>
+
+        <!-- G: 仕様確認（差し戻しハブ） -->
+        <rect x="468" y="314" width="240" height="72" rx="12" fill="#16241c" stroke="#34d399" stroke-width="2.2" />
+        <text class="role" x="588" y="338"  fill="#34d399" text-anchor="middle">User ― 差し戻し</text>
+        <text class="title" x="588" y="358" text-anchor="middle">仕様確認</text>
+        <text class="sub"  x="588" y="375" text-anchor="middle">仮定・質問への回答／判断 → Planner へ</text>
+
+      </svg>
+    </div>
+
+    <!-- Legend -->
+    <div class="legend">
+      <div class="legend-item"><span class="legend-dot" style="background:#34d399"></span><span class="legend-name">User</span><span class="legend-role">依頼・仕様確認</span></div>
+      <div class="legend-item"><span class="legend-dot" style="background:#fbbf24"></span><span class="legend-name">Planner</span><span class="legend-role">調査・タスク分解</span></div>
+      <div class="legend-item"><span class="legend-dot" style="background:#60a5fa"></span><span class="legend-name">専門エージェント</span><span class="legend-role">実装・仮実装</span></div>
+      <div class="legend-item"><span class="legend-dot" style="background:#22d3ee"></span><span class="legend-name">Reviewer / Tester</span><span class="legend-role">レビュー・検証</span></div>
+      <div class="legend-item"><span class="legend-dot" style="background:#ef4444"></span><span class="legend-name">差し戻し</span><span class="legend-role">実装不可 / 要確定</span></div>
+      <div class="legend-item"><span class="legend-dot" style="background:#f59e0b"></span><span class="legend-name">前進</span><span class="legend-role">仮実装OK→チケット化</span></div>
+      <div class="legend-item"><span class="legend-dot" style="background:#34d399"></span><span class="legend-name">ループ</span><span class="legend-role">回答 → 再調査</span></div>
+    </div>
+
+  </div>
+</body>
+</html>
