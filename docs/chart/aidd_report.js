@@ -343,6 +343,21 @@
   // workitems 由来テンプレートを実データで上書き。指定キーの工程だけ差分マージ、
   // 残工程は 0 のまま (= 未測定)。tasks.<key>.{asis, tobe, tobeEng, loc, agents} を任意指定。
   const SCENARIO_OVERRIDES = {
+    // 訪問不在登録(FE032)・配車戻し登録(FE033)・その他未完了登録(FE034)・ドライバー持出登録(FE030) は
+    // 配送完了登録(FE031) と同一画面／同一コンポーネントの一機能として一括実装したため、単独の実装工数は発生しない。
+    // タイトル下 (lede) にその旨だけを記載する。
+    'wi-screen-DM11FE030': {
+      lede: "<strong>ドライバー持出登録</strong>（FE030 / DM11 ドライバー業務）。<strong>配送完了登録画面（FE031）と同一コンポーネントの一機能だったため、一括実装した。</strong>工数は配送完了登録に内包され、単独の実装工数は発生していない。",
+    },
+    'wi-screen-DM11FE032': {
+      lede: "<strong>訪問不在登録</strong>（FE032 / DM11 ドライバー業務）。<strong>配送完了登録画面（FE031）にある一機能だったため、一括実装した。</strong>工数は配送完了登録に内包され、単独の実装工数は発生していない。",
+    },
+    'wi-screen-DM11FE033': {
+      lede: "<strong>配車戻し登録</strong>（FE033 / DM11 ドライバー業務）。<strong>配送完了登録画面（FE031）にある一機能だったため、一括実装した。</strong>工数は配送完了登録に内包され、単独の実装工数は発生していない。",
+    },
+    'wi-screen-DM11FE034': {
+      lede: "<strong>その他未完了登録</strong>（FE034 / DM11 ドライバー業務）。<strong>配送完了登録画面（FE031）にある一機能だったため、一括実装した。</strong>工数は配送完了登録に内包され、単独の実装工数は発生していない。",
+    },
     // 配送完了登録 (FE031 / DM11 ドライバー業務) - 配送先（荷物）情報表示 + 配送完了登録。
     // 実績コード量: API 336 / フロントエンド 1,365 行 (DB/テストなし)。
     // AsIs: お知らせ登録(FE015) の行あたり工数を実績LOCに適用 (api-impl 8h/369行・fe-impl 33.5h/1694行)。fe-design/UX は規模比で按分。合計 約41.5h。
@@ -450,6 +465,53 @@
         "<strong>実績コード量</strong>: API <strong>114 行</strong> / フロントエンド <strong>54 行</strong>（DB 0・ユニットテスト 0）。工程区分はお知らせ登録(FE015)のフォーマットを流用。",
         "<strong>AsIs（人力想定）は行数規模から推定</strong>: お知らせ登録の『行あたり工数』を実績LOCに適用（api-impl 8h/369行 → 2.5h）。フロント実装（2.0h）・フロント設計（0.5h）・UX（3.0h）は規模比按分では過小なため実態に合わせて設定。APIレビュー・フロントレビュー・動作確認は人の確認工数として AsIs / ToBe をそろえる（各0.25h）。合計 約8.75h。",
         "<strong>ToBe（AI駆動）は実績 1.75h</strong>: AI 1.0h（API実装 0.6 / UX 0.1 / FE設計 0.05 / FE実装 0.25）＋ APIレビュー 0.25h（エンジニア）＋ フロントレビュー 0.25h（エンジニア）＋ 動作確認 0.25h（エンジニア）。削減率 <strong>約80%</strong>。実装が小規模なため、人の確認工数（レビュー・動作確認）の比重が大きく削減率は低め。",
+      ],
+    },
+    // 未配車検索(FE037) は 翌日配車表示(FE036) とクエリーが異なるだけの同一画面のため、
+    // 翌日配車表示側でまとめて実装した。単独の実装工数は発生しない。タイトル下(lede)にその旨を記載。
+    'wi-screen-DM11FE037': {
+      lede: "<strong>未配車検索</strong>（FE037 / DM11 ドライバー業務）。<strong>翌日配車表示画面（FE036）とクエリーが異なるだけの同一画面だったため、翌日配車表示の方でまとめて実装した。</strong>工数は翌日配車表示に内包され、単独の実装工数は発生していない。",
+    },
+    // 翌日配車表示 (FE036 / DM11 ドライバー業務) - お問い合わせ番号検索 + 翌日配車予定一覧表示。
+    // 実績コード量: DB 0 / API 77 / ユニットテスト 400 / フロントエンド 77 行。
+    // AsIs: お知らせ登録(FE015) の「行あたり工数」を実績LOCに適用 (api-impl 8h/369行・api-test 3.5h/256行・fe-impl 33.5h/1694行)。
+    //       fe-design/UX は按分過小のため実態値(UX 3.5h・fe-design 0.5h)に設定。合計 約13.7h。
+    // ToBe: AI 0.4h + APIレビュー 0.25h + フロントレビュー 0.25h + 動作確認 0.5h + クエリー調整 1.0h(うちエンジニア0.75h) = 2.4h。
+    'wi-screen-DM11FE036': {
+      lede: "<strong>翌日配車表示</strong>（FE036 / DM11 ドライバー業務）の開発工数比較。<strong>お問い合わせ番号検索＋翌日配車予定一覧表示</strong>を行う閲覧画面。実績コード量は API <strong>77 行</strong>・ユニットテスト <strong>400 行</strong>・フロントエンド <strong>77 行</strong>（DB なし）。<strong>AsIs は行数規模から推定</strong>（お知らせ登録(FE015) の行あたり工数を適用）。ただし UX設計 3.5h・フロント設計 0.5h は規模比按分では過小なため実態に合わせて設定。合計 約13.7h。<strong>ToBe は実績</strong>（AI 0.4h ＋ APIレビュー 0.25h ＋ フロントレビュー 0.25h ＋ 動作確認 0.5h ＋ クエリー調整 1.0h ＝ 2.4h）。削減率 <strong>約82%</strong>。",
+      bugCategories: [
+        { key: "syntax", label: "構文/型エラー",                          color: "#ef4444", asis: 0, tobe: 0 },
+        { key: "logic",  label: "ロジックバグ (検索・並び順・一覧集約)",    color: "#f59e0b", asis: 1, tobe: 0 },
+        { key: "edge",   label: "エッジケース漏れ (空・該当なし・日付境界)", color: "#8b5cf6", asis: 1, tobe: 0 },
+        { key: "spec",   label: "仕様解釈ミス (表示項目・検索仕様の解釈)",  color: "#ec4899", asis: 1, tobe: 1 },
+        { key: "ui",     label: "UI 細部の不整合 (一覧表示)",              color: "#06b6d4", asis: 1, tobe: 1 },
+      ],
+      bugRateNote: "※ 翌日配車表示 約 0.15 KLOC（製品コード・テスト除く）× 参考レート（人力 12/KLOC ≒ 2件 / AI 5/KLOC ≒ 1件）で推定。お問い合わせ番号検索＋翌日配車予定一覧の閲覧画面で、論点は <strong>表示項目・検索仕様の解釈</strong>。",
+      tasks: {
+        'data-design': { asis: 0,                tobe: 0,    tobeEng: 0,   agents: ["—"] },
+        'data-impl':   { asis: 0,    loc: 0,     tobe: 0,    tobeEng: 0,   agents: ["—"] },
+        'api-impl':    { asis: 1.7,  loc: 77,    tobe: 0.15, tobeEng: 0,   agents: ["バックエンドAI"] },
+        'api-test':    { asis: 5.5,  loc: 400,   tobe: 0.1,  tobeEng: 0,   agents: ["バックエンドAI"] },
+        'api-review':  { asis: 0.25,             tobe: 0.25, tobeEng: 0.25, agents: ["バックエンドレビュワーAI", "エンジニア"] },
+        'ux':          { asis: 3.5,              tobe: 0.03, tobeEng: 0,   agents: ["プランナーAI", "エンジニア"] },
+        'fe-design':   { asis: 0.5,              tobe: 0.02, tobeEng: 0,   agents: ["フロントエンドAI"] },
+        'fe-impl':     { asis: 1.5,  loc: 77,    tobe: 0.1,  tobeEng: 0,   agents: ["フロントエンドAI"] },
+        'fe-test':     {                                                   agents: ["—"] },
+        'fe-review':   { asis: 0.25,             tobe: 0.25, tobeEng: 0.25, agents: ["フロントエンドレビュワーAI", "エンジニア"] },
+        'verify':      { asis: 0.5,              tobe: 0.5,  tobeEng: 0.5, agents: ["バックエンドテスターAI", "フロントエンドテスターAI", "エンジニア"] },
+        'query-adjust': {
+          label: "クエリー調整",
+          color: "#fbbf24",
+          asis: 0,
+          tobe: 1.0, tobeEng: 0.75,
+          agents: ["バックエンドAI", "エンジニア"],
+        },
+      },
+      contextNotes: [
+        "対象画面: 翌日配車表示（FE036 / DM11 ドライバー業務）。お問い合わせ番号検索・翌日配車予定一覧表示を行う閲覧画面。",
+        "<strong>実績コード量</strong>: API <strong>77 行</strong> / ユニットテスト <strong>400 行</strong> / フロントエンド <strong>77 行</strong>（DB 0）。工程区分はお知らせ登録(FE015)のフォーマットを流用。",
+        "<strong>AsIs（人力想定）は行数規模から推定</strong>: お知らせ登録の『行あたり工数』を実績LOCに適用（api-impl 8h/369行 → 1.7h・api-test 3.5h/256行 → 5.5h・fe-impl 33.5h/1694行 → 1.5h）。UX（3.5h）・フロント設計（0.5h）は規模比按分では過小なため実態に合わせて設定。APIレビュー・フロントレビュー・動作確認は人の確認工数として AsIs / ToBe をそろえる（各0.25h / 0.25h / 0.5h）。合計 約13.7h。",
+        "<strong>ToBe（AI駆動）は実績 2.4h</strong>: AI 0.4h（API実装 0.15 / API単体テスト 0.1 / UX 0.03 / FE設計 0.02 / FE実装 0.1）＋ APIレビュー 0.25h（エンジニア）＋ フロントレビュー 0.25h（エンジニア）＋ 動作確認 0.5h（エンジニア）＋ クエリー調整 1.0h（うちエンジニア 0.75h）。削減率 <strong>約82%</strong>。ユニットテスト 400 行を含み、実装比で API単体テストの AsIs（5.5h）が大きい点が特徴。クエリー調整は未配車検索（FE037・クエリー差分のみの同一画面）を同画面にまとめるための調整工数。",
       ],
     },
     // トップページ (FE028 / DM11 ドライバー業務) - お問い合わせ番号検索 + 配送状況サマリー + 本日の配送先一覧。
