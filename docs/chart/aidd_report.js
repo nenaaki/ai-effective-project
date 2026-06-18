@@ -926,6 +926,39 @@
         "<strong>AsIs は実績コード量(概算)から推定</strong>: バックエンド 約280行 → 3h＋テスト0.5h、フロント 約880行 → 17.4h（商品マスタ 16h/810行）。合計 約26.7h → ToBe 2.0h（<strong>削減 約93%</strong>）。LOC は概算。",
       ],
     },
+    // 配送予定一覧 (FE003 / PW-121 / DM01 配送情報確認) — 閲覧スコープ。ToBe は実測: 系統A 3.5h(系統B 0)。レビュー中(完了ではない)。
+    // deliveries(FE001) 流用。backend: depotNames逆引き・水源列/水源別サマリーQuery・seed整合。driver改名取りこぼし(既存バグ)を同梱。スキーマ変更なし。
+    'wi-screen-DM01FE003': {
+      lede: "AIDD 試行「配送予定一覧」(FE003 / PW-121) の開発工数比較。<strong>t_delivery を根に 検索4条件・一覧15列・水源別サマリーフッター</strong>を扱う<strong>閲覧スコープ</strong>の画面。<strong>配送情報照会(FE001)を流用</strong>し、backend は depotNames 逆引き・水源列(DeliverySummary.waterSource)・水源別サマリー Query・seed 整合を追加（スキーマ変更なし）。<strong>PW-159 改名取りこぼし(driver)の既存バグも同梱修正</strong>。<strong>ToBe は実測</strong>(time-log) <strong>3.5h</strong>(標準開発のみ／試行特有 0h)。<strong>本タスクはレビュー中（完了ではない）</strong>。AsIs は実績コード量(概算)から推定。",
+      bugCategories: [
+        { key: "syntax", label: "構文/型エラー",                                              color: "#ef4444", asis: 3, tobe: 0 },
+        { key: "logic",  label: "ロジックバグ (depotNames郵便番号逆引き・水源行代表・サマリー集計)",   color: "#f59e0b", asis: 5, tobe: 2 },
+        { key: "edge",   label: "エッジケース漏れ (指定日From=To・水源未紐づけ・空検索)",             color: "#8b5cf6", asis: 3, tobe: 1 },
+        { key: "spec",   label: "仕様解釈ミス (水源行代表ルール・荷主集約・完了日時・完了区分の正本)",   color: "#ec4899", asis: 2, tobe: 4 },
+        { key: "ui",     label: "UI 細部の不整合 (15列維持・返品済↔返品済み正規化・除外操作非表示)",     color: "#06b6d4", asis: 4, tobe: 1 },
+      ],
+      bugRateNote: "※ 配送予定一覧 約 0.9 KLOC(フロント 約650行＋API拡張 約200行)。閲覧スコープで論点は <strong>複数明細時の水源「行代表」ルール</strong>(高・暫定 先頭明細代表)・<strong>seed の完了区分整合</strong>(受取拒否=未完了/仮登録)・<strong>完了区分 is_completed↔completion_type の正本</strong>で「<strong>仕様解釈ミス</strong>」が突出(ToBe 4件)。いずれも mock 列は縮退せず暫定対応＋ questions/PW-121.tsv 記録。検証で水源列が seed の商品↔水源未紐づけにより空 → seed 補完＋再 seed で実値化を確認。",
+      tasks: {
+        'data-design': { asis: 0,             tobe: 0,                   agents: ["—"] },
+        'data-impl':   { asis: 0.5, loc: 45,  tobe: 0.2,                 agents: ["バックエンドAI(seed)"] },
+        'api-impl':    { asis: 4,   loc: 200, tobe: 0.6,                 agents: ["バックエンドAI"] },
+        'api-test':    { asis: 1,   loc: 60,  tobe: 0.1,                 agents: ["バックエンドAI"] },
+        'api-review':  { asis: 0.3,           tobe: 0.3, tobeEng: 0.3,   agents: ["バックエンドレビュワーAI", "エンジニア"] },
+        'ux':          { asis: 4,             tobe: 0.3, tobeEng: 0.2,   agents: ["プランナーAI", "エンジニア"] },
+        'fe-design':   { asis: 1,             tobe: 0,                   agents: ["フロントエンドAI"] },
+        'fe-impl':     { asis: 13,  loc: 650, tobe: 0.8, tobeEng: 0,     agents: ["フロントエンドAI"] },
+        'fe-test':     {                                                 agents: ["—"] },
+        'fe-review':   { asis: 0.3,           tobe: 0.3, tobeEng: 0.2,   agents: ["フロントエンドレビュワーAI", "エンジニア"] },
+        'verify':      { asis: 2,             tobe: 0.7, tobeEng: 0.5,   agents: ["バックエンドテスターAI", "フロントエンドテスターAI", "エンジニア"] },
+        'driver-fix':  { label: "[既存バグ修正] driver改名取りこぼし(tDeliveryManagement→tDelivery)", color: "#475569", asis: 2, tobe: 0.2, tobeEng: 0, agents: ["バックエンドAI"] },
+      },
+      contextNotes: [
+        "対象画面: 配送予定一覧 (FE003 / PW-121 / DM01 配送情報確認・mock=delivery-schedule)。t_delivery を根に 検索4条件(デポ名/配送担当者名/指定日/ステータス11種) + 一覧15列 + 水源別サマリーフッター。閲覧スコープ(操作=指示書再発行/配送完了登録・予定日別件数ドロワーは非表示で除外)。配送情報照会(FE001/deliveries)を流用。<strong>スキーマ変更なし</strong>(水源・デポ逆引きとも既存リレーションで到達)。",
+        "<strong>ToBe は実測</strong> (time-log.jsonl・2026-06-17〜06-18): 標準開発(系統A) <strong>3.5h</strong>。<span style=\"color:#9333ea\">試行特有(系統B) 0h</span>。/start-task→planner(spec/gap/不明点PW-121_1〜_7)→backend(depotNames逆引き・水源列/サマリーQuery・seed整合)→reviewer/tester→frontend(skeleton/A/実装/B)→driver改名修正→再seed後に再検証→サイドバー→4コミット→PR#107。<strong>本タスクはレビュー中（完了ではない）</strong>のため、今後の動作確認・レビュー対応で増分の可能性あり。",
+        "<strong>手戻り</strong>: backend-reviewer Major(初回4件→修正)、frontend-reviewer モードA/B 指摘修正。検証で <strong>水源列が空</strong>(seed が商品↔水源を未紐づけ)→ seed 補完＋再 seed で 富士山/南アルプス/阿蘇 を実値化。<strong>driver の改名取りこぼし</strong>(tDeliveryManagement 残存6箇所＝既存 main バグ・getTomorrowDeliveries等が実行時クラッシュ)を発見し同梱修正。デポ名検索はデモ営業所のみ実データ(他デポはseed無し・拡張不要で確定)。",
+        "<strong>AsIs は実績コード量(概算)から推定</strong>: フロント 約650行→13h(商品マスタ 16h/810行)、API拡張 約200行→4h、seed 約45行→0.5h。レビュー/動作確認/UX/driver修正は人間工数として AsIs を計上。合計 約28h → ToBe 3.5h(削減 約88%)。LOC は概算。",
+      ],
+    },
   };
   Object.entries(SCENARIO_OVERRIDES).forEach(([key, override]) => {
     const s = scenarios[key];
