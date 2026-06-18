@@ -57,6 +57,16 @@
     margin-top: 6px;
   }
   .consult-label { font-size: 10.5px; font-weight: 700; color: #4338ca; margin-bottom: 4px; }
+  .issue-box {
+    background: #fef3c7;
+    border-left: 3px solid #f59e0b;
+    border-radius: 4px;
+    padding: 9px 12px;
+    font-size: 11.5px;
+    line-height: 1.7;
+    margin-top: 6px;
+  }
+  .issue-label { font-size: 10.5px; font-weight: 700; color: #92400e; margin-bottom: 4px; }
 </style>
 </head>
 <body>
@@ -173,11 +183,14 @@
           </tr>
         </tbody>
       </table>
+      <div class="issue-box">
+        <div class="issue-label">課題</div>
+        結合テストをはじめ、各テストの<strong>自動化とレポート化が不十分</strong>。このままでは修正による<strong>デグレ（他機能の結合への影響）を検知・管理できない</strong>。今から整備すべきと判断した。
+      </div>
       <div class="consult-box">
-        <div class="consult-label">今回の相談ポイント</div>
-        結合テスト（BE-DB）が現状の最大の空白地帯。この状況を踏まえて確認したい：<br>
-        ① 結合テストまで自動化する判断で認識相違ないか<br>
-        ② 計測中だが、仕組みを取り入れてもよいか
+        <div class="consult-label">今回の相談ポイント（PM報告で使うCheck観点）</div>
+        テスト結果は<strong>PMの報告に使うCheck観点</strong>。進め方を金子社長に確認したい。<br>
+        ▸ <strong>やりたいこと</strong>：<strong>テスト項目は人間が作成</strong>し、<strong>レポート出力スクリプトはAIが用意</strong>。PMがレポートを見て<strong>デグレしていないことを管理</strong>できる状態にする。
       </div>
     </div>
   </div>
