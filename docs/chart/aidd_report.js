@@ -298,9 +298,22 @@
     const groupedScreens = groupTasks(sortedScreens);
     const sortedIfs      = [...IFS].sort(sortDefault);
     const keys = [];
+    // 帳票・ファイル出力 (処理区分が DL・印刷) は処理単位で個別タブにする。
+    // (groupTasks 側で DL・印刷 は非グルーピング=処理ごとに1行で来るため、ここで処理名ラベルの個別シナリオ化)
+    const fileioSeq = {};
     groupedScreens.forEach(row => {
       const id  = row.管理ID || row.画面ID;
       if (!id) return;
+      const proc = row.処理区分 || "";
+      const isFileIO = proc.indexOf("DL") >= 0 || proc.indexOf("印刷") >= 0;
+      if (isFileIO) {
+        fileioSeq[id] = (fileioSeq[id] || 0) + 1;
+        const key = `wi-fileio-${id}-${fileioSeq[id]}`;
+        if (scenarios[key]) return;
+        scenarios[key] = createTemplateScenario(row.処理名 || row.画面名 || id, 'screen');
+        keys.push(key);
+        return;
+      }
       const key = `wi-screen-${id}`;
       if (scenarios[key]) return;   // 既存があれば上書きしない
       scenarios[key] = createTemplateScenario(row.画面名 || id, 'screen');
@@ -343,6 +356,34 @@
   // workitems 由来テンプレートを実データで上書き。指定キーの工程だけ差分マージ、
   // 残工程は 0 のまま (= 未測定)。tasks.<key>.{asis, tobe, tobeEng, loc, agents} を任意指定。
   const SCENARIO_OVERRIDES = {
+    // 代引き一覧Excel出力 (FE053 / DM14 帳票・ファイル出力) - 代引き確認(DL)の Excel ダウンロード。
+    // 実績コード量: フロントエンド 179 行のみ (DB/API/テストなし)。
+    // AsIs: お知らせ登録(FE015) の行あたり工数を実績LOCに適用 (fe-impl 33.5h/1694行)。fe-design/UX は按分過小のため実態値。合計 約6.0h。
+    // ToBe: AI 0.5h + フロントレビュー 0.25h + 動作確認 0.25h = 1.0h (実績)。
+    'wi-fileio-DM14FE053-1': {
+      lede: "<strong>代引き一覧Excel出力</strong>（FE053 / DM14 帳票・ファイル入出力）の開発工数比較。<strong>代引き確認(DL)の Excel ダウンロード</strong>機能。実績コード量はフロントエンド <strong>179 行</strong>のみ（DB/API/テストなし）。<strong>AsIs は行数規模から推定</strong>（お知らせ登録(FE015) の行あたり工数を適用）。ただし UX設計 1.5h・フロント設計 0.5h は規模比按分では過小なため実態に合わせて設定。合計 約6.0h。<strong>ToBe は実績</strong>（AI 0.5h ＋ フロントレビュー 0.25h ＋ 動作確認 0.25h ＝ 1.0h）。削減率 <strong>約83%</strong>。",
+      bugCategories: [
+        { key: "syntax", label: "構文/型エラー",                          color: "#ef4444", asis: 0, tobe: 0 },
+        { key: "logic",  label: "ロジックバグ (出力項目・整形)",          color: "#f59e0b", asis: 1, tobe: 0 },
+        { key: "edge",   label: "エッジケース漏れ (空・大量件数・文字コード)", color: "#8b5cf6", asis: 1, tobe: 0 },
+        { key: "spec",   label: "仕様解釈ミス (出力項目・フォーマットの解釈)", color: "#ec4899", asis: 1, tobe: 1 },
+        { key: "ui",     label: "UI 細部の不整合 (DLボタン・ファイル名)",  color: "#06b6d4", asis: 0, tobe: 0 },
+      ],
+      bugRateNote: "※ 代引き一覧Excel出力 約 0.18 KLOC × 参考レート（人力 12/KLOC ≒ 2件 / AI 5/KLOC ≒ 1件）で推定。代引き一覧の Excel ダウンロードで、論点は <strong>出力項目・フォーマットの解釈</strong>。",
+      tasks: {
+        'ux':          { asis: 1.5,             tobe: 0.05, tobeEng: 0,   agents: ["プランナーAI", "エンジニア"] },
+        'fe-design':   { asis: 0.5,             tobe: 0.05, tobeEng: 0,   agents: ["フロントエンドAI"] },
+        'fe-impl':     { asis: 3.5,  loc: 179,  tobe: 0.4,  tobeEng: 0,   agents: ["フロントエンドAI"] },
+        'fe-review':   { asis: 0.25,            tobe: 0.25, tobeEng: 0.25, agents: ["フロントエンドレビュワーAI", "エンジニア"] },
+        'verify':      { asis: 0.25,            tobe: 0.25, tobeEng: 0.25, agents: ["バックエンドテスターAI", "フロントエンドテスターAI", "エンジニア"] },
+      },
+      contextNotes: [
+        "対象: 代引き一覧Excel出力（FE053 / DM14 帳票・ファイル入出力）。代引き確認(DL)の Excel ダウンロード機能。",
+        "<strong>実績コード量</strong>: フロントエンド <strong>179 行</strong>のみ（DB 0・API 0・ユニットテスト 0）。工程区分はお知らせ登録(FE015)のフォーマットを流用。",
+        "<strong>AsIs（人力想定）は行数規模から推定</strong>: お知らせ登録の『行あたり工数』を実績LOCに適用（fe-impl 33.5h/1694行 → 3.5h）。UX（1.5h）・フロント設計（0.5h）は規模比按分では過小なため実態に合わせて設定。フロントレビュー・動作確認は人の確認工数として AsIs / ToBe をそろえる（各0.25h）。合計 約6.0h。",
+        "<strong>ToBe（AI駆動）は実績 1.0h</strong>: AI 0.5h（FE実装 0.4 / UX 0.05 / FE設計 0.05）＋ フロントレビュー 0.25h（エンジニア）＋ 動作確認 0.25h（エンジニア）。削減率 <strong>約83%</strong>。",
+      ],
+    },
     // 訪問不在登録(FE032)・配車戻し登録(FE033)・その他未完了登録(FE034)・ドライバー持出登録(FE030) は
     // 配送完了登録(FE031) と同一画面／同一コンポーネントの一機能として一括実装したため、単独の実装工数は発生しない。
     // タイトル下 (lede) にその旨だけを記載する。
