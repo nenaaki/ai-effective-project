@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI導入効果 — デグレード品質保証の自動化（経営層向け）</title>
+<style>
+  :root {
+    --bg: #f6f7f9;
+    --ink: #1a2230;
+    --muted: #5b6878;
+    --line: #e2e6ec;
+    --card: #ffffff;
+    --accent: #0e7c66;
+    --accent-soft: #e6f4f0;
+    --asis: #b4530f;
+    --asis-soft: #fbeee2;
+    --tobe: #0e7c66;
+    --tobe-soft: #e6f4f0;
+    --gold: #9a7400;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,system-ui,sans-serif; background: var(--bg); color: var(--ink); line-height: 1.8; }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 56px 28px 90px; }
+
+  header.hero { text-align: center; padding-bottom: 36px; border-bottom: 2px solid var(--ink); margin-bottom: 48px; }
+  .eyebrow { color: var(--accent); font-size: 13px; letter-spacing: 0.2em; font-weight: 800; }
+  h1 { font-size: 32px; margin: 14px 0 12px; font-weight: 800; letter-spacing: -0.01em; }
+  .lead { color: var(--muted); font-size: 16px; max-width: 720px; margin: 0 auto; }
+
+  h2 { font-size: 21px; margin: 56px 0 18px; font-weight: 800; }
+  h2 .dot { color: var(--accent); }
+  p.note { color: var(--muted); font-size: 14.5px; margin-top: -8px; }
+
+  /* one-line thesis */
+  .thesis { background: var(--ink); color: #fff; border-radius: 16px; padding: 32px 36px; text-align: center; }
+  .thesis .big { font-size: 22px; font-weight: 800; line-height: 1.6; }
+  .thesis .big em { color: #5fd9bd; font-style: normal; }
+  .thesis .sub { color: #aeb9c7; font-size: 14px; margin-top: 10px; }
+
+  /* before/after */
+  .ba { display: grid; grid-template-columns: 1fr 64px 1fr; align-items: stretch; gap: 0; margin-top: 8px; }
+  .ba .panel { border-radius: 16px; padding: 26px 28px; border: 1px solid var(--line); background: var(--card); }
+  .ba .panel.before { background: var(--asis-soft); border-color: #efd9c4; }
+  .ba .panel.after { background: var(--tobe-soft); border-color: #c9e6dd; }
+  .ba .mid { display: flex; align-items: center; justify-content: center; font-size: 30px; color: var(--accent); }
+  .panel h3 { margin: 0 0 4px; font-size: 16px; }
+  .panel.before h3 { color: var(--asis); }
+  .panel.after h3 { color: var(--tobe); }
+  .panel .when { font-size: 12px; color: var(--muted); margin-bottom: 16px; }
+  .panel ul { margin: 0; padding-left: 20px; font-size: 14.5px; }
+  .panel li { margin-bottom: 10px; }
+  .panel li b { font-weight: 700; }
+
+  /* KPI cards */
+  .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 12px; }
+  .kpi { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 22px 24px; }
+  .kpi .label { font-size: 13px; color: var(--muted); font-weight: 700; }
+  .kpi .flow { font-size: 15px; margin-top: 12px; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .kpi .from { color: var(--asis); font-weight: 700; }
+  .kpi .to { color: var(--tobe); font-weight: 800; font-size: 17px; }
+  .kpi .ar { color: var(--muted); }
+  .kpi .desc { font-size: 12.5px; color: var(--muted); margin-top: 12px; line-height: 1.6; }
+
+  /* risk-value list */
+  .vals { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 12px; }
+  .val { background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 10px; padding: 18px 22px; }
+  .val h4 { margin: 0 0 6px; font-size: 15px; }
+  .val p { margin: 0; font-size: 13.5px; color: var(--muted); }
+
+  .scope { background: var(--accent-soft); border: 1px solid #c9e6dd; border-radius: 14px; padding: 22px 26px; margin-top: 16px; font-size: 14.5px; }
+  .scope b { color: var(--accent); }
+
+  .foot { color: var(--muted); font-size: 12px; margin-top: 52px; padding-top: 18px; border-top: 1px solid var(--line); text-align: center; }
+
+  @media (max-width: 760px) {
+    .ba { grid-template-columns: 1fr; }
+    .ba .mid { transform: rotate(90deg); padding: 8px 0; }
+    .kpis, .vals { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="eyebrow">AI ACTIVATION / QUALITY ASSURANCE</div>
+    <h1>仕様変更時の「品質チェック範囲決め」を<br>AIが自動化する</h1>
+    <p class="lead">
+      配送管理システム（PW）の開発において、仕様変更のたびに発生していた
+      「どこまで動作確認すれば安全か」の判断を、AIエージェントが代行します。
+      属人化していた品質保証の入口を、誰がやっても同じ品質に揃えます。
+    </p>
+  </header>
+
+  <!-- thesis -->
+  <div class="thesis">
+    <div class="big">
+      これまで<em>ベテランの勘</em>に頼っていた「修正の影響範囲の見極め」を、<br>
+      AIが<em>仕様書と実際の変更を突き合わせて</em>自動で洗い出す。
+    </div>
+    <div class="sub">― 見落としによる不具合流出リスクを下げ、品質チェックを標準化する ―</div>
+  </div>
+
+  <!-- before / after -->
+  <h2><span class="dot">●</span> 何が変わるのか</h2>
+  <p class="note">「仕様変更を1件入れたあと、安全確認の段取りを組むまで」の比較</p>
+  <div class="ba">
+    <div class="panel before">
+      <h3>これまで（AsIs）</h3>
+      <div class="when">担当者の経験と記憶に依存</div>
+      <ul>
+        <li><b>属人的</b>：影響範囲はベテランほど広く、若手ほど狭くなりがち。品質が人で揺れる。</li>
+        <li><b>見落とし</b>：関連する画面の確認漏れが、不具合の本番流出につながる。</li>
+        <li><b>非効率</b>：影響箇所を手作業で1つずつ探すため時間がかかる。</li>
+        <li><b>読めない</b>：テスト工数は経験頼みの概算で、計画・スケジュールが崩れやすい。</li>
+        <li><b>学ばない</b>：前回の失敗から得た教訓が個人に留まり、担当が代わると同じミスを繰り返す。</li>
+        <li><b>残らない</b>：判断の根拠が文書化されず、後から検証・引き継ぎができない。</li>
+      </ul>
+    </div>
+    <div class="mid">→</div>
+    <div class="panel after">
+      <h3>これから（ToBe）</h3>
+      <div class="when">AIが数分で範囲を文書化</div>
+      <ul>
+        <li><b>標準化</b>：誰が担当しても同じ基準で影響範囲を網羅。品質のばらつきを解消。</li>
+        <li><b>抜け漏れ防止</b>：仕様書と実コードの食い違い（やり残し・想定外の変更）も自動検知。</li>
+        <li><b>高速化</b>：影響範囲の特定と確認手順づくりを自動生成。</li>
+        <li><b>見積り提示</b>：確認に必要なテスト工数の初期見立てを自動算出し、計画立案を後押し。</li>
+        <li><b>学習する</b>：過去の失敗から得た教訓をAIが記憶し、次回以降のチェックに自動反映。</li>
+        <li><b>資産化</b>：チェック範囲が記録として残り、レビュー・監査・引き継ぎに使える。</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- KPI -->
+  <h2><span class="dot">●</span> 現場で見込まれる変化</h2>
+  <p class="note">効果の大きさは導入後の運用を通じてご評価いただく前提です。ここでは「どの方向に変わりうるか」をお示しします。</p>
+  <div class="kpis">
+    <div class="kpi">
+      <div class="label">品質チェックの均一性</div>
+      <div class="flow"><span class="from">人によって変動</span><span class="ar">→</span><span class="to">一定基準に近づく</span></div>
+      <div class="desc">担当者のスキルに左右されにくくなり、影響範囲の洗い出し品質を揃えやすくなると考えられます。</div>
+    </div>
+    <div class="kpi">
+      <div class="label">不具合の本番流出リスク</div>
+      <div class="flow"><span class="from">見落としで発生</span><span class="ar">→</span><span class="to">抑制が期待</span></div>
+      <div class="desc">確認すべき画面の漏れを機械的に補うことで、手戻りや障害対応の発生を抑えやすくなると見込まれます。</div>
+    </div>
+    <div class="kpi">
+      <div class="label">範囲特定の所要時間</div>
+      <div class="flow"><span class="from">手作業で都度</span><span class="ar">→</span><span class="to">短縮が期待</span></div>
+      <div class="desc">影響調査が自動化されることで、その分の工数を他の作業に振り向けやすくなると考えられます。</div>
+    </div>
+  </div>
+
+  <!-- value pillars -->
+  <h2><span class="dot">●</span> もたらす価値</h2>
+  <div class="vals">
+    <div class="val">
+      <h4>① 属人化からの脱却</h4>
+      <p>「あの人がいないと影響範囲が分からない」状態を解消。組織として品質を担保できる。</p>
+    </div>
+    <div class="val">
+      <h4>② 仕様と実装の整合チェック</h4>
+      <p>決めた仕様どおりに作られているか、余計な変更が混ざっていないかをAIが照合する。</p>
+    </div>
+    <div class="val">
+      <h4>③ スケールしても品質が落ちない</h4>
+      <p>開発メンバーや改修件数が増えても、チェックの質を一定に保てる仕組み。</p>
+    </div>
+    <div class="val">
+      <h4>④ 説明責任・トレーサビリティ</h4>
+      <p>「なぜこの範囲を確認したか」が記録に残り、監査・顧客説明に耐える。</p>
+    </div>
+    <div class="val">
+      <h4>⑤ 失敗から学ぶ組織知</h4>
+      <p>過去のレビューで得た教訓をAIが記憶し、次の案件へ自動で引き継ぐ。経験が個人ではなく組織に蓄積される。</p>
+    </div>
+    <div class="val">
+      <h4>⑥ 計画の予測性向上</h4>
+      <p>確認に要するテスト工数の初期見立てを自動提示。スケジュールと要員計画を早期に組みやすくなる。</p>
+    </div>
+  </div>
+
+  <!-- scope of AI -->
+  <h2><span class="dot">●</span> 誤解のないように — AIの守備範囲</h2>
+  <div class="scope">
+    このAIが行うのは<b>「どこを確認すべきかの洗い出しと文書化」</b>までです。
+    実際の動作テストの実施と、最終的な「リリースして問題ない」という判断は、引き続き人が担います。
+    AIは人を置き換えるのではなく、<b>判断の土台づくりを肩代わりして人をミスから守る</b>位置づけです。
+  </div>
+
+  <h2><span class="dot">●</span> 実際の成果物（イメージ）</h2>
+  <p class="note">AIが自動生成する「確認すべき範囲」のドキュメント例。専門的な内容を含むが、雰囲気の参考に。</p>
+  <div class="scope" style="background:var(--card);border-color:var(--line);">
+    実出力サンプル → <a href="PW-161.regression-scope.html" style="color:var(--accent);font-weight:700;">PW-161 リグレッションスコープ（実例）を見る</a>
+  </div>
+
+  <p class="foot">対象: 配送管理システム PW ／ regression-scope エージェント ｜ 経営層向け概要 ｜ 2026-06-23</p>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>リグレッションスコープ: PW-161</title>
+<style>
+  :root {
+    --bg: #0f1419;
+    --panel: #1a212b;
+    --panel-2: #212a36;
+    --border: #2c3947;
+    --text: #e6edf3;
+    --muted: #8b9bb0;
+    --accent: #2dd4bf;
+    --asis: #f0883e;
+    --tobe: #3fb950;
+    --warn: #d29922;
+    --warn-bg: rgba(210,153,34,0.1);
+    --code-bg: #0b0f14;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 48px 24px 80px; }
+
+  header.hero { border-bottom: 1px solid var(--border); padding-bottom: 26px; margin-bottom: 36px; }
+  .eyebrow { color: var(--accent); font-size: 13px; letter-spacing: 0.15em; font-weight: 700; text-transform: uppercase; }
+  h1 { font-size: 28px; margin: 10px 0 6px; font-weight: 800; letter-spacing: -0.01em; }
+  h1 .ticket { color: var(--accent); }
+  .branch { color: var(--muted); font-size: 14px; font-family: ui-monospace, monospace; }
+  .chip { display: inline-block; font-size: 12px; background: var(--panel-2); border: 1px solid var(--border); color: var(--muted); padding: 3px 10px; border-radius: 999px; margin-right: 6px; margin-top: 12px; }
+  .chip.mode { color: var(--warn); border-color: rgba(210,153,34,0.4); }
+
+  h2 { font-size: 20px; margin: 46px 0 14px; padding-left: 12px; border-left: 3px solid var(--accent); }
+  h2 .num { color: var(--accent); font-weight: 800; margin-right: 8px; }
+  h3 { font-size: 16px; margin: 26px 0 6px; color: var(--text); }
+  h3 .place { color: var(--muted); font-size: 13px; font-weight: 500; font-family: ui-monospace, monospace; }
+  h4 { font-size: 13.5px; margin: 20px 0 6px; color: var(--accent); font-weight: 700; letter-spacing: 0.02em; }
+  p.section-note { color: var(--muted); font-size: 14px; margin-top: -4px; }
+
+  code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.88em; background: var(--code-bg); border: 1px solid var(--border); border-radius: 5px; padding: 1px 6px; color: #9ce7db; }
+  pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; overflow-x: auto; margin: 8px 0; }
+  pre code { background: none; border: none; padding: 0; color: #c8d3df; }
+
+  /* tables */
+  .tbl-scroll { overflow-x: auto; border: 1px solid var(--border); border-radius: 12px; margin-top: 12px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; min-width: 640px; }
+  thead th { background: var(--panel-2); text-align: left; padding: 12px 16px; font-size: 12px; letter-spacing: 0.04em; color: var(--muted); border-bottom: 1px solid var(--border); }
+  tbody td { padding: 13px 16px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:nth-child(even) { background: rgba(255,255,255,0.015); }
+  td.total, tr.total td { font-weight: 800; color: var(--text); background: rgba(45,212,191,0.05); }
+
+  .yes { color: var(--tobe); font-weight: 700; }
+  .no { color: var(--muted); }
+  .add { color: var(--tobe); font-weight: 700; }
+  .fix { color: var(--warn); font-weight: 700; }
+  .flag { color: var(--warn); font-weight: 700; white-space: nowrap; }
+
+  /* checklist */
+  .checklist { list-style: none; padding: 0; margin: 12px 0 0; }
+  .checklist li { position: relative; padding: 11px 14px 11px 40px; border: 1px solid var(--border); border-radius: 9px; margin-bottom: 8px; font-size: 13.5px; background: var(--panel); }
+  .checklist li::before { content: ""; position: absolute; left: 13px; top: 13px; width: 16px; height: 16px; border: 1.5px solid var(--muted); border-radius: 4px; }
+  .checklist li b { color: var(--text); display: block; margin-bottom: 2px; }
+  .checklist li .desc { color: var(--muted); font-size: 12.5px; }
+  .checklist.db li { padding-bottom: 6px; }
+
+  .callout { background: var(--panel); border: 1px solid var(--border); border-left: 3px solid var(--warn); border-radius: 8px; padding: 14px 18px; margin-top: 16px; font-size: 13.5px; color: var(--text); }
+  .callout.accent { border-left-color: var(--accent); }
+  .callout strong { color: var(--warn); }
+  .callout.accent strong { color: var(--accent); }
+
+  .range { display: inline-block; margin-top: 14px; background: rgba(45,212,191,0.1); border: 1px solid rgba(45,212,191,0.4); border-radius: 8px; padding: 10px 18px; font-size: 15px; font-weight: 800; color: var(--accent); }
+
+  ul.plain { padding-left: 20px; font-size: 13.5px; color: var(--text); }
+  ul.plain li { margin-bottom: 8px; }
+  ul.plain li b { color: var(--text); }
+  ol.notes { padding-left: 22px; font-size: 13.5px; }
+  ol.notes li { margin-bottom: 12px; }
+  ol.notes li b { color: var(--accent); }
+
+  .footnote { color: var(--muted); font-size: 12px; margin-top: 44px; padding-top: 20px; border-top: 1px solid var(--border); }
+
+  @media (max-width: 720px) {
+    .wrap { padding: 32px 16px 60px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="eyebrow">Regression Scope / 自動生成レポート</div>
+    <h1>リグレッションスコープ: <span class="ticket">PW-161</span></h1>
+    <div class="branch">f/PW-161_3</div>
+    <div>
+      <span class="chip">生成日: 2026-06-23</span>
+      <span class="chip mode">分析モード: diffのみ（Spec変更なし）</span>
+    </div>
+  </header>
+
+  <!-- 変更サマリー -->
+  <h2><span class="num">01</span>変更サマリー</h2>
+  <div class="tbl-scroll">
+    <table>
+      <thead>
+        <tr><th style="width:14%">層</th><th style="width:10%">Spec</th><th style="width:10%">実装差分</th><th>主な内容</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><b>DB</b></td><td class="no">情報なし</td><td class="yes">あり</td>
+          <td><code>m_customers</code> に <code>address_id</code>（FK → <code>m_addresses</code>）追加。<code>m_addresses</code> に <code>customers</code> 逆リレーション追加。マイグレーション1件追加。</td>
+        </tr>
+        <tr>
+          <td><b>API</b></td><td class="no">情報なし</td><td class="yes">あり</td>
+          <td><code>deliveryAvailability</code> Query を新規追加。<code>historyItems</code> のフィールド参照 <code>workContent</code> → <code>workContentCode</code> 修正（バグ修正）。</td>
+        </tr>
+        <tr>
+          <td><b>管理画面</b></td><td class="no">情報なし</td><td class="no">なし</td>
+          <td class="no">変更なし</td>
+        </tr>
+        <tr>
+          <td><b>ドライバーアプリ</b></td><td class="no">情報なし</td><td class="yes">あり</td>
+          <td><code>date-schedule</code> 画面に配送可能枠表示機能追加。<code>customer-calendar</code> / <code>customer-slots</code> コンポーネントに空き状況マップ連携追加。</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 必須DBチェック -->
+  <h2><span class="num">02</span>必須DBチェック</h2>
+  <p class="section-note">DBスキーマの変更を含むPRでは、以下2項目は必ず実施すること。</p>
+  <ul class="checklist db">
+    <li>
+      <b>マイグレーション適用確認</b>
+      <pre><code>pnpm --filter @pw/api-core prisma:migrate</code></pre>
+      <span class="desc">期待結果: <code>20260623035857_add_customer_address_relation</code> が正常に適用され、エラーなく完了すること</span>
+    </li>
+    <li>
+      <b>マイグレーションリセット＋Seed再導入確認</b>
+      <pre><code>pnpm --filter @pw/api-core prisma:migrate:reset
+pnpm --filter @pw/api-core prisma:seed</code></pre>
+      <span class="desc">期待結果: リセット後にSeedが正常に完了し、以下のSeedセクションが成功すること:</span>
+      <ul class="plain" style="margin-top:8px;">
+        <li><code>11-2. 顧客→住所の紐付け</code>（E0000004・A0000000 が seedArea1 住所に紐づく）</li>
+        <li><code>11-3. deliveryAvailability 検証用配送データ</code>（AVL001〜016 計16件作成）</li>
+        <li><code>11-4. △確認用追加配送</code>（AVL010〜016 計7件追加）</li>
+        <li><code>11-5. MDeliveryCapacity</code>（seedArea1 × 5時間帯 × 30日 = 150件）</li>
+      </ul>
+    </li>
+  </ul>
+  <div class="callout">
+    <strong>注意:</strong> Seedは <code>mDeliveryCapacity.deleteMany()</code> の追加と大量の検証データ投入を含む。リセット後のSeedが新規参加メンバー環境でも成功することを確認すること。
+  </div>
+
+  <!-- 影響API一覧 -->
+  <h2><span class="num">03</span>影響API一覧</h2>
+  <div class="tbl-scroll">
+    <table>
+      <thead>
+        <tr><th style="width:18%">Query / Mutation</th><th style="width:10%">変更種別</th><th style="width:10%">Spec記載</th><th>変更概要</th><th style="width:18%">影響画面</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>deliveryAvailability</code></td><td class="add">追加</td><td class="flag">⚠️ なし</td>
+          <td>配送可能枠の空き状況（〇△×）を日付×時間帯で返す。<code>deliveryId</code> → <code>customer.address.areaId</code> を経路でエリア導出し、<code>mDeliveryCapacity</code> とのgroupByで空き率を計算</td>
+          <td>ドライバー日程変更画面</td>
+        </tr>
+        <tr>
+          <td><code>updateDeliveryHistory</code>（内部）</td><td class="fix">修正</td><td class="flag">⚠️ なし</td>
+          <td><code>deliveryMemos</code> の <code>workContent</code> フィールド参照を <code>workContentCode</code> に修正（バグ修正）。配送履歴取得レスポンスに影響</td>
+          <td>ドライバー全般（配送履歴表示を持つ画面）</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 画面別テストチェックリスト -->
+  <h2><span class="num">04</span>画面別テストチェックリスト</h2>
+
+  <h3>日程変更画面 <span class="place">ドライバーアプリ /business/date-schedule</span></h3>
+  <p class="section-note">
+    影響の原因: <code>deliveryAvailability</code> Query 新規追加・<code>customer-calendar</code> / <code>customer-slots</code> コンポーネント改修・配送完了ステータス判定変更<br>
+    Spec参照: なし（Spec情報なし）
+  </p>
+
+  <h4>空き状況カレンダー（新機能）</h4>
+  <ul class="checklist">
+    <li><b>空き状況ロード中表示の確認</b><span class="desc">日程変更画面を開いたとき（<code>storageDeadline</code> がある配送）、<code>deliveryAvailability</code> クエリのロード中に「空き状況を読み込み中...」テキストがカレンダー領域に表示されること</span></li>
+    <li><b>〇（AVAILABLE）の日付表示確認</b><span class="desc">Seed配置の <code>AVL</code> 配送群でキャパに余裕のある日・時間帯を選択し、カレンダー上に緑色「〇」バッジが表示されること。当該日付はクリック可能であること</span></li>
+    <li><b>△（LIMITED）の日付表示確認</b><span class="desc">今日2026-06-23の1618枠（booked=9, limit=10）に対応する日付が△（黄色）表示されること。当該日付はクリック可能であること</span></li>
+    <li><b>×（FULL）の日付表示確認</b><span class="desc">今日2026-06-23の0812枠・1416枠に対応する日付・時間帯が×（グレー）表示されること。×の日付はクリック不可（<code>disabled</code>）であること</span></li>
+    <li><b>凡例の表示確認</b><span class="desc"><code>availabilityMap</code> にデータがある場合のみ、カレンダー下部に「〇 選択可 / △ 残りわずか / × 満枠」の凡例が表示されること</span></li>
+    <li><b>空き状況取得エラー時の非致命的表示確認</b><span class="desc"><code>availabilityError</code> が発生した場合、「空き状況の取得に失敗しました。日付を選択して進んでください。」メッセージが表示されること。かつ、カレンダーの日付選択操作は継続可能であること（エラーでも画面がクラッシュしないこと）</span></li>
+  </ul>
+
+  <h4>時間帯セレクタ（空き状況連携）</h4>
+  <ul class="checklist">
+    <li><b>日付選択後の時間帯空き状況表示</b><span class="desc">カレンダーで日付を選択したとき、その日の時間帯ごとに〇/△/× ラベルが時間帯ボタン右端に表示されること</span></li>
+    <li><b>×（FULL）の時間帯がdisabled表示</b><span class="desc">FULL の時間帯ボタンがグレーアウト（<code>cursor-not-allowed</code>）で表示され、クリックしても選択されないこと</span></li>
+    <li><b>〇/△の時間帯が選択可能</b><span class="desc">AVAILABLE・LIMITED の時間帯はクリックで選択でき、通常のラジオボタン選択UIが機能すること</span></li>
+  </ul>
+
+  <h4>FULLステータスによる自動選択解除</h4>
+  <ul class="checklist">
+    <li><b>FULL日付の選択不能確認</b><span class="desc">後からFULLになった日付（<code>handleSelectDate</code> で弾かれる）が選択されても <code>setSelectedDate</code> が呼ばれないこと。すなわちカレンダーで×日付をクリックしても日付が変わらないこと</span></li>
+  </ul>
+
+  <h4>商品保管期限（maxDate）との連携</h4>
+  <ul class="checklist">
+    <li><b>storageDeadline を超える日付が選択不可</b><span class="desc">配送の <code>storageDeadline</code>（例: 2026-07-22）を超えた日付がカレンダーで選択不可（disabled）になること</span></li>
+    <li><b>storageDeadline がない配送では空き状況クエリが発火しない</b><span class="desc"><code>storageDeadline</code> が null の配送の日程変更画面を開いたとき、<code>deliveryAvailability</code> クエリが発火せず（<code>skip: true</code>）、カレンダーが通常の選択UIで表示されること</span></li>
+  </ul>
+
+  <h4>配送完了ステータス判定変更</h4>
+  <ul class="checklist">
+    <li><b>「配送完了」ステータスで変更不可メッセージが表示される</b><span class="desc"><code>delivery.status === '配送完了'</code> の荷物の日程変更画面で「このお荷物は配送完了済みの為、予定日を変更できません。」メッセージが表示されること</span></li>
+    <li><b>「持出中」ステータスでカレンダーが表示される（旧との差異確認）</b><span class="desc"><code>delivery.status === '持出中'</code> の荷物の日程変更画面で、変更不可メッセージではなくカレンダーが表示されること（旧来の <code>持出中</code> → 変更不可 の挙動が解除されていること）</span></li>
+    <li><b>フッターボタンの条件一致確認</b><span class="desc">配送完了ステータスのとき、フッターに「戻る」ボタンが表示されること。それ以外のステータスでは「予定日時を登録する」ボタンが表示されること</span></li>
+  </ul>
+
+  <h4>ゴールデンパス（配送日程変更フロー全体）</h4>
+  <ul class="checklist">
+    <li><b>日程変更フロー完走確認</b><span class="desc">再配達予定の配送を開いて → 日程変更画面に遷移 → カレンダーで日付選択 → 時間帯選択 → 「予定日時を登録する」タップ → <code>updateDeliverySchedule</code> Mutation が成功し、前画面に戻ること</span></li>
+  </ul>
+
+  <h3>配送履歴表示 <span class="place">ドライバーアプリ 各配送詳細画面</span></h3>
+  <p class="section-note">
+    影響の原因: <code>driver.service.ts</code> の <code>historyItems</code> 構築ロジックで <code>memo.workContent</code> → <code>memo.workContentCode</code> に修正<br>
+    Spec参照: なし
+  </p>
+  <ul class="checklist">
+    <li><b>配送履歴にメモ内容が表示される確認</b><span class="desc">配送メモが登録されている荷物の詳細画面を開き、配送履歴リストにメモの <code>workContentCode</code>（作業内容コード）が正しく表示されること（空欄や <code>undefined</code> にならないこと）</span></li>
+    <li><b>配送履歴の時系列ソート確認</b><span class="desc">配送履歴アイテム（ステータス変更・メモ）が日時昇順でソートされて表示されること</span></li>
+  </ul>
+
+  <!-- テスト工数見積もり -->
+  <h2><span class="num">05</span>テスト工数見積もり（目安）</h2>
+  <p class="section-note">チェック項目数に基づく機械的な概算です。テスター習熟度・環境状態・テストデータの有無により変動します。確定工数ではなく計画の初期見立てとしてご利用ください。</p>
+  <div class="tbl-scroll">
+    <table>
+      <thead>
+        <tr><th style="width:30%">画面 / 区分</th><th style="width:10%">項目数</th><th style="width:24%">内訳（種別×件数）</th><th>準備込み小計</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>日程変更画面（空き状況カレンダー）</td><td>6</td><td>表示1・操作3・エラー2</td><td>10分準備 + 5×1 + 10×3 + 15×2 = 70分</td></tr>
+        <tr><td>日程変更画面（時間帯セレクタ）</td><td>3</td><td>操作2・表示1</td><td>（上記準備込み） + 10×2 + 5×1 = 25分</td></tr>
+        <tr><td>日程変更画面（その他条件）</td><td>6</td><td>操作4・表示2</td><td>（上記準備込み） + 10×4 + 5×2 = 50分</td></tr>
+        <tr><td>配送履歴表示</td><td>2</td><td>表示2</td><td>10分準備 + 5×2 = 20分</td></tr>
+        <tr><td>必須DBチェック</td><td>2</td><td>DB×2</td><td>20×2 = 40分</td></tr>
+        <tr class="total"><td>合計</td><td>19</td><td></td><td>約 205 分（≒ 3.4 時間）</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="range">バッファ込みレンジ: 約 3.4 〜 4.1 時間</div>
+  <div class="callout accent">
+    <strong>前提:</strong>
+    <ul class="plain" style="margin:8px 0 0;">
+      <li>1人のテスターが手動実行する想定</li>
+      <li>自動テスト（<code>e2e-test</code>）でカバーする項目: なし（現時点でE2Eテスト対象外のため全件手動）</li>
+      <li><code>AVL001〜016</code> のSeedデータが存在することが前提。Seedを再投入していない環境では空き状況の〇/△/× の状態確認に別途データ準備が必要</li>
+      <li>日程変更画面の時間帯セレクタテストは、カレンダー日付選択後に継続するため、別画面扱いにせず同一セッション内で実施すること</li>
+    </ul>
+  </div>
+
+  <!-- 乖離分析 -->
+  <h2><span class="num">06</span>Spec vs 実装 乖離分析</h2>
+  <p class="section-note">Specファイルが取得できなかったため、差分のみから推測した乖離を記録する。</p>
+  <div class="tbl-scroll">
+    <table>
+      <thead>
+        <tr><th style="width:22%">項目</th><th style="width:8%">Spec</th><th style="width:9%">実装差分</th><th style="width:14%">種別</th><th>補足</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>deliveryAvailability</code> Query</td><td class="no">なし</td><td class="yes">あり</td><td class="flag">⚠️ Spec外変更？</td>
+          <td>Specに対応するバックエンドSpecファイルが存在しない。新規APIの追加として意図的な可能性あり。<code>specs/backend-engineer/</code> 下に対応Specがなければ、バックエンドSpecの起票を確認推奨</td>
+        </tr>
+        <tr>
+          <td><code>memo.workContent</code> → <code>workContentCode</code></td><td class="no">なし</td><td class="yes">あり</td><td class="flag">⚠️ Spec外変更？</td>
+          <td>バグ修正の可能性が高い。対応チケットが別途存在するか確認推奨</td>
+        </tr>
+        <tr>
+          <td><code>'持出中'</code> → <code>'配送完了'</code> 判定変更</td><td class="no">なし</td><td class="yes">あり</td><td class="flag">⚠️ Spec外変更？</td>
+          <td>変更不可条件のステータスが「持出中」から「配送完了」に変更されている。意図的な仕様変更と推測されるが、Specの根拠が確認できない。他のページ（<code>index.tsx</code> の <code>'再配達中' || '持出中'</code> フィルタ等）との整合性も確認推奨</td>
+        </tr>
+        <tr>
+          <td><code>m_customers.address_id</code> FK追加</td><td class="no">なし</td><td class="yes">あり</td><td class="flag">⚠️ Spec外変更？</td>
+          <td>DBスキーマ変更のSpecが取得できない。<code>deliveryAvailability</code> のエリア導出経路として追加された模様。設計書との照合を推奨</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="callout">
+    <strong>「Spec外変更？」:</strong> Specで言及されていないが差分にある → レビューでの見落とし確認を推奨（意図的な実装の場合は問題なし）
+  </div>
+
+  <!-- スコープ外 -->
+  <h2><span class="num">07</span>スコープ外（変更の影響なし）</h2>
+  <p class="section-note">以下は今回の変更による影響がないと判断した。</p>
+  <ul class="plain">
+    <li><b>管理画面（app-admin）全般</b>: 差分なし。<code>deliveryAvailability</code> QueryはドライバーアプリのみGQL定義を参照しており、管理画面には波及しない</li>
+    <li><b>ドライバーアプリの配送一覧画面（<code>/business/index</code>）</b>: <code>持出中</code> フィルタ（<code>'再配達中' || '持出中'</code>）は <code>date-schedule.tsx</code> の変更と無関係。一覧の表示ロジックには影響しない</li>
+    <li><b>ドライバーアプリの他画面（<code>/business/actions</code>・<code>/business/delay-sms</code> 等）</b>: <code>date-schedule.tsx</code> の変更は当該ページ内に閉じており、他画面のコンポーネントへの波及はない</li>
+    <li><b><code>customer-calendar.tsx</code> の <code>CalendarPicker</code> の基本的な月移動・日付選択挙動</b>: <code>availabilityMap</code> が <code>undefined</code> の場合（旧来の呼び出し形式）は以前と同じ挙動を保つ。ただし <code>isDayDisabled</code> のシグネチャが <code>status</code> 引数を削除したため、他で直接呼んでいる箇所がないことを確認済み</li>
+  </ul>
+
+  <!-- 補足・注意事項 -->
+  <h2><span class="num">08</span>補足・注意事項</h2>
+  <ol class="notes">
+    <li><b>マイグレーション履歴構造について:</b> このプロジェクトは <code>0_init</code> という大型の初期マイグレーション（1063行）にスカッシュされた履歴を持つ。<code>20260623035857_add_customer_address_relation</code> はその後に積まれた最初のインクリメンタルマイグレーション。<code>prisma:migrate:reset</code> 後は <code>0_init</code> → <code>20260623035857</code> の順で適用されることを確認すること</li>
+    <li><b>schema.gql 更新確認:</b> <code>deliveryAvailability</code> クエリが <code>schema.gql</code> に反映済みであることを確認済み（<code>DeliveryAvailabilityDay</code>・<code>DeliveryAvailabilityInput</code>・<code>DeliveryAvailabilitySlot</code> 型が定義されている）。<code>generate-schema</code> の再実行は不要だが、最新コミット時点のものであることを念のため確認すること</li>
+    <li><b>Seedデータの日付依存:</b> Seedの <code>availCheckSeed</code> は <code>2026-06-23</code> を基準日として設定されている（今日の日付）。テストを今日以外の日に実施する場合、〇/△/× の期待結果がずれる可能性がある。<code>capacityStartDate</code> が <code>2026-06-23〜2026-07-22</code> 固定のため、この範囲外の日付ではキャパシティデータが存在せず全日付が〇（キャパ未定義=AVAILABLE）として表示される点に注意</li>
+    <li><b><code>limitType</code> の IVR 非対応確認:</b> <code>DeliveryAvailabilityInput</code> に <code>limitType: 'IVR'</code> が実装されているが、UIからは <code>WEB</code> のみ送信される。IVR経路のテストはスコープ外とする</li>
+  </ol>
+
+  <p class="footnote">
+    出力元: <code>.work/PW-161.regression-scope.md</code> ／ 生成: regression-scope エージェント（<code>.claude/agents/regression-scope.md</code>）。
+    分析モード: diffのみ（<code>main...HEAD</code>）。本レポートはデグレードチェック範囲の提示であり、テスト実施・最終判断は人間が行う。
+  </p>
+
+</div>
+</body>
+</html>

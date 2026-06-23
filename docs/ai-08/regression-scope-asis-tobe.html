@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>regression-scope エージェント — AsIs / ToBe</title>
+<style>
+  :root {
+    --bg: #0f1419;
+    --panel: #1a212b;
+    --panel-2: #212a36;
+    --border: #2c3947;
+    --text: #e6edf3;
+    --muted: #8b9bb0;
+    --accent: #2dd4bf;
+    --asis: #f0883e;
+    --asis-bg: rgba(240,136,62,0.08);
+    --tobe: #3fb950;
+    --tobe-bg: rgba(63,185,80,0.08);
+    --warn: #d29922;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 48px 24px 80px; }
+
+  header.hero { border-bottom: 1px solid var(--border); padding-bottom: 28px; margin-bottom: 40px; }
+  .eyebrow { color: var(--accent); font-size: 13px; letter-spacing: 0.15em; font-weight: 700; text-transform: uppercase; }
+  h1 { font-size: 30px; margin: 10px 0 8px; font-weight: 800; letter-spacing: -0.01em; }
+  .lead { color: var(--muted); font-size: 15px; max-width: 760px; }
+  .chip { display: inline-block; font-size: 12px; background: var(--panel-2); border: 1px solid var(--border); color: var(--muted); padding: 3px 10px; border-radius: 999px; margin-right: 6px; margin-top: 12px; }
+
+  h2 { font-size: 20px; margin: 48px 0 16px; padding-left: 12px; border-left: 3px solid var(--accent); }
+  h2 .num { color: var(--accent); font-weight: 800; margin-right: 8px; }
+  p.section-note { color: var(--muted); font-size: 14px; margin-top: -6px; }
+
+  /* Summary AsIs/ToBe panels */
+  .summary { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 8px; }
+  .card { border-radius: 12px; padding: 20px 22px; border: 1px solid var(--border); }
+  .card.asis { background: var(--asis-bg); border-color: rgba(240,136,62,0.3); }
+  .card.tobe { background: var(--tobe-bg); border-color: rgba(63,185,80,0.3); }
+  .card h3 { margin: 0 0 6px; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+  .card.asis h3 { color: var(--asis); }
+  .card.tobe h3 { color: var(--tobe); }
+  .card .sub { font-size: 12px; color: var(--muted); margin-bottom: 14px; }
+  .card ul { margin: 0; padding-left: 18px; font-size: 13.5px; }
+  .card li { margin-bottom: 7px; }
+  .tag { font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 4px; }
+  .tag.bad { background: rgba(240,136,62,0.18); color: var(--asis); }
+  .tag.good { background: rgba(63,185,80,0.18); color: var(--tobe); }
+
+  /* Mapping table */
+  .tbl-scroll { overflow-x: auto; border: 1px solid var(--border); border-radius: 12px; margin-top: 12px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; min-width: 760px; }
+  thead th { background: var(--panel-2); text-align: left; padding: 13px 16px; font-size: 12px; letter-spacing: 0.04em; color: var(--muted); border-bottom: 1px solid var(--border); position: sticky; top: 0; }
+  tbody td { padding: 14px 16px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:nth-child(even) { background: rgba(255,255,255,0.015); }
+  .col-asis { color: var(--muted); }
+  .col-tobe { color: var(--text); }
+  .who { font-weight: 700; white-space: nowrap; }
+  .phase-pill { display: inline-block; font-size: 10.5px; font-weight: 700; padding: 1px 6px; border-radius: 4px; background: rgba(45,212,191,0.14); color: var(--accent); margin-bottom: 6px; }
+  .auto { color: var(--tobe); font-weight: 700; }
+  .partial { color: var(--warn); font-weight: 700; }
+  .human-stays { color: var(--asis); font-weight: 700; }
+
+  /* Flow */
+  .flow { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 14px; }
+  .step { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; font-size: 13px; flex: 1; min-width: 150px; }
+  .step .s-num { color: var(--accent); font-weight: 800; font-size: 12px; }
+  .step .s-title { font-weight: 700; margin: 2px 0 3px; }
+  .step .s-desc { color: var(--muted); font-size: 12px; }
+  .arrow { color: var(--muted); font-size: 20px; flex: 0; }
+  .group { flex: 3; min-width: 220px; border: 1.5px dashed var(--accent); border-radius: 12px; padding: 22px 12px 12px; position: relative; background: rgba(45,212,191,0.03); }
+  .group > .glabel { position: absolute; top: -11px; left: 14px; background: var(--bg); color: var(--accent); font-weight: 800; font-size: 11.5px; letter-spacing: 0.04em; padding: 0 8px; }
+  .group .flow { margin-top: 0; }
+  .step.human { border-color: #f59e0b; background: rgba(245,158,11,0.08); }
+  .vstack { flex: 1; min-width: 150px; display: flex; flex-direction: column; gap: 8px; }
+  .vstack .step { width: 100%; }
+  .vstack .vplus { text-align: center; color: var(--muted); font-size: 16px; line-height: 1; }
+
+  .callout { background: var(--panel); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 8px; padding: 16px 20px; margin-top: 20px; font-size: 14px; }
+  .callout strong { color: var(--accent); }
+
+  .footnote { color: var(--muted); font-size: 12px; margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border); }
+
+  @media (max-width: 720px) {
+    .summary { grid-template-columns: 1fr; }
+    .flow { flex-direction: column; align-items: stretch; }
+    .arrow { transform: rotate(90deg); align-self: center; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="eyebrow">AI Agent / Regression Scope</div>
+    <h1>regression-scope エージェント<br>従来の人間作業の AsIs → ToBe</h1>
+    <p class="lead">
+      仕様変更が発生したとき、「どこまでデグレードチェックすれば十分か」を決める作業は、
+      これまで開発者の経験則と注意力に強く依存していました。
+      <strong>regression-scope</strong> は、その範囲特定・影響追跡・文書化を肩代わりする読み取り専用エージェントです。
+    </p>
+    <div>
+      <span class="chip">読み取り専用（コード変更なし）</span>
+      <span class="chip">Spec × git diff の2段階分析</span>
+      <span class="chip">テスト工数の概算見積もり</span>
+      <span class="chip">永続メモリで知見を蓄積・学習</span>
+      <span class="chip">出力: .work/{チケットID}.regression-scope.md</span>
+    </div>
+  </header>
+
+  <!-- 1. 一言サマリー -->
+  <h2><span class="num">01</span>ひとことで言うと</h2>
+  <div class="summary">
+    <div class="card asis">
+      <h3>⛏ AsIs — 従来（人間）</h3>
+      <div class="sub">仕様変更後、開発者が頭の中と手作業で実施</div>
+      <ul>
+        <li><span class="tag bad">属人的</span> 仕様書を読み、影響範囲を「経験と勘」で想定</li>
+        <li><span class="tag bad">手作業</span> git diff を自分で読み、変更APIをフロント全体から手 grep</li>
+        <li><span class="tag bad">漏れる</span> DB変更時の migrate/seed 確認を思い出せるかは人次第</li>
+        <li><span class="tag bad">気づけない</span> 仕様と実装のズレ（実装漏れ・スペック外変更）は見落としやすい</li>
+        <li><span class="tag bad">読めない</span> テスト工数は「勘でざっくり」。根拠がなく計画が崩れやすい</li>
+        <li><span class="tag bad">忘れる</span> 前回PRで踏んだ落とし穴は個人の記憶頼み。担当が変わると失われる</li>
+        <li><span class="tag bad">残らない</span> チェック手順は文書化されず、頭の中で完結しがち</li>
+      </ul>
+    </div>
+    <div class="card tobe">
+      <h3>✓ ToBe — regression-scope 導入後</h3>
+      <div class="sub">planner の最終ステップ／単独でも起動可能</div>
+      <ul>
+        <li><span class="tag good">体系化</span> Spec から「変わるはず」を予測（Phase 1）</li>
+        <li><span class="tag good">自動</span> git diff を層別分類し、変更APIを grep で全画面追跡（Phase 2）</li>
+        <li><span class="tag good">強制</span> DB変更を検知したら migrate/seed チェックを必ず出力</li>
+        <li><span class="tag good">検出</span> 予測 vs 実装を照合し「実装漏れ?／スペック外変更?」を提示（Phase 3）</li>
+        <li><span class="tag good">見積</span> チェック項目を種別×係数で積み上げ、テスト工数をレンジで概算（Step 4.5）</li>
+        <li><span class="tag good">学習</span> 過去PRのフィードバックを永続メモリに蓄積し、該当条件のPRへ自動適用</li>
+        <li><span class="tag good">資産化</span> 画面別テスト手順を Markdown で文書出力 → frontend-tester モードR が消費</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 2. 作業ステップ別マッピング -->
+  <h2><span class="num">02</span>従来作業の「どこ」を肩代わりするか</h2>
+  <p class="section-note">仕様変更時の人間の典型作業を分解し、各ステップを誰が担うかを示します。</p>
+  <div class="tbl-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:20%">従来の人間の作業</th>
+          <th style="width:30%">AsIs（人間がやっていたこと）</th>
+          <th style="width:35%">ToBe（regression-scope の担当）</th>
+          <th style="width:15%">担い手</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="who">影響範囲の予測</td>
+          <td class="col-asis">仕様書を読み、「このテーブル/APIが変わるはず」を記憶ベースで想定。書き出さないことも多い。</td>
+          <td class="col-tobe"><span class="phase-pill">Phase 1</span><br>specs/ の DB・API・FE スペックを読み、変更予定のモデル/Query/Mutation/画面と §9テスト観点を構造化抽出。</td>
+          <td><span class="auto">AI 自動</span></td>
+        </tr>
+        <tr>
+          <td class="who">実差分の把握</td>
+          <td class="col-asis">git diff を自分で叩き、変更ファイルを目で追って DB/API/FE に頭の中で仕分け。</td>
+          <td class="col-tobe"><span class="phase-pill">Phase 2</span><br><code>git diff main...HEAD</code> を取得し、DB・API・管理画面・ドライバー・Spec・その他へ自動分類。変更なしの層は「スコープ外」と明示。</td>
+          <td><span class="auto">AI 自動</span></td>
+        </tr>
+        <tr>
+          <td class="who">フロント影響の追跡</td>
+          <td class="col-asis">変更した Query/Mutation 名で app-admin / app-driver を手 grep し、使用画面を1つずつ確認。grep し忘れた画面は漏れる。</td>
+          <td class="col-tobe"><span class="phase-pill">Phase 2-4</span><br>変更API名で両アプリを横断 grep し、ヒットした画面パスと役割を特定。直接変更されたFEファイルも併せて検出。</td>
+          <td><span class="auto">AI 自動</span></td>
+        </tr>
+        <tr>
+          <td class="who">DB安全確認の想起</td>
+          <td class="col-asis">「マイグレーション当てた？」「reset→seed 通る？」を覚えていれば確認。新人や繁忙時に抜けやすい。</td>
+          <td class="col-tobe">DB層に変更があれば <code>prisma:migrate</code> と <code>migrate:reset → seed</code> の必須チェックを機械的に出力。seed未変更の不整合も警告。</td>
+          <td><span class="auto">AI 自動</span></td>
+        </tr>
+        <tr>
+          <td class="who">仕様↔実装のズレ検知</td>
+          <td class="col-asis">「仕様にあるのに実装されてない／仕様にないのに変わってる」は、よほど注意深くないと気づけない。</td>
+          <td class="col-tobe"><span class="phase-pill">Phase 3</span><br>予測スコープと実差分を照合し「⚠️実装漏れ?」「⚠️スペック外変更?」を可能性として提示（断定はしない）。</td>
+          <td><span class="auto">AI 自動</span></td>
+        </tr>
+        <tr>
+          <td class="who">テスト手順の起こし</td>
+          <td class="col-asis">影響画面ごとに「何を操作して何を確認するか」を毎回手書き。粒度や網羅性は書き手次第。</td>
+          <td class="col-tobe">Spec §9 を正本に、ゴールデンパス／変更点直結／DB連動値／エラーケース／境界確認の観点で操作＋期待結果セットのチェックリストを生成。</td>
+          <td><span class="auto">AI 自動</span></td>
+        </tr>
+        <tr>
+          <td class="who">テスト工数の見積もり</td>
+          <td class="col-asis">「だいたい半日くらい」を経験と勘で口頭提示。根拠が残らず、画面が増えると計画が崩れる。</td>
+          <td class="col-tobe"><span class="phase-pill">Step 4.5</span><br>チェック項目を表示／操作＋結果／エラーケース／DB必須に分類し、種別×係数＋画面ごとの準備OH＋20%バッファで積み上げ、<em>レンジ</em>で提示。「確定値ではなく初期見立て」と前提も明記。</td>
+          <td><span class="auto">AI 自動</span></td>
+        </tr>
+        <tr>
+          <td class="who">過去知見の再利用</td>
+          <td class="col-asis">前回PRで踏んだ落とし穴（例: マイグレーション履歴スカッシュ時の罠）は個人の記憶頼み。担当者が代わると同じミスを繰り返す。</td>
+          <td class="col-tobe">永続メモリ（<code>.claude/agent-memory/regression-scope/</code>）に feedback を蓄積し、該当条件のPRで自動適用。例: スカッシュPRでは「既存DBへ <code>migrate deploy</code> 不可／全員 reset 周知」を必ず出力。</td>
+          <td><span class="auto">AI 自動</span></td>
+        </tr>
+        <tr>
+          <td class="who">スコープ外の線引き</td>
+          <td class="col-asis">「ここはたぶん影響ない」を口頭・記憶で判断。根拠が残らずレビューで再議論。</td>
+          <td class="col-tobe">影響なしと判断した画面/機能を理由付きで明示（例: 型のみ変更でAPIシグネチャ不変、未使用Mutation等）。</td>
+          <td><span class="auto">AI 自動</span></td>
+        </tr>
+        <tr>
+          <td class="who">文書化・共有</td>
+          <td class="col-asis">多くの場合ドキュメント化されず属人化。レビュアーは範囲を追検証できない。</td>
+          <td class="col-tobe"><code>.work/{チケットID}.regression-scope.md</code> に一貫フォーマットで出力。frontend-tester モードR の入力になる。</td>
+          <td><span class="auto">AI 自動</span></td>
+        </tr>
+        <tr>
+          <td class="who">実際のテスト実行・合否判断</td>
+          <td class="col-asis">画面を開いて操作し、デグレの有無を最終判断。</td>
+          <td class="col-tobe">範囲は提示するが <em>実行はしない</em>。実テストは frontend-tester（モードR）/ e2e-test、最終判断は人間。</td>
+          <td><span class="human-stays">人間／別AI</span></td>
+        </tr>
+        <tr>
+          <td class="who">スコープ妥当性の承認</td>
+          <td class="col-asis">範囲を自分で決めて自分で納得。第三者チェックは無いことが多い。</td>
+          <td class="col-tobe">乖離は「可能性」として提示するため、最終的な取捨選択・意思決定は人間が行う。</td>
+          <td><span class="human-stays">人間</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 3. フロー -->
+  <h2><span class="num">03</span>エージェント内部フロー</h2>
+  <div class="flow">
+    <div class="step">
+      <div class="s-num">STEP 0</div>
+      <div class="s-title">チケットID導出</div>
+      <div class="s-desc">ブランチ名 f/PW-XXX から出力先を確定</div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="step">
+      <div class="s-num">PHASE 1</div>
+      <div class="s-title">Spec起点の予測</div>
+      <div class="s-desc">「変わるはず」を仕様書から抽出</div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="step">
+      <div class="s-num">PHASE 2</div>
+      <div class="s-title">diff起点の確認</div>
+      <div class="s-desc">「実際に変わった」を層別に確認</div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="step">
+      <div class="s-num">PHASE 3</div>
+      <div class="s-title">乖離分析</div>
+      <div class="s-desc">予測と実装のズレを検出</div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="step">
+      <div class="s-num">STEP 4.5</div>
+      <div class="s-title">工数見積もり</div>
+      <div class="s-desc">項目を係数で積み上げレンジ化</div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="step">
+      <div class="s-num">OUTPUT</div>
+      <div class="s-title">文書出力</div>
+      <div class="s-desc">手順＋工数＋スコープ外を .md 化</div>
+    </div>
+  </div>
+  <div class="callout">
+    <strong>キモは「2つの視点のズレ」。</strong>
+    Spec が示す「変わるはず」と diff が示す「実際に変わった」の差分そのものが品質リスクのシグナルになります。
+    人間が片方（多くは diff だけ）しか見ていなかったところを、両面から突き合わせる点が肩代わりの本質です。
+    各 Phase の入口では永続メモリの学習済み観点（後述）も併せて参照し、過去の落とし穴を自動で取り込みます。
+  </div>
+
+  <!-- 4. パイプライン上の位置 -->
+  <h2><span class="num">04</span>開発パイプライン上の位置づけ</h2>
+  <p class="section-note">起点は人間による要件・仕様策定（変更含む）。そこから先の実装～範囲確定（1回目）までを planner がオーケストレーションする。その後は人間が目視しながらAIに微調整させ、PR作成時に regression-scope へテスト観点を再確認させる（2回目）。最終テストは frontend-tester（モードR）の自動検証と人間による手動テストの両輪で行い、いずれも regression-scope の出力を観点として消費する。</p>
+  <div class="flow">
+    <div class="step human">
+      <div class="s-num">👤 人間</div>
+      <div class="s-title">要件・仕様策定</div>
+      <div class="s-desc">新規要件・仕様変更を定義</div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="group">
+      <span class="glabel">planner がオーケストレーション</span>
+      <div class="flow">
+        <div class="step"><div class="s-title">db-architect</div><div class="s-desc">スキーマ変更</div></div>
+        <div class="arrow">→</div>
+        <div class="step"><div class="s-title">backend + reviewer</div><div class="s-desc">API実装・レビュー</div></div>
+        <div class="arrow">→</div>
+        <div class="step"><div class="s-title">frontend（4段階）</div><div class="s-desc">画面実装</div></div>
+        <div class="arrow">→</div>
+        <div class="step" style="border-color: var(--accent); background: rgba(45,212,191,0.07);">
+          <div class="s-num">1回目</div>
+          <div class="s-title">regression-scope</div>
+          <div class="s-desc">チェック範囲を文書化</div>
+        </div>
+      </div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="step human">
+      <div class="s-num">👤 人間</div>
+      <div class="s-title">目視＋AI微調整</div>
+      <div class="s-desc">確認しながら手直しを指示</div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="step" style="border-color: var(--accent); background: rgba(45,212,191,0.07);">
+      <div class="s-num">2回目</div>
+      <div class="s-title">regression-scope</div>
+      <div class="s-desc">PR作成時に観点を再確認</div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="vstack">
+      <div class="step"><div class="s-title">frontend-tester（R）</div><div class="s-desc">範囲に沿って自動実検証</div></div>
+      <div class="vplus">＋</div>
+      <div class="step human"><div class="s-num">👤 人間</div><div class="s-title">人間によるテスト</div><div class="s-desc">cross-screen・業務観点を手動確認</div></div>
+    </div>
+  </div>
+  <div class="callout">
+    <strong>planner の自動オーケストレーションは「要件・仕様策定の後〜1回目の範囲確定まで」。</strong>
+    人間が定義した要件・仕様（変更含む）を起点に、planner が db-architect → backend → frontend → regression-scope（1回目）を直列で指揮します。
+    その先は人間が実装・スコープを目視しながらAIに微調整を指示する Human-in-the-loop フェーズを挟み、PR作成時にもう一度 regression-scope を走らせて、微調整で変わった内容にテスト観点を追従させてからテストへ渡します。
+  </div>
+  <div class="callout">
+    <strong>既存画面（Specなし）にも効く。</strong>
+    Spec が無い場合は diff のみで分析を続行するため、過去に仕様書なしで作られた画面のデグレードチェックにも対応できます。
+    これにより frontend-tester は brief §7 が無くてもモードR で検証可能になります。
+  </div>
+
+  <!-- 5. 永続メモリ / 学習 -->
+  <h2><span class="num">05</span>使うほど賢くなる — 永続メモリ</h2>
+  <p class="section-note">regression-scope は <code>memory: project</code> を持ち、レビューで得たフィードバックを <code>.claude/agent-memory/regression-scope/</code> に蓄積する。次回以降、同じ条件のPRで学習済みの観点を自動で適用する。</p>
+  <div class="flow">
+    <div class="step">
+      <div class="s-num">① 指摘</div>
+      <div class="s-title">人間がフィードバック</div>
+      <div class="s-desc">「この観点が抜けていた」を指摘</div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="step">
+      <div class="s-num">② 蓄積</div>
+      <div class="s-title">メモリに保存</div>
+      <div class="s-desc">{topic}.md ＋ MEMORY.md にポインタ</div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="step" style="border-color: var(--accent); background: rgba(45,212,191,0.07);">
+      <div class="s-num">③ 再利用</div>
+      <div class="s-title">次回PRで自動適用</div>
+      <div class="s-desc">該当条件を満たすと観点を出力に反映</div>
+    </div>
+  </div>
+  <div class="callout">
+    <strong>蓄積済みの学習例（PW-161 で獲得）:</strong>
+    <code>feedback-migration-squash.md</code> — マイグレーション履歴をスカッシュ（複数 migration を <code>0_init</code> に統合）するPRでは、
+    <em>既存DBに <code>migrate deploy</code> が使えない／<code>migrate:reset → seed</code> でのフルリビルドが必要／チーム全員への周知が要る／main の <code>0_init</code> とのテーブル数・名称差異の確認</em>
+    を必ず出力に含める。
+    <br><br>
+    属人的だった「前回の落とし穴」が、担当者が代わっても再現される組織知として残る点が、静的なチェックリストとの決定的な違いです。
+    なお、コードパターン・ファイルパス・git履歴・過去の regression-scope ドキュメント内容はメモリに保存しない（再調査すれば分かるため）。
+  </div>
+
+  <p class="footnote">
+    実出力例: <a href="PW-161.regression-scope.html" style="color:var(--accent);">PW-161.regression-scope.html</a>
+    ／ 出典: <code>.claude/agents/regression-scope.md</code>（工数見積もり = Step 4.5／永続メモリ = <code>memory: project</code>）。
+    本ドキュメントは regression-scope の役割整理用。生成: 2026-06-23。
+  </p>
+
+</div>
+</body>
+</html>
