@@ -154,6 +154,14 @@
   .keystone .basis .link b { color: var(--c-scope); }
   .keystone .basis .draft { margin-top: 10px; font-size: 11.5px; color: var(--asis); background: var(--asis-soft); border: 1px solid var(--asis-line); border-radius: 8px; padding: 8px 11px; }
   .keystone .basis .draft b { color: var(--asis); }
+  .keystone .basis .matrix { margin-top: 12px; display: grid; grid-template-columns: 96px repeat(3, 1fr); gap: 6px; }
+  .keystone .basis .matrix .mh { font-size: 11.5px; font-weight: 800; text-align: center; padding: 6px 4px; border-radius: 6px; }
+  .keystone .basis .matrix .mh.corner { background: transparent; }
+  .keystone .basis .matrix .mh.normal { color: var(--tobe); background: var(--tobe-soft); border: 1px solid var(--tobe-line); }
+  .keystone .basis .matrix .mh.abn { color: var(--asis); background: var(--asis-soft); border: 1px solid var(--asis-line); }
+  .keystone .basis .matrix .mh.etc { color: var(--accent); background: var(--accent-soft); border: 1px solid #bcd6ee; }
+  .keystone .basis .matrix .rh { font-size: 12px; font-weight: 800; color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 9px 8px; display: flex; align-items: center; }
+  .keystone .basis .matrix .cell { font-size: 11px; color: var(--muted); line-height: 1.5; background: #fff; border: 1px solid var(--line); border-radius: 6px; padding: 8px 9px; }
 
   .raci { width: 100%; border-collapse: collapse; font-size: 13.5px; margin-top: 16px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
   .raci th { background: var(--panel); text-align: left; padding: 11px 16px; font-size: 12px; color: var(--muted); }
@@ -222,7 +230,7 @@
       なお網羅は、<b>AI で広く狙い、最後は人（PM/PO・QA）の確認で 100% に仕上げる</b>（AI 単独で 100% を保証する話ではない／後述の限界と森④の運用がこれを担う）。
     </div>
     <div class="why">
-      <b>なぜいま変更管理か</b> ―― 変更管理は「担当者が変なことをしない」前提に立ちがち。AI だと取り違えても気づかないまま進み、発覚までのタイムラグが長くなる。だから影響範囲を機械的に確定し、チェック基準を先に張る必要がある。
+      <b>なぜいま変更管理か</b> ―― 変更管理は「担当者が変なことをしない」前提に立ちがち。AI だと取り違えても気づかないまま進み、発覚までのタイムラグが長くなる。影響範囲を機械的に確定し、チェック基準を先に定めておく必要がある。
     </div>
   </div>
 
@@ -261,7 +269,7 @@
     <div class="eff e2">
       <div class="n">要素②</div>
       <h4>仕様↔実装の取り違え検知</h4>
-      <p>仕様の「変わるはず」と実装の「実際に変わった」を突き合わせ、<b>実装漏れ・仕様外変更</b>を「要確認」でフラグ。AI が取り違えても、ここで人が気づける ―― 変更管理の肝。</p>
+      <p>仕様の「変わるはず」と実装の「実際に変わった」を突き合わせ、<b>実装漏れ・仕様外変更</b>を「要確認」でフラグ。AI が取り違えても、ここで人が気づける。</p>
       <span class="pw">PW-171：乖離・スコープ外を提示</span>
     </div>
     <div class="eff e3">
@@ -281,83 +289,8 @@
 
   <!-- 木の詳細（折りたたみ） -->
   <details class="more">
-    <summary>木の詳細を開く ― パイプライン図 / 4つの情報 / 観点別 AsIs→ToBe</summary>
+    <summary>木の詳細を開く ― 4つの情報 / 観点別 AsIs→ToBe</summary>
     <div class="inner">
-
-      <div style="margin:16px 0 0;font-weight:800;font-size:13px;color:var(--asis);">AsIs ― 従来（開発者が手作業・属人的）</div>
-      <div class="flow">
-        <svg viewBox="0 0 920 215" role="img" aria-label="AsIs：従来の手作業フロー">
-          <rect x="10" y="84" width="120" height="54" rx="9" fill="#fff" stroke="#d8dbe2"/>
-          <text x="70" y="107" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1a1a">仕様変更</text>
-          <text x="70" y="125" text-anchor="middle" font-size="11" fill="#5b6573">＋ git diff</text>
-          <line x1="132" y1="111" x2="172" y2="111" stroke="#9aa3b2" stroke-width="2"/>
-          <polygon points="172,106 182,111 172,116" fill="#9aa3b2"/>
-          <rect x="184" y="64" width="204" height="94" rx="11" fill="#fff4ec" stroke="#c2410c" stroke-width="2"/>
-          <text x="286" y="88" text-anchor="middle" font-size="13" font-weight="800" fill="#c2410c">👤 開発者（手作業）</text>
-          <text x="286" y="108" text-anchor="middle" font-size="11" fill="#1a1a1a">影響範囲・観点・工数を</text>
-          <text x="286" y="124" text-anchor="middle" font-size="11" fill="#1a1a1a">経験と勘で判断（頭の中）</text>
-          <text x="286" y="144" text-anchor="middle" font-size="10" fill="#5b6573">正本となる文書は残らない</text>
-          <line x1="390" y1="111" x2="424" y2="111" stroke="#9aa3b2" stroke-width="2"/>
-          <text x="404" y="103" text-anchor="middle" font-size="9.5" fill="#5b6573">手書き</text>
-          <line x1="424" y1="111" x2="472" y2="58" stroke="#9aa3b2" stroke-width="2"/>
-          <line x1="424" y1="111" x2="472" y2="164" stroke="#9aa3b2" stroke-width="2"/>
-          <rect x="476" y="26" width="224" height="64" rx="11" fill="#fff" stroke="#c2410c"/>
-          <text x="588" y="48" text-anchor="middle" font-size="12.5" font-weight="700" fill="#c2410c">PR説明文を手書き</text>
-          <text x="588" y="66" text-anchor="middle" font-size="10.5" fill="#1a1a1a">観点が抜け・過不足が出る</text>
-          <text x="588" y="82" text-anchor="middle" font-size="10" fill="#5b6573">読み手：レビュアー・開発者</text>
-          <rect x="476" y="132" width="224" height="64" rx="11" fill="#fff" stroke="#c2410c"/>
-          <text x="588" y="154" text-anchor="middle" font-size="12.5" font-weight="700" fill="#c2410c">チケット要点を手まとめ</text>
-          <text x="588" y="172" text-anchor="middle" font-size="10.5" fill="#1a1a1a">粒度・網羅性は書き手次第</text>
-          <text x="588" y="188" text-anchor="middle" font-size="10" fill="#5b6573">読み手：PM・PO</text>
-          <rect x="724" y="40" width="186" height="132" rx="10" fill="#fff4ec" stroke="#f4c8a8"/>
-          <text x="740" y="62" font-size="11.5" font-weight="800" fill="#b45309">従来の課題</text>
-          <text x="740" y="86" font-size="10.5" fill="#7a3b16">・影響範囲は属人的で漏れる</text>
-          <text x="740" y="106" font-size="10.5" fill="#7a3b16">・同じ内容を二重に手書き</text>
-          <text x="740" y="126" font-size="10.5" fill="#7a3b16">・テスト工数は勘でざっくり</text>
-          <text x="740" y="146" font-size="10.5" fill="#7a3b16">・文書化は後回し・残らない</text>
-        </svg>
-      </div>
-
-      <div style="margin:20px 0 0;font-weight:800;font-size:13px;color:var(--tobe);">ToBe ― 3エージェント連携（自動化）</div>
-      <div class="flow">
-        <svg viewBox="0 0 920 250" role="img" aria-label="3エージェント連携パイプライン（ToBe）">
-          <rect x="10" y="98" width="120" height="54" rx="9" fill="#fff" stroke="#d8dbe2"/>
-          <text x="70" y="121" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1a1a">仕様変更</text>
-          <text x="70" y="139" text-anchor="middle" font-size="11" fill="#5b6573">＋ git diff</text>
-          <text x="70" y="172" text-anchor="middle" font-size="9.5" fill="#5b6573">差分＝AI駆動実装</text>
-          <text x="70" y="184" text-anchor="middle" font-size="9.5" fill="#5b6573">または人手修正</text>
-          <line x1="132" y1="125" x2="172" y2="125" stroke="#9aa3b2" stroke-width="2"/>
-          <polygon points="172,120 182,125 172,130" fill="#9aa3b2"/>
-          <rect x="184" y="78" width="200" height="94" rx="11" fill="#eaf2fa" stroke="#2f6fb0" stroke-width="2"/>
-          <text x="284" y="101" text-anchor="middle" font-size="13.5" font-weight="800" fill="#2f6fb0">regression-scope</text>
-          <text x="284" y="122" text-anchor="middle" font-size="11" fill="#1a1a1a">影響範囲・テスト観点</text>
-          <text x="284" y="138" text-anchor="middle" font-size="11" fill="#1a1a1a">テスト工数を見立てる</text>
-          <text x="284" y="158" text-anchor="middle" font-size="10.5" fill="#5b6573">分析結果を出力（正本）</text>
-          <line x1="386" y1="125" x2="430" y2="125" stroke="#9aa3b2" stroke-width="2"/>
-          <polygon points="430,120 440,125 430,130" fill="#9aa3b2"/>
-          <text x="408" y="116" text-anchor="middle" font-size="9.5" fill="#5b6573">出力を消費</text>
-          <line x1="440" y1="125" x2="470" y2="60" stroke="#9aa3b2" stroke-width="2"/>
-          <line x1="440" y1="125" x2="470" y2="190" stroke="#9aa3b2" stroke-width="2"/>
-          <rect x="476" y="28" width="220" height="76" rx="11" fill="#f3ecfd" stroke="#7c3aed" stroke-width="2"/>
-          <text x="586" y="50" text-anchor="middle" font-size="13" font-weight="800" fill="#7c3aed">pr-writer</text>
-          <text x="586" y="69" text-anchor="middle" font-size="11" fill="#1a1a1a">PR用の文書を自動生成</text>
-          <text x="586" y="88" text-anchor="middle" font-size="10.5" fill="#5b6573">読み手：レビュアー・開発者</text>
-          <rect x="476" y="148" width="220" height="76" rx="11" fill="#e6f3f6" stroke="#0e7490" stroke-width="2"/>
-          <text x="586" y="170" text-anchor="middle" font-size="13" font-weight="800" fill="#0e7490">ticket-writer</text>
-          <text x="586" y="189" text-anchor="middle" font-size="11" fill="#1a1a1a">チケット要点を自動まとめ</text>
-          <text x="586" y="208" text-anchor="middle" font-size="10.5" fill="#5b6573">読み手：PM・PO</text>
-          <line x1="696" y1="66" x2="736" y2="66" stroke="#9aa3b2" stroke-width="2"/>
-          <polygon points="736,61 746,66 736,71" fill="#9aa3b2"/>
-          <rect x="748" y="40" width="160" height="52" rx="9" fill="#fff" stroke="#7c3aed"/>
-          <text x="828" y="62" text-anchor="middle" font-size="12" font-weight="700" fill="#7c3aed">PR文書</text>
-          <text x="828" y="79" text-anchor="middle" font-size="10" fill="#5b6573">レビュー・マージ判断へ</text>
-          <line x1="696" y1="186" x2="736" y2="186" stroke="#9aa3b2" stroke-width="2"/>
-          <polygon points="736,181 746,186 736,191" fill="#9aa3b2"/>
-          <rect x="748" y="160" width="160" height="52" rx="9" fill="#fff" stroke="#0e7490"/>
-          <text x="828" y="182" text-anchor="middle" font-size="12" font-weight="700" fill="#0e7490">チケット要点</text>
-          <text x="828" y="199" text-anchor="middle" font-size="10" fill="#5b6573">PM・POの判断材料へ</text>
-        </svg>
-      </div>
 
       <h3 style="font-size:15px;margin:24px 0 6px;">仕様 × 実装差分 × リポジトリ から分かる4つの情報</h3>
       <p class="note" style="margin-top:0;"><b style="color:#2f6fb0">仕様</b>（あるべき変更）・<b style="color:#b45309">実装差分</b>（実際の変更）・<b>リポジトリ</b>（全画面）の3つを突き合わせ、regression-scope が次の4つを機械的に洗い出す。</p>
@@ -517,17 +450,17 @@
 
   <!-- ============ 森④ キースライド：チェック基準ファースト ============ -->
   <h2 class="keyhead"><span class="step-no">森 ④</span>正しい使い方 ―― チェック基準ファースト<span class="newbadge">KEY / New</span></h2>
-  <p class="note">ここが肝。<b>「動いているものへの変更」は、変更後も動く保証が難しい</b>。だから順番を変える ―― 結果を見てから直すのではなく、<b>確認の基準を先に張る</b>。</p>
+  <p class="note"><b>「動いているものへの変更」は、変更後も動く保証が難しい</b>。結果を見てから直すのではなく、<b>確認の基準を先に決める</b>。</p>
   <div class="keystone">
     <div class="lede">
       変更時は、AI に <b>「影響範囲」と「要テスト範囲」を出力</b>させ、<b>その確認をもって品質的に OK と判断</b>する。
-      開発工数だけでなく<b>チェック工数も削減</b>でき、守れないと失敗する“抑えどころ”。
+      開発工数だけでなく<b>チェック工数も削減</b>できる。ここを守れないと、変更後の品質が保証できない。
     </div>
     <div class="keysteps">
       <div class="kstep">
         <span class="kn">1</span>
         <h4>チェック基準を先に定める</h4>
-        <p>変更に着手する前に「何を以って OK とするか」を決めておく。結果確認に予防線を張る。</p>
+        <p>変更に着手する前に「何を以って OK とするか」を決めておく。</p>
         <span class="who h">人（事前）</span>
       </div>
       <div class="karrow">→</div>
@@ -547,18 +480,71 @@
     </div>
     <div class="basis">
       <div class="bt">ステップ1「チェック基準」の中身（雛形）<span class="tagN">策定中</span></div>
-      <div class="sub">変更種別ごとに、確認すべき観点軸を先に定めておく。これが「予防線」の実体になる。</div>
-      <div class="axes">
-        <div class="axis"><div class="an">表示崩れ</div><div class="ad">画面表示・レイアウトが崩れないか</div></div>
-        <div class="axis"><div class="an">操作</div><div class="ad">入力・ボタン・画面遷移が想定どおり動くか</div></div>
-        <div class="axis"><div class="an">エラー</div><div class="ad">異常系・バリデーションが正しく出るか</div></div>
-        <div class="axis"><div class="an">DB整合</div><div class="ad">データ移行・初期データ・整合性（DB変更時は必須）</div></div>
+      <div class="sub"><b>レイヤー（縦）× テスト系統（横）</b>のマトリクスで、確認すべき観点を先に定めておく。</div>
+      <div class="matrix">
+        <div class="mh corner"></div>
+        <div class="mh normal">正常系</div>
+        <div class="mh abn">異常系</div>
+        <div class="mh etc">その他</div>
+
+        <div class="rh">フロントエンド</div>
+        <div class="cell">表示・レイアウト・画面遷移・入力操作・権限別の見え方が想定どおりか</div>
+        <div class="cell">バリデーション／エラーメッセージが正しく表示されるか</div>
+        <div class="cell">表示崩れ・レスポンシブ・ブラウザ互換</div>
+
+        <div class="rh">バックエンド</div>
+        <div class="cell">API正常応答・業務ロジック・DB登録/更新/削除の整合</div>
+        <div class="cell">例外処理・エラーコード・トランザクションのロールバック</div>
+        <div class="cell">性能・同時実行・既存データへの影響・後方互換</div>
+
+        <div class="rh">インフラ</div>
+        <div class="cell">デプロイ・起動・疎通・DBマイグレーション・バッチ／ジョブの実行</div>
+        <div class="cell">障害時のリトライ／フェイルオーバー・排他制御・冪等性確保・監視通知</div>
+        <div class="cell">環境差分・設定値・権限/セキュリティ・データ移行</div>
       </div>
-      <div class="link">
-        ここで張った観点軸が、ステップ2で <b>regression-scope</b> の画面別チェックリスト（PW-171 では <b>27項目</b>）として具体化され、種別ごとの係数でテスト工数のレンジにもつながる。<b>基準（人が先に定める観点）</b>と<b>AI出力（要テスト範囲）</b>が同じ軸でひと続きになる。
-      </div>
-      <div class="draft">
-        <b>※</b> 上記は観点軸の雛形（イメージ）。<b>変更種別 × 観点の標準フォーマットは現在策定中</b>で、確定後にこの雛形を確定版へ置き換える（6/18 合意：置き場所を先に決め、確定後に埋め込む）。
+    </div>
+    <div class="basis" style="margin-top:14px;">
+      <div class="bt">ステップ2「影響範囲・要テスト範囲の出力」 ― エージェント連携（自動化）</div>
+      <div class="sub">ステップ1で定めた観点を入力に、<b>3エージェントが影響範囲・要テスト範囲・文書を自動生成</b>する。人は出力を確認するだけでよい。</div>
+      <div class="flow" style="margin-top:12px;">
+        <svg viewBox="0 0 920 250" role="img" aria-label="3エージェント連携パイプライン（自動化）">
+          <rect x="10" y="92" width="124" height="66" rx="9" fill="#fff" stroke="#d8dbe2"/>
+          <text x="72" y="113" text-anchor="middle" font-size="12" font-weight="700" fill="#1a1a1a">仕様</text>
+          <text x="72" y="131" text-anchor="middle" font-size="11" fill="#1a1a1a">＋ チェック基準</text>
+          <text x="72" y="149" text-anchor="middle" font-size="11" fill="#5b6573">＋ git diff</text>
+          <text x="72" y="176" text-anchor="middle" font-size="9.5" fill="#5b6573">差分＝AI駆動実装</text>
+          <text x="72" y="189" text-anchor="middle" font-size="9.5" fill="#5b6573">または人手修正</text>
+          <line x1="136" y1="125" x2="172" y2="125" stroke="#9aa3b2" stroke-width="2"/>
+          <polygon points="172,120 182,125 172,130" fill="#9aa3b2"/>
+          <rect x="184" y="78" width="200" height="94" rx="11" fill="#eaf2fa" stroke="#2f6fb0" stroke-width="2"/>
+          <text x="284" y="101" text-anchor="middle" font-size="13.5" font-weight="800" fill="#2f6fb0">regression-scope</text>
+          <text x="284" y="122" text-anchor="middle" font-size="11" fill="#1a1a1a">影響範囲・テスト観点</text>
+          <text x="284" y="138" text-anchor="middle" font-size="11" fill="#1a1a1a">テスト工数を見立てる</text>
+          <text x="284" y="158" text-anchor="middle" font-size="10.5" fill="#5b6573">分析結果を出力（正本）</text>
+          <line x1="386" y1="125" x2="430" y2="125" stroke="#9aa3b2" stroke-width="2"/>
+          <polygon points="430,120 440,125 430,130" fill="#9aa3b2"/>
+          <text x="408" y="116" text-anchor="middle" font-size="9.5" fill="#5b6573">出力を消費</text>
+          <line x1="440" y1="125" x2="470" y2="60" stroke="#9aa3b2" stroke-width="2"/>
+          <line x1="440" y1="125" x2="470" y2="190" stroke="#9aa3b2" stroke-width="2"/>
+          <rect x="476" y="28" width="220" height="76" rx="11" fill="#f3ecfd" stroke="#7c3aed" stroke-width="2"/>
+          <text x="586" y="50" text-anchor="middle" font-size="13" font-weight="800" fill="#7c3aed">pr-writer</text>
+          <text x="586" y="69" text-anchor="middle" font-size="10.5" fill="#1a1a1a">PR用文書（レビュー観点、テスト項目）</text>
+          <text x="586" y="88" text-anchor="middle" font-size="10.5" fill="#5b6573">読み手：レビュアー・開発者</text>
+          <rect x="476" y="148" width="220" height="76" rx="11" fill="#e6f3f6" stroke="#0e7490" stroke-width="2"/>
+          <text x="586" y="170" text-anchor="middle" font-size="13" font-weight="800" fill="#0e7490">ticket-writer</text>
+          <text x="586" y="189" text-anchor="middle" font-size="10.5" fill="#1a1a1a">チケット用文書（実装内容・影響範囲など）</text>
+          <text x="586" y="208" text-anchor="middle" font-size="10.5" fill="#5b6573">読み手：PM・PO</text>
+          <line x1="696" y1="66" x2="736" y2="66" stroke="#9aa3b2" stroke-width="2"/>
+          <polygon points="736,61 746,66 736,71" fill="#9aa3b2"/>
+          <rect x="748" y="40" width="160" height="52" rx="9" fill="#fff" stroke="#7c3aed"/>
+          <text x="828" y="62" text-anchor="middle" font-size="12" font-weight="700" fill="#7c3aed">PR</text>
+          <text x="828" y="79" text-anchor="middle" font-size="10" fill="#5b6573">レビュー・マージ判断へ</text>
+          <line x1="696" y1="186" x2="736" y2="186" stroke="#9aa3b2" stroke-width="2"/>
+          <polygon points="736,181 746,186 736,191" fill="#9aa3b2"/>
+          <rect x="748" y="160" width="160" height="52" rx="9" fill="#fff" stroke="#0e7490"/>
+          <text x="828" y="182" text-anchor="middle" font-size="12" font-weight="700" fill="#0e7490">チケット本文</text>
+          <text x="828" y="199" text-anchor="middle" font-size="10" fill="#5b6573">PM・POの判断材料へ</text>
+        </svg>
       </div>
     </div>
     <div class="gateline">
