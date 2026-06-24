@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>回帰スコープ起点の品質・文書自動化（3エージェント連携）｜ スライド資料</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: #fafaf7; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Yu Gothic UI", sans-serif; color: #1a1a1a; }
+  body { padding: 32px 40px 80px; }
+  .container { max-width: 960px; margin: 0 auto; }
+
+  .header { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid #d8dbe2; padding-bottom: 14px; margin-bottom: 28px; }
+  .header h1 { font-size: 22px; font-weight: 700; color: #1a1a1a; }
+  .header .meta { font-size: 13px; color: #666; }
+
+  .lede { color: #555; font-size: 13px; line-height: 1.7; margin-bottom: 24px; padding: 14px 18px; background: #fff; border: 1px solid #d8dbe2; border-radius: 12px; }
+  .lede strong { color: #1a1a1a; }
+
+  h2.sec { font-size: 14px; color: #2f6fb0; border-bottom: 1px solid #cdd8ea; padding-bottom: 5px; margin: 28px 0 14px; }
+
+  .links { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .link-card {
+    display: block; text-decoration: none; color: inherit;
+    background: #fff; border: 1px solid #d8dbe2; border-left: 4px solid #2f6fb0;
+    border-radius: 12px; padding: 18px 20px;
+    transition: border-color 0.1s ease, box-shadow 0.1s ease;
+  }
+  .link-card:hover { border-color: #2f6fb0; box-shadow: 0 2px 8px rgba(47, 111, 176, 0.12); }
+  .link-card.ref { border-left-color: #94a3b8; }
+  .link-card.ref:hover { border-color: #94a3b8; box-shadow: 0 2px 8px rgba(148,163,184,0.15); }
+  .link-title { font-size: 15px; font-weight: 700; color: #1f4e80; margin-bottom: 6px; }
+  .link-card.ref .link-title { color: #475569; }
+  .link-desc { font-size: 12px; color: #555; line-height: 1.6; }
+  .link-path { display: inline-block; margin-top: 8px; font-size: 11px; color: #888; font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; }
+  .badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 999px; background: #dbeafe; color: #1e40af; margin-right: 6px; vertical-align: 1px; }
+  .badge.ref { background: #e2e8f0; color: #475569; }
+
+  .toc { margin-top: 10px; font-size: 12px; color: #666; line-height: 1.9; }
+  .toc b { color: #1a1a1a; }
+
+  @media (max-width: 720px) { .links { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header class="header">
+    <h1>回帰スコープ起点の品質・文書自動化 ｜ スライド資料</h1>
+    <div class="meta">ドキュメント目次 ／ ai-08</div>
+  </header>
+
+  <div class="lede">
+    仕様変更後の<strong>品質保証と文書化</strong>を、手作業（<strong>As-Is</strong>）から<strong>3つのAIエージェント連携</strong>（<strong>To-Be</strong>）へ。
+    <strong style="color:#2f6fb0;">regression-scope</strong> が<strong>影響範囲・テスト観点・工数</strong>を確定し、その出力を
+    <strong style="color:#7c3aed;">pr-writer</strong>（PR文書）・<strong style="color:#0e7490;">ticket-writer</strong>（チケット要点）が消費して文書を自動生成。
+    変更時は<strong>影響範囲・要テスト範囲を出力させ、その確認をもって品質OKと判断する</strong>「チェック基準ファースト」の運用で、見落とし・属人化・文書化漏れを構造的に減らす。
+  </div>
+
+  <h2 class="sec">変更管理の品質 ― As-Is → To-Be スライド（3エージェント連携）</h2>
+  <div class="links">
+    <a class="link-card" href="regression-scope-asis-tobe-pmpo.html">
+      <div class="link-title"><span class="badge">PM・PO向け</span>チェック基準ファースト × 範囲予測・文書自動化</div>
+      <div class="link-desc">「影響範囲＝100%」の定義→全体削減率→効果の3要素→キースライド（チェック基準ファースト運用）の森→木→森構成。デグレ範囲の予測可能化・トレーサビリティ・工数見立て・PR/チケット自動生成まで実務目線で整理。</div>
+      <span class="link-path">regression-scope-asis-tobe-pmpo.html</span>
+    </a>
+  </div>
+
+  <h2 class="sec">自動生成レポート（実例・PW-171）</h2>
+  <div class="links">
+    <a class="link-card ref" href="PW-171.regression-scope.html">
+      <div class="link-title"><span class="badge ref">regression-scope</span>リグレッションスコープ：PW-171</div>
+      <div class="link-desc">regression-scope が出力した回帰スコープの実例。変更サマリー・影響API・画面別チェックリスト・テスト工数見積りを自動生成（素のMarkdown表示）。</div>
+      <span class="link-path">PW-171.regression-scope.html</span>
+    </a>
+    <a class="link-card ref" href="PW-171.pr.html">
+      <div class="link-title"><span class="badge ref">pr-writer</span>PR文書：PW-171</div>
+      <div class="link-desc">pr-writer が regression-scope 出力をもとに生成したPR用文書。追加機能・テスト観点・影響範囲を整理（GitHub PR 風の表示）。</div>
+      <span class="link-path">PW-171.pr.html</span>
+    </a>
+    <a class="link-card ref" href="PW-171.ticket.html">
+      <div class="link-title"><span class="badge ref">ticket-writer</span>チケット：PW-171</div>
+      <div class="link-desc">ticket-writer が生成した作業チケット。影響範囲・PM向け要点・完了条件を整理（Backlog 課題 風の表示）。</div>
+      <span class="link-path">PW-171.ticket.html</span>
+    </a>
+  </div>
+
+  <div class="toc">
+    関連資料：
+    <b>ai-07</b> As-Is/To-Be スライド・他チーム共有 ／
+    <b>ai-06</b> V字モデル（AIと人の責任分界） ／
+    <b>chart</b> 計測ダッシュボード・課題事例
+  </div>
+
+</div>
+</body>
+</html>

@@ -141,24 +141,26 @@ function activeRows(){ return [...SCREENS, ...IFS, ...CHANGE, ...BACKEND]; }
 // 画面名(またはIFID)ごとに 予定工数(h) / 実工数(h) / 状況 / 進捗率 を集計
 // r.進捗率 は postprocessWorkitems で別フィールドとして設定済み (0-1)
 function aggregatePlanActualStatus(rows){
-  const plan = {}, actual = {}, status = {}, progress = {};
+  const plan = {}, actual = {}, status = {}, progress = {}, earned = {};
   rows.forEach(r=>{
     const k = r.画面名 || r.IFID || "";
-    plan[k]   = (plan[k]   || 0) + (r["工数(h)"]              || 0);
+    const planH = (r["工数(h)"] || 0);
+    plan[k]   = (plan[k]   || 0) + planH;
     actual[k] = (actual[k] || 0) + (parseFloat(r["実工数(h)"]) || 0);
+    // EV は行レベルで算定: 各行の 工数 × 各行の 進捗率 を積み上げる。
+    // 単一進捗の画面 (PROGRESS_MAP で全行同一進捗) は従来の plan×progress と一致し後方互換。
+    // 複数進捗の画面 (データ出力・抽出 等 = 1画面に処理単位で個別完了) でも完了行が正しく EV に反映される。
+    earned[k] = (earned[k] || 0) + planH * (r.進捗率 != null ? r.進捗率 : 0);
     if (r.状況 && !status[k]) status[k] = r.状況;
     if (r.進捗率 != null && !(k in progress)) progress[k] = r.進捗率;
   });
-  return { plan, actual, status, progress };
+  return { plan, actual, status, progress, earned };
 }
-// EV (進捗加味の予定工数消化) / AC (実工数合計) を集計
-function aggregateEvAc({ plan, actual, progress }){
+// EV (進捗加味の予定工数消化=行レベル積み上げ) / AC (実工数合計) を集計
+function aggregateEvAc({ actual, earned }){
   let ev = 0, ac = 0;
-  Object.keys(plan).forEach(k=>{
-    const ratio = progress[k] || 0;
-    ev += plan[k] * ratio;
-    ac += actual[k];
-  });
+  Object.keys(earned).forEach(k=>{ ev += earned[k]; });
+  Object.keys(actual).forEach(k=>{ ac += actual[k]; });
   return { ev, ac };
 }
 function esc(s){return String(s==null?"":s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));}

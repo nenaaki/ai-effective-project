@@ -552,14 +552,16 @@
   function scenarioHasTrial(s) {
     return !!s && (s.tasks || []).some(t => (t.label || "").includes("[試行特有]"));
   }
-  // タブのグループ分類: バックエンド実装 / IF / 画面処理 (total はグループ外で先頭固定)
+  // タブのグループ分類: 帳票・ファイル出力 / バックエンド実装 / IF / 画面処理 (total はグループ外で先頭固定)
+  // 帳票・ファイル出力: workitems の処理区分が DL・印刷 の処理を個別タブ化したもの (wi-fileio-*)。
   function classifyGroup(k) {
     if (k.startsWith("wi-be-")) return "バックエンド実装";
+    if (k.startsWith("wi-fileio-")) return "帳票・ファイル出力";
     if (k.startsWith("wi-if-")) return "IF";
     return "画面処理";
   }
-  // 折りたたみ状態 (バックエンド実装 / IF は初期折りたたみ、画面処理は展開)
-  const groupCollapsed = { "バックエンド実装": true, "IF": true, "画面処理": false };
+  // 折りたたみ状態 (帳票・ファイル出力 / バックエンド実装 / IF は初期折りたたみ、画面処理は展開)
+  const groupCollapsed = { "帳票・ファイル出力": true, "バックエンド実装": true, "IF": true, "画面処理": false };
   // currentKey の属するグループは必ず開く
   function ensureGroupVisible(k) {
     if (k !== "total") groupCollapsed[classifyGroup(k)] = false;
@@ -567,7 +569,8 @@
   const SUBTOTAL_KEYS = ["total-trial", "total-nontrial"];
   const TOP_KEYS = ["total", ...SUBTOTAL_KEYS];
   // 工数0で完了（対応不要・実質完了）のタスク。サイドバーのタブを打ち消し線で表示する。
-  const STRIKE_TABS = new Set(["訪問不在登録", "配車戻し登録", "その他未完了登録", "ドライバー持出登録", "未配車検索"]);
+  const STRIKE_TABS = new Set(["訪問不在登録", "配車戻し登録", "その他未完了登録", "ドライバー持出登録", "未配車検索",
+    "集計フラグ付リストCSV出力", "集計ステータス付リストCSV出力", "情報精査用リストCSV出力", "特記事項リストCSV出力"]);
   function tabButtonHTML(k) {
     const cls = ["tab"];
     if (k === currentKey) cls.push("active");

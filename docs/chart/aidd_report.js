@@ -298,9 +298,22 @@
     const groupedScreens = groupTasks(sortedScreens);
     const sortedIfs      = [...IFS].sort(sortDefault);
     const keys = [];
+    // 帳票・ファイル出力 (処理区分が DL・印刷) は処理単位で個別タブにする。
+    // (groupTasks 側で DL・印刷 は非グルーピング=処理ごとに1行で来るため、ここで処理名ラベルの個別シナリオ化)
+    const fileioSeq = {};
     groupedScreens.forEach(row => {
       const id  = row.管理ID || row.画面ID;
       if (!id) return;
+      const proc = row.処理区分 || "";
+      const isFileIO = proc.indexOf("DL") >= 0 || proc.indexOf("印刷") >= 0;
+      if (isFileIO) {
+        fileioSeq[id] = (fileioSeq[id] || 0) + 1;
+        const key = `wi-fileio-${id}-${fileioSeq[id]}`;
+        if (scenarios[key]) return;
+        scenarios[key] = createTemplateScenario(row.処理名 || row.画面名 || id, 'screen');
+        keys.push(key);
+        return;
+      }
       const key = `wi-screen-${id}`;
       if (scenarios[key]) return;   // 既存があれば上書きしない
       scenarios[key] = createTemplateScenario(row.画面名 || id, 'screen');
@@ -343,6 +356,64 @@
   // workitems 由来テンプレートを実データで上書き。指定キーの工程だけ差分マージ、
   // 残工程は 0 のまま (= 未測定)。tasks.<key>.{asis, tobe, tobeEng, loc, agents} を任意指定。
   const SCENARIO_OVERRIDES = {
+    // 集計用リストCSV出力 (FE050 / DM14 帳票・ファイル出力) - データ出力・抽出の CSV ダウンロードの一つ。
+    // 実績コード量: API 103 / フロントエンド 904 行 (DB/テストなし)。
+    // AsIs: お知らせ登録(FE015) の行あたり工数を実績LOCに適用 (api-impl 8h/369行・fe-impl 33.5h/1694行)。fe-design/UX は按分過小のため実態値。合計 約25.1h。
+    // ToBe: AI 1.5h + APIレビュー 0.25h + フロントレビュー 0.5h + 動作確認 0.75h = 3.0h (実績)。
+    'wi-fileio-DM14FE050-4': {
+      lede: "<strong>集計用リストCSV出力</strong>（FE050 / DM14 帳票・ファイル入出力）の開発工数比較。<strong>データ出力・抽出の集計用リスト CSV ダウンロード</strong>。実績コード量は API <strong>103 行</strong>・フロントエンド <strong>904 行</strong>（DB/テストなし）。<strong>AsIs は行数規模から推定</strong>（お知らせ登録(FE015) の行あたり工数を適用）。ただし UX設計 2.5h・フロント設計 1.0h は規模比按分では過小なため実態に合わせて設定。合計 約25.1h。<strong>ToBe は実績</strong>（AI 1.5h ＋ APIレビュー 0.25h ＋ フロントレビュー 0.5h ＋ 動作確認 0.75h ＝ 3.0h）。削減率 <strong>約88%</strong>。",
+      bugCategories: [
+        { key: "syntax", label: "構文/型エラー",                          color: "#ef4444", asis: 1, tobe: 0 },
+        { key: "logic",  label: "ロジックバグ (抽出条件・集計ロジック)",    color: "#f59e0b", asis: 4, tobe: 2 },
+        { key: "edge",   label: "エッジケース漏れ (空・大量件数・文字コード)", color: "#8b5cf6", asis: 3, tobe: 1 },
+        { key: "spec",   label: "仕様解釈ミス (集計仕様・出力項目の解釈)",  color: "#ec4899", asis: 2, tobe: 2 },
+        { key: "ui",     label: "UI 細部の不整合 (抽出条件UI・DLボタン)",   color: "#06b6d4", asis: 2, tobe: 0 },
+      ],
+      bugRateNote: "※ 集計用リストCSV出力 約 1.0 KLOC × 参考レート（人力 12/KLOC ≒ 12件 / AI 5/KLOC ≒ 5件）で推定。集計用リストの CSV ダウンロードで、論点は <strong>抽出条件・集計仕様・出力項目の解釈</strong>。AI でも業務固有の集計ルールは仕様で明示しないと <strong>仕様解釈ミス</strong> が残りやすい。",
+      tasks: {
+        'api-impl':    { asis: 2.2,  loc: 103,  tobe: 0.15, tobeEng: 0,   agents: ["バックエンドAI"] },
+        'ux':          { asis: 2.5,             tobe: 0.1,  tobeEng: 0,   agents: ["プランナーAI", "エンジニア"] },
+        'fe-design':   { asis: 1.0,             tobe: 0.1,  tobeEng: 0,   agents: ["フロントエンドAI"] },
+        'fe-impl':     { asis: 17.9, loc: 904,  tobe: 1.15, tobeEng: 0,   agents: ["フロントエンドAI"] },
+        'api-review':  { asis: 0.25,            tobe: 0.25, tobeEng: 0.25, agents: ["バックエンドレビュワーAI", "エンジニア"] },
+        'fe-review':   { asis: 0.5,             tobe: 0.5,  tobeEng: 0.5, agents: ["フロントエンドレビュワーAI", "エンジニア"] },
+        'verify':      { asis: 0.75,            tobe: 0.75, tobeEng: 0.75, agents: ["バックエンドテスターAI", "フロントエンドテスターAI", "エンジニア"] },
+      },
+      contextNotes: [
+        "対象: 集計用リストCSV出力（FE050 / DM14 帳票・ファイル入出力）。データ出力・抽出の集計用リスト CSV ダウンロード機能。",
+        "<strong>実績コード量</strong>: API <strong>103 行</strong> / フロントエンド <strong>904 行</strong>（DB 0・ユニットテスト 0）。工程区分はお知らせ登録(FE015)のフォーマットを流用。",
+        "<strong>AsIs（人力想定）は行数規模から推定</strong>: お知らせ登録の『行あたり工数』を実績LOCに適用（api-impl 8h/369行 → 2.2h・fe-impl 33.5h/1694行 → 17.9h）。UX（2.5h）・フロント設計（1.0h）は規模比按分では過小なため実態に合わせて設定。APIレビュー・フロントレビュー・動作確認は人の確認工数として AsIs / ToBe をそろえる（各0.25h / 0.5h / 0.75h）。合計 約25.1h。",
+        "<strong>ToBe（AI駆動）は実績 3.0h</strong>: AI 1.5h（API実装 0.15 / FE実装 1.15 / UX 0.1 / FE設計 0.1）＋ APIレビュー 0.25h（エンジニア）＋ フロントレビュー 0.5h（エンジニア）＋ 動作確認 0.75h（エンジニア）。削減率 <strong>約88%</strong>。",
+      ],
+    },
+    // 代引き一覧Excel出力 (FE053 / DM14 帳票・ファイル出力) - 代引き確認(DL)の Excel ダウンロード。
+    // 実績コード量: フロントエンド 179 行のみ (DB/API/テストなし)。
+    // AsIs: お知らせ登録(FE015) の行あたり工数を実績LOCに適用 (fe-impl 33.5h/1694行)。fe-design/UX は按分過小のため実態値。合計 約6.0h。
+    // ToBe: AI 0.5h + フロントレビュー 0.25h + 動作確認 0.25h = 1.0h (実績)。
+    'wi-fileio-DM14FE053-1': {
+      lede: "<strong>代引き一覧Excel出力</strong>（FE053 / DM14 帳票・ファイル入出力）の開発工数比較。<strong>代引き確認(DL)の Excel ダウンロード</strong>機能。実績コード量はフロントエンド <strong>179 行</strong>のみ（DB/API/テストなし）。<strong>AsIs は行数規模から推定</strong>（お知らせ登録(FE015) の行あたり工数を適用）。ただし UX設計 1.5h・フロント設計 0.5h は規模比按分では過小なため実態に合わせて設定。合計 約6.0h。<strong>ToBe は実績</strong>（AI 0.5h ＋ フロントレビュー 0.25h ＋ 動作確認 0.25h ＝ 1.0h）。削減率 <strong>約83%</strong>。",
+      bugCategories: [
+        { key: "syntax", label: "構文/型エラー",                          color: "#ef4444", asis: 0, tobe: 0 },
+        { key: "logic",  label: "ロジックバグ (出力項目・整形)",          color: "#f59e0b", asis: 1, tobe: 0 },
+        { key: "edge",   label: "エッジケース漏れ (空・大量件数・文字コード)", color: "#8b5cf6", asis: 1, tobe: 0 },
+        { key: "spec",   label: "仕様解釈ミス (出力項目・フォーマットの解釈)", color: "#ec4899", asis: 1, tobe: 1 },
+        { key: "ui",     label: "UI 細部の不整合 (DLボタン・ファイル名)",  color: "#06b6d4", asis: 0, tobe: 0 },
+      ],
+      bugRateNote: "※ 代引き一覧Excel出力 約 0.18 KLOC × 参考レート（人力 12/KLOC ≒ 2件 / AI 5/KLOC ≒ 1件）で推定。代引き一覧の Excel ダウンロードで、論点は <strong>出力項目・フォーマットの解釈</strong>。",
+      tasks: {
+        'ux':          { asis: 1.5,             tobe: 0.05, tobeEng: 0,   agents: ["プランナーAI", "エンジニア"] },
+        'fe-design':   { asis: 0.5,             tobe: 0.05, tobeEng: 0,   agents: ["フロントエンドAI"] },
+        'fe-impl':     { asis: 3.5,  loc: 179,  tobe: 0.4,  tobeEng: 0,   agents: ["フロントエンドAI"] },
+        'fe-review':   { asis: 0.25,            tobe: 0.25, tobeEng: 0.25, agents: ["フロントエンドレビュワーAI", "エンジニア"] },
+        'verify':      { asis: 0.25,            tobe: 0.25, tobeEng: 0.25, agents: ["バックエンドテスターAI", "フロントエンドテスターAI", "エンジニア"] },
+      },
+      contextNotes: [
+        "対象: 代引き一覧Excel出力（FE053 / DM14 帳票・ファイル入出力）。代引き確認(DL)の Excel ダウンロード機能。",
+        "<strong>実績コード量</strong>: フロントエンド <strong>179 行</strong>のみ（DB 0・API 0・ユニットテスト 0）。工程区分はお知らせ登録(FE015)のフォーマットを流用。",
+        "<strong>AsIs（人力想定）は行数規模から推定</strong>: お知らせ登録の『行あたり工数』を実績LOCに適用（fe-impl 33.5h/1694行 → 3.5h）。UX（1.5h）・フロント設計（0.5h）は規模比按分では過小なため実態に合わせて設定。フロントレビュー・動作確認は人の確認工数として AsIs / ToBe をそろえる（各0.25h）。合計 約6.0h。",
+        "<strong>ToBe（AI駆動）は実績 1.0h</strong>: AI 0.5h（FE実装 0.4 / UX 0.05 / FE設計 0.05）＋ フロントレビュー 0.25h（エンジニア）＋ 動作確認 0.25h（エンジニア）。削減率 <strong>約83%</strong>。",
+      ],
+    },
     // 訪問不在登録(FE032)・配車戻し登録(FE033)・その他未完了登録(FE034)・ドライバー持出登録(FE030) は
     // 配送完了登録(FE031) と同一画面／同一コンポーネントの一機能として一括実装したため、単独の実装工数は発生しない。
     // タイトル下 (lede) にその旨だけを記載する。
@@ -467,6 +538,76 @@
         "<strong>ToBe（AI駆動）は実績 1.75h</strong>: AI 1.0h（API実装 0.6 / UX 0.1 / FE設計 0.05 / FE実装 0.25）＋ APIレビュー 0.25h（エンジニア）＋ フロントレビュー 0.25h（エンジニア）＋ 動作確認 0.25h（エンジニア）。削減率 <strong>約80%</strong>。実装が小規模なため、人の確認工数（レビュー・動作確認）の比重が大きく削減率は低め。",
       ],
     },
+    // 本日結果表示 (FE040 / DM11 ドライバー業務) - 本日の配送実績サマリー表示。
+    // 実績コード量: API 10 / フロントエンド 96 行 (DB/テストなし)。
+    // AsIs: お知らせ登録(FE015) の行あたり工数を実績LOCに適用 (api-impl 8h/369行・fe-impl 33.5h/1694行)。
+    //       fe-design/UX は按分過小のため実態値(UX 2.0h・fe-design 0.5h)に設定。合計 約5.4h。
+    // ToBe: AI 0.25h + APIレビュー 0.25h + フロントレビュー 0.25h + 動作確認 0.25h = 1.0h (実績)。
+    'wi-screen-DM11FE040': {
+      lede: "<strong>本日結果表示</strong>（FE040 / DM11 ドライバー業務）の開発工数比較。<strong>本日の配送実績サマリー表示</strong>の軽量な閲覧画面。実績コード量は API <strong>10 行</strong>・フロントエンド <strong>96 行</strong>（DB/テストなし）。<strong>AsIs は行数規模から推定</strong>（お知らせ登録(FE015) の行あたり工数を適用）。ただし UX設計 2.0h・フロント設計 0.5h は規模比按分では過小なため実態に合わせて設定。合計 約5.4h。<strong>ToBe は実績</strong>（AI 0.25h ＋ APIレビュー 0.25h ＋ フロントレビュー 0.25h ＋ 動作確認 0.25h ＝ 1.0h）。削減率 <strong>約81%</strong>。",
+      bugCategories: [
+        { key: "syntax", label: "構文/型エラー",                          color: "#ef4444", asis: 0, tobe: 0 },
+        { key: "logic",  label: "ロジックバグ (実績集計・サマリー算出)",    color: "#f59e0b", asis: 1, tobe: 0 },
+        { key: "edge",   label: "エッジケース漏れ (空・該当なし・日付境界)", color: "#8b5cf6", asis: 1, tobe: 0 },
+        { key: "spec",   label: "仕様解釈ミス (集計対象・表示項目の解釈)",  color: "#ec4899", asis: 1, tobe: 1 },
+        { key: "ui",     label: "UI 細部の不整合 (サマリー表示・SP表示)",   color: "#06b6d4", asis: 1, tobe: 1 },
+      ],
+      bugRateNote: "※ 本日結果表示 約 0.11 KLOC × 参考レート（人力 12/KLOC ≒ 1件 / AI 5/KLOC ≒ 1件未満）で推定。本日の配送実績サマリー表示の軽量な閲覧画面で、論点は <strong>集計対象・表示項目の解釈</strong>。",
+      tasks: {
+        'data-design': { asis: 0,                tobe: 0,    tobeEng: 0,   agents: ["—"] },
+        'data-impl':   { asis: 0,    loc: 0,     tobe: 0,    tobeEng: 0,   agents: ["—"] },
+        'api-impl':    { asis: 0.2,  loc: 10,    tobe: 0.05, tobeEng: 0,   agents: ["バックエンドAI"] },
+        'api-test':    { asis: 0,    loc: 0,     tobe: 0,    tobeEng: 0,   agents: ["—"] },
+        'api-review':  { asis: 0.25,             tobe: 0.25, tobeEng: 0.25, agents: ["バックエンドレビュワーAI", "エンジニア"] },
+        'ux':          { asis: 2.0,              tobe: 0.05, tobeEng: 0,   agents: ["プランナーAI", "エンジニア"] },
+        'fe-design':   { asis: 0.5,              tobe: 0.05, tobeEng: 0,   agents: ["フロントエンドAI"] },
+        'fe-impl':     { asis: 1.9,  loc: 96,    tobe: 0.1,  tobeEng: 0,   agents: ["フロントエンドAI"] },
+        'fe-test':     {                                                   agents: ["—"] },
+        'fe-review':   { asis: 0.25,             tobe: 0.25, tobeEng: 0.25, agents: ["フロントエンドレビュワーAI", "エンジニア"] },
+        'verify':      { asis: 0.25,             tobe: 0.25, tobeEng: 0.25, agents: ["バックエンドテスターAI", "フロントエンドテスターAI", "エンジニア"] },
+      },
+      contextNotes: [
+        "対象画面: 本日結果表示（FE040 / DM11 ドライバー業務）。本日の配送実績サマリーを表示する軽量な閲覧画面。",
+        "<strong>実績コード量</strong>: API <strong>10 行</strong> / フロントエンド <strong>96 行</strong>（DB 0・ユニットテスト 0）。工程区分はお知らせ登録(FE015)のフォーマットを流用。",
+        "<strong>AsIs（人力想定）は行数規模から推定</strong>: お知らせ登録の『行あたり工数』を実績LOCに適用（api-impl 8h/369行 → 0.2h・fe-impl 33.5h/1694行 → 1.9h）。UX（2.0h）・フロント設計（0.5h）は規模比按分では過小なため実態に合わせて設定。APIレビュー・フロントレビュー・動作確認は人の確認工数として AsIs / ToBe をそろえる（各0.25h）。合計 約5.4h。",
+        "<strong>ToBe（AI駆動）は実績 1.0h</strong>: AI 0.25h（API実装 0.05 / UX 0.05 / FE設計 0.05 / FE実装 0.1）＋ APIレビュー 0.25h（エンジニア）＋ フロントレビュー 0.25h（エンジニア）＋ 動作確認 0.25h（エンジニア）。削減率 <strong>約81%</strong>。実装が小規模なため、人の確認工数（レビュー・動作確認）の比重が大きく削減率は低め。",
+      ],
+    },
+    // 本日業務終了 (FE041 / DM11 ドライバー業務) - 業務終了メッセージ表示。
+    // 実績コード量: フロントエンド 100 行のみ (DB/API/テストなし)。
+    // AsIs: お知らせ登録(FE015) の行あたり工数を実績LOCに適用 (fe-impl 33.5h/1694行)。
+    //       fe-design/UX は按分過小のため実態値(UX 1.5h・fe-design 0.5h)に設定。合計 約4.5h。
+    // ToBe: AI 0.25h + フロントレビュー 0.25h + 動作確認 0.25h = 0.75h (実績)。
+    'wi-screen-DM11FE041': {
+      lede: "<strong>本日業務終了</strong>（FE041 / DM11 ドライバー業務）の開発工数比較。<strong>業務終了メッセージ表示</strong>の軽量な閲覧画面。実績コード量はフロントエンド <strong>100 行</strong>のみ（DB/API/テストなし）。<strong>AsIs は行数規模から推定</strong>（お知らせ登録(FE015) の行あたり工数を適用）。ただし UX設計 1.5h・フロント設計 0.5h は規模比按分では過小なため実態に合わせて設定。合計 約4.5h。<strong>ToBe は実績</strong>（AI 0.25h ＋ フロントレビュー 0.25h ＋ 動作確認 0.25h ＝ 0.75h）。削減率 <strong>約83%</strong>。",
+      bugCategories: [
+        { key: "syntax", label: "構文/型エラー",                          color: "#ef4444", asis: 0, tobe: 0 },
+        { key: "logic",  label: "ロジックバグ (表示制御)",                 color: "#f59e0b", asis: 0, tobe: 0 },
+        { key: "edge",   label: "エッジケース漏れ (表示条件・該当なし)",    color: "#8b5cf6", asis: 1, tobe: 0 },
+        { key: "spec",   label: "仕様解釈ミス (メッセージ内容・表示条件の解釈)", color: "#ec4899", asis: 1, tobe: 1 },
+        { key: "ui",     label: "UI 細部の不整合 (メッセージ表示・SP表示)", color: "#06b6d4", asis: 1, tobe: 1 },
+      ],
+      bugRateNote: "※ 本日業務終了 約 0.10 KLOC × 参考レート（人力 12/KLOC ≒ 1件 / AI 5/KLOC ≒ 1件未満）で推定。業務終了メッセージ表示の軽量な閲覧画面で、論点は <strong>表示条件・メッセージ内容の解釈</strong>。",
+      tasks: {
+        'data-design': { asis: 0,                tobe: 0,    tobeEng: 0,   agents: ["—"] },
+        'data-impl':   { asis: 0,    loc: 0,     tobe: 0,    tobeEng: 0,   agents: ["—"] },
+        'api-impl':    { asis: 0,    loc: 0,     tobe: 0,    tobeEng: 0,   agents: ["—"] },
+        'api-test':    { asis: 0,    loc: 0,     tobe: 0,    tobeEng: 0,   agents: ["—"] },
+        'api-review':  { asis: 0,                tobe: 0,    tobeEng: 0,   agents: ["—"] },
+        'ux':          { asis: 1.5,              tobe: 0.05, tobeEng: 0,   agents: ["プランナーAI", "エンジニア"] },
+        'fe-design':   { asis: 0.5,              tobe: 0.05, tobeEng: 0,   agents: ["フロントエンドAI"] },
+        'fe-impl':     { asis: 2.0,  loc: 100,   tobe: 0.15, tobeEng: 0,   agents: ["フロントエンドAI"] },
+        'fe-test':     {                                                   agents: ["—"] },
+        'fe-review':   { asis: 0.25,             tobe: 0.25, tobeEng: 0.25, agents: ["フロントエンドレビュワーAI", "エンジニア"] },
+        'verify':      { asis: 0.25,             tobe: 0.25, tobeEng: 0.25, agents: ["バックエンドテスターAI", "フロントエンドテスターAI", "エンジニア"] },
+      },
+      contextNotes: [
+        "対象画面: 本日業務終了（FE041 / DM11 ドライバー業務）。業務終了メッセージを表示する軽量な閲覧画面。",
+        "<strong>実績コード量</strong>: フロントエンド <strong>100 行</strong>のみ（DB 0・API 0・ユニットテスト 0）。工程区分はお知らせ登録(FE015)のフォーマットを流用。",
+        "<strong>AsIs（人力想定）は行数規模から推定</strong>: お知らせ登録の『行あたり工数』を実績LOCに適用（fe-impl 33.5h/1694行 → 2.0h）。UX（1.5h）・フロント設計（0.5h）は規模比按分では過小なため実態に合わせて設定。フロントレビュー・動作確認は人の確認工数として AsIs / ToBe をそろえる（各0.25h）。合計 約4.5h。",
+        "<strong>ToBe（AI駆動）は実績 0.75h</strong>: AI 0.25h（FE実装 0.15 / UX 0.05 / FE設計 0.05）＋ フロントレビュー 0.25h（エンジニア）＋ 動作確認 0.25h（エンジニア）。削減率 <strong>約83%</strong>。実装が小規模なため、人の確認工数（レビュー・動作確認）の比重が大きく削減率は低め。",
+      ],
+    },
     // 未配車検索(FE037) は 翌日配車表示(FE036) とクエリーが異なるだけの同一画面のため、
     // 翌日配車表示側でまとめて実装した。単独の実装工数は発生しない。タイトル下(lede)にその旨を記載。
     'wi-screen-DM11FE037': {
@@ -514,6 +655,56 @@
         "<strong>ToBe（AI駆動）は実績 2.4h</strong>: AI 0.4h（API実装 0.15 / API単体テスト 0.1 / UX 0.03 / FE設計 0.02 / FE実装 0.1）＋ APIレビュー 0.25h（エンジニア）＋ フロントレビュー 0.25h（エンジニア）＋ 動作確認 0.5h（エンジニア）＋ クエリー調整 1.0h（うちエンジニア 0.75h）。削減率 <strong>約82%</strong>。ユニットテスト 400 行を含み、実装比で API単体テストの AsIs（5.5h）が大きい点が特徴。クエリー調整は未配車検索（FE037・クエリー差分のみの同一画面）を同画面にまとめるための調整工数。",
       ],
     },
+    // 予定日変更 (FE035 / DM11 ドライバー業務) - 配送先（荷物）情報表示 + 配送履歴表示 + 配送予定日の変更。
+    // 実績コード量: DB 12 / API 252 / ユニットテスト 212 / フロントエンド 274 行。
+    // AsIs: お知らせ登録(FE015) の行あたり工数を実績LOCに適用 (data-impl 6h/166行・api-impl 8h/369行・api-test 3.5h/256行・fe-impl 33.5h/1694行)。
+    //       data-design/fe-design/UX は按分過小のため実態値(UX 3.0h・fe-design 0.5h・data-design 0.3h)に設定。
+    //       さらに画面が持つ処理の難易度を考慮し、実装系工程(実装・設計・UX・単体テスト)に難易度プレミアム ×2 を適用。API不具合修正 8.0h を加算。合計 約46.0h。
+    // ToBe: AI 1.6h + APIレビュー 0.25h + フロントレビュー 0.25h + 動作確認 1.5h + API不具合修正 0.5h(AI) + 画面調整 1.0h(うちエンジニア0.5h) = 5.1h (実績)。
+    'wi-screen-DM11FE035': {
+      lede: "<strong>予定日変更</strong>（FE035 / DM11 ドライバー業務）の開発工数比較。<strong>配送先（荷物）情報表示＋配送履歴表示＋配送予定日の変更</strong>を行う画面。実績コード量は DB <strong>12 行</strong>・API <strong>252 行</strong>・ユニットテスト <strong>212 行</strong>・フロントエンド <strong>274 行</strong>。<strong>AsIs は行数規模から推定し、画面が持つ処理の難易度を考慮して実装系工程（実装・設計・UX・単体テスト）を2倍</strong>に設定（お知らせ登録(FE015) の行あたり工数を適用）。さらに API不具合修正（人力 8.0h）を加算。合計 約46.0h。<strong>ToBe は実績</strong>（AI 1.6h ＋ APIレビュー 0.25h ＋ フロントレビュー 0.25h ＋ 動作確認 1.5h ＋ API不具合修正 0.5h ＋ 画面調整 1.0h ＝ 5.1h）。削減率 <strong>約89%</strong>。",
+      bugCategories: [
+        { key: "syntax", label: "構文/型エラー",                              color: "#ef4444", asis: 0, tobe: 0 },
+        { key: "logic",  label: "ロジックバグ (変更可能条件・期限判定・履歴反映)", color: "#f59e0b", asis: 2, tobe: 1 },
+        { key: "edge",   label: "エッジケース漏れ (日付境界・変更不可状態・欠損)", color: "#8b5cf6", asis: 2, tobe: 1 },
+        { key: "spec",   label: "仕様解釈ミス (変更可否条件・予定日の正本の解釈)", color: "#ec4899", asis: 1, tobe: 1 },
+        { key: "ui",     label: "UI 細部の不整合 (日付入力・SP表示)",          color: "#06b6d4", asis: 1, tobe: 0 },
+      ],
+      bugRateNote: "※ 予定日変更 約 0.54 KLOC × 参考レート（人力 12/KLOC ≒ 6件 / AI 5/KLOC ≒ 3件）で推定。配送先（荷物）情報表示＋配送履歴表示＋予定日変更の構成で、論点は <strong>変更可能条件・期限・配送明細/履歴への反映の解釈</strong>。AI でも業務固有の変更可否ルールは仕様で明示しないと <strong>仕様解釈ミス</strong> が残りやすい。",
+      tasks: {
+        'data-design': { asis: 0.6,             tobe: 0.05, tobeEng: 0,   agents: ["DBアーキテクトAI"] },
+        'data-impl':   { asis: 0.8,  loc: 12,   tobe: 0.15, tobeEng: 0,   agents: ["DBアーキテクトAI"] },
+        'api-impl':    { asis: 11.0, loc: 252,  tobe: 0.55, tobeEng: 0,   agents: ["バックエンドAI"] },
+        'api-test':    { asis: 5.8,  loc: 212,  tobe: 0.1,  tobeEng: 0,   agents: ["バックエンドAI"] },
+        'api-review':  { asis: 0.25,            tobe: 0.25, tobeEng: 0.25, agents: ["バックエンドレビュワーAI", "エンジニア"] },
+        'ux':          { asis: 6.0,             tobe: 0.1,  tobeEng: 0,   agents: ["プランナーAI", "エンジニア"] },
+        'fe-design':   { asis: 1.0,             tobe: 0.05, tobeEng: 0,   agents: ["フロントエンドAI"] },
+        'fe-impl':     { asis: 10.8, loc: 274,  tobe: 0.6,  tobeEng: 0,   agents: ["フロントエンドAI"] },
+        'fe-test':     {                                                  agents: ["—"] },
+        'fe-review':   { asis: 0.25,            tobe: 0.25, tobeEng: 0.25, agents: ["フロントエンドレビュワーAI", "エンジニア"] },
+        'verify':      { asis: 1.5,             tobe: 1.5,  tobeEng: 1.5, agents: ["バックエンドテスターAI", "フロントエンドテスターAI", "エンジニア"] },
+        'api-bugfix': {
+          label: "API不具合修正",
+          color: "#fbbf24",
+          asis: 8.0,
+          tobe: 0.5, tobeEng: 0,
+          agents: ["バックエンドAI"],
+        },
+        'screen-adjust': {
+          label: "画面調整",
+          color: "#fbbf24",
+          asis: 0,
+          tobe: 1.0, tobeEng: 0.5,
+          agents: ["フロントエンドAI", "エンジニア"],
+        },
+      },
+      contextNotes: [
+        "対象画面: 予定日変更（FE035 / DM11 ドライバー業務）。配送先（荷物）情報表示・配送履歴表示に加え、配送予定日の変更を行う。",
+        "<strong>実績コード量</strong>: DB <strong>12 行</strong> / API <strong>252 行</strong> / ユニットテスト <strong>212 行</strong> / フロントエンド <strong>274 行</strong>。工程区分はお知らせ登録(FE015)のフォーマットを流用。",
+        "<strong>AsIs（人力想定）は行数規模から推定</strong>: お知らせ登録の『行あたり工数』を実績LOCに適用（data-impl 6h/166行・api-impl 8h/369行・api-test 3.5h/256行・fe-impl 33.5h/1694行）。データモデル設計・フロント設計・UX は規模比按分では過小なため実態に合わせて設定。<strong>さらに画面が持つ処理の難易度を考慮し、実装系工程（実装・設計・UX・単体テスト）に難易度プレミアム ×2 を適用</strong>（api-impl 5.5→11.0h・api-test 2.9→5.8h・fe-impl 5.4→10.8h・UX 3.0→6.0h・データ実装 0.4→0.8h・データモデル設計 0.3→0.6h・フロント設計 0.5→1.0h）。APIレビュー・フロントレビュー・動作確認は人の確認工数として AsIs / ToBe をそろえる（各0.25h / 0.25h / 1.5h）。<strong>さらに API不具合修正（人力 8.0h）を加算</strong>（難易度プレミアム対象外）。合計 約46.0h。",
+        "<strong>ToBe（AI駆動）は実績 5.1h</strong>: AI 1.6h（API実装 0.55 / API単体テスト 0.1 / FE実装 0.6 / UX 0.1 / データ実装 0.15 / FE設計 0.05 / データモデル設計 0.05）＋ APIレビュー 0.25h（エンジニア）＋ フロントレビュー 0.25h（エンジニア）＋ 動作確認 1.5h（エンジニア）＋ API不具合修正 0.5h（AI）＋ 画面調整 1.0h（うちエンジニア 0.5h）。削減率 <strong>約89%</strong>。AI が削減できるのは実装・設計・単体テスト・不具合修正工程で、レビュー・動作確認・画面調整の人間工数は残る。",
+      ],
+    },
     // トップページ (FE028 / DM11 ドライバー業務) - お問い合わせ番号検索 + 配送状況サマリー + 本日の配送先一覧。
     // 実績コード量: API 145 / フロントエンド 3,134 行 (DB/テストなし)。現時点(着手中)の値。
     // AsIs: お知らせ登録(FE015) の行あたり工数を実績LOCに適用 (api-impl 8h/369行・fe-impl 33.5h/1694行)。fe-design/UX は規模比で按分。合計 約79.8h。
@@ -554,7 +745,7 @@
     //       fe-design は規模比で按分。UX は「組み合わせ設計を要した」ため通常按分(約2.45h)の約6倍 ≒ 14.7h に設定。合計 約40.6h。
     // ToBe: AI 2.0h + フロントレビュー 1.0h(エンジニア) + 動作確認 1.0h(エンジニア) + レイアウト調整 2.0h(うちエンジニア1.0h) = 6.0h (実績)。
     'wi-screen-DM04FE011': {
-      lede: "<strong>トップメニュー</strong>（FE011 / DM04 管理情報通知）の開発工数比較。<strong>既存コンポーネントの細微な変更と組み合わせ</strong>で解決したため実装は軽量（フロントエンド <strong>1,108 行</strong>、DB/API なし）。<strong>AsIs は行数規模から推定</strong>（お知らせ登録(FE015) の行あたり工数を適用）。ただし<strong>クレバーな組み合わせ設計を要したため UX 設計を通常の約6倍（通常 ≒2.45h → ≒14.7h）</strong>に設定。AsIs 合計 約40.6h。<strong>ToBe は実績</strong>（AI 2.0h ＋ フロントレビュー 1.0h ＋ 動作確認 1.0h ＋ レイアウト調整 2.0h ＝ 6.0h）。削減率 <strong>約85%</strong>。",
+      lede: "<strong>トップメニュー</strong>（FE011 / DM04 管理情報通知）の開発工数比較。<strong>既存コンポーネントの細微な変更と組み合わせ</strong>で解決したため実装は軽量（フロントエンド <strong>1,108 行</strong>、DB/API なし）。<strong>AsIs は行数規模から推定</strong>（お知らせ登録(FE015) の行あたり工数を適用）。ただし<strong>クレバーな組み合わせ設計を要したため UX 設計を通常の約6倍（通常 ≒2.45h → ≒14.7h）</strong>に設定。AsIs 合計 約40.6h。<strong>ToBe は実績</strong>（AI 2.0h ＋ フロントレビュー 1.0h ＋ 動作確認 1.0h ＋ レイアウト調整 2.0h ＋ フロントエンド調整（コンポーネント組み込み）1.0h ＝ 7.0h）。削減率 <strong>約83%</strong>。",
       bugCategories: [
         { key: "syntax", label: "構文/型エラー",                            color: "#ef4444", asis: 1, tobe: 0 },
         { key: "logic",  label: "ロジックバグ (一覧集約・遷移・表示制御)",    color: "#f59e0b", asis: 4, tobe: 1 },
@@ -582,12 +773,19 @@
           tobe: 2.0, tobeEng: 1.0,
           agents: ["フロントエンドAI", "エンジニア"],
         },
+        'fe-component-adjust': {
+          label: "フロントエンド調整(コンポーネント組み込み)",
+          color: "#fbbf24",
+          asis: 0,
+          tobe: 1.0, tobeEng: 1.0,
+          agents: ["エンジニア"],
+        },
       },
       contextNotes: [
         "対象画面: トップメニュー（FE011 / DM04 管理情報通知）。配送日変更リスト・お知らせ・未配車リスト・掲示板などのサマリーを集約表示。既存コンポーネントの細微な変更と組み合わせで解決したため実装は軽量。",
         "<strong>実績コード量</strong>: フロントエンド <strong>1,108 行</strong>（DB 0・API 0・ユニットテスト 0）。工程区分はお知らせ登録(FE015)のフォーマットを流用。",
         "<strong>AsIs（人力想定）は行数規模から推定</strong>: お知らせ登録の『行あたり工数』を実績LOCに適用（fe-impl 33.5h/1694行 → 21.9h）。フロント設計は規模比で按分（2.0h）。<strong>UX 設計は『既存コンポーネントの組み合わせ設計』を要したため通常按分（約2.45h）の約6倍 ≒ 14.7h</strong>に設定。フロントレビュー・動作確認は人の確認工数として AsIs / ToBe をそろえる（各1.0h）。合計 約40.6h。",
-        "<strong>ToBe（AI駆動）は実績 6.0h</strong>: AI 2.0h（UX 0.45 / FE設計 0.15 / FE実装 1.4）＋ フロントレビュー 1.0h（エンジニア）＋ 動作確認 1.0h（エンジニア）＋ レイアウト調整 2.0h（うちエンジニア 1.0h）。削減率 <strong>約85%</strong>。AI が削減できるのは実装・設計工程で、レビュー・動作確認・レイアウト調整の人間工数は AsIs と同水準。",
+        "<strong>ToBe（AI駆動）は実績 7.0h</strong>: AI 2.0h（UX 0.45 / FE設計 0.15 / FE実装 1.4）＋ フロントレビュー 1.0h（エンジニア）＋ 動作確認 1.0h（エンジニア）＋ レイアウト調整 2.0h（うちエンジニア 1.0h）＋ フロントエンド調整（コンポーネント組み込み）1.0h（エンジニア）。削減率 <strong>約83%</strong>。AI が削減できるのは実装・設計工程で、レビュー・動作確認・調整の人間工数は AsIs と同水準。",
       ],
     },
     // デポ掲示板 (FE013) / 〇〇掲示板 (FE014) - 共通実装のため 2画面の実績合計を 50% ずつ按分。
@@ -747,6 +945,56 @@
           agents: ["フロントエンドAI", "エンジニア"],
         },
       },
+    },
+    // 配送日変更リスト (FE017 / DM06 変更情報管理) - 配送日変更の一覧表示 + 条件検索。
+    // 実績コード量: DB 65 / API 405 / ユニットテスト 448 / フロントエンド 870 行。
+    // AsIs: お知らせ登録(FE015) の行あたり工数を実績LOCに適用 (data-impl 6h/166行・api-impl 8h/369行・api-test 3.5h/256行・fe-impl 33.5h/1694行)。
+    //       データモデル設計・フロント設計・UX は規模比で按分。合計 約40.9h。
+    // ToBe: AI 1.0h + APIレビュー 0.25h + フロントレビュー 0.25h + 動作確認 0.5h
+    //       + フロントエンド調整 1.0h(うちエンジニア0.5h) + バックエンド調整 1.0h(うちエンジニア0.5h) = 4.0h (実績)。
+    'wi-screen-DM06FE017': {
+      lede: "<strong>配送日変更リスト</strong>（FE017 / DM06 変更情報管理）の開発工数比較。<strong>配送日変更の一覧表示＋条件検索</strong>を行う画面。実績コード量は DB <strong>65 行</strong>・API <strong>405 行</strong>・ユニットテスト <strong>448 行</strong>・フロントエンド <strong>870 行</strong>。<strong>AsIs は行数規模から推定</strong>（お知らせ登録(FE015) の行あたり工数を適用）。データモデル設計・フロント設計・UX は規模比で按分。合計 約40.9h。<strong>ToBe は実績</strong>（AI 1.0h ＋ APIレビュー 0.25h ＋ フロントレビュー 0.25h ＋ 動作確認 0.5h ＋ フロントエンド調整 1.0h ＋ バックエンド調整 1.0h ＝ 4.0h）。削減率 <strong>約90%</strong>。",
+      bugCategories: [
+        { key: "syntax", label: "構文/型エラー",                            color: "#ef4444", asis: 2,  tobe: 0 },
+        { key: "logic",  label: "ロジックバグ (変更リスト集計・条件検索・状態判定)", color: "#f59e0b", asis: 5,  tobe: 2 },
+        { key: "edge",   label: "エッジケース漏れ (空・該当なし・日付境界)",  color: "#8b5cf6", asis: 3,  tobe: 1 },
+        { key: "spec",   label: "仕様解釈ミス (変更対象・表示項目の解釈)",    color: "#ec4899", asis: 3,  tobe: 3 },
+        { key: "ui",     label: "UI 細部の不整合 (一覧表示・SP表示)",         color: "#06b6d4", asis: 3,  tobe: 1 },
+      ],
+      bugRateNote: "※ 配送日変更リスト 約 1.34 KLOC（製品コード・テスト除く）× 参考レート（人力 12/KLOC ≒ 16件 / AI 5/KLOC ≒ 7件）で推定。配送日変更の一覧表示＋条件検索の構成で、論点は <strong>変更対象・検索条件・表示項目の解釈</strong>。AI でも業務固有の変更管理ルールは仕様で明示しないと <strong>仕様解釈ミス</strong> が残りやすい。",
+      tasks: {
+        'data-design': { asis: 1.5,             tobe: 0.03, tobeEng: 0,   agents: ["DBアーキテクトAI"] },
+        'data-impl':   { asis: 2.3,  loc: 65,   tobe: 0.1,  tobeEng: 0,   agents: ["DBアーキテクトAI"] },
+        'api-impl':    { asis: 8.8,  loc: 405,  tobe: 0.4,  tobeEng: 0,   agents: ["バックエンドAI"] },
+        'api-test':    { asis: 6.1,  loc: 448,  tobe: 0.1,  tobeEng: 0,   agents: ["バックエンドAI"] },
+        'api-review':  { asis: 0.25,            tobe: 0.25, tobeEng: 0.25, agents: ["バックエンドレビュワーAI", "エンジニア"] },
+        'ux':          { asis: 2.5,             tobe: 0.05, tobeEng: 0,   agents: ["プランナーAI", "エンジニア"] },
+        'fe-design':   { asis: 1.5,             tobe: 0.02, tobeEng: 0,   agents: ["フロントエンドAI"] },
+        'fe-impl':     { asis: 17.2, loc: 870,  tobe: 0.3,  tobeEng: 0,   agents: ["フロントエンドAI"] },
+        'fe-test':     {                                                  agents: ["—"] },
+        'fe-review':   { asis: 0.25,            tobe: 0.25, tobeEng: 0.25, agents: ["フロントエンドレビュワーAI", "エンジニア"] },
+        'verify':      { asis: 0.5,             tobe: 0.5,  tobeEng: 0.5, agents: ["バックエンドテスターAI", "フロントエンドテスターAI", "エンジニア"] },
+        'fe-adjust': {
+          label: "フロントエンド調整",
+          color: "#fbbf24",
+          asis: 0,
+          tobe: 1.0, tobeEng: 0.5,
+          agents: ["フロントエンドAI", "エンジニア"],
+        },
+        'be-adjust': {
+          label: "バックエンド調整",
+          color: "#fbbf24",
+          asis: 0,
+          tobe: 1.0, tobeEng: 0.5,
+          agents: ["バックエンドAI", "エンジニア"],
+        },
+      },
+      contextNotes: [
+        "対象画面: 配送日変更リスト（FE017 / DM06 変更情報管理）。配送日変更の一覧表示と条件検索を行う。",
+        "<strong>実績コード量</strong>: DB <strong>65 行</strong> / API <strong>405 行</strong> / ユニットテスト <strong>448 行</strong> / フロントエンド <strong>870 行</strong>（計 約1,788行）。工程区分はお知らせ登録(FE015)のフォーマットを流用。",
+        "<strong>AsIs（人力想定）は行数規模から推定</strong>: お知らせ登録の『行あたり工数』を実績LOCに適用（data-impl 6h/166行 → 2.3h・api-impl 8h/369行 → 8.8h・api-test 3.5h/256行 → 6.1h・fe-impl 33.5h/1694行 → 17.2h）。データモデル設計（1.5h）・フロント設計（1.5h）・UX（2.5h）は規模比で按分。APIレビュー・フロントレビュー・動作確認は人の確認工数として AsIs / ToBe をそろえる（各0.25h / 0.25h / 0.5h）。合計 約40.9h。",
+        "<strong>ToBe（AI駆動）は実績 4.0h</strong>: AI 1.0h（API実装 0.4 / API単体テスト 0.1 / FE実装 0.3 / データ実装 0.1 / UX 0.05 / データモデル設計 0.03 / FE設計 0.02）＋ APIレビュー 0.25h（エンジニア）＋ フロントレビュー 0.25h（エンジニア）＋ 動作確認 0.5h（エンジニア）＋ フロントエンド調整 1.0h（うちエンジニア 0.5h）＋ バックエンド調整 1.0h（うちエンジニア 0.5h）。削減率 <strong>約90%</strong>。AI が削減できるのは実装・設計工程で、レビュー・動作確認・調整の人間工数は残る。",
+      ],
     },
     // お知らせ登録 (FE015) - 作業内訳の項目は商品マスタをコピー。AsIs/ToBe 等は一旦 0 (後で記入)。
     'wi-screen-DM04FE015': {

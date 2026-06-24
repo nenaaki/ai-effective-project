@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>リグレッションスコープ: PW-171</title>
+<style>
+  body {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 32px 20px 80px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Yu Gothic UI", Meiryo, sans-serif;
+    line-height: 1.7;
+    color: #222;
+    background: #fff;
+  }
+  h1 { font-size: 1.6em; margin: 0 0 .2em; }
+  h2 { font-size: 1.25em; margin: 1.8em 0 .5em; border-bottom: 1px solid #ddd; padding-bottom: .2em; }
+  h3 { font-size: 1.05em; margin: 1.4em 0 .4em; }
+  p { margin: .6em 0; }
+  hr { border: none; border-top: 1px solid #e0e0e0; margin: 1.8em 0; }
+  a { color: #36c; }
+  code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: .88em;
+    background: #f2f2f2;
+    padding: .1em .35em;
+    border-radius: 3px;
+  }
+  table { border-collapse: collapse; width: 100%; margin: .8em 0; font-size: .92em; }
+  th, td { border: 1px solid #ccc; padding: 5px 9px; text-align: left; vertical-align: top; }
+  th { background: #f6f6f6; font-weight: 600; }
+  blockquote {
+    margin: .8em 0;
+    padding: .2em 0 .2em 14px;
+    border-left: 3px solid #ccc;
+    color: #555;
+  }
+  blockquote p { margin: .3em 0; }
+  ul, ol { margin: .6em 0; padding-left: 1.6em; }
+  li { margin: .25em 0; }
+  ul.task { list-style: none; padding-left: .2em; }
+  ul.task li { margin: .3em 0; }
+  ul.task input { margin-right: .5em; }
+  .meta { color: #555; font-size: .92em; margin: .15em 0; }
+  .table-scroll { overflow-x: auto; }
+  .cause { margin: .5em 0; }
+</style>
+</head>
+<body>
+
+<h1>リグレッションスコープ: PW-171 / f/PW-171</h1>
+
+<p class="meta">生成日: 2026-06-23</p>
+<p class="meta">分析モード: diffのみ（Specなし）</p>
+<p class="meta">対象コミット: <code>044fa61</code> feat: PW-171 トップメニュー（未配車リスト、配送日変更リスト）</p>
+
+<h2>変更サマリー</h2>
+<div class="table-scroll">
+<table>
+  <thead>
+    <tr><th>層</th><th>Spec</th><th>実装差分</th><th>主な内容</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>DB</td><td>情報なし</td><td>なし</td><td>変更なし</td></tr>
+    <tr><td>API</td><td>情報なし</td><td>なし</td><td>変更なし</td></tr>
+    <tr><td>管理画面</td><td>情報なし</td><td>あり</td><td>ReschedulePanelの抽出、UnassignedSummaryTableのexport化、トップメニューパネルへの組み込み</td></tr>
+    <tr><td>ドライバーアプリ</td><td>情報なし</td><td>なし</td><td>変更なし</td></tr>
+  </tbody>
+</table>
+</div>
+
+<hr>
+
+<h2>影響API一覧</h2>
+<p>APIコードの変更なし。ただし、以下のクエリ/ミューテーションが <code>ReschedulePanel</code> 内で使用されており、今回の変更（ページ→コンポーネント化）によって呼び出し文脈が変わる。</p>
+<div class="table-scroll">
+<table>
+  <thead>
+    <tr><th>Query / Mutation</th><th>変更種別</th><th>利用画面</th><th>備考</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>SEARCH_DELIVERY_MEMOS</code></td><td>文脈追加</td><td>配送日変更リスト（<code>/notifications/reschedule</code>）、トップメニュー（<code>/</code>）</td><td>元ページのロジックをPanelに移動したため、トップメニューでも呼ばれるようになった</td></tr>
+    <tr><td><code>MARK_DELIVERY_MEMO_AS_READ</code></td><td>文脈追加</td><td>同上</td><td>行クリック→ドロワー内「既読にする」ボタンの経路が2画面に増えた</td></tr>
+    <tr><td><code>SEARCH_M_DEPOTS</code></td><td>文脈追加</td><td>同上</td><td>検索フォームのデポ選択肢取得。<code>showSearch=false</code> のトップメニューでも呼ばれる点に注意</td></tr>
+  </tbody>
+</table>
+</div>
+<blockquote>
+  <p><code>SEARCH_M_DEPOTS</code> は <code>showSearch=false</code>（トップメニュー用）でも <code>useQuery</code> がマウント時に発行される実装になっている。問題は出ないが、不要クエリが飛んでいる点は目視で確認すること。</p>
+</blockquote>
+
+<hr>
+
+<h2>画面別テストチェックリスト</h2>
+
+<h3>1. 管理画面トップ（<code>/</code>）— 配送日変更リストパネル</h3>
+<p class="cause"><strong>影響の原因:</strong> <code>DeliveryDateChangePanel</code> の中身が「準備中」テキスト → <code>&lt;ReschedulePanel defaultItemsPerPage={5} perPageOptions={[5, 20, 50, 100]} showSearch={false} /&gt;</code> に差し替え</p>
+<ul class="task">
+  <li><input type="checkbox" disabled> トップメニュー（<code>/</code>）を開き、「配送日変更リスト」チェックボックスをONにする → パネルが表示され「準備中」文字列が消えていること</li>
+  <li><input type="checkbox" disabled> 表示されたパネルに「配送日変更リスト」のタイトルヘッダーが表示されること（<code>&lt;Icon iconName="local_shipping"&gt;</code> + テキスト）</li>
+  <li><input type="checkbox" disabled> 検索フォームエリアが表示されていないこと（<code>showSearch=false</code> の確認）</li>
+  <li><input type="checkbox" disabled> データ行が存在する場合、1ページ5件で表示されること（<code>defaultItemsPerPage=5</code>）</li>
+  <li><input type="checkbox" disabled> ページネーションのページサイズ選択肢が「5、20、50、100」であること</li>
+  <li><input type="checkbox" disabled> データ行のいずれかをクリックし、配送詳細ドロワーが開くこと</li>
+  <li><input type="checkbox" disabled> 未読行をクリックしてドロワーを開いた場合、「既読にする」ボタンが表示されること</li>
+  <li><input type="checkbox" disabled> 「既読にする」ボタンをクリックすると成功トーストが表示され、行のステータスが更新されること（refetch）</li>
+  <li><input type="checkbox" disabled> 既読行をクリックした場合、「既読にする」ボタンが表示されないこと</li>
+  <li><input type="checkbox" disabled> ページネーションでページを切り替えると、表示件数が更新されること</li>
+  <li><input type="checkbox" disabled> エラー時（APIエラー）にエラーメッセージエリアが表示されること</li>
+</ul>
+
+<h3>2. 管理画面トップ（<code>/</code>）— 未配車リストパネル</h3>
+<p class="cause"><strong>影響の原因:</strong> <code>UnassignedDeliveriesPanel</code> の中身が「準備中」テキスト → <code>&lt;UnassignedSummaryTable /&gt;</code> に差し替え</p>
+<ul class="task">
+  <li><input type="checkbox" disabled> トップメニュー（<code>/</code>）を開き、「未配車リスト」チェックボックスをONにする → パネルが表示され「準備中」文字列が消えていること</li>
+  <li><input type="checkbox" disabled> パネル内にサマリテーブルのヘッダー行が表示されること（「No.」「デポ名」「エリア名」「午前中」「12:00-14:00」「14:00-16:00」「16:00-18:00」「18:00-21:00」「指定なし」の各列）</li>
+  <li><input type="checkbox" disabled> テーブルのデータ行が空（tbody が空白）であること（PW-144_3 集計API未実装のため意図された状態）</li>
+</ul>
+
+<h3>3. 管理画面 配送日変更リスト（<code>/notifications/reschedule</code>）— リファクタ後の動作確認</h3>
+<p class="cause"><strong>影響の原因:</strong> ページ内に直書きされていた全ロジックを <code>ReschedulePanel</code> に抽出。ページは <code>&lt;ReschedulePanel /&gt;</code> を呼ぶだけになった。<code>defaultItemsPerPage=20</code>、<code>perPageOptions=[20,50,100]</code>、<code>showSearch=true</code>（いずれもデフォルト値）。</p>
+<ul class="task">
+  <li><input type="checkbox" disabled> <code>/notifications/reschedule</code> を開き、「配送日変更リスト」のタイトルと検索フォームが表示されること</li>
+  <li><input type="checkbox" disabled> 検索フォームが初期表示で展開状態（<code>isSearchFormOpen=true</code>）であること</li>
+  <li><input type="checkbox" disabled> 検索フォームの折りたたみトグルボタン（<code>expand_less</code> / <code>expand_more</code> アイコン）をクリックすると、検索フォームが折りたたまれ・展開されること</li>
+  <li><input type="checkbox" disabled> 検索フォームのデポ選択肢にデポ一覧が表示されること（<code>SEARCH_M_DEPOTS</code> の結果）</li>
+  <li><input type="checkbox" disabled> 検索条件（デポ・エリア・配送予定日範囲など）を入力して「検索」ボタンを押すと、一覧が絞り込まれること</li>
+  <li><input type="checkbox" disabled> データ行が存在する場合、1ページ20件で表示されること</li>
+  <li><input type="checkbox" disabled> ページネーションのページサイズ選択肢が「20、50、100」であること（5 は含まれないこと）</li>
+  <li><input type="checkbox" disabled> ソートアイコンをクリックすると昇順 → 降順 → 解除の3段階でソートされること</li>
+  <li><input type="checkbox" disabled> 行クリックで配送詳細ドロワーが開くこと</li>
+  <li><input type="checkbox" disabled> 未読行のドロワーで「既読にする」が機能すること（一覧の既読表示が切り替わる）</li>
+  <li><input type="checkbox" disabled> コンソールエラー・JSエラーが発生していないこと（リファクタ前後で挙動に差がないこと）</li>
+</ul>
+
+<h3>4. 管理画面 配車ドロワー（<code>/dispatch</code>）— 既存の未配車情報タブへの非影響確認</h3>
+<p class="cause"><strong>影響の原因:</strong> <code>UnassignedListContent.tsx</code> 内の <code>UnassignedSummaryTable</code> を <code>export</code> に変えた。<code>UnassignedListContent</code> コンポーネント自体は変わっておらず、dispatch ページが <code>UnassignedListContent</code> を使っている部分への影響は想定されないが、export 変更による import 解決の問題がないことを確認する。</p>
+<ul class="task">
+  <li><input type="checkbox" disabled> <code>/dispatch</code> を開き、配車ドロワー内の「未配車情報」タブが正常に表示されること（テーブル・検索フォームが崩れていないこと）</li>
+  <li><input type="checkbox" disabled> コンソールエラーが発生していないこと</li>
+</ul>
+
+<hr>
+
+<h2>テスト工数見積もり（目安）</h2>
+<blockquote>
+  <p>チェック項目数に基づく機械的な概算です。テスター習熟度・環境状態・テストデータの有無により変動します。<strong>確定工数ではなく計画の初期見立て</strong>としてご利用ください。</p>
+</blockquote>
+<div class="table-scroll">
+<table>
+  <thead>
+    <tr><th>画面 / 区分</th><th>項目数</th><th>内訳（種別×件数）</th><th>準備込み小計</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>トップ <code>/</code>（配送日変更リストパネル）</td><td>11</td><td>表示2・操作7・エラー2</td><td>10 + (2×5) + (7×10) + (2×15) = 130分</td></tr>
+    <tr><td>トップ <code>/</code>（未配車リストパネル）</td><td>3</td><td>表示3</td><td>10 + (3×5) = 25分</td></tr>
+    <tr><td>配送日変更リスト <code>/notifications/reschedule</code></td><td>11</td><td>表示3・操作7・エラー1</td><td>10 + (3×5) + (7×10) + (1×15) = 110分</td></tr>
+    <tr><td>配車ドロワー <code>/dispatch</code>（非影響確認）</td><td>2</td><td>表示2</td><td>10 + (2×5) = 20分</td></tr>
+    <tr><td><strong>合計</strong></td><td><strong>27</strong></td><td></td><td><strong>約 285分（約 4.8 時間）</strong></td></tr>
+  </tbody>
+</table>
+</div>
+<p><strong>バッファ込みレンジ: 約 4.8 〜 5.8 時間</strong></p>
+<p><strong>前提:</strong></p>
+<ul>
+  <li>1人のテスターが手動実行する想定</li>
+  <li>DBチェックは不要（DBスキーマ変更なし）</li>
+  <li>自動テスト（<code>e2e-test</code>）でカバーする項目: なし（上記はすべて手動対象）</li>
+  <li>配送日変更リストのテストデータ（<code>t_delivery_memo</code> に <code>workContentCode = WORK_CONTENT_CODE_DATE_CHANGE</code> のレコード）が事前に存在することが前提。データがない場合はテストデータ準備の工数が別途必要</li>
+</ul>
+
+<hr>
+
+<h2>Spec vs 実装 乖離分析</h2>
+<p>Specファイルが存在しないため、Gap分析はスキップ。</p>
+
+<hr>
+
+<h2>スコープ外（変更の影響なし）</h2>
+<p>以下は今回の変更による影響がないと判断した:</p>
+<ul>
+  <li><strong>ドライバーアプリ全般</strong>: フロントエンド変更が <code>app-admin</code> のみに閉じており、<code>app-driver</code> への変更はない</li>
+  <li><strong>API（api-core）全般</strong>: API/DB変更なし。既存の Query/Mutation の挙動は変わらない</li>
+  <li><strong>管理画面 その他のページ</strong>: <code>SEARCH_DELIVERY_MEMOS</code> / <code>MARK_DELIVERY_MEMO_AS_READ</code> / <code>SEARCH_M_DEPOTS</code> を使用しているのは reschedule 系画面のみであり、他ページへの波及はない</li>
+  <li><strong><code>BatchLogPanel</code> / <code>BulletinPanel</code>（トップメニュー内他パネル）</strong>: コンポーネント自体に変更なし。チェックボックスのロジック（最大3件制限など）も変更なし</li>
+</ul>
+
+<hr>
+
+<h2>補足・注意事項</h2>
+<ol>
+  <li><strong><code>SEARCH_M_DEPOTS</code> の無駄クエリ</strong>: <code>ReschedulePanel</code> は <code>showSearch=false</code> でも <code>useQuery(SEARCH_M_DEPOTS)</code> がマウント時に発行される。トップメニューの「配送日変更リスト」パネルでも余分なデポ一覧クエリが飛ぶ。機能上の問題は出ないが、開発者ツールのネットワークタブで確認した際に意図的であることを把握しておくこと。</li>
+  <li><strong>未配車リストのデータ行が空であることは仕様</strong>: <code>UnassignedSummaryTable</code> の tbody は集計API（PW-144_3）が実装されるまで空のまま。「データが表示されない」はバグではない。</li>
+  <li><strong>配送日変更リストページのリファクタは純粋な移動</strong>: <code>/notifications/reschedule</code> の全ロジックが <code>ReschedulePanel</code> に移動したが、機能追加・変更はない。リファクタ前後で画面の見た目・動作に差がないことを確認することが主眼。</li>
+</ol>
+
+</body>
+</html>

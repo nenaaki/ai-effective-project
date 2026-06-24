@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>変更管理の品質 — チェック基準ファースト × regression-scope 3エージェント連携</title>
+<style>
+  :root {
+    --bg: #fafaf7;
+    --card: #ffffff;
+    --panel: #f3f5fa;
+    --line: #d8dbe2;
+    --ink: #1a1a1a;
+    --muted: #5b6573;
+    --accent: #2f6fb0;
+    --accent-soft: #eaf2fa;
+    --asis: #c2410c;
+    --asis-soft: #fff4ec;
+    --asis-line: #f4c8a8;
+    --tobe: #15803d;
+    --tobe-soft: #eefaf0;
+    --tobe-line: #bbe6c4;
+    --amber: #b45309;
+    --key: #4338ca;
+    --key-soft: #eef2ff;
+    --key-line: #c7d2fe;
+    --c-scope: #2f6fb0;
+    --c-pr: #7c3aed;
+    --c-ticket: #0e7490;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Yu Gothic UI", sans-serif; background: var(--bg); color: var(--ink); line-height: 1.75; }
+  .wrap { max-width: 1060px; margin: 0 auto; padding: 52px 26px 88px; }
+
+  header.hero { padding-bottom: 28px; border-bottom: 1px solid var(--line); margin-bottom: 42px; }
+  .eyebrow { color: var(--accent); font-size: 12.5px; letter-spacing: 0.16em; font-weight: 800; }
+  h1 { font-size: 28px; margin: 12px 0 10px; font-weight: 800; letter-spacing: -0.01em; }
+  .lead { color: var(--muted); font-size: 15px; max-width: 820px; }
+  .chips { margin-top: 14px; }
+  .chip { display: inline-block; font-size: 12px; background: var(--card); border: 1px solid var(--line); color: var(--muted); padding: 4px 11px; border-radius: 999px; margin-right: 6px; margin-bottom: 6px; }
+
+  h2 { font-size: 19px; margin: 50px 0 16px; padding-left: 11px; border-left: 4px solid var(--accent); font-weight: 800; }
+  h2 .step-no { color: var(--accent); font-size: 13px; font-weight: 800; letter-spacing: 0.08em; margin-right: 8px; }
+  h2.mori { border-left-color: var(--accent); }
+  h2.ki { border-left-color: var(--amber); }
+  h2.ki .step-no { color: var(--amber); }
+  h2.keyhead { border-left-color: var(--key); }
+  h2.keyhead .step-no { color: var(--key); }
+  h2 .newbadge { font-size: 10px; font-weight: 800; color: #fff; background: var(--key); border-radius: 6px; padding: 2px 8px; margin-left: 8px; vertical-align: 3px; letter-spacing: 0.06em; }
+  p.note { color: var(--muted); font-size: 14px; margin-top: -8px; }
+
+  /* 森① 100% definition */
+  .def100 { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 26px 32px; margin-top: 6px; box-shadow: 0 1px 3px rgba(20,30,50,0.04); }
+  .def100 .q { font-size: 17px; font-weight: 800; color: var(--ink); }
+  .def100 .a { font-size: 15px; margin-top: 12px; line-height: 1.85; }
+  .def100 .a b { color: var(--accent); }
+  .def100 .hundred { display: inline-block; background: var(--accent); color: #fff; font-weight: 800; border-radius: 8px; padding: 1px 12px; font-size: 16px; }
+  .def100 .why { margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--line); font-size: 13.5px; color: var(--muted); }
+  .def100 .why b { color: var(--asis); }
+
+  /* 森② effect numbers */
+  .effgrid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: 6px; }
+  .effbox { border-radius: 10px; padding: 14px 16px; text-align: center; }
+  .effbox .cap { font-size: 11px; font-weight: 700; }
+  .effbox .big { font-size: 24px; font-weight: 800; margin: 2px 0; }
+  .effbox .sm { font-size: 11px; color: var(--muted); }
+
+  /* 木③ three effect elements */
+  .three { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 12px; }
+  .eff { background: var(--card); border: 1px solid var(--line); border-top-width: 4px; border-radius: 12px; padding: 18px 20px; }
+  .eff.e1 { border-top-color: var(--c-scope); }
+  .eff.e2 { border-top-color: var(--asis); }
+  .eff.e3 { border-top-color: var(--c-pr); }
+  .eff .n { font-size: 12px; font-weight: 800; letter-spacing: 0.04em; }
+  .eff.e1 .n { color: var(--c-scope); }
+  .eff.e2 .n { color: var(--asis); }
+  .eff.e3 .n { color: var(--c-pr); }
+  .eff h4 { margin: 6px 0 6px; font-size: 15px; font-weight: 800; }
+  .eff p { margin: 0; font-size: 13px; color: var(--muted); }
+  .eff .pw { display: inline-block; margin-top: 10px; font-size: 11px; color: var(--tobe); font-weight: 700; background: var(--tobe-soft); border: 1px solid var(--tobe-line); border-radius: 5px; padding: 2px 8px; }
+
+  .limit { background: var(--asis-soft); border: 1px solid var(--asis-line); border-left: 4px solid var(--asis); border-radius: 12px; padding: 18px 22px; margin-top: 16px; font-size: 13.5px; }
+  .limit b { color: var(--asis); }
+  .limit ul { margin: 8px 0 0; padding-left: 1.2em; line-height: 1.75; }
+
+  /* 木 detail: pipeline */
+  details.more { margin-top: 18px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); overflow: hidden; }
+  details.more > summary { cursor: pointer; padding: 14px 20px; font-weight: 800; font-size: 14px; color: var(--accent); list-style: none; background: var(--panel); }
+  details.more > summary::-webkit-details-marker { display: none; }
+  details.more > summary::before { content: "▸ "; }
+  details.more[open] > summary::before { content: "▾ "; }
+  details.more .inner { padding: 8px 20px 22px; }
+
+  .flow { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 22px 24px; margin-top: 14px; overflow-x: auto; }
+  .flow svg { display: block; min-width: 760px; width: 100%; height: auto; }
+
+  .agents { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 16px; }
+  .agent { background: var(--card); border: 1px solid var(--line); border-top-width: 4px; border-radius: 12px; padding: 18px 20px; }
+  .agent.scope { border-top-color: var(--c-scope); }
+  .agent.pr { border-top-color: var(--c-pr); }
+  .agent.ticket { border-top-color: var(--c-ticket); }
+  .agent .badge { font-size: 11px; font-weight: 800; letter-spacing: 0.04em; padding: 3px 9px; border-radius: 6px; display: inline-block; color: #fff; }
+  .agent.scope .badge { background: var(--c-scope); }
+  .agent.pr .badge { background: var(--c-pr); }
+  .agent.ticket .badge { background: var(--c-ticket); }
+  .agent h3 { font-size: 15px; margin: 10px 0 4px; font-weight: 800; }
+  .agent .reader { font-size: 11.5px; color: var(--muted); margin-bottom: 10px; }
+  .agent ul { margin: 0; padding-left: 17px; font-size: 13px; }
+  .agent li { margin-bottom: 6px; }
+
+  .concern { background: var(--card); border: 1px solid var(--line); border-radius: 12px; margin-top: 16px; overflow: hidden; }
+  .concern .head { padding: 14px 20px; font-weight: 800; font-size: 15px; background: var(--panel); border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 10px; }
+  .concern .head .ico { width: 26px; height: 26px; border-radius: 7px; background: var(--accent); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 14px; flex: none; }
+  .concern .head .by { margin-left: auto; font-size: 11px; font-weight: 700; color: #fff; padding: 3px 9px; border-radius: 999px; }
+  .by.scope { background: var(--c-scope); }
+  .by.pr { background: var(--c-pr); }
+  .by.ticket { background: var(--c-ticket); }
+  .concern .body { display: grid; grid-template-columns: 1fr 1fr; }
+  .concern .col { padding: 18px 22px; font-size: 14px; }
+  .concern .col.asis { border-right: 1px solid var(--line); }
+  .concern .col .tag { font-size: 11px; font-weight: 800; letter-spacing: 0.04em; padding: 2px 9px; border-radius: 5px; display: inline-block; margin-bottom: 10px; }
+  .concern .col.asis { background: var(--asis-soft); }
+  .concern .col.asis .tag { background: #fff; color: var(--asis); border: 1px solid var(--asis-line); }
+  .concern .col.tobe { background: var(--tobe-soft); }
+  .concern .col.tobe .tag { background: #fff; color: var(--tobe); border: 1px solid var(--tobe-line); }
+  .concern .col ul { margin: 0; padding-left: 18px; }
+  .concern .col li { margin-bottom: 7px; }
+
+  /* 森④ KEYSTONE: check-basis-first */
+  .keystone { background: var(--key-soft); border: 1px solid var(--key-line); border-radius: 14px; padding: 24px 26px; margin-top: 8px; }
+  .keystone .lede { font-size: 14.5px; color: var(--ink); }
+  .keystone .lede b { color: var(--key); }
+  .keysteps { display: grid; grid-template-columns: 1fr 34px 1fr 34px 1fr; align-items: stretch; margin-top: 18px; }
+  .kstep { background: #fff; border: 1px solid var(--key-line); border-top: 4px solid var(--key); border-radius: 12px; padding: 16px 16px; }
+  .kstep .kn { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: var(--key); color: #fff; font-size: 12px; font-weight: 800; }
+  .kstep h4 { margin: 8px 0 5px; font-size: 14.5px; font-weight: 800; }
+  .kstep p { margin: 0; font-size: 12.5px; color: var(--muted); }
+  .kstep .who { display: inline-block; margin-top: 8px; font-size: 10.5px; font-weight: 800; padding: 2px 8px; border-radius: 5px; }
+  .kstep .who.h { color: var(--asis); background: var(--asis-soft); border: 1px solid var(--asis-line); }
+  .kstep .who.a { color: var(--c-scope); background: var(--accent-soft); border: 1px solid #bcd6ec; }
+  .kstep .who.pmpo { color: var(--tobe); background: var(--tobe-soft); border: 1px solid var(--tobe-line); }
+  .karrow { display: flex; align-items: center; justify-content: center; font-size: 22px; color: var(--key); }
+  .keystone .gateline { margin-top: 18px; padding-top: 16px; border-top: 1px dashed var(--key-line); font-size: 13.5px; }
+  .keystone .gateline b { color: var(--key); }
+  .keystone .basis { margin-top: 16px; background: #fff; border: 1px solid var(--key-line); border-radius: 12px; padding: 16px 18px; }
+  .keystone .basis .bt { font-size: 13px; font-weight: 800; color: var(--key); }
+  .keystone .basis .bt .tagN { font-size: 10px; font-weight: 800; color: #fff; background: var(--asis); border-radius: 5px; padding: 1px 7px; margin-left: 8px; vertical-align: 2px; letter-spacing: 0.04em; }
+  .keystone .basis .sub { font-size: 12px; color: var(--muted); margin-top: 3px; }
+  .keystone .basis .axes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 12px; }
+  .keystone .basis .axis { border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px; }
+  .keystone .basis .axis .an { font-size: 12px; font-weight: 800; color: var(--ink); }
+  .keystone .basis .axis .ad { font-size: 11px; color: var(--muted); margin-top: 2px; line-height: 1.5; }
+  .keystone .basis .link { margin-top: 12px; font-size: 12.5px; color: var(--muted); }
+  .keystone .basis .link b { color: var(--c-scope); }
+  .keystone .basis .draft { margin-top: 10px; font-size: 11.5px; color: var(--asis); background: var(--asis-soft); border: 1px solid var(--asis-line); border-radius: 8px; padding: 8px 11px; }
+  .keystone .basis .draft b { color: var(--asis); }
+
+  .raci { width: 100%; border-collapse: collapse; font-size: 13.5px; margin-top: 16px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+  .raci th { background: var(--panel); text-align: left; padding: 11px 16px; font-size: 12px; color: var(--muted); }
+  .raci td { padding: 12px 16px; border-top: 1px solid var(--line); vertical-align: top; }
+  .raci .ai { color: var(--tobe); font-weight: 700; }
+  .raci .hu { color: var(--asis); font-weight: 700; }
+  .raci .who2 { font-size: 11px; font-weight: 800; padding: 2px 7px; border-radius: 5px; color: #fff; }
+  .who2.scope { background: var(--c-scope); }
+  .who2.pr { background: var(--c-pr); }
+  .who2.ticket { background: var(--c-ticket); }
+
+  /* deliverable links */
+  .docs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 14px; }
+  .doc { background: #fff; border: 1px solid var(--line); border-left-width: 4px; border-radius: 10px; padding: 14px 16px; font-size: 12.5px; text-decoration: none; color: inherit; display: block; transition: box-shadow .15s; }
+  .doc:hover { box-shadow: 0 4px 14px rgba(30,40,70,0.07); }
+  .doc.scope { border-left-color: var(--c-scope); }
+  .doc.pr { border-left-color: var(--c-pr); }
+  .doc.ticket { border-left-color: var(--c-ticket); }
+  .doc .fn { font-family: ui-monospace, monospace; font-size: 11px; padding: 3px 8px; border-radius: 5px; display: inline-block; margin-bottom: 8px; }
+  .doc.scope .fn { color: var(--c-scope); background: var(--accent-soft); }
+  .doc.pr .fn { color: var(--c-pr); background: #f3ecfd; }
+  .doc.ticket .fn { color: var(--c-ticket); background: #e6f3f6; }
+  .doc h5 { margin: 0 0 4px; font-size: 12.5px; }
+  .doc .row { color: var(--muted); }
+
+  .foot { color: var(--muted); font-size: 12px; margin-top: 50px; padding-top: 18px; border-top: 1px solid var(--line); }
+
+  @media (max-width: 800px) {
+    .agents, .three, .effgrid, .docs { grid-template-columns: 1fr; }
+    .concern .body { grid-template-columns: 1fr; }
+    .concern .col.asis { border-right: none; border-bottom: 1px solid var(--line); }
+    .keysteps { grid-template-columns: 1fr; }
+    .karrow { transform: rotate(90deg); padding: 6px 0; }
+    .keystone .basis .axes { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="eyebrow">FOR PM / PO — CHANGE MANAGEMENT × CHECK-BASIS FIRST</div>
+    <h1>変更を入れても品質が崩れない ――<br>「チェック基準ファースト」で回す3エージェント連携</h1>
+    <p class="lead">
+      開発後期は変更のたびに品質が揺れます。とくに AI 駆動開発は<strong>コミットが速く、取り違えても気づかないまま進む</strong>のが怖いところ。
+      そこで <b style="color:var(--c-scope)">regression-scope</b> が「変更がどこまで波及するか（影響範囲・要テスト範囲）」を確定し、
+      <strong>その確認をもって品質 OK と判断する</strong>運用にします。出力は <b style="color:var(--c-pr)">pr-writer</b>・<b style="color:var(--c-ticket)">ticket-writer</b> が消費し、PR文書・チケット要点まで自動で揃います。
+    </p>
+    <div class="chips">
+      <span class="chip">チェック基準ファースト</span>
+      <span class="chip">影響範囲・要テスト範囲の自動確定</span>
+      <span class="chip">要件↔実装トレーサビリティ</span>
+      <span class="chip">PR文書・チケット要点の自動生成</span>
+    </div>
+  </header>
+
+  <!-- ============ 森① 100%の定義 ============ -->
+  <h2 class="mori"><span class="step-no">森 ①</span>何を以って「100%」とするか</h2>
+  <p class="note">話の土台。まず「どこまでを対象にするか」を最初に置きます。</p>
+  <div class="def100">
+    <div class="q">AI 駆動開発で、ひとつの変更が波及しうる<b style="color:var(--accent)">影響範囲の全体</b> ―― これを <span class="hundred">100%</span> と置く。</div>
+    <div class="a">
+      この 100%（確認すべき画面・API・操作の全体）を、<b>見落とさず・属人化させず・文書化漏れなく押さえにいく</b> ―― これが変更管理の品質の土台です。<br>
+      ここで軸を 2 つに分けます。<b>網羅は 100% を狙う</b>（漏らさない＝<b>品質</b>の軸）。いっぽう、その 100% を押さえるための<b>作業（分析・文書化）の工数は削る</b>（速くする＝<b>効率</b>の軸）。<br>
+      次に示す削減率は <b>効率の軸</b>の話で、<b>カバー率を 100% に保ったまま、それを用意する“手間”をどれだけ減らせるか</b>を表します（影響範囲そのものを削るわけではありません）。<br>
+      なお網羅は、<b>AI で広く狙い、最後は人（PM/PO・QA）の確認で 100% に仕上げる</b>（AI 単独で 100% を保証する話ではない／後述の限界と森④の運用がこれを担う）。
+    </div>
+    <div class="why">
+      <b>なぜいま変更管理か</b> ―― 変更管理は「担当者が変なことをしない」前提に立ちがち。AI だと取り違えても気づかないまま進み、発覚までのタイムラグが長くなる。だから影響範囲を機械的に確定し、チェック基準を先に張る必要がある。
+    </div>
+  </div>
+
+  <!-- ============ 森② 全体削減率 ============ -->
+  <h2 class="mori"><span class="step-no">森 ②</span>その 100% を押さえる工数を、どれだけ削減できるか（実例：PW-171）</h2>
+  <p class="note"><b>影響範囲のカバーは 100% のまま、それを用意する作業時間を削る</b>のがここの話。PW-171 では、3エージェントが <b>影響分析・27項目のテストチェックリスト・PR文書・チケット</b> を <b style="color:var(--tobe)">約10分</b>で生成（実測）。同じ成果物を人が手作業で作る試算は <b style="color:var(--asis)">約4時間</b>。<b>開発工数だけでなくチェック工数も削れる</b>のが要点。</p>
+  <div class="effgrid">
+    <div class="effbox" style="background:var(--asis-soft);border:1px solid var(--asis-line);">
+      <div class="cap" style="color:var(--asis);">AsIs（人力・試算）</div>
+      <div class="big" style="color:var(--asis);">約4時間</div>
+      <div class="sm">3.5〜5h／手作業で同等の文書を作成</div>
+    </div>
+    <div class="effbox" style="background:var(--tobe-soft);border:1px solid var(--tobe-line);">
+      <div class="cap" style="color:var(--tobe);">ToBe（実測）</div>
+      <div class="big" style="color:var(--tobe);">約10分</div>
+      <div class="sm">3エージェントが自動生成</div>
+    </div>
+    <div class="effbox" style="background:#fff;border:1px solid var(--line);">
+      <div class="cap" style="color:var(--muted);">削減</div>
+      <div class="big" style="color:var(--tobe);">約96%</div>
+      <div class="sm">約24倍速</div>
+    </div>
+  </div>
+  <p class="note" style="margin-top:8px;font-size:11.5px;">AsIs内訳（試算）: 影響範囲・スコープ分析 1.5〜2h ／ チェックリスト27項目の手起こし 1〜1.5h ／ 工数見積り 0.25h ／ PR文書 0.5〜0.75h ／ チケット 0.25〜0.5h。<b>実装差分は既にある前提</b>で、分析・文書化に要する時間。<b>ToBe は実測、AsIs は AI による試算</b>。V字モデルでは右側（検証）の準備工数にあたる。</p>
+
+  <!-- ============ 木③ なぜ効くのか＝3要素 ============ -->
+  <h2 class="ki"><span class="step-no">木 ③</span>なぜ効くのか ―― 効果の出た3要素</h2>
+  <p class="note">効果が劇的に出るのは次の3点。逆に効きにくい部分も正直に下に示します。</p>
+  <div class="three">
+    <div class="eff e1">
+      <div class="n">要素①</div>
+      <h4>テストスコープの自動確定</h4>
+      <p>影響する画面・API・操作を、根拠（どの変更が波及したか）付きで一覧化。テスト範囲が「やってみないと分からない」から「先に読める」に変わる。工数も種別×係数でレンジ算出。</p>
+      <span class="pw">PW-171：27項目を自動列挙</span>
+    </div>
+    <div class="eff e2">
+      <div class="n">要素②</div>
+      <h4>仕様↔実装の取り違え検知</h4>
+      <p>仕様の「変わるはず」と実装の「実際に変わった」を突き合わせ、<b>実装漏れ・仕様外変更</b>を「要確認」でフラグ。AI が取り違えても、ここで人が気づける ―― 変更管理の肝。</p>
+      <span class="pw">PW-171：乖離・スコープ外を提示</span>
+    </div>
+    <div class="eff e3">
+      <div class="n">要素③</div>
+      <h4>PR・チケット文書の自動化</h4>
+      <p>同じ scope 出力から、レビュアー向け PR文書と PM/PO 向けチケット要点を自動生成。属人性・文書化漏れ・二重手書きが消える。</p>
+      <span class="pw">PW-171：PR・チケットを自動生成</span>
+    </div>
+  </div>
+  <div class="limit">
+    <b>効きにくい部分 ― 必ず人が確認する点</b>
+    <ul>
+      <li><b>AIも漏らしうる</b>：影響範囲は変更APIの横断検索（grep）で洗い出すため、<b>動的呼び出し・設定経由・暗黙の依存</b>は拾い切れないことがある。「スコープ外／実装漏れの妥当性」「源なし項目・間接依存」は PM/PO・QA が確認する。</li>
+      <li><b>出力品質は入力（仕様）の品質に依存</b>：属人性はゼロにはならず、<b>「標準フォーマットの仕様を用意する」前提</b>に移る。仕様が曖昧なら scope も曖昧になる。</li>
+    </ul>
+  </div>
+
+  <!-- 木の詳細（折りたたみ） -->
+  <details class="more">
+    <summary>木の詳細を開く ― パイプライン図 / 4つの情報 / 観点別 AsIs→ToBe</summary>
+    <div class="inner">
+
+      <div style="margin:16px 0 0;font-weight:800;font-size:13px;color:var(--asis);">AsIs ― 従来（開発者が手作業・属人的）</div>
+      <div class="flow">
+        <svg viewBox="0 0 920 215" role="img" aria-label="AsIs：従来の手作業フロー">
+          <rect x="10" y="84" width="120" height="54" rx="9" fill="#fff" stroke="#d8dbe2"/>
+          <text x="70" y="107" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1a1a">仕様変更</text>
+          <text x="70" y="125" text-anchor="middle" font-size="11" fill="#5b6573">＋ git diff</text>
+          <line x1="132" y1="111" x2="172" y2="111" stroke="#9aa3b2" stroke-width="2"/>
+          <polygon points="172,106 182,111 172,116" fill="#9aa3b2"/>
+          <rect x="184" y="64" width="204" height="94" rx="11" fill="#fff4ec" stroke="#c2410c" stroke-width="2"/>
+          <text x="286" y="88" text-anchor="middle" font-size="13" font-weight="800" fill="#c2410c">👤 開発者（手作業）</text>
+          <text x="286" y="108" text-anchor="middle" font-size="11" fill="#1a1a1a">影響範囲・観点・工数を</text>
+          <text x="286" y="124" text-anchor="middle" font-size="11" fill="#1a1a1a">経験と勘で判断（頭の中）</text>
+          <text x="286" y="144" text-anchor="middle" font-size="10" fill="#5b6573">正本となる文書は残らない</text>
+          <line x1="390" y1="111" x2="424" y2="111" stroke="#9aa3b2" stroke-width="2"/>
+          <text x="404" y="103" text-anchor="middle" font-size="9.5" fill="#5b6573">手書き</text>
+          <line x1="424" y1="111" x2="472" y2="58" stroke="#9aa3b2" stroke-width="2"/>
+          <line x1="424" y1="111" x2="472" y2="164" stroke="#9aa3b2" stroke-width="2"/>
+          <rect x="476" y="26" width="224" height="64" rx="11" fill="#fff" stroke="#c2410c"/>
+          <text x="588" y="48" text-anchor="middle" font-size="12.5" font-weight="700" fill="#c2410c">PR説明文を手書き</text>
+          <text x="588" y="66" text-anchor="middle" font-size="10.5" fill="#1a1a1a">観点が抜け・過不足が出る</text>
+          <text x="588" y="82" text-anchor="middle" font-size="10" fill="#5b6573">読み手：レビュアー・開発者</text>
+          <rect x="476" y="132" width="224" height="64" rx="11" fill="#fff" stroke="#c2410c"/>
+          <text x="588" y="154" text-anchor="middle" font-size="12.5" font-weight="700" fill="#c2410c">チケット要点を手まとめ</text>
+          <text x="588" y="172" text-anchor="middle" font-size="10.5" fill="#1a1a1a">粒度・網羅性は書き手次第</text>
+          <text x="588" y="188" text-anchor="middle" font-size="10" fill="#5b6573">読み手：PM・PO</text>
+          <rect x="724" y="40" width="186" height="132" rx="10" fill="#fff4ec" stroke="#f4c8a8"/>
+          <text x="740" y="62" font-size="11.5" font-weight="800" fill="#b45309">従来の課題</text>
+          <text x="740" y="86" font-size="10.5" fill="#7a3b16">・影響範囲は属人的で漏れる</text>
+          <text x="740" y="106" font-size="10.5" fill="#7a3b16">・同じ内容を二重に手書き</text>
+          <text x="740" y="126" font-size="10.5" fill="#7a3b16">・テスト工数は勘でざっくり</text>
+          <text x="740" y="146" font-size="10.5" fill="#7a3b16">・文書化は後回し・残らない</text>
+        </svg>
+      </div>
+
+      <div style="margin:20px 0 0;font-weight:800;font-size:13px;color:var(--tobe);">ToBe ― 3エージェント連携（自動化）</div>
+      <div class="flow">
+        <svg viewBox="0 0 920 250" role="img" aria-label="3エージェント連携パイプライン（ToBe）">
+          <rect x="10" y="98" width="120" height="54" rx="9" fill="#fff" stroke="#d8dbe2"/>
+          <text x="70" y="121" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1a1a">仕様変更</text>
+          <text x="70" y="139" text-anchor="middle" font-size="11" fill="#5b6573">＋ git diff</text>
+          <text x="70" y="172" text-anchor="middle" font-size="9.5" fill="#5b6573">差分＝AI駆動実装</text>
+          <text x="70" y="184" text-anchor="middle" font-size="9.5" fill="#5b6573">または人手修正</text>
+          <line x1="132" y1="125" x2="172" y2="125" stroke="#9aa3b2" stroke-width="2"/>
+          <polygon points="172,120 182,125 172,130" fill="#9aa3b2"/>
+          <rect x="184" y="78" width="200" height="94" rx="11" fill="#eaf2fa" stroke="#2f6fb0" stroke-width="2"/>
+          <text x="284" y="101" text-anchor="middle" font-size="13.5" font-weight="800" fill="#2f6fb0">regression-scope</text>
+          <text x="284" y="122" text-anchor="middle" font-size="11" fill="#1a1a1a">影響範囲・テスト観点</text>
+          <text x="284" y="138" text-anchor="middle" font-size="11" fill="#1a1a1a">テスト工数を見立てる</text>
+          <text x="284" y="158" text-anchor="middle" font-size="10.5" fill="#5b6573">分析結果を出力（正本）</text>
+          <line x1="386" y1="125" x2="430" y2="125" stroke="#9aa3b2" stroke-width="2"/>
+          <polygon points="430,120 440,125 430,130" fill="#9aa3b2"/>
+          <text x="408" y="116" text-anchor="middle" font-size="9.5" fill="#5b6573">出力を消費</text>
+          <line x1="440" y1="125" x2="470" y2="60" stroke="#9aa3b2" stroke-width="2"/>
+          <line x1="440" y1="125" x2="470" y2="190" stroke="#9aa3b2" stroke-width="2"/>
+          <rect x="476" y="28" width="220" height="76" rx="11" fill="#f3ecfd" stroke="#7c3aed" stroke-width="2"/>
+          <text x="586" y="50" text-anchor="middle" font-size="13" font-weight="800" fill="#7c3aed">pr-writer</text>
+          <text x="586" y="69" text-anchor="middle" font-size="11" fill="#1a1a1a">PR用の文書を自動生成</text>
+          <text x="586" y="88" text-anchor="middle" font-size="10.5" fill="#5b6573">読み手：レビュアー・開発者</text>
+          <rect x="476" y="148" width="220" height="76" rx="11" fill="#e6f3f6" stroke="#0e7490" stroke-width="2"/>
+          <text x="586" y="170" text-anchor="middle" font-size="13" font-weight="800" fill="#0e7490">ticket-writer</text>
+          <text x="586" y="189" text-anchor="middle" font-size="11" fill="#1a1a1a">チケット要点を自動まとめ</text>
+          <text x="586" y="208" text-anchor="middle" font-size="10.5" fill="#5b6573">読み手：PM・PO</text>
+          <line x1="696" y1="66" x2="736" y2="66" stroke="#9aa3b2" stroke-width="2"/>
+          <polygon points="736,61 746,66 736,71" fill="#9aa3b2"/>
+          <rect x="748" y="40" width="160" height="52" rx="9" fill="#fff" stroke="#7c3aed"/>
+          <text x="828" y="62" text-anchor="middle" font-size="12" font-weight="700" fill="#7c3aed">PR文書</text>
+          <text x="828" y="79" text-anchor="middle" font-size="10" fill="#5b6573">レビュー・マージ判断へ</text>
+          <line x1="696" y1="186" x2="736" y2="186" stroke="#9aa3b2" stroke-width="2"/>
+          <polygon points="736,181 746,186 736,191" fill="#9aa3b2"/>
+          <rect x="748" y="160" width="160" height="52" rx="9" fill="#fff" stroke="#0e7490"/>
+          <text x="828" y="182" text-anchor="middle" font-size="12" font-weight="700" fill="#0e7490">チケット要点</text>
+          <text x="828" y="199" text-anchor="middle" font-size="10" fill="#5b6573">PM・POの判断材料へ</text>
+        </svg>
+      </div>
+
+      <h3 style="font-size:15px;margin:24px 0 6px;">仕様 × 実装差分 × リポジトリ から分かる4つの情報</h3>
+      <p class="note" style="margin-top:0;"><b style="color:#2f6fb0">仕様</b>（あるべき変更）・<b style="color:#b45309">実装差分</b>（実際の変更）・<b>リポジトリ</b>（全画面）の3つを突き合わせ、regression-scope が次の4つを機械的に洗い出す。</p>
+      <div class="flow">
+        <svg viewBox="0 0 920 300" role="img" aria-label="仕様×実装差分×リポジトリから分かる4つの情報">
+          <text x="215" y="46" text-anchor="middle" font-size="13" font-weight="700" fill="#2f6fb0">仕様</text>
+          <text x="415" y="46" text-anchor="middle" font-size="13" font-weight="700" fill="#b45309">実装差分</text>
+          <circle cx="250" cy="170" r="115" fill="#2f6fb0" fill-opacity="0.10" stroke="#2f6fb0" stroke-width="2"/>
+          <circle cx="380" cy="170" r="115" fill="#b45309" fill-opacity="0.10" stroke="#b45309" stroke-width="2"/>
+          <text x="193" y="164" text-anchor="middle" font-size="13" font-weight="800" fill="#c2410c">③ 実装漏れ</text>
+          <text x="193" y="183" text-anchor="middle" font-size="9.5" fill="#5b6573">仕様にあるが未実装</text>
+          <text x="315" y="161" text-anchor="middle" font-size="11.5" font-weight="800" fill="#2f6fb0">① スコープ内</text>
+          <text x="315" y="177" text-anchor="middle" font-size="10.5" font-weight="800" fill="#2f6fb0">の実装</text>
+          <text x="437" y="164" text-anchor="middle" font-size="13" font-weight="800" fill="#b45309">② スコープ外</text>
+          <text x="437" y="183" text-anchor="middle" font-size="9.5" fill="#5b6573">仕様にないが実装</text>
+          <line x1="560" y1="46" x2="560" y2="276" stroke="#e0e0e2" stroke-width="1.5" stroke-dasharray="4 4"/>
+          <text x="745" y="44" text-anchor="middle" font-size="12.5" font-weight="800" fill="#2f6fb0">④ 影響範囲の特定</text>
+          <rect x="655" y="72" width="180" height="46" rx="9" fill="#fff4ec" stroke="#b45309"/>
+          <text x="745" y="100" text-anchor="middle" font-size="12" font-weight="700" fill="#b45309">実装差分（変更API）</text>
+          <text x="745" y="138" text-anchor="middle" font-size="9.5" fill="#5b6573">リポジトリ全体を横断追跡（grep）</text>
+          <line x1="745" y1="146" x2="745" y2="178" stroke="#9aa3b2" stroke-width="2"/>
+          <polygon points="740,178 750,178 745,188" fill="#9aa3b2"/>
+          <rect x="655" y="192" width="180" height="64" rx="10" fill="#eaf2fa" stroke="#2f6fb0" stroke-width="2"/>
+          <text x="745" y="218" text-anchor="middle" font-size="13" font-weight="800" fill="#2f6fb0">④ 影響範囲</text>
+          <text x="745" y="238" text-anchor="middle" font-size="10.5" fill="#1a1a1a">波及する画面・機能</text>
+        </svg>
+      </div>
+
+      <div class="agents">
+        <div class="agent scope">
+          <span class="badge">起点</span>
+          <h3>regression-scope</h3>
+          <div class="reader">読み手：QA・開発・PM/PO</div>
+          <ul>
+            <li>Spec × git diff の<b>2段階分析</b>でテストスコープを自動確定</li>
+            <li>要件↔実装の整合チェック（実装漏れ・仕様外変更を「要確認」で提示）</li>
+            <li>テスト工数を初期見立て（<b>レンジ</b>）</li>
+          </ul>
+        </div>
+        <div class="agent pr">
+          <span class="badge">下流</span>
+          <h3>pr-writer</h3>
+          <div class="reader">読み手：レビュアー・開発者</div>
+          <ul>
+            <li>追加された機能・テスト観点・影響範囲を整理</li>
+            <li>そのまま使える <b>PR用の文書</b>を自動生成</li>
+            <li>レビューの着眼点が PR に最初から揃う</li>
+          </ul>
+        </div>
+        <div class="agent ticket">
+          <span class="badge">下流</span>
+          <h3>ticket-writer</h3>
+          <div class="reader">読み手：PM・PO</div>
+          <ul>
+            <li>作業チケットに<b>影響範囲・テスト工数・PM向けの要点</b>を自動でまとめる</li>
+            <li>進捗・判断に必要な情報がチケットにそろう</li>
+            <li>状況説明の手間と粒度のブレを削減</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="concern">
+        <div class="head"><span class="ico">①</span> テストスコープの確定<span class="by scope">regression-scope</span></div>
+        <div class="body">
+          <div class="col asis"><span class="tag">AsIs</span>
+            <ul>
+              <li>「どこまでテストするか」は開発者の口頭報告ベース。粒度が案件・人で揺れる。</li>
+              <li>スコープの根拠が曖昧で、PM/PO が妥当性を判断しづらい。</li>
+              <li>影響画面の数え漏れが、テスト計画の抜けに直結。</li>
+            </ul>
+          </div>
+          <div class="col tobe"><span class="tag">ToBe</span>
+            <ul>
+              <li>影響する画面・API・操作が一覧化され、根拠（どの変更が波及したか）付きで提示。</li>
+              <li>「スコープ外」とその理由も明記され、線引きを PM/PO が確認できる。</li>
+              <li>画面ごとの確認手順まで生成され、そのままテスト計画の素材になる。</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="concern">
+        <div class="head"><span class="ico">②</span> 要件トレーサビリティ（仕様↔実装）<span class="by scope">regression-scope</span></div>
+        <div class="body">
+          <div class="col asis"><span class="tag">AsIs</span>
+            <ul>
+              <li>仕様どおり作られたか、余計な変更が無いかは、レビューで人が気づくかどうか。</li>
+              <li>「仕様にあるのに未実装」「仕様外の変更」が後工程まで見過ごされやすい。</li>
+            </ul>
+          </div>
+          <div class="col tobe"><span class="tag">ToBe</span>
+            <ul>
+              <li>仕様書の「変わるはず」と実装の「実際に変わった」を突き合わせて差分を提示。</li>
+              <li><b>実装漏れの疑い／仕様外変更の疑い</b>を早期にフラグ立て（断定ではなく要確認として）。</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="concern">
+        <div class="head"><span class="ico">③</span> テスト工数の見立て・スケジュール予測性<span class="by scope">regression-scope</span></div>
+        <div class="body">
+          <div class="col asis"><span class="tag">AsIs</span>
+            <ul>
+              <li>影響調査に「やってみないと分からない」時間がかかり、テスト工数が読みにくい。</li>
+              <li>後から影響画面が増え、リリース直前に計画が崩れることがある。</li>
+            </ul>
+          </div>
+          <div class="col tobe"><span class="tag">ToBe</span>
+            <ul>
+              <li>影響範囲が早期に確定するため、テスト工数の見積り精度が上がる。</li>
+              <li><b>テスト工数の初期見立てを自動算出</b>。種別（表示／操作／エラー／DB必須）ごとに係数で積み上げ、準備時間とバッファ込みの<b>レンジ（時間）</b>で提示。</li>
+              <li>チェック項目数が可視化され、進捗・残量を数で管理できる。</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="concern">
+        <div class="head"><span class="ico">④</span> PR文書の作成<span class="by pr">pr-writer</span></div>
+        <div class="body">
+          <div class="col asis"><span class="tag">AsIs</span>
+            <ul>
+              <li>PR説明は開発者が手書き。観点や影響範囲が書かれず、レビュー前提が共有されない。</li>
+              <li>レビュアーがコードから影響を推測するため、見落としと負荷が発生。</li>
+            </ul>
+          </div>
+          <div class="col tobe"><span class="tag">ToBe</span>
+            <ul>
+              <li><b>追加機能・テスト観点・影響範囲</b>を整理した PR文書を自動生成。</li>
+              <li>レビュアーは「何を見るべきか」が最初から分かり、レビュー品質と速度が安定する。</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="concern">
+        <div class="head"><span class="ico">⑤</span> チケット要点のまとめ（PM向け）<span class="by ticket">ticket-writer</span></div>
+        <div class="body">
+          <div class="col asis"><span class="tag">AsIs</span>
+            <ul>
+              <li>チケットには作業メモが断片的に残る程度。影響範囲・工数・要点が集約されない。</li>
+              <li>PM/PO が状況を把握するのに、毎回ヒアリングと整理が要る。</li>
+            </ul>
+          </div>
+          <div class="col tobe"><span class="tag">ToBe</span>
+            <ul>
+              <li><b>影響範囲・テスト工数・PM向けの要点</b>をチケットへ自動でまとめる。</li>
+              <li>PM/PO は<b>チケットが状況把握の起点</b>になり、説明の手間と粒度のブレが減る。</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </details>
+
+  <!-- ============ 森④ キースライド：チェック基準ファースト ============ -->
+  <h2 class="keyhead"><span class="step-no">森 ④</span>正しい使い方 ―― チェック基準ファースト<span class="newbadge">KEY / New</span></h2>
+  <p class="note">ここが肝。<b>「動いているものへの変更」は、変更後も動く保証が難しい</b>。だから順番を変える ―― 結果を見てから直すのではなく、<b>確認の基準を先に張る</b>。</p>
+  <div class="keystone">
+    <div class="lede">
+      変更時は、AI に <b>「影響範囲」と「要テスト範囲」を出力</b>させ、<b>その確認をもって品質的に OK と判断</b>する。
+      開発工数だけでなく<b>チェック工数も削減</b>でき、守れないと失敗する“抑えどころ”。
+    </div>
+    <div class="keysteps">
+      <div class="kstep">
+        <span class="kn">1</span>
+        <h4>チェック基準を先に定める</h4>
+        <p>変更に着手する前に「何を以って OK とするか」を決めておく。結果確認に予防線を張る。</p>
+        <span class="who h">人（事前）</span>
+      </div>
+      <div class="karrow">→</div>
+      <div class="kstep">
+        <span class="kn">2</span>
+        <h4>影響範囲・要テスト範囲を出力</h4>
+        <p>regression-scope が変更の波及先と要テスト範囲を自動で確定。pr-writer・ticket-writer が文書化。</p>
+        <span class="who a">AI（自動）</span>
+      </div>
+      <div class="karrow">→</div>
+      <div class="kstep">
+        <span class="kn">3</span>
+        <h4>確認をもって品質 OK と判断</h4>
+        <p>出力された範囲・乖離・要確認項目を確認。その確認の通過をもって「品質的に OK」とする。</p>
+        <span class="who pmpo">PM/PO・QA</span>
+      </div>
+    </div>
+    <div class="basis">
+      <div class="bt">ステップ1「チェック基準」の中身（雛形）<span class="tagN">策定中</span></div>
+      <div class="sub">変更種別ごとに、確認すべき観点軸を先に定めておく。これが「予防線」の実体になる。</div>
+      <div class="axes">
+        <div class="axis"><div class="an">表示崩れ</div><div class="ad">画面表示・レイアウトが崩れないか</div></div>
+        <div class="axis"><div class="an">操作</div><div class="ad">入力・ボタン・画面遷移が想定どおり動くか</div></div>
+        <div class="axis"><div class="an">エラー</div><div class="ad">異常系・バリデーションが正しく出るか</div></div>
+        <div class="axis"><div class="an">DB整合</div><div class="ad">データ移行・初期データ・整合性（DB変更時は必須）</div></div>
+      </div>
+      <div class="link">
+        ここで張った観点軸が、ステップ2で <b>regression-scope</b> の画面別チェックリスト（PW-171 では <b>27項目</b>）として具体化され、種別ごとの係数でテスト工数のレンジにもつながる。<b>基準（人が先に定める観点）</b>と<b>AI出力（要テスト範囲）</b>が同じ軸でひと続きになる。
+      </div>
+      <div class="draft">
+        <b>※</b> 上記は観点軸の雛形（イメージ）。<b>変更種別 × 観点の標準フォーマットは現在策定中</b>で、確定後にこの雛形を確定版へ置き換える（6/18 合意：置き場所を先に決め、確定後に埋め込む）。
+      </div>
+    </div>
+    <div class="gateline">
+      <b>AIと人の境界</b> ―― 3エージェントは「テスト範囲の確定」と「PR文書・チケット要点の作成」まで。実際のテスト実施と<b>最終的なリリース可否の意思決定・取捨選択は PM/PO・QA</b> が行う。AI は抜け漏れと属人性を減らし、人の判断をより確実にする土台。
+    </div>
+  </div>
+
+  <table class="raci">
+    <thead>
+      <tr><th style="width:40%">タスク</th><th style="width:24%">担い手</th><th>補足</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>チェック基準の事前定義</td><td class="hu">人（事前）</td><td>変更着手前に「何を以って OK とするか」を決める</td></tr>
+      <tr><td>影響範囲の特定・スコープ確定</td><td><span class="who2 scope">regression-scope</span> <span class="ai">（自動）</span></td><td>仕様書と実装差分の両面から洗い出し</td></tr>
+      <tr><td>仕様と実装の食い違い検知</td><td><span class="who2 scope">regression-scope</span> <span class="ai">（自動）</span></td><td>「要確認」としてフラグ提示</td></tr>
+      <tr><td>テスト工数の概算見積もり</td><td><span class="who2 scope">regression-scope</span> <span class="ai">（自動）</span></td><td>項目数×係数でレンジ提示（確定値ではない）</td></tr>
+      <tr><td>PR文書の生成</td><td><span class="who2 pr">pr-writer</span> <span class="ai">（自動）</span></td><td>scope出力から機能・観点・影響範囲を整理</td></tr>
+      <tr><td>チケット要点のまとめ</td><td><span class="who2 ticket">ticket-writer</span> <span class="ai">（自動）</span></td><td>scope出力からPM向け要点を集約</td></tr>
+      <tr><td>テストの実施・結果記録</td><td class="hu">人 / 別AI</td><td>テスト担当・自動テストが実行</td></tr>
+      <tr><td>スコープ・文書の妥当性確認／取捨選択</td><td class="hu">PM / PO</td><td>提示された範囲・文書の最終確認</td></tr>
+      <tr><td>リリース可否の判断</td><td class="hu">PM / PO / QA</td><td>品質ゲートでの意思決定</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ============ 成果物 ============ -->
+  <h2><span class="step-no">参考</span>実際の成果物（PW-171）</h2>
+  <p class="note">3エージェントが PW-171 で自動生成した成果物の実例。専門的な内容を含むが、雰囲気の参考に。</p>
+  <div class="docs">
+    <a class="doc scope" href="PW-171.regression-scope.html">
+      <div class="fn">PW-171.regression-scope</div>
+      <h5 style="color:var(--c-scope);">回帰スコープを開く →</h5>
+      <div class="row">変更サマリー・影響API一覧・画面別チェックリスト・テスト工数見積り・乖離分析・スコープ外を確認できます。</div>
+    </a>
+    <a class="doc pr" href="PW-171.pr.html">
+      <div class="fn">pr-writer → PR文書</div>
+      <h5>レビュアー・開発者向け →</h5>
+      <div class="row">追加機能・テスト観点・影響範囲を整理したPR説明。レビューの着眼点が最初から揃います。</div>
+    </a>
+    <a class="doc ticket" href="PW-171.ticket.html">
+      <div class="fn">ticket-writer → チケット要点</div>
+      <h5>PM・PO向け →</h5>
+      <div class="row">影響範囲・テスト工数・PM向けの要点をチケットに集約。状況把握の起点になります。</div>
+    </a>
+  </div>
+
+  <p class="foot">対象: 配送管理システム PW ／ チェック基準ファースト × regression-scope・pr-writer・ticket-writer 3エージェント連携 ｜ PM・PO向け ｜ 2026-06-24</p>
+
+</div>
+</body>
+</html>

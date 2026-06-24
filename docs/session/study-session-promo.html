@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>社内勉強会 ― 手続きではなく定義を実装する</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0E1117; --panel:#161C28; --panel-2:#1B2230; --line:#2A3242;
+    --paper:#E8EBF2; --muted:#8A93A8; --faint:#5C667C;
+    --def:#6FB1FC; --def-dim:rgba(111,177,252,.13); --def-line:rgba(111,177,252,.4);
+    --proc:#D6A86A; --proc-dim:rgba(214,168,106,.12); --proc-line:rgba(214,168,106,.4);
+    --danger:#E0796F; --red:#ff4d4d;
+    --jp:"Zen Kaku Gothic New", system-ui, -apple-system, "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
+    --dp:"Space Grotesk", var(--jp);
+    --mono:"JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;color:var(--paper);font-family:var(--jp);-webkit-font-smoothing:antialiased;
+    background:
+      radial-gradient(1100px 640px at 82% -8%, rgba(111,177,252,.10), transparent 60%),
+      radial-gradient(900px 560px at -8% 18%, rgba(214,168,106,.06), transparent 55%),
+      var(--ink);
+    line-height:1.6;overflow-x:hidden;
+  }
+  a{color:inherit;text-decoration:none;}
+  .wrap{width:100%;max-width:1120px;margin:0 auto;padding:0 clamp(20px,5vw,40px);}
+
+  /* ---- sticky header ---- */
+  header.site{position:sticky;top:0;z-index:50;backdrop-filter:blur(10px);background:rgba(14,17,23,.72);border-bottom:1px solid rgba(42,50,66,.7);}
+  .site .wrap{display:flex;align-items:center;justify-content:space-between;height:62px;}
+  .brand{font-family:var(--dp);font-weight:700;font-size:14px;letter-spacing:.02em;color:var(--muted);}
+  .brand b{color:var(--def);} .brand .pin{color:var(--proc);}
+  .site .cta{font-size:13.5px;font-weight:700;padding:9px 16px;border-radius:999px;background:var(--def);color:#0a0f18;transition:.18s;}
+  .site .cta:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(111,177,252,.3);}
+
+  /* ---- generic section ---- */
+  section{padding:clamp(54px,9vw,108px) 0;}
+  .eyebrow{font-family:var(--dp);font-size:12.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--def);display:inline-flex;align-items:center;gap:.7em;margin-bottom:18px;}
+  .eyebrow::before{content:"";width:26px;height:1px;background:var(--def-line);}
+  h2{font-family:var(--jp);font-weight:900;font-size:clamp(26px,4.4vw,46px);line-height:1.18;letter-spacing:-.01em;margin:0 0 .5em;}
+  .lede{font-size:clamp(15px,1.9vw,19px);color:#C2C9D8;max-width:60ch;}
+  .lede strong{color:#fff;font-weight:700;}
+
+  /* ---- hero ---- */
+  .hero{position:relative;overflow:hidden;padding-top:clamp(56px,8vw,96px);}
+  .hero .ghost{position:absolute;right:-4%;top:8%;font-family:var(--dp);font-weight:700;font-size:clamp(180px,34vw,420px);line-height:.8;color:rgba(111,177,252,.05);letter-spacing:-.05em;pointer-events:none;user-select:none;z-index:0;}
+  .hero .wrap{position:relative;z-index:1;}
+  .h-eyebrow{font-family:var(--dp);letter-spacing:.28em;text-transform:uppercase;color:var(--muted);font-size:13px;margin-bottom:22px;}
+  .h-eyebrow b{color:var(--def);}
+  h1{font-family:var(--jp);font-weight:900;font-size:clamp(40px,8.4vw,92px);line-height:1.04;letter-spacing:-.025em;margin:0;}
+  .proc-c{color:var(--proc);} .def-c{color:var(--def);}
+  .h-sub{margin-top:clamp(20px,3vw,30px);font-size:clamp(16px,2.2vw,22px);color:#C7CEDC;max-width:54ch;}
+  .chips{display:flex;flex-wrap:wrap;gap:9px;margin-top:26px;}
+  .chip{font-size:12.5px;font-weight:500;color:#C2C9D8;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:6px 13px;transition:.18s;}
+  .chip:hover{border-color:var(--def-line);color:var(--def);transform:translateY(-1px);}
+  .h-actions{display:flex;flex-wrap:wrap;gap:14px;align-items:center;margin-top:34px;}
+  .btn{display:inline-flex;align-items:center;gap:.5em;font-weight:700;border-radius:999px;padding:13px 24px;font-size:15px;transition:.18s;cursor:pointer;border:1px solid transparent;}
+  .btn-primary{background:var(--def);color:#0a0f18;}
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(111,177,252,.32);}
+  .btn-primary .ar{transition:transform .18s;} .btn-primary:hover .ar{transform:translateX(4px);}
+  .btn-ghost{background:transparent;border-color:var(--line);color:var(--paper);}
+  .btn-ghost:hover{border-color:var(--def-line);color:var(--def);}
+  .h-meta{margin-top:28px;font-family:var(--mono);font-size:13.5px;color:var(--muted);letter-spacing:.01em;}
+  .h-meta b{color:#CDD4E2;font-weight:500;}
+  .scrollhint{margin-top:clamp(34px,6vw,60px);font-family:var(--dp);font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--faint);display:flex;align-items:center;gap:10px;}
+  .scrollhint .dot{width:7px;height:7px;border-radius:50%;background:var(--def);animation:bob 1.6s ease-in-out infinite;}
+  @keyframes bob{0%,100%{transform:translateY(0);opacity:1;}50%{transform:translateY(5px);opacity:.4;}}
+
+  /* ---- demo ---- */
+  .demo{border-top:1px solid var(--line);background:linear-gradient(180deg,rgba(27,34,48,.4),transparent 30%);}
+  .demo-controls{display:flex;flex-wrap:wrap;align-items:center;gap:14px;margin:26px 0 8px;}
+  .counter-pill{font-family:var(--mono);font-size:14px;color:#CDD4E2;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:9px 15px;}
+  .counter-pill b{color:var(--def);font-size:17px;}
+  .duel{display:grid;grid-template-columns:1fr 1fr;gap:clamp(14px,2vw,22px);margin-top:18px;}
+  .dcard{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:clamp(16px,2vw,24px);display:flex;flex-direction:column;min-width:0;}
+  .dcard.proc{border-color:var(--proc-line);background:linear-gradient(180deg,var(--proc-dim),transparent 40%),var(--panel);}
+  .dcard.def{border-color:var(--def-line);background:linear-gradient(180deg,var(--def-dim),transparent 40%),var(--panel);}
+  .dtag{align-self:flex-start;font-family:var(--dp);font-weight:700;font-size:12px;letter-spacing:.12em;text-transform:uppercase;padding:5px 11px;border-radius:999px;margin-bottom:14px;}
+  .dcard.proc .dtag{color:var(--proc);background:var(--proc-dim);border:1px solid var(--proc-line);}
+  .dcard.def .dtag{color:var(--def);background:var(--def-dim);border:1px solid var(--def-line);}
+  .dtag .jp{font-family:var(--jp);text-transform:none;letter-spacing:.03em;font-size:13.5px;}
+  .bignum{display:flex;align-items:baseline;gap:10px;margin-bottom:12px;}
+  .bignum .v{font-family:var(--dp);font-weight:700;font-size:clamp(40px,7vw,68px);line-height:1;letter-spacing:-.02em;}
+  .dcard.proc .bignum .v{color:var(--proc);}
+  .dcard.def .bignum .v{color:var(--def);}
+  .bignum .v.pulse{animation:pulse .5s ease;}
+  @keyframes pulse{0%{transform:scale(1);}40%{transform:scale(1.18);color:var(--red);}100%{transform:scale(1);}}
+  .bignum .u{font-size:15px;color:var(--muted);font-weight:500;}
+  .dcode{font-family:var(--mono);font-size:clamp(11px,1.15vw,13px);line-height:1.6;background:rgba(8,11,17,.55);border:1px solid var(--line);border-radius:10px;padding:12px 14px;overflow:auto;min-height:128px;}
+  .dcode .ln{display:block;white-space:pre;}
+  .dcode .ln.flash-d{animation:flashD 1s ease;}
+  .dcode .ln.flash-p{animation:flashP 1s ease;}
+  @keyframes flashD{0%{background:rgba(111,177,252,.32);}100%{background:transparent;}}
+  @keyframes flashP{0%{background:rgba(255,77,77,.28);}100%{background:transparent;}}
+  .dnote{margin-top:auto;padding-top:12px;font-size:12.5px;color:var(--muted);line-height:1.55;}
+  .t-cm{color:#646E84;font-style:italic;} .t-st{color:#A6C58C;} .t-nm{color:#D9B57A;} .t-kw{color:#8FA6CE;}
+  .bars{margin-top:22px;}
+  .bars .blabel{font-family:var(--dp);font-size:12px;letter-spacing:.06em;color:var(--muted);margin-bottom:12px;}
+  .brow{display:flex;align-items:center;gap:14px;margin-bottom:10px;}
+  .brow .nm{flex:none;width:84px;font-size:13px;font-weight:700;}
+  .brow.proc .nm{color:var(--proc);} .brow.def .nm{color:var(--def);}
+  .track{flex:1;height:16px;background:rgba(255,255,255,.04);border-radius:999px;overflow:hidden;}
+  .fill{height:100%;width:5%;border-radius:999px;transition:width .55s cubic-bezier(.3,.8,.3,1);}
+  .fill.proc{background:linear-gradient(90deg,var(--proc),var(--red));}
+  .fill.def{background:var(--def);}
+  .brow .amt{flex:none;width:74px;text-align:right;font-family:var(--mono);font-size:12.5px;color:#CDD4E2;}
+  .demo-foot{margin-top:20px;font-size:13.5px;color:var(--muted);}
+  .demo-foot b{color:#CDD4E2;}
+
+  /* ---- hook ---- */
+  .hook{border-top:1px solid var(--line);}
+  .hookgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(232px,1fr));gap:14px;margin-top:30px;}
+  .hcard{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px 22px;transition:.2s;}
+  .hcard:hover{transform:translateY(-3px);border-color:var(--proc-line);}
+  .hcard .q{font-size:clamp(15px,1.7vw,17.5px);font-weight:700;color:#E8EBF2;line-height:1.55;}
+  .hcard .q .em{color:var(--proc);}
+  .hookline{margin-top:30px;font-size:clamp(16px,2.1vw,21px);font-weight:500;color:#C7CEDC;border-left:3px solid var(--def);padding-left:20px;max-width:60ch;}
+  .hookline b{color:#fff;}
+
+  /* ---- parts ---- */
+  .parts{border-top:1px solid var(--line);}
+  .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(14px,1.8vw,20px);margin-top:32px;}
+  .pcard{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:clamp(22px,2.6vw,30px);overflow:hidden;transition:.22s;}
+  .pcard::after{content:"";position:absolute;inset:0;border-radius:16px;border:1px solid transparent;transition:.22s;pointer-events:none;}
+  .pcard:hover{transform:translateY(-5px);}
+  .pcard:hover::after{border-color:var(--def-line);box-shadow:0 18px 40px rgba(0,0,0,.35);}
+  .pcard .no{font-family:var(--dp);font-weight:700;font-size:clamp(30px,4vw,46px);color:rgba(111,177,252,.28);line-height:1;letter-spacing:-.02em;transition:.22s;}
+  .pcard:hover .no{color:var(--def);}
+  .pcard .pt{margin-top:14px;font-family:var(--dp);font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);}
+  .pcard h3{margin:4px 0 10px;font-size:clamp(19px,2.2vw,24px);font-weight:900;}
+  .pcard p{margin:0;font-size:14px;color:var(--muted);line-height:1.75;}
+  .pcard .tags{margin-top:16px;display:flex;flex-wrap:wrap;gap:7px;}
+  .pcard .tags span{font-family:var(--mono);font-size:11px;color:#9FB2D6;background:rgba(111,177,252,.08);border:1px solid rgba(111,177,252,.2);border-radius:6px;padding:3px 8px;}
+
+  /* ---- audience ---- */
+  .aud{border-top:1px solid var(--line);}
+  .audlist{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-top:30px;}
+  .arow{display:flex;gap:14px;align-items:flex-start;background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:18px 20px;}
+  .arow .ck{flex:none;width:24px;height:24px;border-radius:7px;background:var(--def-dim);border:1px solid var(--def-line);color:var(--def);display:grid;place-items:center;font-size:14px;font-weight:700;margin-top:1px;}
+  .arow p{margin:0;font-size:14.5px;color:#CDD4E2;line-height:1.6;}
+  .arow p b{color:#fff;}
+
+  /* ---- details / CTA ---- */
+  .details{border-top:1px solid var(--line);}
+  .panelbox{background:linear-gradient(160deg,rgba(111,177,252,.1),rgba(27,34,48,.5));border:1px solid var(--def-line);border-radius:20px;padding:clamp(26px,4vw,48px);margin-top:30px;}
+  .dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:22px 30px;margin-bottom:30px;}
+  .dl .k{font-family:var(--dp);font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--def);margin-bottom:7px;}
+  .dl .v{font-size:clamp(15px,1.8vw,18px);color:#E8EBF2;font-weight:500;line-height:1.5;}
+  .dl .v small{color:var(--muted);font-weight:400;}
+  .details .btn-primary{font-size:16px;padding:15px 30px;}
+
+  footer{border-top:1px solid var(--line);padding:34px 0;}
+  footer .wrap{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center;}
+  .fbrand{font-family:var(--dp);font-weight:700;color:var(--muted);font-size:13px;}
+  .fbrand b{color:var(--def);}
+  footer .note{font-size:12.5px;color:var(--faint);}
+
+  /* level emphasis + closing */
+  .chip.lv{color:var(--def);border-color:var(--def-line);background:var(--def-dim);font-weight:700;}
+  .levelline{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:0 0 26px;font-size:clamp(14px,1.7vw,16.5px);color:#C7CEDC;}
+  .lvbadge{font-family:var(--dp);font-weight:700;font-size:13px;letter-spacing:.08em;color:var(--def);background:var(--def-dim);border:1px solid var(--def-line);border-radius:999px;padding:6px 14px;flex:none;}
+  .closing{border-top:1px solid var(--line);}
+  .closingbox{background:linear-gradient(160deg,rgba(111,177,252,.1),rgba(27,34,48,.5));border:1px solid var(--def-line);border-radius:20px;padding:clamp(30px,5vw,56px);text-align:center;}
+  .lvbadge-lg{display:inline-block;font-family:var(--dp);font-weight:700;font-size:13px;letter-spacing:.1em;color:var(--def);background:var(--def-dim);border:1px solid var(--def-line);border-radius:999px;padding:7px 16px;margin-bottom:20px;}
+  .closing-h{font-size:clamp(22px,3.4vw,34px);font-weight:900;margin:0 0 12px;line-height:1.3;}
+  .closing-sub{font-size:clamp(14px,1.7vw,16.5px);color:var(--muted);margin:0;line-height:1.85;}
+
+  /* ---- reveal ---- */
+  .reveal{opacity:0;transform:translateY(22px);transition:opacity .7s ease, transform .7s cubic-bezier(.2,.7,.2,1);}
+  .reveal.in{opacity:1;transform:none;}
+  .reveal.d1{transition-delay:.08s;} .reveal.d2{transition-delay:.16s;} .reveal.d3{transition-delay:.24s;}
+
+  @media (max-width:820px){ .duel{grid-template-columns:1fr;} .pgrid{grid-template-columns:1fr;} }
+  @media (max-width:540px){ .site .brand{font-size:12px;} .h-meta{font-size:12px;} }
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto;}
+    *{animation:none !important;}
+    .reveal{opacity:1;transform:none;transition:none;}
+  }
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap">
+    <div class="brand"><b>定義</b>を実装する <span class="pin">/ 社内勉強会</span></div>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="ghost" aria-hidden="true">定義</div>
+  <div class="wrap">
+    <div class="h-eyebrow reveal">社内勉強会 · <b>全3部</b></div>
+    <h1 class="reveal d1"><span class="proc-c">手続き</span>ではなく<br><span class="def-c">定義</span>を実装する</h1>
+    <p class="h-sub reveal d2">仕様変更に強いコードの書き方。<strong>原則</strong>から、<strong>AI駆動開発</strong>での実践まで、全3部でじっくり。</p>
+    <div class="chips reveal d2">
+      <span class="chip lv">初級〜中級者向け</span>
+      <span class="chip">コード例たっぷり</span>
+      <span class="chip">FizzBuzz・状態遷移・バリデーション</span>
+      <span class="chip">AI駆動開発</span>
+      <span class="chip">言語問わず（例はTypeScript）</span>
+    </div>
+    <div class="h-actions reveal d3">
+      <a class="btn btn-primary" href="#demo">まず30秒で体験 <span class="ar">↓</span></a>
+      <a class="btn btn-ghost" href="#parts">内容を見る</a>
+    </div>
+    <div class="scrollhint reveal d3"><span class="dot"></span> Scroll</div>
+  </div>
+</section>
+
+<!-- INTERACTIVE DEMO -->
+<section class="demo" id="demo">
+  <div class="wrap">
+    <div class="eyebrow reveal">30秒で体験</div>
+    <h2 class="reveal">「仕様をひとつ足す」だけで、こんなに差が出る</h2>
+    <p class="lede reveal">ボタンを押して、仕様（例：「7の倍数なら Bazz」）を追加してみてください。<strong>手続き的なコード</strong>と<strong>定義的なコード</strong>で、1回の変更の“重さ”がどう変わるか。</p>
+
+    <div class="demo-controls reveal d1">
+      <button class="btn btn-primary" id="addBtn">＋ 仕様を追加する</button>
+      <button class="btn btn-ghost" id="resetBtn">リセット</button>
+      <span class="counter-pill">追加した仕様 <b id="addedN">0</b> 個</span>
+    </div>
+
+    <div class="duel reveal d1">
+      <div class="dcard proc">
+        <span class="dtag"><span class="jp">手続き</span> · if / else</span>
+        <div class="bignum"><span class="v" id="procV">3</span><span class="u">分岐を作り直し</span></div>
+        <div class="dcode" id="procCode"></div>
+        <div class="dnote">条件が増えるたび、組合せ（2ⁿ−1）と順序を手で網羅しなおす。<b>変更が全体に散る。</b></div>
+      </div>
+      <div class="dcard def">
+        <span class="dtag"><span class="jp">定義</span> · rules as data</span>
+        <div class="bignum"><span class="v" id="defV">+1</span><span class="u">行 追加するだけ</span></div>
+        <div class="dcode" id="defCode"></div>
+        <div class="dnote">ルールを定義しているので、組合せは自動で導かれる。<b>変更は一箇所に収まる。</b></div>
+      </div>
+    </div>
+
+    <div class="bars reveal d2">
+      <div class="blabel">1回の仕様追加で“触るコード量”（相対）</div>
+      <div class="brow proc"><span class="nm">手続き</span><span class="track"><span class="fill proc" id="barP"></span></span><span class="amt" id="amtP">3 分岐</span></div>
+      <div class="brow def"><span class="nm">定義</span><span class="track"><span class="fill def" id="barD"></span></span><span class="amt" id="amtD">+1 行</span></div>
+    </div>
+
+    <p class="demo-foot reveal d2">これは第1部で扱う <b>「変更の局所性（Δ仕様 ≈ Δコード）」</b> の実演です。勉強会では、この考え方を実務のコードへ落とし込みます。</p>
+  </div>
+</section>
+
+<!-- HOOK -->
+<section class="hook">
+  <div class="wrap">
+    <div class="eyebrow reveal">あるある</div>
+    <h2 class="reveal">こんな経験、ありませんか？</h2>
+    <div class="hookgrid">
+      <div class="hcard reveal">  <div class="q">「条件を1つ足すだけ」のはずが、<span class="em">分岐が爆発</span>した</div></div>
+      <div class="hcard reveal d1"><div class="q">仕様変更のたびに、<span class="em">テストが一緒に壊れる</span></div></div>
+      <div class="hcard reveal d2"><div class="q">どこを直せば全部直るのか、<span class="em">誰も分からない</span></div></div>
+      <div class="hcard reveal d3"><div class="q">AIに任せたら、<span class="em">手続きが増殖</span>していった</div></div>
+    </div>
+    <p class="hookline reveal">原因の多くは、<b>「定義」がコードに埋もれている</b>こと。この勉強会では、その見抜き方と直し方を、手を動かしながら学びます。</p>
+  </div>
+</section>
+
+<!-- PARTS -->
+<section class="parts" id="parts">
+  <div class="wrap">
+    <div class="eyebrow reveal">全3部</div>
+    <h2 class="reveal">学べること</h2>
+    <div class="pgrid">
+      <div class="pcard reveal">
+        <div class="no">01</div>
+        <div class="pt">第1部</div>
+        <h3>原則編</h3>
+        <p>手続きではなく定義を実装すると、なぜ仕様変更に強いのか。具体例で体に入れます。</p>
+        <div class="tags"><span>FizzBuzz</span><span>バリデーション</span><span>状態遷移</span></div>
+      </div>
+      <div class="pcard reveal d1">
+        <div class="no">02</div>
+        <div class="pt">第2部</div>
+        <h3>AI駆動開発編</h3>
+        <p>AIが書く時代に、手続きと定義の優劣は変わるか。ボトルネックの移動と、手続きへ回帰する罠。</p>
+        <div class="tags"><span>自己修正ループ</span><span>境界設計</span></div>
+      </div>
+      <div class="pcard reveal d2">
+        <div class="no">03</div>
+        <div class="pt">第3部</div>
+        <h3>実践編</h3>
+        <p>定義ファーストでAI駆動開発を回すプレイブック。役割分担・ワークフロー・レビュー・導入手順。</p>
+        <div class="tags"><span>ガードレール</span><span>レビュー観点</span><span>導入手順</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- AUDIENCE -->
+<section class="aud">
+  <div class="wrap">
+    <div class="eyebrow reveal">対象</div>
+    <h2 class="reveal">こんな人におすすめ</h2>
+    <p class="levelline reveal"><span class="lvbadge">初級者〜中級者向け</span> プログラミングの基礎があればOK。前提となる設計知識は問いません。</p>
+    <div class="audlist">
+      <div class="arow reveal"><span class="ck">✓</span><p>仕様変更のたびに、いつも<b>コードが壊れて</b>つらい人</p></div>
+      <div class="arow reveal d1"><span class="ck">✓</span><p>設計をもう一段、<b>うまくなりたい</b>人</p></div>
+      <div class="arow reveal d2"><span class="ck">✓</span><p>AI駆動開発を<b>本格導入する／したチーム</b></p></div>
+      <div class="arow reveal d3"><span class="ck">✓</span><p>言語は問いません。<b>例はTypeScript中心</b>、考え方は汎用です</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- CLOSING -->
+<section class="closing">
+  <div class="wrap">
+    <div class="closingbox reveal">
+      <div class="lvbadge-lg">初級者〜中級者向け</div>
+      <p class="closing-h">気軽にどうぞ。途中参加もOK。</p>
+      <p class="closing-sub">プログラミングの基礎があれば、前提知識は不要です。<br>開催日時・参加方法は別途ご案内します。</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="fbrand"><b>定義</b>を実装する ― 社内勉強会シリーズ</div>
+    <div class="note">初級〜中級者向け · 全3部 · 開催日時と参加方法は別途ご案内</div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  /* tiny code highlighter */
+  function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+  var KW=/^(const|if|else|return|function|for)$/;
+  function hl(code){
+    var re=/(\/\/[^\n]*)|("[^"]*")|(\b\d+\b)|([A-Za-z_$][\w$]*)/g, out="",last=0,m;
+    while((m=re.exec(code))){
+      out+=esc(code.slice(last,m.index));
+      if(m[1]) out+='<span class="t-cm">'+esc(m[1])+'</span>';
+      else if(m[2]) out+='<span class="t-st">'+esc(m[2])+'</span>';
+      else if(m[3]) out+='<span class="t-nm">'+esc(m[3])+'</span>';
+      else if(m[4]) out+=(KW.test(m[4])?'<span class="t-kw">'+esc(m[4])+'</span>':esc(m[4]));
+      last=m.index+m[0].length;
+    }
+    return out+esc(code.slice(last));
+  }
+
+  /* interactive demo */
+  var WORDS=[["3","Fizz"],["5","Buzz"],["7","Bazz"],["11","Jazz"],["13","Razz"],["17","Mazz"]];
+  var BASE=2, MAX=6, n=BASE;
+  var procV=document.getElementById("procV"), defV=document.getElementById("defV");
+  var procCode=document.getElementById("procCode"), defCode=document.getElementById("defCode");
+  var barP=document.getElementById("barP"), barD=document.getElementById("barD");
+  var amtP=document.getElementById("amtP"), amtD=document.getElementById("amtD");
+  var addedN=document.getElementById("addedN");
+  var addBtn=document.getElementById("addBtn"), resetBtn=document.getElementById("resetBtn");
+
+  function branches(k){ return Math.pow(2,k)-1; }
+
+  function render(flash){
+    var b=branches(n), maxB=branches(MAX);
+    procV.textContent=b;
+    defV.textContent="+1";
+    addedN.textContent=(n-BASE);
+    if(flash){ procV.classList.remove("pulse"); void procV.offsetWidth; procV.classList.add("pulse"); }
+
+    // proc code (illustrative; the count is the story)
+    var pl=[
+      'if      (i%15===0) "FizzBuzz"',
+      'else if (i%5===0)  "Buzz"',
+      'else if (i%3===0)  "Fizz"',
+      'else               i',
+      '// …組合せ込みで全 '+b+' 分岐に'
+    ];
+    procCode.innerHTML = pl.map(function(t,i){
+      return '<span class="ln'+(i===4?' flash-p':'')+'">'+hl(t)+'</span>';
+    }).join("");
+
+    // def code (grows by exactly one tidy line)
+    var dl=['const rules = ['];
+    for(var k=0;k<n;k++){
+      var added=(k===n-1 && n>BASE);
+      dl.push('  { divisor: '+WORDS[k][0]+', word: "'+WORDS[k][1]+'" },'+(added?'   // ← 追加':''));
+    }
+    dl.push('];');
+    defCode.innerHTML = dl.map(function(t,i){
+      var isNew=(i===n); // the just-added rule line
+      return '<span class="ln'+(flash&&isNew?' flash-d':'')+'">'+hl(t)+'</span>';
+    }).join("");
+
+    // bars
+    barP.style.width=Math.max(5, b/maxB*100)+"%";
+    barD.style.width=Math.max(5, n/maxB*100)+"%";
+    amtP.textContent=b+" 分岐";
+    amtD.textContent="+1 行";
+
+    addBtn.disabled=(n>=MAX);
+    addBtn.style.opacity=(n>=MAX)?".45":"1";
+    addBtn.textContent=(n>=MAX)?"これ以上は…際限なく増える":"＋ 仕様を追加する";
+  }
+
+  addBtn.addEventListener("click",function(){ if(n<MAX){ n++; render(true); } });
+  resetBtn.addEventListener("click",function(){ n=BASE; render(false); });
+  render(false);
+
+  /* scroll reveals */
+  var els=document.querySelectorAll(".reveal");
+  if("IntersectionObserver" in window){
+    var io=new IntersectionObserver(function(en){
+      en.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add("in"); io.unobserve(e.target); } });
+    },{threshold:.14, rootMargin:"0px 0px -8% 0px"});
+    els.forEach(function(el){ io.observe(el); });
+  } else {
+    els.forEach(function(el){ el.classList.add("in"); });
+  }
+})();
+</script>
+</body>
+</html>
