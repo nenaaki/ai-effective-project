@@ -147,12 +147,11 @@
 
   <header class="hero">
     <div class="eyebrow">AI Agent / Regression Scope → PR / Ticket</div>
-    <h1>regression-scope を起点とする3エージェント連携<br>従来の人間作業の AsIs → ToBe</h1>
+    <h1>regression-scope 起点の3エージェント連携<br>人間作業の AsIs → ToBe</h1>
     <p class="lead">
-      仕様変更が発生したとき、「どこまでデグレードチェックすれば十分か」を決める作業は、
-      これまで開発者の経験則と注意力に強く依存していました。
-      <strong>regression-scope</strong> が「影響範囲・テスト観点・テスト工数」を確定し、その出力（<code>.work/{チケットID}.regression-scope.md</code>）を正本として、
-      下流の <strong>pr-writer</strong>（レビュアー・開発者向けPR文書）と <strong>ticket-writer</strong>（PM・PO向けチケット要点）が文書化を肩代わりします。
+      「どこまでデグレードチェックすれば十分か」は従来、開発者の経験則に依存していました。
+      <strong>regression-scope</strong> が影響範囲・テスト観点・テスト工数を確定し、その出力を正本に、
+      下流の <strong>pr-writer</strong>（PR文書）と <strong>ticket-writer</strong>（チケット要点）が文書化を肩代わりします。
     </p>
     <div>
       <span class="agent-badge reg">regression-scope</span>
@@ -163,7 +162,6 @@
       <span class="chip">読み取り専用（コード変更なし）</span>
       <span class="chip">Spec × git diff の2段階分析</span>
       <span class="chip">テスト工数の概算見積もり</span>
-      <span class="chip">永続メモリで知見を蓄積・学習</span>
       <span class="chip">出力: .work/{チケットID}.regression-scope.md</span>
     </div>
   </header>
@@ -192,7 +190,6 @@
         <li><span class="tag good">自動</span> git diff を層別分類し、変更APIを grep で全画面追跡（Phase 2）</li>
         <li><span class="tag good">検出</span> 予測 vs 実装を照合し「実装漏れ?／スペック外変更?」を提示（Phase 3）</li>
         <li><span class="tag good">見積</span> チェック項目を種別×係数で積み上げ、テスト工数をレンジで概算（Step 4.5）</li>
-        <li><span class="tag good">学習</span> 過去PRのフィードバックを永続メモリに蓄積し、自動適用</li>
         <li><span class="tag good">正本化</span> 確定した範囲・観点・工数を <span class="agent-badge pr">pr-writer</span> がPR文書へ、<span class="agent-badge ticket">ticket-writer</span> がチケット要点へ展開</li>
         <li><span class="tag good">一貫</span> 同じ正本を技術寄り／管理寄りの読み手に再フォーマット。手書きの二重化を排除</li>
       </ul>
@@ -243,7 +240,6 @@
         <li>変更API名でフロント全画面を grep 追跡</li>
         <li>テスト観点（Spec §9）を抽出</li>
         <li>テスト工数をレンジで概算（Step 4.5）</li>
-        <li>永続メモリ（<code>.claude/agent-memory/regression-scope/</code>）で過去知見を学習・再利用</li>
         <li>実テスト実行や最終判断は<strong>しない</strong></li>
       </ul>
       <div class="io">OUT → <code>.work/{チケットID}.regression-scope.md</code></div>
@@ -338,12 +334,6 @@
           <td><span class="auto">AI 自動</span><br><span class="agent-badge reg">regression-scope</span></td>
         </tr>
         <tr>
-          <td class="who">過去知見の再利用</td>
-          <td class="col-asis">前回PRで踏んだ落とし穴（例: マイグレーション履歴スカッシュ時の罠）は個人の記憶頼み。担当者が代わると同じミスを繰り返す。</td>
-          <td class="col-tobe">永続メモリ（<code>.claude/agent-memory/regression-scope/</code>）に feedback を蓄積し、該当条件のPRで自動適用。例: スカッシュPRでは「既存DBへ <code>migrate deploy</code> 不可／全員 reset 周知」を必ず出力。</td>
-          <td><span class="auto">AI 自動</span><br><span class="agent-badge reg">regression-scope</span></td>
-        </tr>
-        <tr>
           <td class="who">PR説明の文書化</td>
           <td class="col-asis">PR本文に「何を追加したか／何をテストすべきか」をレビュアー向けに毎回手書き。観点が抜けたり過不足が出る。</td>
           <td class="col-tobe">regression-scope の出力を利用し、追加された機能とテスト観点、影響範囲の検索結果を整理して<strong>PR用の文書</strong>を生成。読み手＝レビュアー・開発者。</td>
@@ -420,7 +410,6 @@
     <strong>キモは「2つの視点のズレ」。</strong>
     Spec が示す「変わるはず」と diff が示す「実際に変わった」の差分そのものが品質リスクのシグナルになります。
     人間が片方（多くは diff だけ）しか見ていなかったところを、両面から突き合わせる点が肩代わりの本質です。
-    各 Phase の入口では永続メモリの学習済み観点（後述）も併せて参照し、過去の落とし穴を自動で取り込みます。
     ここで確定した範囲・観点・工数が、pr-writer / ticket-writer の<em>正本</em>になります。
   </div>
 
@@ -486,41 +475,9 @@
     これにより frontend-tester は brief §7 が無くてもモードR で検証可能になります。
   </div>
 
-  <!-- 6. 永続メモリ / 学習 -->
-  <h2><span class="num">06</span>使うほど賢くなる — 永続メモリ</h2>
-  <p class="section-note">regression-scope は <code>memory: project</code> を持ち、レビューで得たフィードバックを <code>.claude/agent-memory/regression-scope/</code> に蓄積する。次回以降、同じ条件のPRで学習済みの観点を自動で適用する。学習が反映された正本は、そのまま pr-writer / ticket-writer の文書にも波及する。</p>
-  <div class="flow">
-    <div class="step">
-      <div class="s-num">① 指摘</div>
-      <div class="s-title">人間がフィードバック</div>
-      <div class="s-desc">「この観点が抜けていた」を指摘</div>
-    </div>
-    <div class="arrow">→</div>
-    <div class="step">
-      <div class="s-num">② 蓄積</div>
-      <div class="s-title">メモリに保存</div>
-      <div class="s-desc">{topic}.md ＋ MEMORY.md にポインタ</div>
-    </div>
-    <div class="arrow">→</div>
-    <div class="step reg-step">
-      <div class="s-num">③ 再利用</div>
-      <div class="s-title">次回PRで自動適用</div>
-      <div class="s-desc">該当条件を満たすと観点を出力に反映</div>
-    </div>
-  </div>
-  <div class="callout">
-    <strong>蓄積済みの学習例（PW-161 で獲得）:</strong>
-    <code>feedback-migration-squash.md</code> — マイグレーション履歴をスカッシュ（複数 migration を <code>0_init</code> に統合）するPRでは、
-    <em>既存DBに <code>migrate deploy</code> が使えない／<code>migrate:reset → seed</code> でのフルリビルドが必要／チーム全員への周知が要る／main の <code>0_init</code> とのテーブル数・名称差異の確認</em>
-    を必ず出力に含める。
-    <br><br>
-    属人的だった「前回の落とし穴」が、担当者が代わっても再現される組織知として残る点が、静的なチェックリストとの決定的な違いです。
-    なお、コードパターン・ファイルパス・git履歴・過去の regression-scope ドキュメント内容はメモリに保存しない（再調査すれば分かるため）。
-  </div>
-
   <p class="footnote">
     実出力例: <a href="PW-161.regression-scope.html">PW-161.regression-scope.html</a>
-    ／ 出典: <code>.claude/agents/regression-scope.md</code>（工数見積もり = Step 4.5／永続メモリ = <code>memory: project</code>）。
+    ／ 出典: <code>.claude/agents/regression-scope.md</code>（工数見積もり = Step 4.5）。
     <code>pr-writer</code> / <code>ticket-writer</code> は regression-scope の出力を消費するために人手で起用した新エージェント。
     本ドキュメントは3エージェント連携の役割整理用。生成: 2026-06-24。
   </p>

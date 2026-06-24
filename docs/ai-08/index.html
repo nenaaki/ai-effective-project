@@ -51,29 +51,27 @@
   </header>
 
   <div class="lede">
-    仕様変更後の<strong>品質保証と文書化</strong>を、開発者の頭の中と手作業（<strong>As-Is</strong>）から、
-    <strong>3つのAIエージェントの連携</strong>（<strong>To-Be</strong>）へ。
-    まず <strong style="color:#2f6fb0;">regression-scope</strong> が回帰テストの<strong>影響範囲・テスト観点・工数</strong>を確定し、その出力を
-    <strong style="color:#7c3aed;">pr-writer</strong>（PR用文書）と <strong style="color:#0e7490;">ticket-writer</strong>（チケット要点）が消費して、
-    レビュアー向け・PM向けの文書を自動生成する。<strong>見落とし・属人化・文書化漏れ</strong>を構造的に減らす。
-    同じ内容を<strong>経営層／PM・PO／エンジニア</strong>の3つの粒度で説明する As-Is/To-Be デッキと、regression-scope の自動生成レポート実例を収録。
+    仕様変更後の<strong>品質保証と文書化</strong>を、手作業（<strong>As-Is</strong>）から<strong>3つのAIエージェント連携</strong>（<strong>To-Be</strong>）へ。
+    <strong style="color:#2f6fb0;">regression-scope</strong> が<strong>影響範囲・テスト観点・工数</strong>を確定し、その出力を
+    <strong style="color:#7c3aed;">pr-writer</strong>（PR文書）・<strong style="color:#0e7490;">ticket-writer</strong>（チケット要点）が消費して文書を自動生成。
+    見落とし・属人化・文書化漏れを構造的に減らす。経営層／PM・PO／エンジニアの3粒度デッキと自動生成レポート実例を収録。
   </div>
 
   <h2 class="sec">対象別 As-Is → To-Be スライド（3エージェント連携）</h2>
   <div class="links">
     <a class="link-card" href="regression-scope-asis-tobe-executive.html">
       <div class="link-title"><span class="badge">経営層向け</span>品質チェック〜文書化の自動化</div>
-      <div class="link-desc">「回帰テスト範囲の確定（regression-scope）→ PR文書（pr-writer）→ チケット要点（ticket-writer）」までを3エージェントで自動化。不具合流出リスク低減・標準化・属人化解消という経営目線で整理。AI導入効果の説明用。</div>
+      <div class="link-desc">回帰テスト範囲の確定→PR文書→チケット要点までを3エージェントで自動化。不具合流出リスク低減・標準化・属人化解消を経営目線で整理。</div>
       <span class="link-path">regression-scope-asis-tobe-executive.html</span>
     </a>
     <a class="link-card" href="regression-scope-asis-tobe-pmpo.html">
       <div class="link-title"><span class="badge">PM・PO向け</span>範囲予測・工数見立て・文書自動化</div>
-      <div class="link-desc">デグレード範囲の予測可能化・要件↔実装トレーサビリティ・テスト工数の初期見立て（regression-scope）に加え、PR文書（pr-writer）とチケット要点（ticket-writer）の自動生成まで。実務での嬉しさを整理。</div>
+      <div class="link-desc">デグレ範囲の予測可能化・要件↔実装トレーサビリティ・工数見立てに加え、PR文書とチケット要点の自動生成まで。実務目線で整理。</div>
       <span class="link-path">regression-scope-asis-tobe-pmpo.html</span>
     </a>
     <a class="link-card" href="regression-scope-asis-tobe.html">
       <div class="link-title"><span class="badge">エンジニア向け</span>3エージェント連携 As-Is/To-Be</div>
-      <div class="link-desc">regression-scope の Spec×diff 2段階分析・影響追跡・工数概算・永続メモリに、下流の pr-writer / ticket-writer を加えた連携を、作業マッピング・内部フロー・パイプライン位置で詳細に可視化。</div>
+      <div class="link-desc">regression-scope の Spec×diff 分析・影響追跡・工数概算に pr-writer / ticket-writer を加えた連携を、作業マッピング・内部フロー・パイプライン位置で可視化。</div>
       <span class="link-path">regression-scope-asis-tobe.html</span>
     </a>
   </div>

@@ -125,12 +125,11 @@
 
   <header class="hero">
     <div class="eyebrow">FOR PM / PO — SCOPE, TRACEABILITY &amp; AUTO-DOCS</div>
-    <h1>仕様変更のデグレ範囲を「予測可能」にし、<br>PR文書とチケット要点まで自動で揃える3エージェント連携</h1>
+    <h1>デグレ範囲を「予測可能」に、<br>PR文書・チケット要点まで揃える3エージェント連携</h1>
     <p class="lead">
-      起点の <b style="color:var(--c-scope)">regression-scope</b> が「どの画面・操作をテストすべきか」を仕様書と実装差分の両面から確定し、
-      その出力を下流の <b style="color:var(--c-pr)">pr-writer</b>・<b style="color:var(--c-ticket)">ticket-writer</b> が消費して、PR文書とチケット要点を自動生成します。
-      PM/PO にとっては、<strong>テストスコープの確定・要件トレーサビリティ・テスト工数の見立て・リリース判断の参考情報</strong>に加え、
-      <strong>チケット／PR文書の作成</strong>まで属人化させずに手に入る仕組みです。
+      <b style="color:var(--c-scope)">regression-scope</b> が「どの画面・操作をテストすべきか」を仕様書と差分の両面から確定。
+      その出力を <b style="color:var(--c-pr)">pr-writer</b>・<b style="color:var(--c-ticket)">ticket-writer</b> が消費し、PR文書とチケット要点を自動生成します。
+      PM/PO は <strong>テストスコープ・工数見立て・要件トレーサビリティ</strong>に加え、<strong>文書化</strong>まで属人化させずに手に入ります。
     </p>
     <div class="chips">
       <span class="chip">テストスコープの自動確定</span>
@@ -138,7 +137,6 @@
       <span class="chip">テスト工数の初期見立て（レンジ）</span>
       <span class="chip">PR文書の自動生成</span>
       <span class="chip">チケット要点の自動まとめ</span>
-      <span class="chip">過去知見の学習・蓄積</span>
     </div>
   </header>
 
@@ -151,6 +149,8 @@
       <rect x="10" y="98" width="120" height="54" rx="9" fill="#fff" stroke="#d8dbe2"/>
       <text x="70" y="121" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1a1a">仕様変更</text>
       <text x="70" y="139" text-anchor="middle" font-size="11" fill="#5b6573">＋ git diff</text>
+      <text x="70" y="172" text-anchor="middle" font-size="9.5" fill="#5b6573">差分＝AI駆動実装</text>
+      <text x="70" y="184" text-anchor="middle" font-size="9.5" fill="#5b6573">または人手修正</text>
       <!-- arrow -->
       <line x1="132" y1="125" x2="172" y2="125" stroke="#9aa3b2" stroke-width="2"/>
       <polygon points="172,120 182,125 172,130" fill="#9aa3b2"/>
@@ -208,7 +208,6 @@
         <li>Spec × git diff の<b>2段階分析</b>でテストスコープを自動確定</li>
         <li>要件↔実装の整合チェック（実装漏れ・仕様外変更を「要確認」で提示）</li>
         <li>テスト工数を初期見立て（<b>レンジ</b>）</li>
-        <li>過去の指摘を学習・蓄積し次回の同種PRへ適用</li>
       </ul>
     </div>
     <div class="agent pr">
@@ -342,19 +341,17 @@
   </div>
 
   <div class="concern">
-    <div class="head"><span class="ico">⑥</span> 失敗からの学習・リリース判断の材料<span class="by scope">regression-scope</span></div>
+    <div class="head"><span class="ico">⑥</span> リリース判断の材料<span class="by scope">regression-scope</span></div>
     <div class="body">
       <div class="col asis">
         <span class="tag">AsIs</span>
         <ul>
-          <li>前回のレビューで気づいた観点が、その人の記憶にしか残らず、担当交代で再発する。</li>
           <li>「テストした／問題ない」の報告が中心で、何を確認したかが残らず、判断根拠が属人化。</li>
         </ul>
       </div>
       <div class="col tobe">
         <span class="tag">ToBe</span>
         <ul>
-          <li>レビューで得た指摘を<b>永続メモリに蓄積</b>し、次回以降の同種PRへ自動適用。経験が組織の資産に。</li>
           <li>確認すべき項目リスト（チェックボックス形式）が成果物として残り、品質ゲートの判断材料の一つに使える。</li>
         </ul>
       </div>
@@ -408,7 +405,6 @@
       <tr><td>影響範囲の特定・スコープ確定</td><td><span class="who scope">regression-scope</span> <span class="ai">（自動）</span></td><td>仕様書と実装差分の両面から洗い出し</td></tr>
       <tr><td>仕様と実装の食い違い検知</td><td><span class="who scope">regression-scope</span> <span class="ai">（自動）</span></td><td>「要確認」としてフラグ提示</td></tr>
       <tr><td>テスト工数の概算見積もり</td><td><span class="who scope">regression-scope</span> <span class="ai">（自動）</span></td><td>項目数×係数でレンジ提示（確定値ではない）</td></tr>
-      <tr><td>過去知見の学習・適用</td><td><span class="who scope">regression-scope</span> <span class="ai">（自動）</span></td><td>指摘をメモリに蓄積し同種PRへ自動反映</td></tr>
       <tr><td>PR文書の生成</td><td><span class="who pr">pr-writer</span> <span class="ai">（自動）</span></td><td>scope出力から機能・観点・影響範囲を整理</td></tr>
       <tr><td>チケット要点のまとめ</td><td><span class="who ticket">ticket-writer</span> <span class="ai">（自動）</span></td><td>scope出力からPM向け要点を集約</td></tr>
       <tr><td>テストの実施・結果記録</td><td class="hu">人 / 別AI</td><td>テスト担当・自動テストが実行</td></tr>
