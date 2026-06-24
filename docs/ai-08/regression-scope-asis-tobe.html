@@ -3,26 +3,31 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>regression-scope エージェント — AsIs / ToBe</title>
+<title>regression-scope → pr-writer / ticket-writer — 3エージェント連携と AsIs / ToBe</title>
 <style>
   :root {
-    --bg: #0f1419;
-    --panel: #1a212b;
-    --panel-2: #212a36;
-    --border: #2c3947;
-    --text: #e6edf3;
-    --muted: #8b9bb0;
-    --accent: #2dd4bf;
-    --asis: #f0883e;
-    --asis-bg: rgba(240,136,62,0.08);
-    --tobe: #3fb950;
-    --tobe-bg: rgba(63,185,80,0.08);
-    --warn: #d29922;
+    --bg: #fafaf7;
+    --panel: #ffffff;
+    --panel-2: #f3f5fa;
+    --border: #d8dbe2;
+    --text: #1a1a1a;
+    --muted: #5b6573;
+    --accent: #2f6fb0;
+    --asis: #c2410c;
+    --asis-bg: #fff4ec;
+    --asis-border: #f4c8a8;
+    --tobe: #15803d;
+    --tobe-bg: #eefaf0;
+    --tobe-border: #bbe6c4;
+    --warn: #b45309;
+    --reg: #2f6fb0;
+    --pr: #7c3aed;
+    --ticket: #0e7490;
   }
   * { box-sizing: border-box; }
   body {
     margin: 0;
-    font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, system-ui, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Yu Gothic UI", sans-serif;
     background: var(--bg);
     color: var(--text);
     line-height: 1.7;
@@ -33,18 +38,26 @@
   header.hero { border-bottom: 1px solid var(--border); padding-bottom: 28px; margin-bottom: 40px; }
   .eyebrow { color: var(--accent); font-size: 13px; letter-spacing: 0.15em; font-weight: 700; text-transform: uppercase; }
   h1 { font-size: 30px; margin: 10px 0 8px; font-weight: 800; letter-spacing: -0.01em; }
-  .lead { color: var(--muted); font-size: 15px; max-width: 760px; }
+  .lead { color: var(--muted); font-size: 15px; max-width: 800px; }
+  .lead strong { color: var(--text); }
   .chip { display: inline-block; font-size: 12px; background: var(--panel-2); border: 1px solid var(--border); color: var(--muted); padding: 3px 10px; border-radius: 999px; margin-right: 6px; margin-top: 12px; }
 
   h2 { font-size: 20px; margin: 48px 0 16px; padding-left: 12px; border-left: 3px solid var(--accent); }
   h2 .num { color: var(--accent); font-weight: 800; margin-right: 8px; }
   p.section-note { color: var(--muted); font-size: 14px; margin-top: -6px; }
+  code { background: var(--panel-2); border: 1px solid var(--border); border-radius: 4px; padding: 0 4px; font-size: 0.92em; }
+
+  /* Agent identity badges */
+  .agent-badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 999px; color: #fff; letter-spacing: 0.02em; }
+  .agent-badge.reg { background: var(--reg); }
+  .agent-badge.pr { background: var(--pr); }
+  .agent-badge.ticket { background: var(--ticket); }
 
   /* Summary AsIs/ToBe panels */
   .summary { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 8px; }
-  .card { border-radius: 12px; padding: 20px 22px; border: 1px solid var(--border); }
-  .card.asis { background: var(--asis-bg); border-color: rgba(240,136,62,0.3); }
-  .card.tobe { background: var(--tobe-bg); border-color: rgba(63,185,80,0.3); }
+  .card { border-radius: 12px; padding: 20px 22px; border: 1px solid var(--border); background: var(--panel); box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+  .card.asis { background: var(--asis-bg); border-color: var(--asis-border); }
+  .card.tobe { background: var(--tobe-bg); border-color: var(--tobe-border); }
   .card h3 { margin: 0 0 6px; font-size: 15px; display: flex; align-items: center; gap: 8px; }
   .card.asis h3 { color: var(--asis); }
   .card.tobe h3 { color: var(--tobe); }
@@ -52,44 +65,76 @@
   .card ul { margin: 0; padding-left: 18px; font-size: 13.5px; }
   .card li { margin-bottom: 7px; }
   .tag { font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 4px; }
-  .tag.bad { background: rgba(240,136,62,0.18); color: var(--asis); }
-  .tag.good { background: rgba(63,185,80,0.18); color: var(--tobe); }
+  .tag.bad { background: #fbe2d2; color: var(--asis); }
+  .tag.good { background: #cdeed4; color: var(--tobe); }
 
   /* Mapping table */
-  .tbl-scroll { overflow-x: auto; border: 1px solid var(--border); border-radius: 12px; margin-top: 12px; }
-  table { width: 100%; border-collapse: collapse; font-size: 13.5px; min-width: 760px; }
+  .tbl-scroll { overflow-x: auto; border: 1px solid var(--border); border-radius: 12px; margin-top: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; min-width: 760px; background: var(--panel); }
   thead th { background: var(--panel-2); text-align: left; padding: 13px 16px; font-size: 12px; letter-spacing: 0.04em; color: var(--muted); border-bottom: 1px solid var(--border); position: sticky; top: 0; }
   tbody td { padding: 14px 16px; border-bottom: 1px solid var(--border); vertical-align: top; }
   tbody tr:last-child td { border-bottom: none; }
-  tbody tr:nth-child(even) { background: rgba(255,255,255,0.015); }
+  tbody tr:nth-child(even) { background: #f8f9fc; }
   .col-asis { color: var(--muted); }
   .col-tobe { color: var(--text); }
   .who { font-weight: 700; white-space: nowrap; }
-  .phase-pill { display: inline-block; font-size: 10.5px; font-weight: 700; padding: 1px 6px; border-radius: 4px; background: rgba(45,212,191,0.14); color: var(--accent); margin-bottom: 6px; }
+  .phase-pill { display: inline-block; font-size: 10.5px; font-weight: 700; padding: 1px 6px; border-radius: 4px; background: #e1ecf6; color: var(--accent); margin-bottom: 6px; }
   .auto { color: var(--tobe); font-weight: 700; }
   .partial { color: var(--warn); font-weight: 700; }
   .human-stays { color: var(--asis); font-weight: 700; }
 
   /* Flow */
   .flow { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 14px; }
-  .step { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; font-size: 13px; flex: 1; min-width: 150px; }
+  .step { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; font-size: 13px; flex: 1; min-width: 150px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
   .step .s-num { color: var(--accent); font-weight: 800; font-size: 12px; }
   .step .s-title { font-weight: 700; margin: 2px 0 3px; }
   .step .s-desc { color: var(--muted); font-size: 12px; }
   .arrow { color: var(--muted); font-size: 20px; flex: 0; }
-  .group { flex: 3; min-width: 220px; border: 1.5px dashed var(--accent); border-radius: 12px; padding: 22px 12px 12px; position: relative; background: rgba(45,212,191,0.03); }
+  .group { flex: 3; min-width: 220px; border: 1.5px dashed var(--accent); border-radius: 12px; padding: 22px 12px 12px; position: relative; background: #f1f6fb; }
   .group > .glabel { position: absolute; top: -11px; left: 14px; background: var(--bg); color: var(--accent); font-weight: 800; font-size: 11.5px; letter-spacing: 0.04em; padding: 0 8px; }
   .group .flow { margin-top: 0; }
-  .step.human { border-color: #f59e0b; background: rgba(245,158,11,0.08); }
+  .step.human { border-color: #e0a443; background: #fdf6ea; }
   .vstack { flex: 1; min-width: 150px; display: flex; flex-direction: column; gap: 8px; }
   .vstack .step { width: 100%; }
   .vstack .vplus { text-align: center; color: var(--muted); font-size: 16px; line-height: 1; }
+  .step.reg-step { border-color: var(--reg); background: #eef4fa; }
+  .step.pr-step { border-color: var(--pr); background: #f5f0fd; }
+  .step.pr-step .s-num { color: var(--pr); }
+  .step.ticket-step { border-color: var(--ticket); background: #eaf6f8; }
+  .step.ticket-step .s-num { color: var(--ticket); }
 
-  .callout { background: var(--panel); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 8px; padding: 16px 20px; margin-top: 20px; font-size: 14px; }
+  /* 3-agent collaboration cards */
+  .agents3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-top: 16px; }
+  .acard { border-radius: 12px; border: 1px solid var(--border); background: var(--panel); padding: 18px 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); border-top: 4px solid var(--border); }
+  .acard.reg { border-top-color: var(--reg); }
+  .acard.pr { border-top-color: var(--pr); }
+  .acard.ticket { border-top-color: var(--ticket); }
+  .acard h3 { margin: 0 0 4px; font-size: 15px; }
+  .acard.reg h3 { color: var(--reg); }
+  .acard.pr h3 { color: var(--pr); }
+  .acard.ticket h3 { color: var(--ticket); }
+  .acard .role { font-size: 11.5px; color: var(--muted); font-weight: 700; margin-bottom: 10px; }
+  .acard .reader { font-size: 11px; display: inline-block; padding: 2px 8px; border-radius: 999px; background: var(--panel-2); border: 1px solid var(--border); color: var(--muted); margin-bottom: 10px; }
+  .acard ul { margin: 0; padding-left: 17px; font-size: 12.5px; }
+  .acard li { margin-bottom: 6px; }
+  .acard .io { font-size: 11px; color: var(--muted); margin-top: 10px; border-top: 1px dashed var(--border); padding-top: 8px; }
+
+  /* Handoff diagram */
+  .handoff { margin-top: 18px; border: 1px solid var(--border); border-radius: 12px; background: var(--panel); padding: 22px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); overflow-x: auto; }
+
+  .callout { background: var(--panel); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 8px; padding: 16px 20px; margin-top: 20px; font-size: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
   .callout strong { color: var(--accent); }
+  .callout.pr-c { border-left-color: var(--pr); }
+  .callout.pr-c strong { color: var(--pr); }
+  .callout.ticket-c { border-left-color: var(--ticket); }
+  .callout.ticket-c strong { color: var(--ticket); }
 
   .footnote { color: var(--muted); font-size: 12px; margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border); }
+  .footnote a { color: var(--accent); }
 
+  @media (max-width: 860px) {
+    .agents3 { grid-template-columns: 1fr; }
+  }
   @media (max-width: 720px) {
     .summary { grid-template-columns: 1fr; }
     .flow { flex-direction: column; align-items: stretch; }
@@ -101,13 +146,19 @@
 <div class="wrap">
 
   <header class="hero">
-    <div class="eyebrow">AI Agent / Regression Scope</div>
-    <h1>regression-scope エージェント<br>従来の人間作業の AsIs → ToBe</h1>
+    <div class="eyebrow">AI Agent / Regression Scope → PR / Ticket</div>
+    <h1>regression-scope を起点とする3エージェント連携<br>従来の人間作業の AsIs → ToBe</h1>
     <p class="lead">
       仕様変更が発生したとき、「どこまでデグレードチェックすれば十分か」を決める作業は、
       これまで開発者の経験則と注意力に強く依存していました。
-      <strong>regression-scope</strong> は、その範囲特定・影響追跡・文書化を肩代わりする読み取り専用エージェントです。
+      <strong>regression-scope</strong> が「影響範囲・テスト観点・テスト工数」を確定し、その出力（<code>.work/{チケットID}.regression-scope.md</code>）を正本として、
+      下流の <strong>pr-writer</strong>（レビュアー・開発者向けPR文書）と <strong>ticket-writer</strong>（PM・PO向けチケット要点）が文書化を肩代わりします。
     </p>
+    <div>
+      <span class="agent-badge reg">regression-scope</span>
+      <span class="agent-badge pr">pr-writer</span>
+      <span class="agent-badge ticket">ticket-writer</span>
+    </div>
     <div>
       <span class="chip">読み取り専用（コード変更なし）</span>
       <span class="chip">Spec × git diff の2段階分析</span>
@@ -129,35 +180,117 @@
         <li><span class="tag bad">漏れる</span> DB変更時の migrate/seed 確認を思い出せるかは人次第</li>
         <li><span class="tag bad">気づけない</span> 仕様と実装のズレ（実装漏れ・スペック外変更）は見落としやすい</li>
         <li><span class="tag bad">読めない</span> テスト工数は「勘でざっくり」。根拠がなく計画が崩れやすい</li>
-        <li><span class="tag bad">忘れる</span> 前回PRで踏んだ落とし穴は個人の記憶頼み。担当が変わると失われる</li>
+        <li><span class="tag bad">バラつく</span> PR説明・チケット要点は書き手次第。同じ範囲・観点を二重に手書き</li>
         <li><span class="tag bad">残らない</span> チェック手順は文書化されず、頭の中で完結しがち</li>
       </ul>
     </div>
     <div class="card tobe">
-      <h3>✓ ToBe — regression-scope 導入後</h3>
-      <div class="sub">planner の最終ステップ／単独でも起動可能</div>
+      <h3>✓ ToBe — 3エージェント連携導入後</h3>
+      <div class="sub">regression-scope が範囲・観点・工数を確定 → 2エージェントが文書化</div>
       <ul>
         <li><span class="tag good">体系化</span> Spec から「変わるはず」を予測（Phase 1）</li>
         <li><span class="tag good">自動</span> git diff を層別分類し、変更APIを grep で全画面追跡（Phase 2）</li>
-        <li><span class="tag good">強制</span> DB変更を検知したら migrate/seed チェックを必ず出力</li>
         <li><span class="tag good">検出</span> 予測 vs 実装を照合し「実装漏れ?／スペック外変更?」を提示（Phase 3）</li>
         <li><span class="tag good">見積</span> チェック項目を種別×係数で積み上げ、テスト工数をレンジで概算（Step 4.5）</li>
-        <li><span class="tag good">学習</span> 過去PRのフィードバックを永続メモリに蓄積し、該当条件のPRへ自動適用</li>
-        <li><span class="tag good">資産化</span> 画面別テスト手順を Markdown で文書出力 → frontend-tester モードR が消費</li>
+        <li><span class="tag good">学習</span> 過去PRのフィードバックを永続メモリに蓄積し、自動適用</li>
+        <li><span class="tag good">正本化</span> 確定した範囲・観点・工数を <span class="agent-badge pr">pr-writer</span> がPR文書へ、<span class="agent-badge ticket">ticket-writer</span> がチケット要点へ展開</li>
+        <li><span class="tag good">一貫</span> 同じ正本を技術寄り／管理寄りの読み手に再フォーマット。手書きの二重化を排除</li>
       </ul>
     </div>
   </div>
 
-  <!-- 2. 作業ステップ別マッピング -->
-  <h2><span class="num">02</span>従来作業の「どこ」を肩代わりするか</h2>
-  <p class="section-note">仕様変更時の人間の典型作業を分解し、各ステップを誰が担うかを示します。</p>
+  <!-- 2. 3エージェント連携 -->
+  <h2><span class="num">02</span>3エージェント連携 — 範囲確定から文書化まで</h2>
+  <p class="section-note">仕様変更 → <strong>regression-scope</strong> が影響範囲・テスト観点・テスト工数を確定（正本を出力）→ その出力を下流2エージェントが消費し、読み手別の文書へ展開する。</p>
+
+  <div class="handoff">
+    <div class="flow" style="margin-top:0;">
+      <div class="step human" style="flex:0.8;">
+        <div class="s-num">👤 人間</div>
+        <div class="s-title">仕様変更</div>
+        <div class="s-desc">新規要件・仕様変更を定義</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="step reg-step" style="flex:1.3;">
+        <div class="s-num">① regression-scope</div>
+        <div class="s-title">範囲・観点・工数を確定</div>
+        <div class="s-desc">出力: <code>.work/{チケットID}.regression-scope.md</code>（＝正本）</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="vstack" style="flex:1.4;">
+        <div class="step pr-step">
+          <div class="s-num">② pr-writer</div>
+          <div class="s-title">PR用文書を生成</div>
+          <div class="s-desc">読み手＝レビュアー・開発者（技術寄り）</div>
+        </div>
+        <div class="vplus">＋</div>
+        <div class="step ticket-step">
+          <div class="s-num">③ ticket-writer</div>
+          <div class="s-title">チケット要点をまとめる</div>
+          <div class="s-desc">読み手＝PM・PO（管理寄り）</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="agents3">
+    <div class="acard reg">
+      <h3>① regression-scope</h3>
+      <div class="role">読み取り専用 ／ 範囲・観点・工数の確定役</div>
+      <div class="reader">下流2エージェントの入力を生む</div>
+      <ul>
+        <li>Spec × git diff の2段階分析で回帰テスト範囲を特定</li>
+        <li>変更API名でフロント全画面を grep 追跡</li>
+        <li>テスト観点（Spec §9）を抽出</li>
+        <li>テスト工数をレンジで概算（Step 4.5）</li>
+        <li>永続メモリ（<code>.claude/agent-memory/regression-scope/</code>）で過去知見を学習・再利用</li>
+        <li>実テスト実行や最終判断は<strong>しない</strong></li>
+      </ul>
+      <div class="io">OUT → <code>.work/{チケットID}.regression-scope.md</code></div>
+    </div>
+    <div class="acard pr">
+      <h3>② pr-writer <span class="agent-badge pr">新規</span></h3>
+      <div class="role">regression-scope の出力を利用 ／ 文書化役（技術寄り）</div>
+      <div class="reader">読み手 = レビュアー・開発者</div>
+      <ul>
+        <li>追加された機能とテスト観点を整理</li>
+        <li>影響範囲の検索とテスト観点の抽出を行う</li>
+        <li>regression-scope が確定した範囲・観点を正本として参照</li>
+        <li><strong>PR用の文書</strong>を生成</li>
+      </ul>
+      <div class="io">IN ← regression-scope の出力 ／ OUT → PR文書</div>
+    </div>
+    <div class="acard ticket">
+      <h3>③ ticket-writer <span class="agent-badge ticket">新規</span></h3>
+      <div class="role">regression-scope の出力を利用 ／ 文書化役（管理寄り）</div>
+      <div class="reader">読み手 = PM・PO</div>
+      <ul>
+        <li>作業チケット側に影響範囲をまとめる</li>
+        <li>テスト工数を記載</li>
+        <li>PM向けの要点を整理</li>
+        <li>regression-scope が確定した工数・範囲を正本として参照</li>
+      </ul>
+      <div class="io">IN ← regression-scope の出力 ／ OUT → チケット要点</div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <strong>役割分担の本質。</strong>
+    regression-scope が「何をどこまでテストするか／どれくらい掛かるか」を一度だけ確定し、それを<em>正本</em>とする。
+    pr-writer / ticket-writer はその正本を参照して読み手別に再フォーマットするだけなので、同じ範囲・観点・工数を人間が二重に手書きする無駄が消えます。
+    pr-writer は技術寄り（レビュアー・開発者）、ticket-writer は管理寄り（PM・PO）と、読み手で書き分けます。
+  </div>
+
+  <!-- 3. 作業ステップ別マッピング -->
+  <h2><span class="num">03</span>従来作業の「どこ」を肩代わりするか</h2>
+  <p class="section-note">仕様変更時の人間の典型作業を分解し、各ステップを誰が担うかを示します。範囲確定は regression-scope、文書化は pr-writer / ticket-writer が担当します。</p>
   <div class="tbl-scroll">
     <table>
       <thead>
         <tr>
-          <th style="width:20%">従来の人間の作業</th>
+          <th style="width:18%">従来の人間の作業</th>
           <th style="width:30%">AsIs（人間がやっていたこと）</th>
-          <th style="width:35%">ToBe（regression-scope の担当）</th>
+          <th style="width:37%">ToBe（各エージェントの担当）</th>
           <th style="width:15%">担い手</th>
         </tr>
       </thead>
@@ -166,61 +299,67 @@
           <td class="who">影響範囲の予測</td>
           <td class="col-asis">仕様書を読み、「このテーブル/APIが変わるはず」を記憶ベースで想定。書き出さないことも多い。</td>
           <td class="col-tobe"><span class="phase-pill">Phase 1</span><br>specs/ の DB・API・FE スペックを読み、変更予定のモデル/Query/Mutation/画面と §9テスト観点を構造化抽出。</td>
-          <td><span class="auto">AI 自動</span></td>
+          <td><span class="auto">AI 自動</span><br><span class="agent-badge reg">regression-scope</span></td>
         </tr>
         <tr>
           <td class="who">実差分の把握</td>
           <td class="col-asis">git diff を自分で叩き、変更ファイルを目で追って DB/API/FE に頭の中で仕分け。</td>
           <td class="col-tobe"><span class="phase-pill">Phase 2</span><br><code>git diff main...HEAD</code> を取得し、DB・API・管理画面・ドライバー・Spec・その他へ自動分類。変更なしの層は「スコープ外」と明示。</td>
-          <td><span class="auto">AI 自動</span></td>
+          <td><span class="auto">AI 自動</span><br><span class="agent-badge reg">regression-scope</span></td>
         </tr>
         <tr>
           <td class="who">フロント影響の追跡</td>
           <td class="col-asis">変更した Query/Mutation 名で app-admin / app-driver を手 grep し、使用画面を1つずつ確認。grep し忘れた画面は漏れる。</td>
           <td class="col-tobe"><span class="phase-pill">Phase 2-4</span><br>変更API名で両アプリを横断 grep し、ヒットした画面パスと役割を特定。直接変更されたFEファイルも併せて検出。</td>
-          <td><span class="auto">AI 自動</span></td>
+          <td><span class="auto">AI 自動</span><br><span class="agent-badge reg">regression-scope</span></td>
         </tr>
         <tr>
           <td class="who">DB安全確認の想起</td>
           <td class="col-asis">「マイグレーション当てた？」「reset→seed 通る？」を覚えていれば確認。新人や繁忙時に抜けやすい。</td>
           <td class="col-tobe">DB層に変更があれば <code>prisma:migrate</code> と <code>migrate:reset → seed</code> の必須チェックを機械的に出力。seed未変更の不整合も警告。</td>
-          <td><span class="auto">AI 自動</span></td>
+          <td><span class="auto">AI 自動</span><br><span class="agent-badge reg">regression-scope</span></td>
         </tr>
         <tr>
           <td class="who">仕様↔実装のズレ検知</td>
           <td class="col-asis">「仕様にあるのに実装されてない／仕様にないのに変わってる」は、よほど注意深くないと気づけない。</td>
           <td class="col-tobe"><span class="phase-pill">Phase 3</span><br>予測スコープと実差分を照合し「⚠️実装漏れ?」「⚠️スペック外変更?」を可能性として提示（断定はしない）。</td>
-          <td><span class="auto">AI 自動</span></td>
+          <td><span class="auto">AI 自動</span><br><span class="agent-badge reg">regression-scope</span></td>
         </tr>
         <tr>
           <td class="who">テスト手順の起こし</td>
           <td class="col-asis">影響画面ごとに「何を操作して何を確認するか」を毎回手書き。粒度や網羅性は書き手次第。</td>
           <td class="col-tobe">Spec §9 を正本に、ゴールデンパス／変更点直結／DB連動値／エラーケース／境界確認の観点で操作＋期待結果セットのチェックリストを生成。</td>
-          <td><span class="auto">AI 自動</span></td>
+          <td><span class="auto">AI 自動</span><br><span class="agent-badge reg">regression-scope</span></td>
         </tr>
         <tr>
           <td class="who">テスト工数の見積もり</td>
           <td class="col-asis">「だいたい半日くらい」を経験と勘で口頭提示。根拠が残らず、画面が増えると計画が崩れる。</td>
           <td class="col-tobe"><span class="phase-pill">Step 4.5</span><br>チェック項目を表示／操作＋結果／エラーケース／DB必須に分類し、種別×係数＋画面ごとの準備OH＋20%バッファで積み上げ、<em>レンジ</em>で提示。「確定値ではなく初期見立て」と前提も明記。</td>
-          <td><span class="auto">AI 自動</span></td>
+          <td><span class="auto">AI 自動</span><br><span class="agent-badge reg">regression-scope</span></td>
         </tr>
         <tr>
           <td class="who">過去知見の再利用</td>
           <td class="col-asis">前回PRで踏んだ落とし穴（例: マイグレーション履歴スカッシュ時の罠）は個人の記憶頼み。担当者が代わると同じミスを繰り返す。</td>
           <td class="col-tobe">永続メモリ（<code>.claude/agent-memory/regression-scope/</code>）に feedback を蓄積し、該当条件のPRで自動適用。例: スカッシュPRでは「既存DBへ <code>migrate deploy</code> 不可／全員 reset 周知」を必ず出力。</td>
-          <td><span class="auto">AI 自動</span></td>
+          <td><span class="auto">AI 自動</span><br><span class="agent-badge reg">regression-scope</span></td>
+        </tr>
+        <tr>
+          <td class="who">PR説明の文書化</td>
+          <td class="col-asis">PR本文に「何を追加したか／何をテストすべきか」をレビュアー向けに毎回手書き。観点が抜けたり過不足が出る。</td>
+          <td class="col-tobe">regression-scope の出力を利用し、追加された機能とテスト観点、影響範囲の検索結果を整理して<strong>PR用の文書</strong>を生成。読み手＝レビュアー・開発者。</td>
+          <td><span class="auto">AI 自動</span><br><span class="agent-badge pr">pr-writer</span></td>
+        </tr>
+        <tr>
+          <td class="who">チケット要点の整理</td>
+          <td class="col-asis">チケットに影響範囲・テスト工数・PM向け要点を手作業で転記。範囲・工数が regression-scope の見立てと食い違うことも。</td>
+          <td class="col-tobe">regression-scope の出力を利用し、作業チケット側に<strong>影響範囲・テスト工数・PM向けの要点</strong>をまとめる。読み手＝PM・PO。</td>
+          <td><span class="auto">AI 自動</span><br><span class="agent-badge ticket">ticket-writer</span></td>
         </tr>
         <tr>
           <td class="who">スコープ外の線引き</td>
           <td class="col-asis">「ここはたぶん影響ない」を口頭・記憶で判断。根拠が残らずレビューで再議論。</td>
           <td class="col-tobe">影響なしと判断した画面/機能を理由付きで明示（例: 型のみ変更でAPIシグネチャ不変、未使用Mutation等）。</td>
-          <td><span class="auto">AI 自動</span></td>
-        </tr>
-        <tr>
-          <td class="who">文書化・共有</td>
-          <td class="col-asis">多くの場合ドキュメント化されず属人化。レビュアーは範囲を追検証できない。</td>
-          <td class="col-tobe"><code>.work/{チケットID}.regression-scope.md</code> に一貫フォーマットで出力。frontend-tester モードR の入力になる。</td>
-          <td><span class="auto">AI 自動</span></td>
+          <td><span class="auto">AI 自動</span><br><span class="agent-badge reg">regression-scope</span></td>
         </tr>
         <tr>
           <td class="who">実際のテスト実行・合否判断</td>
@@ -238,8 +377,8 @@
     </table>
   </div>
 
-  <!-- 3. フロー -->
-  <h2><span class="num">03</span>エージェント内部フロー</h2>
+  <!-- 4. フロー -->
+  <h2><span class="num">04</span>regression-scope の内部フロー</h2>
   <div class="flow">
     <div class="step">
       <div class="s-num">STEP 0</div>
@@ -271,10 +410,10 @@
       <div class="s-desc">項目を係数で積み上げレンジ化</div>
     </div>
     <div class="arrow">→</div>
-    <div class="step">
+    <div class="step reg-step">
       <div class="s-num">OUTPUT</div>
-      <div class="s-title">文書出力</div>
-      <div class="s-desc">手順＋工数＋スコープ外を .md 化</div>
+      <div class="s-title">正本を出力</div>
+      <div class="s-desc">手順＋工数＋スコープ外を .md 化（下流の入力）</div>
     </div>
   </div>
   <div class="callout">
@@ -282,11 +421,12 @@
     Spec が示す「変わるはず」と diff が示す「実際に変わった」の差分そのものが品質リスクのシグナルになります。
     人間が片方（多くは diff だけ）しか見ていなかったところを、両面から突き合わせる点が肩代わりの本質です。
     各 Phase の入口では永続メモリの学習済み観点（後述）も併せて参照し、過去の落とし穴を自動で取り込みます。
+    ここで確定した範囲・観点・工数が、pr-writer / ticket-writer の<em>正本</em>になります。
   </div>
 
-  <!-- 4. パイプライン上の位置 -->
-  <h2><span class="num">04</span>開発パイプライン上の位置づけ</h2>
-  <p class="section-note">起点は人間による要件・仕様策定（変更含む）。そこから先の実装～範囲確定（1回目）までを planner がオーケストレーションする。その後は人間が目視しながらAIに微調整させ、PR作成時に regression-scope へテスト観点を再確認させる（2回目）。最終テストは frontend-tester（モードR）の自動検証と人間による手動テストの両輪で行い、いずれも regression-scope の出力を観点として消費する。</p>
+  <!-- 5. パイプライン上の位置 -->
+  <h2><span class="num">05</span>開発パイプライン上の位置づけ</h2>
+  <p class="section-note">起点は人間による要件・仕様策定（変更含む）。実装～範囲確定（1回目）までを planner がオーケストレーションする。その後は人間が目視しながらAIに微調整させ、PR作成時に regression-scope へテスト観点を再確認させる（2回目）。確定した範囲・観点・工数は pr-writer / ticket-writer が読み手別の文書へ展開し、最終テストは frontend-tester（モードR）の自動検証と人間の手動テストの両輪で行う。</p>
   <div class="flow">
     <div class="step human">
       <div class="s-num">👤 人間</div>
@@ -303,7 +443,7 @@
         <div class="arrow">→</div>
         <div class="step"><div class="s-title">frontend（4段階）</div><div class="s-desc">画面実装</div></div>
         <div class="arrow">→</div>
-        <div class="step" style="border-color: var(--accent); background: rgba(45,212,191,0.07);">
+        <div class="step reg-step">
           <div class="s-num">1回目</div>
           <div class="s-title">regression-scope</div>
           <div class="s-desc">チェック範囲を文書化</div>
@@ -317,10 +457,16 @@
       <div class="s-desc">確認しながら手直しを指示</div>
     </div>
     <div class="arrow">→</div>
-    <div class="step" style="border-color: var(--accent); background: rgba(45,212,191,0.07);">
+    <div class="step reg-step">
       <div class="s-num">2回目</div>
       <div class="s-title">regression-scope</div>
-      <div class="s-desc">PR作成時に観点を再確認</div>
+      <div class="s-desc">PR作成時に観点を再確認（正本を更新）</div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="vstack">
+      <div class="step pr-step"><div class="s-num">pr-writer</div><div class="s-title">PR文書を生成</div><div class="s-desc">レビュアー・開発者向け</div></div>
+      <div class="vplus">＋</div>
+      <div class="step ticket-step"><div class="s-num">ticket-writer</div><div class="s-title">チケット要点を生成</div><div class="s-desc">PM・PO向け</div></div>
     </div>
     <div class="arrow">→</div>
     <div class="vstack">
@@ -329,10 +475,10 @@
       <div class="step human"><div class="s-num">👤 人間</div><div class="s-title">人間によるテスト</div><div class="s-desc">cross-screen・業務観点を手動確認</div></div>
     </div>
   </div>
-  <div class="callout">
-    <strong>planner の自動オーケストレーションは「要件・仕様策定の後〜1回目の範囲確定まで」。</strong>
-    人間が定義した要件・仕様（変更含む）を起点に、planner が db-architect → backend → frontend → regression-scope（1回目）を直列で指揮します。
-    その先は人間が実装・スコープを目視しながらAIに微調整を指示する Human-in-the-loop フェーズを挟み、PR作成時にもう一度 regression-scope を走らせて、微調整で変わった内容にテスト観点を追従させてからテストへ渡します。
+  <div class="callout pr-c">
+    <strong>PR作成時に文書化が分岐する。</strong>
+    2回目の regression-scope で確定した範囲・観点・工数を正本に、pr-writer がPR本文（追加機能・テスト観点・影響範囲）を技術寄りに、
+    ticket-writer がチケット要点（影響範囲・テスト工数・PM向け要点）を管理寄りに、それぞれ生成します。手書きの二重作業はここで消えます。
   </div>
   <div class="callout">
     <strong>既存画面（Specなし）にも効く。</strong>
@@ -340,9 +486,9 @@
     これにより frontend-tester は brief §7 が無くてもモードR で検証可能になります。
   </div>
 
-  <!-- 5. 永続メモリ / 学習 -->
-  <h2><span class="num">05</span>使うほど賢くなる — 永続メモリ</h2>
-  <p class="section-note">regression-scope は <code>memory: project</code> を持ち、レビューで得たフィードバックを <code>.claude/agent-memory/regression-scope/</code> に蓄積する。次回以降、同じ条件のPRで学習済みの観点を自動で適用する。</p>
+  <!-- 6. 永続メモリ / 学習 -->
+  <h2><span class="num">06</span>使うほど賢くなる — 永続メモリ</h2>
+  <p class="section-note">regression-scope は <code>memory: project</code> を持ち、レビューで得たフィードバックを <code>.claude/agent-memory/regression-scope/</code> に蓄積する。次回以降、同じ条件のPRで学習済みの観点を自動で適用する。学習が反映された正本は、そのまま pr-writer / ticket-writer の文書にも波及する。</p>
   <div class="flow">
     <div class="step">
       <div class="s-num">① 指摘</div>
@@ -356,7 +502,7 @@
       <div class="s-desc">{topic}.md ＋ MEMORY.md にポインタ</div>
     </div>
     <div class="arrow">→</div>
-    <div class="step" style="border-color: var(--accent); background: rgba(45,212,191,0.07);">
+    <div class="step reg-step">
       <div class="s-num">③ 再利用</div>
       <div class="s-title">次回PRで自動適用</div>
       <div class="s-desc">該当条件を満たすと観点を出力に反映</div>
@@ -373,9 +519,10 @@
   </div>
 
   <p class="footnote">
-    実出力例: <a href="PW-161.regression-scope.html" style="color:var(--accent);">PW-161.regression-scope.html</a>
+    実出力例: <a href="PW-161.regression-scope.html">PW-161.regression-scope.html</a>
     ／ 出典: <code>.claude/agents/regression-scope.md</code>（工数見積もり = Step 4.5／永続メモリ = <code>memory: project</code>）。
-    本ドキュメントは regression-scope の役割整理用。生成: 2026-06-23。
+    <code>pr-writer</code> / <code>ticket-writer</code> は regression-scope の出力を消費するために人手で起用した新エージェント。
+    本ドキュメントは3エージェント連携の役割整理用。生成: 2026-06-24。
   </p>
 
 </div>

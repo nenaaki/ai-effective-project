@@ -3,77 +3,108 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI導入効果 — デグレード品質保証の自動化（経営層向け）</title>
+<title>AI導入効果 — 品質チェックからPR・チケット作成までを3エージェントで自動化（経営層向け）</title>
 <style>
   :root {
-    --bg: #f6f7f9;
-    --ink: #1a2230;
-    --muted: #5b6878;
-    --line: #e2e6ec;
+    --bg: #fafaf7;
     --card: #ffffff;
-    --accent: #0e7c66;
-    --accent-soft: #e6f4f0;
-    --asis: #b4530f;
-    --asis-soft: #fbeee2;
-    --tobe: #0e7c66;
-    --tobe-soft: #e6f4f0;
-    --gold: #9a7400;
+    --subpanel: #f3f5fa;
+    --line: #d8dbe2;
+    --ink: #1a1a1a;
+    --muted: #5b6573;
+    --accent: #2f6fb0;
+    --asis: #c2410c;
+    --asis-soft: #fff4ec;
+    --asis-line: #f4c8a8;
+    --tobe: #15803d;
+    --tobe-soft: #eefaf0;
+    --tobe-line: #bbe6c4;
+    --amber: #b45309;
+    --a-scope: #2f6fb0;
+    --a-pr: #7c3aed;
+    --a-ticket: #0e7490;
   }
   * { box-sizing: border-box; }
-  body { margin: 0; font-family: "Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,system-ui,sans-serif; background: var(--bg); color: var(--ink); line-height: 1.8; }
-  .wrap { max-width: 980px; margin: 0 auto; padding: 56px 28px 90px; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Yu Gothic UI", sans-serif;
+    background: var(--bg); color: var(--ink); line-height: 1.8;
+  }
+  .wrap { max-width: 1000px; margin: 0 auto; padding: 56px 28px 80px; }
 
-  header.hero { text-align: center; padding-bottom: 36px; border-bottom: 2px solid var(--ink); margin-bottom: 48px; }
+  header.hero { text-align: center; padding-bottom: 34px; border-bottom: 2px solid var(--ink); margin-bottom: 44px; }
   .eyebrow { color: var(--accent); font-size: 13px; letter-spacing: 0.2em; font-weight: 800; }
-  h1 { font-size: 32px; margin: 14px 0 12px; font-weight: 800; letter-spacing: -0.01em; }
-  .lead { color: var(--muted); font-size: 16px; max-width: 720px; margin: 0 auto; }
+  h1 { font-size: 31px; margin: 14px 0 12px; font-weight: 800; letter-spacing: -0.01em; }
+  .lead { color: var(--muted); font-size: 16px; max-width: 760px; margin: 0 auto; }
 
-  h2 { font-size: 21px; margin: 56px 0 18px; font-weight: 800; }
+  h2 { font-size: 21px; margin: 54px 0 16px; font-weight: 800; }
   h2 .dot { color: var(--accent); }
   p.note { color: var(--muted); font-size: 14.5px; margin-top: -8px; }
 
   /* one-line thesis */
-  .thesis { background: var(--ink); color: #fff; border-radius: 16px; padding: 32px 36px; text-align: center; }
-  .thesis .big { font-size: 22px; font-weight: 800; line-height: 1.6; }
-  .thesis .big em { color: #5fd9bd; font-style: normal; }
-  .thesis .sub { color: #aeb9c7; font-size: 14px; margin-top: 10px; }
+  .thesis { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 30px 36px; text-align: center; box-shadow: 0 1px 3px rgba(20,30,50,0.04); }
+  .thesis .big { font-size: 21px; font-weight: 800; line-height: 1.65; }
+  .thesis .big em { color: var(--accent); font-style: normal; }
+  .thesis .sub { color: var(--muted); font-size: 14px; margin-top: 10px; }
+
+  /* pipeline */
+  .pipe { display: grid; grid-template-columns: 1.15fr 40px 1fr 40px 1fr; align-items: stretch; gap: 0; margin-top: 8px; }
+  .pipe .arrow { display: flex; align-items: center; justify-content: center; font-size: 26px; color: var(--muted); }
+  .agent { border-radius: 12px; padding: 22px 22px; background: var(--card); border: 1px solid var(--line); border-top: 4px solid var(--accent); box-shadow: 0 1px 3px rgba(20,30,50,0.04); }
+  .agent.scope { border-top-color: var(--a-scope); }
+  .agent.pr { border-top-color: var(--a-pr); }
+  .agent.ticket { border-top-color: var(--a-ticket); }
+  .agent .tag { display: inline-block; font-size: 11px; font-weight: 800; letter-spacing: 0.04em; padding: 3px 10px; border-radius: 999px; color: #fff; margin-bottom: 10px; }
+  .agent.scope .tag { background: var(--a-scope); }
+  .agent.pr .tag { background: var(--a-pr); }
+  .agent.ticket .tag { background: var(--a-ticket); }
+  .agent .new { font-size: 10px; font-weight: 800; color: var(--amber); margin-left: 6px; letter-spacing: 0.05em; }
+  .agent h3 { margin: 0 0 8px; font-size: 16px; }
+  .agent p { margin: 0; font-size: 13.5px; color: var(--muted); }
+  .agent .role { font-size: 12px; font-weight: 700; color: var(--ink); margin-bottom: 6px; }
 
   /* before/after */
-  .ba { display: grid; grid-template-columns: 1fr 64px 1fr; align-items: stretch; gap: 0; margin-top: 8px; }
-  .ba .panel { border-radius: 16px; padding: 26px 28px; border: 1px solid var(--line); background: var(--card); }
-  .ba .panel.before { background: var(--asis-soft); border-color: #efd9c4; }
-  .ba .panel.after { background: var(--tobe-soft); border-color: #c9e6dd; }
-  .ba .mid { display: flex; align-items: center; justify-content: center; font-size: 30px; color: var(--accent); }
+  .ba { display: grid; grid-template-columns: 1fr 56px 1fr; align-items: stretch; gap: 0; margin-top: 8px; }
+  .ba .panel { border-radius: 12px; padding: 24px 26px; border: 1px solid var(--line); background: var(--card); box-shadow: 0 1px 3px rgba(20,30,50,0.04); }
+  .ba .panel.before { background: var(--asis-soft); border-color: var(--asis-line); }
+  .ba .panel.after { background: var(--tobe-soft); border-color: var(--tobe-line); }
+  .ba .mid { display: flex; align-items: center; justify-content: center; font-size: 28px; color: var(--accent); }
   .panel h3 { margin: 0 0 4px; font-size: 16px; }
   .panel.before h3 { color: var(--asis); }
   .panel.after h3 { color: var(--tobe); }
-  .panel .when { font-size: 12px; color: var(--muted); margin-bottom: 16px; }
-  .panel ul { margin: 0; padding-left: 20px; font-size: 14.5px; }
-  .panel li { margin-bottom: 10px; }
+  .panel .when { font-size: 12px; color: var(--muted); margin-bottom: 14px; }
+  .panel ul { margin: 0; padding-left: 20px; font-size: 14px; }
+  .panel li { margin-bottom: 9px; }
   .panel li b { font-weight: 700; }
+
+  /* value pillars */
+  .vals { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-top: 12px; }
+  .val { background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 10px; padding: 18px 20px; box-shadow: 0 1px 3px rgba(20,30,50,0.04); }
+  .val.scope { border-left-color: var(--a-scope); }
+  .val.pr { border-left-color: var(--a-pr); }
+  .val.ticket { border-left-color: var(--a-ticket); }
+  .val h4 { margin: 0 0 6px; font-size: 14.5px; }
+  .val p { margin: 0; font-size: 13px; color: var(--muted); }
 
   /* KPI cards */
   .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 12px; }
-  .kpi { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 22px 24px; }
+  .kpi { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 20px 22px; box-shadow: 0 1px 3px rgba(20,30,50,0.04); }
   .kpi .label { font-size: 13px; color: var(--muted); font-weight: 700; }
   .kpi .flow { font-size: 15px; margin-top: 12px; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
   .kpi .from { color: var(--asis); font-weight: 700; }
-  .kpi .to { color: var(--tobe); font-weight: 800; font-size: 17px; }
+  .kpi .to { color: var(--tobe); font-weight: 800; font-size: 16px; }
   .kpi .ar { color: var(--muted); }
   .kpi .desc { font-size: 12.5px; color: var(--muted); margin-top: 12px; line-height: 1.6; }
 
-  /* risk-value list */
-  .vals { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 12px; }
-  .val { background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 10px; padding: 18px 22px; }
-  .val h4 { margin: 0 0 6px; font-size: 15px; }
-  .val p { margin: 0; font-size: 13.5px; color: var(--muted); }
+  .scope-note { background: var(--subpanel); border: 1px solid var(--line); border-radius: 12px; padding: 22px 26px; margin-top: 12px; font-size: 14.5px; }
+  .scope-note b { color: var(--accent); }
+  .scope-note a { color: var(--accent); font-weight: 700; }
 
-  .scope { background: var(--accent-soft); border: 1px solid #c9e6dd; border-radius: 14px; padding: 22px 26px; margin-top: 16px; font-size: 14.5px; }
-  .scope b { color: var(--accent); }
+  .foot { color: var(--muted); font-size: 12px; margin-top: 50px; padding-top: 18px; border-top: 1px solid var(--line); text-align: center; }
 
-  .foot { color: var(--muted); font-size: 12px; margin-top: 52px; padding-top: 18px; border-top: 1px solid var(--line); text-align: center; }
-
-  @media (max-width: 760px) {
+  @media (max-width: 820px) {
+    .pipe { grid-template-columns: 1fr; }
+    .pipe .arrow { transform: rotate(90deg); padding: 6px 0; }
     .ba { grid-template-columns: 1fr; }
     .ba .mid { transform: rotate(90deg); padding: 8px 0; }
     .kpis, .vals { grid-template-columns: 1fr; }
@@ -84,52 +115,105 @@
 <div class="wrap">
 
   <header class="hero">
-    <div class="eyebrow">AI ACTIVATION / QUALITY ASSURANCE</div>
-    <h1>仕様変更時の「品質チェック範囲決め」を<br>AIが自動化する</h1>
+    <div class="eyebrow">AI ACTIVATION / QUALITY &amp; DELIVERY</div>
+    <h1>「品質チェック範囲の確定」から「PR文書・チケット要点」まで<br>3つのAIエージェントで自動化する</h1>
     <p class="lead">
-      配送管理システム（PW）の開発において、仕様変更のたびに発生していた
-      「どこまで動作確認すれば安全か」の判断を、AIエージェントが代行します。
-      属人化していた品質保証の入口を、誰がやっても同じ品質に揃えます。
+      配送管理システム（PW）の開発で、仕様変更のたびに発生していた一連の手作業
+      ―― 影響範囲の見極め、レビュー用の説明文づくり、チケットへの要点まとめ ――を、
+      連携する3つのAIエージェントが引き受けます。人は最終判断に集中できます。
     </p>
   </header>
 
   <!-- thesis -->
   <div class="thesis">
     <div class="big">
-      これまで<em>ベテランの勘</em>に頼っていた「修正の影響範囲の見極め」を、<br>
-      AIが<em>仕様書と実際の変更を突き合わせて</em>自動で洗い出す。
+      <em>regression-scope</em> が「どこまで確認すべきか」を確定し、<br>
+      その結果を <em>pr-writer</em> と <em>ticket-writer</em> が受け取って、<br>
+      <em>レビュー文書</em>と<em>チケット要点</em>まで自動で仕上げる。
     </div>
-    <div class="sub">― 見落としによる不具合流出リスクを下げ、品質チェックを標準化する ―</div>
+    <div class="sub">― 属人性・見落とし・文書化漏れを、仕組みとして減らす ―</div>
+  </div>
+
+  <!-- pipeline -->
+  <h2><span class="dot">●</span> 3エージェントの連携 — 仕様変更から文書化まで一気通貫</h2>
+  <p class="note">起点の1つのエージェントが品質の土台をつくり、下流の2つがそれを消費して成果物に変える流れです。</p>
+  <div class="pipe">
+    <div class="agent scope">
+      <span class="tag">regression-scope</span>
+      <div class="role">品質チェック範囲の確定</div>
+      <p>仕様変更のデグレード（回帰テスト）範囲を自動で洗い出し、テスト観点とテスト工数まで確定。見落としによる不具合流出リスクを下げ、過去知見を組織知として蓄積。</p>
+    </div>
+    <div class="arrow">→</div>
+    <div class="agent pr">
+      <span class="tag">pr-writer</span><span class="new">NEW</span>
+      <div class="role">PR（レビュー）文書の生成</div>
+      <p>上流の出力をもとに、追加機能・テスト観点・影響範囲を整理したプルリクエスト用の文書を自動生成。レビューの質と速度を底上げ。</p>
+    </div>
+    <div class="arrow">→</div>
+    <div class="agent ticket">
+      <span class="tag">ticket-writer</span><span class="new">NEW</span>
+      <div class="role">チケット要点の作成</div>
+      <p>同じ出力をもとに、作業チケットへ影響範囲・テスト工数・PM向けの要点を自動でまとめる。進捗・リスク把握の手間を削減。</p>
+    </div>
   </div>
 
   <!-- before / after -->
   <h2><span class="dot">●</span> 何が変わるのか</h2>
-  <p class="note">「仕様変更を1件入れたあと、安全確認の段取りを組むまで」の比較</p>
+  <p class="note">「仕様変更を1件入れたあと、安全確認の段取りと説明文・チケットが揃うまで」の比較</p>
   <div class="ba">
     <div class="panel before">
       <h3>これまで（AsIs）</h3>
-      <div class="when">担当者の経験と記憶に依存</div>
+      <div class="when">担当者の経験・記憶と、その都度の手作業に依存</div>
       <ul>
         <li><b>属人的</b>：影響範囲はベテランほど広く、若手ほど狭くなりがち。品質が人で揺れる。</li>
-        <li><b>見落とし</b>：関連する画面の確認漏れが、不具合の本番流出につながる。</li>
-        <li><b>非効率</b>：影響箇所を手作業で1つずつ探すため時間がかかる。</li>
+        <li><b>見落とし</b>：関連画面の確認漏れが、不具合の本番流出につながる。</li>
+        <li><b>文書化漏れ</b>：PRの説明やチケットの要点が後回しになり、内容が薄い・揃わない。</li>
+        <li><b>非効率</b>：影響調査・説明文づくり・チケット記入を毎回ゼロから手作業。</li>
         <li><b>読めない</b>：テスト工数は経験頼みの概算で、計画・スケジュールが崩れやすい。</li>
-        <li><b>学ばない</b>：前回の失敗から得た教訓が個人に留まり、担当が代わると同じミスを繰り返す。</li>
-        <li><b>残らない</b>：判断の根拠が文書化されず、後から検証・引き継ぎができない。</li>
+        <li><b>学ばない</b>：教訓が個人に留まり、担当が代わると同じミスを繰り返す。</li>
       </ul>
     </div>
     <div class="mid">→</div>
     <div class="panel after">
       <h3>これから（ToBe）</h3>
-      <div class="when">AIが数分で範囲を文書化</div>
+      <div class="when">3エージェントが範囲確定から文書化まで自動で実施</div>
       <ul>
         <li><b>標準化</b>：誰が担当しても同じ基準で影響範囲を網羅。品質のばらつきを解消。</li>
-        <li><b>抜け漏れ防止</b>：仕様書と実コードの食い違い（やり残し・想定外の変更）も自動検知。</li>
-        <li><b>高速化</b>：影響範囲の特定と確認手順づくりを自動生成。</li>
-        <li><b>見積り提示</b>：確認に必要なテスト工数の初期見立てを自動算出し、計画立案を後押し。</li>
-        <li><b>学習する</b>：過去の失敗から得た教訓をAIが記憶し、次回以降のチェックに自動反映。</li>
-        <li><b>資産化</b>：チェック範囲が記録として残り、レビュー・監査・引き継ぎに使える。</li>
+        <li><b>抜け漏れ防止</b>：仕様書と実コードの食い違いも自動検知し、確認漏れを補う。</li>
+        <li><b>文書が揃う</b>：PR説明とチケット要点を自動生成。レビュー・PM共有がすぐ整う。</li>
+        <li><b>高速化</b>：範囲特定・説明文・チケット記入の一連を自動化し、手作業を圧縮。</li>
+        <li><b>見積り提示</b>：テスト工数の初期見立てを自動算出し、計画立案を後押し。</li>
+        <li><b>学習・資産化</b>：教訓と判断根拠が記録に残り、次案件・引き継ぎ・監査に使える。</li>
       </ul>
+    </div>
+  </div>
+
+  <!-- value pillars -->
+  <h2><span class="dot">●</span> もたらす価値</h2>
+  <div class="vals">
+    <div class="val scope">
+      <h4>① 属人化からの脱却</h4>
+      <p>「あの人がいないと影響範囲が分からない」を解消。組織として品質を担保できる。</p>
+    </div>
+    <div class="val scope">
+      <h4>② 仕様と実装の整合チェック</h4>
+      <p>決めた仕様どおりに作られているか、余計な変更が混ざっていないかをAIが照合する。</p>
+    </div>
+    <div class="val pr">
+      <h4>③ レビュー品質の底上げ</h4>
+      <p>影響範囲とテスト観点を押さえたPR文書が常に揃い、レビューの質と速度が上がる。</p>
+    </div>
+    <div class="val ticket">
+      <h4>④ 進捗・リスクの見える化</h4>
+      <p>チケットに工数とPM向け要点が自動で載り、進捗とリスクの把握が楽になる。</p>
+    </div>
+    <div class="val scope">
+      <h4>⑤ 説明責任・トレーサビリティ</h4>
+      <p>「なぜこの範囲を確認したか」が記録に残り、監査・顧客説明に耐える。</p>
+    </div>
+    <div class="val scope">
+      <h4>⑥ スケールしても品質が落ちない</h4>
+      <p>メンバーや改修件数が増えても、チェックと文書の質を一定に保てる仕組み。</p>
     </div>
   </div>
 
@@ -143,61 +227,32 @@
       <div class="desc">担当者のスキルに左右されにくくなり、影響範囲の洗い出し品質を揃えやすくなると考えられます。</div>
     </div>
     <div class="kpi">
+      <div class="label">文書化（PR・チケット）の手間</div>
+      <div class="flow"><span class="from">毎回手作業</span><span class="ar">→</span><span class="to">自動で下書き</span></div>
+      <div class="desc">説明文と要点の下書きが自動で揃うことで、レビュー準備とPM共有にかける時間を減らせると見込まれます。</div>
+    </div>
+    <div class="kpi">
       <div class="label">不具合の本番流出リスク</div>
       <div class="flow"><span class="from">見落としで発生</span><span class="ar">→</span><span class="to">抑制が期待</span></div>
       <div class="desc">確認すべき画面の漏れを機械的に補うことで、手戻りや障害対応の発生を抑えやすくなると見込まれます。</div>
-    </div>
-    <div class="kpi">
-      <div class="label">範囲特定の所要時間</div>
-      <div class="flow"><span class="from">手作業で都度</span><span class="ar">→</span><span class="to">短縮が期待</span></div>
-      <div class="desc">影響調査が自動化されることで、その分の工数を他の作業に振り向けやすくなると考えられます。</div>
-    </div>
-  </div>
-
-  <!-- value pillars -->
-  <h2><span class="dot">●</span> もたらす価値</h2>
-  <div class="vals">
-    <div class="val">
-      <h4>① 属人化からの脱却</h4>
-      <p>「あの人がいないと影響範囲が分からない」状態を解消。組織として品質を担保できる。</p>
-    </div>
-    <div class="val">
-      <h4>② 仕様と実装の整合チェック</h4>
-      <p>決めた仕様どおりに作られているか、余計な変更が混ざっていないかをAIが照合する。</p>
-    </div>
-    <div class="val">
-      <h4>③ スケールしても品質が落ちない</h4>
-      <p>開発メンバーや改修件数が増えても、チェックの質を一定に保てる仕組み。</p>
-    </div>
-    <div class="val">
-      <h4>④ 説明責任・トレーサビリティ</h4>
-      <p>「なぜこの範囲を確認したか」が記録に残り、監査・顧客説明に耐える。</p>
-    </div>
-    <div class="val">
-      <h4>⑤ 失敗から学ぶ組織知</h4>
-      <p>過去のレビューで得た教訓をAIが記憶し、次の案件へ自動で引き継ぐ。経験が個人ではなく組織に蓄積される。</p>
-    </div>
-    <div class="val">
-      <h4>⑥ 計画の予測性向上</h4>
-      <p>確認に要するテスト工数の初期見立てを自動提示。スケジュールと要員計画を早期に組みやすくなる。</p>
     </div>
   </div>
 
   <!-- scope of AI -->
   <h2><span class="dot">●</span> 誤解のないように — AIの守備範囲</h2>
-  <div class="scope">
-    このAIが行うのは<b>「どこを確認すべきかの洗い出しと文書化」</b>までです。
+  <div class="scope-note">
+    この3エージェントが行うのは<b>「確認範囲の洗い出し」と「PR文書・チケット要点の作成」</b>までです。
     実際の動作テストの実施と、最終的な「リリースして問題ない」という判断は、引き続き人が担います。
-    AIは人を置き換えるのではなく、<b>判断の土台づくりを肩代わりして人をミスから守る</b>位置づけです。
+    AIは人を置き換えるのではなく、<b>判断と文書化の土台を肩代わりして人をミスから守る</b>位置づけです。
   </div>
 
   <h2><span class="dot">●</span> 実際の成果物（イメージ）</h2>
-  <p class="note">AIが自動生成する「確認すべき範囲」のドキュメント例。専門的な内容を含むが、雰囲気の参考に。</p>
-  <div class="scope" style="background:var(--card);border-color:var(--line);">
-    実出力サンプル → <a href="PW-161.regression-scope.html" style="color:var(--accent);font-weight:700;">PW-161 リグレッションスコープ（実例）を見る</a>
+  <p class="note">起点の regression-scope が自動生成する「確認すべき範囲」のドキュメント例。専門的な内容を含むが、雰囲気の参考に。</p>
+  <div class="scope-note" style="background:var(--card);">
+    実出力サンプル → <a href="PW-161.regression-scope.html">PW-161 リグレッションスコープ（実例）を見る</a>
   </div>
 
-  <p class="foot">対象: 配送管理システム PW ／ regression-scope エージェント ｜ 経営層向け概要 ｜ 2026-06-23</p>
+  <p class="foot">対象: 配送管理システム PW ／ regression-scope・pr-writer・ticket-writer 連携 ｜ 経営層向け概要 ｜ 2026-06-24</p>
 
 </div>
 </body>
