@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PW-171 — トップメニューの配送日変更リスト・未配車リストを実装 · Pull Request</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #ffffff;
+    color: #1f2328;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Yu Gothic UI", sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .wrap {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 24px 16px 64px;
+  }
+  a { color: #0969da; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* PR header */
+  .pr-title {
+    font-size: 32px;
+    font-weight: 400;
+    line-height: 1.25;
+    margin: 0 0 8px;
+  }
+  .pr-title .num { color: #59636e; font-weight: 300; }
+  .status-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #d1d9e0;
+    margin-bottom: 0;
+  }
+  .badge-open {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #1f883d;
+    color: #ffffff;
+    font-weight: 500;
+    font-size: 14px;
+    padding: 5px 16px;
+    border-radius: 2em;
+  }
+  .badge-open svg { fill: #ffffff; }
+  .status-text { color: #59636e; }
+  .status-text code, .ticket code {
+    background: rgba(129,139,152,0.12);
+    border-radius: 6px;
+    padding: 2px 6px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 90%;
+    color: #1f2328;
+  }
+  .ticket { color: #59636e; margin-left: 4px; }
+
+  /* tab bar */
+  .tabs {
+    display: flex;
+    gap: 8px;
+    border-bottom: 1px solid #d1d9e0;
+    margin: 16px 0 24px;
+    overflow-x: auto;
+  }
+  .tab {
+    padding: 8px 12px;
+    color: #1f2328;
+    font-weight: 400;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: default;
+  }
+  .tab .count {
+    background: rgba(129,139,152,0.2);
+    border-radius: 2em;
+    padding: 0 7px;
+    font-size: 12px;
+    line-height: 18px;
+  }
+  .tab.active {
+    font-weight: 600;
+    border-bottom: 2px solid #fd8c73;
+  }
+  .tab svg { fill: #59636e; }
+
+  /* comment card */
+  .comment {
+    border: 1px solid #d1d9e0;
+    border-radius: 6px;
+    margin-bottom: 16px;
+    position: relative;
+  }
+  .comment::before {
+    content: "";
+    position: absolute;
+    left: 17px;
+    top: -16px;
+    width: 2px;
+    height: 16px;
+    background: #d1d9e0;
+  }
+  .comment-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: #f6f8fa;
+    border-bottom: 1px solid #d1d9e0;
+    border-radius: 6px 6px 0 0;
+    color: #59636e;
+  }
+  .avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #0969da;
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .comment-head .author { color: #1f2328; font-weight: 600; }
+  .comment-body { padding: 16px; }
+
+  /* markdown rendering */
+  .md h2 {
+    font-size: 22px;
+    font-weight: 600;
+    padding-bottom: .3em;
+    border-bottom: 1px solid #d8dee4;
+    margin: 24px 0 16px;
+    line-height: 1.25;
+  }
+  .md h2:first-child { margin-top: 0; }
+  .md h3 {
+    font-size: 16px;
+    font-weight: 700;
+    margin: 24px 0 8px;
+  }
+  .md h4 {
+    font-size: 14px;
+    font-weight: 700;
+    margin: 20px 0 8px;
+  }
+  .md p { margin: 0 0 16px; }
+  .md ul { margin: 0 0 16px; padding-left: 2em; }
+  .md ul li { margin: 4px 0; }
+  .md code {
+    background: rgba(129,139,152,0.12);
+    border-radius: 6px;
+    padding: .2em .4em;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 85%;
+  }
+  .md strong { font-weight: 600; }
+
+  /* tables */
+  .table-scroll { overflow-x: auto; margin: 0 0 16px; }
+  .md table {
+    border-collapse: collapse;
+    border-spacing: 0;
+    display: table;
+    width: auto;
+    min-width: 60%;
+  }
+  .md table th, .md table td {
+    border: 1px solid #d0d7de;
+    padding: 6px 13px;
+  }
+  .md table th {
+    background: #f6f8fa;
+    font-weight: 600;
+    text-align: left;
+  }
+  .md table tr { background: #ffffff; }
+  .md table tr:nth-child(2n) { background: #f6f8fa; }
+
+  /* blockquote */
+  .md blockquote {
+    margin: 0 0 16px;
+    padding: 0 1em;
+    border-left: 4px solid #d0d7de;
+    color: #59636e;
+  }
+  .md blockquote p { margin: 0; }
+
+  /* task list */
+  .md .task-list { list-style: none; padding-left: 0; }
+  .md .task-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin: 4px 0;
+  }
+  .md .task-list li.sub { margin-left: 24px; }
+  .md .task-list input[type="checkbox"] {
+    margin-top: 4px;
+    flex-shrink: 0;
+  }
+  .md ol { margin: 0 0 16px; padding-left: 2em; }
+  .md ol li { margin: 6px 0; }
+
+  /* merge box */
+  .merge-box {
+    border: 1px solid #d1d9e0;
+    border-radius: 6px;
+    margin-top: 24px;
+    padding: 16px;
+    position: relative;
+  }
+  .merge-box::before {
+    content: "";
+    position: absolute;
+    left: 17px;
+    top: -16px;
+    width: 2px;
+    height: 16px;
+    background: #d1d9e0;
+  }
+  .merge-head { display: flex; align-items: center; gap: 12px; }
+  .merge-dot {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #1f883d;
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .merge-dot svg { fill: #fff; }
+  .merge-head .merge-title { font-weight: 600; font-size: 16px; }
+  .merge-head .merge-sub { color: #59636e; font-size: 13px; margin-top: 2px; }
+  .btn-merge {
+    margin-top: 14px;
+    background: #94d3a2;
+    color: #ffffff;
+    border: 1px solid rgba(31,35,40,0.15);
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: not-allowed;
+    opacity: 1;
+  }
+  .branch-info {
+    margin-left: 42px;
+    margin-top: 6px;
+    color: #59636e;
+    font-size: 13px;
+  }
+  .branch-info code {
+    background: rgba(129,139,152,0.12);
+    border-radius: 6px;
+    padding: 2px 6px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- PR header -->
+  <h1 class="pr-title">トップメニューの「配送日変更リスト」「未配車リスト」を実装 <span class="num">#171</span></h1>
+  <div class="status-row">
+    <span class="badge-open">
+      <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 3.25a2.25 2.25 0 1 1 3 2.122v5.256a2.251 2.251 0 1 1-1.5 0V5.372A2.25 2.25 0 0 1 1.5 3.25Zm5.677-.177L9.573.677A.25.25 0 0 1 10 .854V2.5h1A2.5 2.5 0 0 1 13.5 5v5.628a2.251 2.251 0 1 1-1.5 0V5a1 1 0 0 0-1-1h-1v1.646a.25.25 0 0 1-.427.177L7.177 3.427a.25.25 0 0 1 0-.354ZM3.75 2.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm0 9.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm8.25.75a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Z"></path></svg>
+      Open
+    </span>
+    <span class="status-text"><code>f/PW-171</code> を <code>main</code> にマージ</span>
+    <span class="ticket">・関連チケット <code>PW-171</code></span>
+  </div>
+
+  <!-- tab bar -->
+  <div class="tabs">
+    <span class="tab active">
+      <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M1 2.75C1 1.784 1.784 1 2.75 1h10.5c.966 0 1.75.784 1.75 1.75v7.5A1.75 1.75 0 0 1 13.25 12H9.06l-2.573 2.573A1.458 1.458 0 0 1 4 13.543V12H2.75A1.75 1.75 0 0 1 1 10.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h2a.75.75 0 0 1 .75.75v2.19l2.72-2.72a.749.749 0 0 1 .53-.22h4.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"></path></svg>
+      Conversation
+    </span>
+    <span class="tab">
+      <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M11.93 8.5a4.002 4.002 0 0 1-7.86 0H.75a.75.75 0 0 1 0-1.5h3.32a4.002 4.002 0 0 1 7.86 0h3.32a.75.75 0 0 1 0 1.5Zm-1.43-.75a2.5 2.5 0 1 0-5 0 2.5 2.5 0 0 0 5 0Z"></path></svg>
+      Commits
+    </span>
+    <span class="tab">
+      <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 16A8 8 0 1 1 8 0a8 8 0 0 1 0 16Zm3.78-9.72a.751.751 0 0 0-.018-1.042.751.751 0 0 0-1.042-.018L6.75 9.19 5.28 7.72a.751.751 0 0 0-1.042.018.751.751 0 0 0-.018 1.042l2 2a.75.75 0 0 0 1.06 0Z"></path></svg>
+      Checks
+    </span>
+    <span class="tab">
+      <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M.513 1.513A1.75 1.75 0 0 1 1.75 1h3.5a1.75 1.75 0 0 1 1.732 1.5h6.018A1.75 1.75 0 0 1 14.75 4.25v9A1.75 1.75 0 0 1 13 15H3a1.75 1.75 0 0 1-1.75-1.75v-9c0-.464.18-.91.513-1.237Z"></path></svg>
+      Files changed
+    </span>
+  </div>
+
+  <!-- comment card -->
+  <div class="comment">
+    <div class="comment-head">
+      <span class="avatar">PW</span>
+      <span class="author">pr-writer (AI)</span>
+      <span>commented on 2026-06-24</span>
+    </div>
+    <div class="comment-body md">
+
+      <h2>概要</h2>
+      <p>トップメニュー（<code>/</code>）に実装されていた「配送日変更リスト」と「未配車リスト」の各パネルを、「準備中」プレースホルダから実際のコンポーネントへ差し替えた。配送日変更リストのロジックをページから再利用可能な <code>ReschedulePanel</code> コンポーネントとして抽出し、フルページ（<code>/notifications/reschedule</code>）とトップメニューパネルの両方から利用できる形に統一した。未配車リストはDispatchドロワー内のサマリテーブルを再利用する形でパネルに埋め込んだ。</p>
+
+      <h2>背景・目的</h2>
+      <p>トップメニューでは「配送日変更リスト」「未配車リスト」の各チェックボックスをONにするとパネルが展開されるが、PW-171 以前はいずれも「準備中」テキストを表示するプレースホルダのみだった。本PRにより、これらのパネルに実際のコンテンツを組み込む。</p>
+      <p>あわせて、配送日変更リストページ（<code>/notifications/reschedule</code>）にページコンポーネントとして直書きされていたすべてのロジックを <code>ReschedulePanel</code> に集約し、ロジックの重複とタイトルの二重表示を解消するリファクタリングを実施した。</p>
+      <ul>
+        <li>関連チケット: PW-171</li>
+      </ul>
+
+      <h2>変更点</h2>
+
+      <h3>フロントエンド（管理画面）</h3>
+
+      <h4>ReschedulePanel の新規作成と利用</h4>
+      <ul>
+        <li><code>features/tms/reschedule/components/reschedule-panel.tsx</code> を新規作成した。<code>BatchLogPanel</code> と同設計で、props として <code>newCount</code> / <code>defaultItemsPerPage</code> / <code>perPageOptions</code> / <code>showSearch</code> を受け取る。</li>
+        <li><code>features/tms/reschedule/components/index.ts</code> を新規作成し、<code>RescheduleSearchForm</code> / <code>RescheduleTable</code> / <code>ReschedulePanel</code> をまとめて再エクスポートするようにした。</li>
+        <li><code>pages/notifications/reschedule.tsx</code> のすべてのロジック（GraphQL クエリ・ミューテーション・状態管理・ハンドラ）を <code>ReschedulePanel</code> に移動し、ページはパネルを呼ぶだけのシンプルな構造に変更した。これによりページ独自ヘッダとパネルヘッダのタイトル二重表示も解消した。</li>
+        <li><code>features/tms/top-menu/components/delivery-date-change-panel.tsx</code> で「準備中」テキストを <code>&lt;ReschedulePanel defaultItemsPerPage={5} perPageOptions={[5, 20, 50, 100]} showSearch={false} /&gt;</code> に差し替えた。</li>
+      </ul>
+
+      <h4>UnassignedSummaryTable の再利用</h4>
+      <ul>
+        <li><code>features/tms/dispatch/components/UnassignedListContent.tsx</code> の <code>UnassignedSummaryTable</code> を <code>export</code> に変更し、Dispatchドロワー外から利用できるようにした。</li>
+        <li><code>features/tms/top-menu/components/unassigned-deliveries-panel.tsx</code> で「準備中」テキストを <code>&lt;UnassignedSummaryTable /&gt;</code> に差し替えた。集計API（PW-144_3）が未実装のため、テーブルヘッダーは表示されるがデータ行は空の状態となる（Dispatchドロワー側と同じ挙動）。</li>
+      </ul>
+
+      <h2>テスト範囲</h2>
+
+      <h3>変更サマリー</h3>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr><th>層</th><th>主な内容</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>DB</td><td>変更なし</td></tr>
+            <tr><td>API</td><td>変更なし</td></tr>
+            <tr><td>管理画面</td><td>ReschedulePanelの抽出、UnassignedSummaryTableのexport化、トップメニューパネルへの組み込み</td></tr>
+            <tr><td>ドライバーアプリ</td><td>変更なし</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>影響API一覧</h3>
+      <p>APIコードの変更なし。ただし以下のクエリ / ミューテーションが <code>ReschedulePanel</code> 内で使用されており、今回の変更（ページ→コンポーネント化）によって呼び出し文脈が変わる。</p>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr><th>Query / Mutation</th><th>変更種別</th><th>利用画面</th><th>備考</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>SEARCH_DELIVERY_MEMOS</code></td><td>文脈追加</td><td>配送日変更リスト（<code>/notifications/reschedule</code>）、トップメニュー（<code>/</code>）</td><td>元ページのロジックをPanelに移動したため、トップメニューでも呼ばれるようになった</td></tr>
+            <tr><td><code>MARK_DELIVERY_MEMO_AS_READ</code></td><td>文脈追加</td><td>同上</td><td>行クリック→ドロワー内「既読にする」ボタンの経路が2画面に増えた</td></tr>
+            <tr><td><code>SEARCH_M_DEPOTS</code></td><td>文脈追加</td><td>同上</td><td>検索フォームのデポ選択肢取得。<code>showSearch=false</code> のトップメニューでも呼ばれる点に注意</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <blockquote><p><code>SEARCH_M_DEPOTS</code> は <code>showSearch=false</code>（トップメニュー用）でも <code>useQuery</code> がマウント時に発行される実装になっている。問題は出ないが、不要クエリが飛んでいる点は目視で確認すること。</p></blockquote>
+
+      <h3>画面別テストチェックリスト</h3>
+
+      <h4>1. 管理画面トップ（<code>/</code>）— 配送日変更リストパネル</h4>
+      <p><strong>影響の原因:</strong> <code>DeliveryDateChangePanel</code> の中身が「準備中」テキスト → <code>&lt;ReschedulePanel defaultItemsPerPage={5} perPageOptions={[5, 20, 50, 100]} showSearch={false} /&gt;</code> に差し替え</p>
+      <ul class="task-list">
+        <li><input type="checkbox" disabled><span>トップメニュー（<code>/</code>）を開き、「配送日変更リスト」チェックボックスをONにする → パネルが表示され「準備中」文字列が消えていること</span></li>
+        <li><input type="checkbox" disabled><span>表示されたパネルに「配送日変更リスト」のタイトルヘッダーが表示されること</span></li>
+        <li><input type="checkbox" disabled><span>検索フォームエリアが表示されていないこと（<code>showSearch=false</code> の確認）</span></li>
+        <li><input type="checkbox" disabled><span>データ行が存在する場合、1ページ5件で表示されること（<code>defaultItemsPerPage=5</code>）</span></li>
+        <li><input type="checkbox" disabled><span>ページネーションのページサイズ選択肢が「5、20、50、100」であること</span></li>
+        <li><input type="checkbox" disabled><span>データ行のいずれかをクリックし、配送詳細ドロワーが開くこと</span></li>
+        <li><input type="checkbox" disabled><span>未読行をクリックしてドロワーを開いた場合、「既読にする」ボタンが表示されること</span></li>
+        <li><input type="checkbox" disabled><span>「既読にする」ボタンをクリックすると成功トーストが表示され、行のステータスが更新されること（refetch）</span></li>
+        <li><input type="checkbox" disabled><span>既読行をクリックした場合、「既読にする」ボタンが表示されないこと</span></li>
+        <li><input type="checkbox" disabled><span>ページネーションでページを切り替えると、表示件数が更新されること</span></li>
+        <li><input type="checkbox" disabled><span>エラー時（APIエラー）にエラーメッセージエリアが表示されること</span></li>
+      </ul>
+
+      <h4>2. 管理画面トップ（<code>/</code>）— 未配車リストパネル</h4>
+      <p><strong>影響の原因:</strong> <code>UnassignedDeliveriesPanel</code> の中身が「準備中」テキスト → <code>&lt;UnassignedSummaryTable /&gt;</code> に差し替え</p>
+      <ul class="task-list">
+        <li><input type="checkbox" disabled><span>トップメニュー（<code>/</code>）を開き、「未配車リスト」チェックボックスをONにする → パネルが表示され「準備中」文字列が消えていること</span></li>
+        <li><input type="checkbox" disabled><span>パネル内にサマリテーブルのヘッダー行が表示されること（「No.」「デポ名」「エリア名」「午前中」「12:00-14:00」「14:00-16:00」「16:00-18:00」「18:00-21:00」「指定なし」の各列）</span></li>
+        <li><input type="checkbox" disabled><span>テーブルのデータ行が空（tbody が空白）であること（PW-144_3 集計API未実装のため意図された状態）</span></li>
+      </ul>
+
+      <h4>3. 管理画面 配送日変更リスト（<code>/notifications/reschedule</code>）— リファクタ後の動作確認</h4>
+      <p><strong>影響の原因:</strong> ページ内に直書きされていた全ロジックを <code>ReschedulePanel</code> に抽出。ページは <code>&lt;ReschedulePanel /&gt;</code> を呼ぶだけになった。<code>defaultItemsPerPage=20</code>、<code>perPageOptions=[20, 50, 100]</code>、<code>showSearch=true</code>（いずれもデフォルト値）。</p>
+      <ul class="task-list">
+        <li><input type="checkbox" disabled><span><code>/notifications/reschedule</code> を開き、「配送日変更リスト」のタイトルと検索フォームが表示されること</span></li>
+        <li><input type="checkbox" disabled><span>検索フォームが初期表示で展開状態（<code>isSearchFormOpen=true</code>）であること</span></li>
+        <li><input type="checkbox" disabled><span>検索フォームの折りたたみトグルボタンをクリックすると、検索フォームが折りたたまれ・展開されること</span></li>
+        <li><input type="checkbox" disabled><span>検索フォームのデポ選択肢にデポ一覧が表示されること</span></li>
+        <li><input type="checkbox" disabled><span>検索条件（デポ・エリア・配送予定日範囲など）を入力して「検索」ボタンを押すと、一覧が絞り込まれること</span></li>
+        <li><input type="checkbox" disabled><span>データ行が存在する場合、1ページ20件で表示されること</span></li>
+        <li><input type="checkbox" disabled><span>ページネーションのページサイズ選択肢が「20、50、100」であること（5 は含まれないこと）</span></li>
+        <li><input type="checkbox" disabled><span>ソートアイコンをクリックすると昇順 → 降順 → 解除の3段階でソートされること</span></li>
+        <li><input type="checkbox" disabled><span>行クリックで配送詳細ドロワーが開くこと</span></li>
+        <li><input type="checkbox" disabled><span>未読行のドロワーで「既読にする」が機能すること（一覧の既読表示が切り替わる）</span></li>
+        <li><input type="checkbox" disabled><span>コンソールエラー・JSエラーが発生していないこと（リファクタ前後で挙動に差がないこと）</span></li>
+      </ul>
+
+      <h4>4. 管理画面 配車ドロワー（<code>/dispatch</code>）— 既存の未配車情報タブへの非影響確認</h4>
+      <p><strong>影響の原因:</strong> <code>UnassignedListContent.tsx</code> 内の <code>UnassignedSummaryTable</code> を <code>export</code> に変えた。<code>UnassignedListContent</code> コンポーネント自体は変わっておらず、dispatch ページへの影響は想定されないが、export 変更による import 解決の問題がないことを確認する。</p>
+      <ul class="task-list">
+        <li><input type="checkbox" disabled><span><code>/dispatch</code> を開き、配車ドロワー内の「未配車情報」タブが正常に表示されること（テーブル・検索フォームが崩れていないこと）</span></li>
+        <li><input type="checkbox" disabled><span>コンソールエラーが発生していないこと</span></li>
+      </ul>
+
+      <h3>スコープ外（変更の影響なし）</h3>
+      <ul>
+        <li>ドライバーアプリ全般: フロントエンド変更が管理画面のみに閉じており、ドライバーアプリへの変更はない</li>
+        <li>API（api-core）全般: API / DB変更なし。既存の Query / Mutation の挙動は変わらない</li>
+        <li>管理画面のその他のページ: <code>SEARCH_DELIVERY_MEMOS</code> / <code>MARK_DELIVERY_MEMO_AS_READ</code> / <code>SEARCH_M_DEPOTS</code> を使用しているのは reschedule 系画面のみであり、他ページへの波及はない</li>
+        <li><code>BatchLogPanel</code> / <code>BulletinPanel</code>（トップメニュー内他パネル）: コンポーネント自体に変更なし。チェックボックスのロジック（最大3件制限など）も変更なし</li>
+      </ul>
+
+      <h3>補足・注意事項</h3>
+      <ol>
+        <li><strong><code>SEARCH_M_DEPOTS</code> の無駄クエリ</strong>: <code>ReschedulePanel</code> は <code>showSearch=false</code> でも <code>useQuery(SEARCH_M_DEPOTS)</code> がマウント時に発行される。トップメニューの「配送日変更リスト」パネルでも余分なデポ一覧クエリが飛ぶ。機能上の問題は出ないが、開発者ツールのネットワークタブで確認した際に意図的であることを把握しておくこと。</li>
+        <li><strong>未配車リストのデータ行が空であることは仕様</strong>: <code>UnassignedSummaryTable</code> の tbody は集計API（PW-144_3）が実装されるまで空のまま。「データが表示されない」はバグではない。</li>
+        <li><strong>配送日変更リストページのリファクタは純粋な移動</strong>: <code>/notifications/reschedule</code> の全ロジックが <code>ReschedulePanel</code> に移動したが、機能追加・変更はない。リファクタ前後で画面の見た目・動作に差がないことを確認することが主眼。</li>
+      </ol>
+
+      <h2>マージ条件</h2>
+      <p>このPRは、以下がすべて満たされた場合にのみマージ可能とする。</p>
+      <ul class="task-list">
+        <li><input type="checkbox" disabled><span><strong>上記「テスト範囲」の全テスト項目（計27項目）がパスすること</strong></span></li>
+        <li class="sub"><input type="checkbox" disabled><span>自動の画面ランタイム検証で Critical / fail が 0 件</span></li>
+        <li class="sub"><input type="checkbox" disabled><span>人間による手動テスト（複数パネルの同時表示・トップメニューのチェックボックス開閉操作・既読化の業務フローなど自動検証でカバーできない項目）が完了</span></li>
+        <li><input type="checkbox" disabled><span>レビュー承認</span></li>
+      </ul>
+
+    </div>
+  </div>
+
+  <!-- merge box -->
+  <div class="merge-box">
+    <div class="merge-head">
+      <span class="merge-dot">
+        <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M5.45 5.154A4.25 4.25 0 0 0 9.25 7.5h1.378a2.251 2.251 0 1 1 0 1.5H9.25A5.734 5.734 0 0 1 5 7.123v3.505a2.25 2.25 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.95-.218ZM4.25 13.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm8.5-4.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5ZM5 3.25a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Z"></path></svg>
+      </span>
+      <div>
+        <div class="merge-title">必須チェック未完了 — マージ不可</div>
+        <div class="merge-sub">テスト範囲の全テスト項目（計27項目）がパスすること、かつレビュー承認が条件です。</div>
+      </div>
+    </div>
+    <div class="branch-info">
+      <code>f/PW-171</code> から <code>main</code> へ ・ 自動検証で Critical / fail 0 件 ＋ 手動テスト完了 ＋ レビュー承認が必要
+    </div>
+    <button class="btn-merge" disabled>Merge pull request</button>
+  </div>
+
+</div>
+</body>
+</html>
