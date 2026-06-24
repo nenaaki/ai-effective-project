@@ -356,6 +356,36 @@
   // workitems 由来テンプレートを実データで上書き。指定キーの工程だけ差分マージ、
   // 残工程は 0 のまま (= 未測定)。tasks.<key>.{asis, tobe, tobeEng, loc, agents} を任意指定。
   const SCENARIO_OVERRIDES = {
+    // 集計用リストCSV出力 (FE050 / DM14 帳票・ファイル出力) - データ出力・抽出の CSV ダウンロードの一つ。
+    // 実績コード量: API 103 / フロントエンド 904 行 (DB/テストなし)。
+    // AsIs: お知らせ登録(FE015) の行あたり工数を実績LOCに適用 (api-impl 8h/369行・fe-impl 33.5h/1694行)。fe-design/UX は按分過小のため実態値。合計 約25.1h。
+    // ToBe: AI 1.5h + APIレビュー 0.25h + フロントレビュー 0.5h + 動作確認 0.75h = 3.0h (実績)。
+    'wi-fileio-DM14FE050-4': {
+      lede: "<strong>集計用リストCSV出力</strong>（FE050 / DM14 帳票・ファイル入出力）の開発工数比較。<strong>データ出力・抽出の集計用リスト CSV ダウンロード</strong>。実績コード量は API <strong>103 行</strong>・フロントエンド <strong>904 行</strong>（DB/テストなし）。<strong>AsIs は行数規模から推定</strong>（お知らせ登録(FE015) の行あたり工数を適用）。ただし UX設計 2.5h・フロント設計 1.0h は規模比按分では過小なため実態に合わせて設定。合計 約25.1h。<strong>ToBe は実績</strong>（AI 1.5h ＋ APIレビュー 0.25h ＋ フロントレビュー 0.5h ＋ 動作確認 0.75h ＝ 3.0h）。削減率 <strong>約88%</strong>。",
+      bugCategories: [
+        { key: "syntax", label: "構文/型エラー",                          color: "#ef4444", asis: 1, tobe: 0 },
+        { key: "logic",  label: "ロジックバグ (抽出条件・集計ロジック)",    color: "#f59e0b", asis: 4, tobe: 2 },
+        { key: "edge",   label: "エッジケース漏れ (空・大量件数・文字コード)", color: "#8b5cf6", asis: 3, tobe: 1 },
+        { key: "spec",   label: "仕様解釈ミス (集計仕様・出力項目の解釈)",  color: "#ec4899", asis: 2, tobe: 2 },
+        { key: "ui",     label: "UI 細部の不整合 (抽出条件UI・DLボタン)",   color: "#06b6d4", asis: 2, tobe: 0 },
+      ],
+      bugRateNote: "※ 集計用リストCSV出力 約 1.0 KLOC × 参考レート（人力 12/KLOC ≒ 12件 / AI 5/KLOC ≒ 5件）で推定。集計用リストの CSV ダウンロードで、論点は <strong>抽出条件・集計仕様・出力項目の解釈</strong>。AI でも業務固有の集計ルールは仕様で明示しないと <strong>仕様解釈ミス</strong> が残りやすい。",
+      tasks: {
+        'api-impl':    { asis: 2.2,  loc: 103,  tobe: 0.15, tobeEng: 0,   agents: ["バックエンドAI"] },
+        'ux':          { asis: 2.5,             tobe: 0.1,  tobeEng: 0,   agents: ["プランナーAI", "エンジニア"] },
+        'fe-design':   { asis: 1.0,             tobe: 0.1,  tobeEng: 0,   agents: ["フロントエンドAI"] },
+        'fe-impl':     { asis: 17.9, loc: 904,  tobe: 1.15, tobeEng: 0,   agents: ["フロントエンドAI"] },
+        'api-review':  { asis: 0.25,            tobe: 0.25, tobeEng: 0.25, agents: ["バックエンドレビュワーAI", "エンジニア"] },
+        'fe-review':   { asis: 0.5,             tobe: 0.5,  tobeEng: 0.5, agents: ["フロントエンドレビュワーAI", "エンジニア"] },
+        'verify':      { asis: 0.75,            tobe: 0.75, tobeEng: 0.75, agents: ["バックエンドテスターAI", "フロントエンドテスターAI", "エンジニア"] },
+      },
+      contextNotes: [
+        "対象: 集計用リストCSV出力（FE050 / DM14 帳票・ファイル入出力）。データ出力・抽出の集計用リスト CSV ダウンロード機能。",
+        "<strong>実績コード量</strong>: API <strong>103 行</strong> / フロントエンド <strong>904 行</strong>（DB 0・ユニットテスト 0）。工程区分はお知らせ登録(FE015)のフォーマットを流用。",
+        "<strong>AsIs（人力想定）は行数規模から推定</strong>: お知らせ登録の『行あたり工数』を実績LOCに適用（api-impl 8h/369行 → 2.2h・fe-impl 33.5h/1694行 → 17.9h）。UX（2.5h）・フロント設計（1.0h）は規模比按分では過小なため実態に合わせて設定。APIレビュー・フロントレビュー・動作確認は人の確認工数として AsIs / ToBe をそろえる（各0.25h / 0.5h / 0.75h）。合計 約25.1h。",
+        "<strong>ToBe（AI駆動）は実績 3.0h</strong>: AI 1.5h（API実装 0.15 / FE実装 1.15 / UX 0.1 / FE設計 0.1）＋ APIレビュー 0.25h（エンジニア）＋ フロントレビュー 0.5h（エンジニア）＋ 動作確認 0.75h（エンジニア）。削減率 <strong>約88%</strong>。",
+      ],
+    },
     // 代引き一覧Excel出力 (FE053 / DM14 帳票・ファイル出力) - 代引き確認(DL)の Excel ダウンロード。
     // 実績コード量: フロントエンド 179 行のみ (DB/API/テストなし)。
     // AsIs: お知らせ登録(FE015) の行あたり工数を実績LOCに適用 (fe-impl 33.5h/1694行)。fe-design/UX は按分過小のため実態値。合計 約6.0h。
