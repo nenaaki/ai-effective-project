@@ -1172,6 +1172,40 @@
         "<strong>AsIs は実績コード量(概算)から推定</strong>: フロント 約1,261行 → 24.7h(商品マスタ 16h/810行)。バックエンドは新規実装なし(0h)。UX/設計/レビュー/動作確認は人間工数として AsIs=ToBe。合計 約32h → ToBe 3.9h(削減 約88%)。LOC は概算。",
       ],
     },
+    // 未配車リスト (FE005 / PW-174 / DM02 配車管理) — 閲覧スコープ。ToBe は実測 (time-log.jsonl): 3.26h (標準開発 約2.7h + 試行特有=デグレチェック出力形式の定義 約0.6h)。
+    // 新規バックエンドAPI 2本 (unassignedDeliverySummary / unassignedDeliveries)・スキーマ変更なし (seed に住所1件のみ追加)。配車登録(FE004)の「未配車情報」ドロワー内に配線。
+    // LOC は PR#124 diff (frontend 約644行・backend 実装 約470行＋テスト 384行)。AsIs は実績コード量から推定。
+    'wi-screen-DM02FE005': {
+      lede: "AIDD 試行「未配車リスト」(FE005 / PW-174) の開発工数比較。<strong>保管中の配送を 郵便番号→住所→エリア→デポ で デポ×エリア×時間帯 に集計するサマリ＋セルクリック明細drill-down</strong>を扱う<strong>閲覧スコープ</strong>の画面。配車登録(FE004)の「未配車情報」ドロワー内に配線(新規ページなし)。<strong>新規バックエンドAPI 2本</strong>(unassignedDeliverySummary / unassignedDeliveries)・<strong>スキーマ変更なし</strong>(seed に集計経路解決用の住所1件のみ追加)。<strong>ToBe は実測</strong>(time-log) <strong>3.26h</strong>(標準開発 約2.7h ＋ <span style=\"color:#9333ea\">試行特有=デグレチェック出力形式の定義 約0.6h</span>)。AsIs は実績コード量(概算)から推定。",
+      bugCategories: [
+        { key: "syntax", label: "構文/型エラー",                                          color: "#ef4444", asis: 3, tobe: 0 },
+        { key: "logic",  label: "ロジックバグ (認可: 未取得ユーザー時の全デポ可視)",            color: "#f59e0b", asis: 4, tobe: 1 },
+        { key: "edge",   label: "エッジケース漏れ (日付スラッシュ未変換 / 本日UTCズレ / seed集計経路欠落)", color: "#8b5cf6", asis: 3, tobe: 2 },
+        { key: "spec",   label: "仕様解釈ミス (デポ名種別 / 時間帯マッピング / 予定日既定)",     color: "#ec4899", asis: 2, tobe: 2 },
+        { key: "ui",     label: "UI 細部の不整合 (空状態 / ページネーション / エリア候補連動)",   color: "#06b6d4", asis: 3, tobe: 2 },
+      ],
+      bugRateNote: "※ 未配車リスト 約 1.5 KLOC(フロント 644行＋バックエンド 実装470行/テスト384行)。論点は <strong>未配車の判定ルール</strong>(保管中×郵便番号→住所→エリア→デポ集計・PW-144_3)・<strong>デポ名の種別</strong>(物流/配送・PW-144_13)・<strong>時間帯列マッピング</strong>(PW-144_15)で「仕様解釈ミス」が残る(mock列は縮退せず暫定対応＋questions/PW-144.tsv記録)。<strong>tester ゲートが静的レビュー後の実バグ2件</strong>(日付スラッシュ未変換で検索常時空・「本日」UTCズレ)を捕捉し修正。",
+      tasks: {
+        'data-design': { asis: 0,              tobe: 0,                    agents: ["—"] },
+        'data-impl':   { asis: 0.2,  loc: 11,  tobe: 0.05,                 agents: ["バックエンドAI"] },
+        'api-impl':    { asis: 9,    loc: 470, tobe: 0.4,                  agents: ["バックエンドAI"] },
+        'api-test':    { asis: 5.5,  loc: 384, tobe: 0.1,                  agents: ["バックエンドAI"] },
+        'api-review':  { asis: 0.35,           tobe: 0.35, tobeEng: 0.35,  agents: ["バックエンドレビュワーAI", "エンジニア"] },
+        'ux':          { asis: 3,              tobe: 0.3,  tobeEng: 0.2,   agents: ["プランナーAI", "エンジニア"] },
+        'fe-design':   { asis: 1,              tobe: 0,                    agents: ["フロントエンドAI"] },
+        'fe-impl':     { asis: 12.6, loc: 644, tobe: 0.5,  tobeEng: 0,     agents: ["フロントエンドAI"] },
+        'fe-test':     {                                                   agents: ["—"] },
+        'fe-review':   { asis: 0.4,            tobe: 0.4,  tobeEng: 0.4,   agents: ["フロントエンドレビュワーAI", "エンジニア"] },
+        'verify':      { asis: 0.55,           tobe: 0.55, tobeEng: 0.5,   agents: ["フロントエンドテスターAI", "エンジニア"] },
+        'structure-improvement': { label: "[試行特有] デグレチェック出力形式の定義", color: "#7e22ce", asis: 0, tobe: 0.6, tobeEng: 0.6, agents: ["エンジニア"] },
+      },
+      contextNotes: [
+        "対象画面: 未配車リスト (FE005 / PW-174 / DM02 配車管理)。保管中(005000)の配送を 郵便番号→m_address→m_area→m_depot で デポ×エリア×時間帯 に集計するサマリ + セルクリックで明細drill-down。配車登録(FE004)の「未配車情報」ドロワー内に配線(新規ページなし)。閲覧スコープ(配車操作は対象外)。<strong>新規API 2本</strong>(集計/明細)・<strong>スキーマ変更なし</strong>(seed に住所4600008を1件追加し集計経路を解決)。",
+        "<strong>ToBe は実測</strong> (time-log.jsonl・2026-06-24): <strong>3.26h</strong>(メインループ アクティブwall-clock・20分ギャップ閾値)。内訳: 標準開発 約2.7h(planner調査/分解 + API実装/テスト + FE実装 + 各reviewer/tester + 動作確認) ＋ <span style=\"color:#9333ea\">試行特有 約0.6h(デグレチェック出力形式の定義=ハーネス強化)</span>。サブエージェント逐次計上は約1.99h(18体)。",
+        "<strong>手戻り</strong>: backend-reviewer が Major3件(未取得ユーザー時の全デポ可視=認可・status毎回query=性能・逆引き重複)を検出→修正。backend-tester が seed欠損(保管中の郵便番号4600008が住所マスタ不在で集計常時空)を検出→seed補完。frontend-reviewer が Blocker(空状態/Pagination/フッター消失)・Major(エリア候補UX/日付空query)を検出→修正。<strong>frontend-tester が静的レビューで見逃した実バグ2件</strong>(日付スラッシュ未変換・JST本日ズレ)を捕捉→修正。",
+        "<strong>AsIs は実績コード量(概算)から推定</strong>: フロント 約644行→12.6h・バックエンド実装 約470行→9h・API単体テスト 384行→5.5h。UX/レビュー/動作確認は人間工数として AsIs=ToBe。合計 約32.6h → ToBe 3.26h(削減 約90%)。<span style=\"color:#9333ea\">試行特有のデグレチェック形式定義 0.6h は AsIs に対応物なし(0)</span>。LOC は概算。",
+      ],
+    },
     // ステータスチェック (FE006 / PW-150 / DM03 配送管理) — スキャン照合・閲覧中心。ToBe は実測 (time-log.jsonl): 1.5h。
     // 新規API・スキーマ変更なし (searchDeliveryHistory + 既存詳細ドロワー流用)。git worktree による並行開発 (PW-151 と同時)。
     'wi-screen-DM03FE006': {
@@ -1267,6 +1301,37 @@
         "<strong>ToBe は実測</strong> (time-log.jsonl・2026-06-17〜06-18): 標準開発(系統A) <strong>3.5h</strong>。<span style=\"color:#9333ea\">試行特有(系統B) 0h</span>。/start-task→planner(spec/gap/不明点PW-121_1〜_7)→backend(depotNames逆引き・水源列/サマリーQuery・seed整合)→reviewer/tester→frontend(skeleton/A/実装/B)→driver改名修正→再seed後に再検証→サイドバー→4コミット→PR#107。<strong>本タスクはレビュー中（完了ではない）</strong>のため、今後の動作確認・レビュー対応で増分の可能性あり。",
         "<strong>手戻り</strong>: backend-reviewer Major(初回4件→修正)、frontend-reviewer モードA/B 指摘修正。検証で <strong>水源列が空</strong>(seed が商品↔水源を未紐づけ)→ seed 補完＋再 seed で 富士山/南アルプス/阿蘇 を実値化。<strong>driver の改名取りこぼし</strong>(tDeliveryManagement 残存6箇所＝既存 main バグ・getTomorrowDeliveries等が実行時クラッシュ)を発見し同梱修正。デポ名検索はデモ営業所のみ実データ(他デポはseed無し・拡張不要で確定)。",
         "<strong>AsIs は実績コード量(概算)から推定</strong>: フロント 約650行→13h(商品マスタ 16h/810行)、API拡張 約200行→4h、seed 約45行→0.5h。レビュー/動作確認/UX/driver修正は人間工数として AsIs を計上。合計 約28h → ToBe 3.5h(削減 約88%)。LOC は概算。",
+      ],
+    },
+    // 未配車リスト (FE005 / DM02FE005 / DM02 配車管理) — 閲覧リスト。ToBe実測 3.26h(workitems)。
+    // AsIs・内訳・想定バグは類似閲覧画面(翌日配車表示 FE036)基準の概算。レビュー・動作確認は AI でも削減されず人手で発生(asis=tobe)。スキーマ変更なし。
+    'wi-screen-DM02FE005': {
+      lede: "AIDD「未配車リスト」(FE005 / DM02 配車管理) の開発工数比較。<strong>未配車の配送明細を一覧表示する閲覧画面</strong>(既存の 配送/配送会社 を流用・スキーマ変更なし)。<strong>ToBe は実測 3.26h</strong>。<strong>うち レビュー・動作確認 約2.0h は AI でも削減されず人手で発生</strong>(asis=tobe)。AsIs は類似の閲覧画面(翌日配車表示 FE036)を基準にした推定 約14h → <strong>削減 約77%</strong>。",
+      bugCategories: [
+        { key: "syntax", label: "構文/型エラー",                       color: "#ef4444", asis: 0, tobe: 0 },
+        { key: "logic",  label: "ロジックバグ (未配車抽出条件・並び順)",  color: "#f59e0b", asis: 1, tobe: 0 },
+        { key: "edge",   label: "エッジケース漏れ (該当なし・空)",        color: "#8b5cf6", asis: 1, tobe: 0 },
+        { key: "spec",   label: "仕様解釈ミス (表示項目・抽出仕様)",       color: "#ec4899", asis: 1, tobe: 1 },
+        { key: "ui",     label: "UI 細部の不整合 (一覧表示)",             color: "#06b6d4", asis: 1, tobe: 0 },
+      ],
+      bugRateNote: "※ 未配車リスト 約 0.2 KLOC(閲覧リスト)。参考レート(人力 12/KLOC ≒ 2件 / AI 5/KLOC ≒ 1件)で推定。論点は表示項目・未配車の抽出条件の解釈。",
+      tasks: {
+        'data-design': { asis: 0,             tobe: 0,                   agents: ["—"] },
+        'data-impl':   { asis: 0,   loc: 0,   tobe: 0,                   agents: ["—"] },
+        'api-impl':    { asis: 3.5, loc: 90,  tobe: 0.4, tobeEng: 0,     agents: ["バックエンドAI"] },
+        'api-test':    { asis: 2.5, loc: 180, tobe: 0.1, tobeEng: 0,     agents: ["バックエンドAI"] },
+        'api-review':  { asis: 0.5,           tobe: 0.5, tobeEng: 0.5,   agents: ["バックエンドレビュワーAI", "エンジニア"] },
+        'ux':          { asis: 2,             tobe: 0.16, tobeEng: 0.1,  agents: ["プランナーAI", "エンジニア"] },
+        'fe-design':   { asis: 0.5,           tobe: 0.1, tobeEng: 0,     agents: ["フロントエンドAI"] },
+        'fe-impl':     { asis: 3.5, loc: 130, tobe: 0.5, tobeEng: 0,     agents: ["フロントエンドAI"] },
+        'fe-test':     {                                                 agents: ["—"] },
+        'fe-review':   { asis: 0.5,           tobe: 0.5, tobeEng: 0.5,   agents: ["フロントエンドレビュワーAI", "エンジニア"] },
+        'verify':      { asis: 1,             tobe: 1.0, tobeEng: 1.0,   agents: ["フロントエンドテスターAI", "エンジニア"] },
+      },
+      contextNotes: [
+        "対象画面: 未配車リスト (FE005 / DM02FE005 / DM02 配車管理)。未配車の配送明細を一覧表示する閲覧画面。既存の 配送(t_delivery)・配送会社 を流用想定で <strong>スキーマ変更なし・新規API最小</strong>。配車登録(FE004)の未配車情報ドロワー(PW-144_3・静的表示)とは別の独立リスト画面。",
+        "<strong>ToBe は実測 3.26h</strong> (workitems time-log)。<strong>うち レビュー(API/FE 各0.5h)＋動作確認 1.0h ＝ 約2.0h は人手工数で AsIs と同水準</strong>(AI で削減されない)。AI が削減するのは API/FE 実装・単体テスト工程に限定され、ToBe の約6割が人手のレビュー・動作確認。",
+        "<strong>AsIs は類似の閲覧画面から推定</strong>: 翌日配車表示(FE036・閲覧)を基準に API/FE 実装・単体テスト・UX を概算。合計 約14h → ToBe 3.26h(<strong>削減 約77%</strong>)。<strong>内訳・AsIs・想定バグは概算</strong>(確定実測は ToBe 合計 3.26h)。工程別の time-log 内訳が出れば差し替え可能。",
       ],
     },
   };
