@@ -41,9 +41,9 @@
   .item {
     border: 1px solid #e5e7eb;
     border-radius: 6px;
-    padding: 8px 12px;
+    padding: 7px 11px;
     font-size: 12px;
-    line-height: 1.55;
+    line-height: 1.5;
     display: flex;
     gap: 10px;
     align-items: flex-start;
@@ -80,13 +80,13 @@
   }
 
   .item-detail {
-    margin-top: 6px;
+    margin-top: 5px;
     background: #f9fafb;
     border-left: 2px solid #2563eb;
     border-radius: 3px;
-    padding: 6px 9px;
+    padding: 5px 9px;
     font-size: 11px;
-    line-height: 1.6;
+    line-height: 1.5;
     color: #374151;
   }
   .item-detail .head {
@@ -99,7 +99,7 @@
   .item-detail ul { margin: 0; padding-left: 16px; }
   .item-detail li { margin: 2px 0; }
 
-  .ref-line { margin-top: 8px; font-size: 11px; color: #6b7280; padding-left: 4px; }
+  .ref-line { margin-top: 6px; font-size: 11px; color: #6b7280; padding-left: 4px; }
 
   /* 決定事項 */
   .decisions { display: flex; flex-direction: column; gap: 6px; }
@@ -123,17 +123,42 @@
     vertical-align: 1px;
   }
 
-  /* 後日追記用プレースホルダー */
-  .placeholder {
-    border: 1px dashed #d1d5db;
-    border-radius: 6px;
-    padding: 18px 14px;
-    color: #9ca3af;
-    font-size: 11.5px;
-    text-align: center;
-    background: #fafafa;
+  /* 議論サマリ */
+  .summary { display: flex; flex-direction: column; gap: 5px; }
+  .scard {
+    border: 1px solid #e5e7eb;
+    border-left: 3px solid #2563eb;
+    border-radius: 4px;
+    padding: 5px 9px;
+    font-size: 10.5px;
+    line-height: 1.5;
+    background: #f9fafb;
   }
-  .block { margin-bottom: 14px; }
+  .scard .label { font-weight: 700; color: #1e40af; font-size: 10.5px; }
+  .scard.amber { border-left-color: #f59e0b; }
+  .scard.amber .label { color: #b45309; }
+  .scard.red { border-left-color: #ef4444; }
+  .scard.red .label { color: #b91c1c; }
+  .scard p { margin: 2px 0 0; color: #374151; }
+
+  /* 最終メッセージ */
+  .quote {
+    background: #fef3c7;
+    border-left: 3px solid #f59e0b;
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 10.5px;
+    line-height: 1.55;
+    color: #78350f;
+    font-style: italic;
+  }
+  .quote .who { display: block; font-style: normal; font-weight: 700; font-size: 10px; color: #b45309; margin-bottom: 2px; letter-spacing: 0.04em; }
+
+  .block { margin-bottom: 10px; }
+  .block:last-child { margin-bottom: 0; }
+  .panel .block h2 { margin-bottom: 7px; }
+  .decisions { gap: 5px; }
+  .decision { padding: 6px 9px; font-size: 10.5px; line-height: 1.5; }
 </style>
 </head>
 <body>
@@ -177,18 +202,51 @@
         </div>
       </div>
       <div class="ref-line">前回議事: <a href="minutes_2026-06-18.html">minutes_2026-06-18.html</a></div>
-    </div>
 
-    <!-- 右: 議事録まとめ（後日追記） -->
-    <div class="panel">
-      <div class="block">
-        <h2>今後のアクションアイテム</h2>
-        <div class="placeholder">（後日追記）</div>
+      <div class="block" style="margin-top:10px;">
+        <h2>決定事項・アクションアイテム</h2>
+        <div class="decisions">
+          <div class="decision"><span class="tag">フロー</span>管理フローの再設計 ─ 着手前にPMと「I／P／O」枠組みを合意する工程を、開発プロセス図の<strong>最前段</strong>に追加。</div>
+          <div class="decision"><span class="tag">権限</span>チェック権限の明文化 ─ フロー図に「誰が作業し、誰が権限を持ってチェックするか」を明示。</div>
+          <div class="decision"><span class="tag">本日中</span>レポート資料のアップデート ─ 指摘事項（大衆心理・アペンディックス活用・目的再定義）を反映し最新版を作成・送付。</div>
+          <div class="decision"><span class="tag">次回</span>定例MTGを 7/2（木）または 7/3（金）の空き時間で設定。</div>
+        </div>
       </div>
 
       <div class="block">
-        <h2>決定事項まとめ</h2>
-        <div class="placeholder">（後日追記）</div>
+        <h2>最終メッセージ</h2>
+        <div class="quote">
+          「現実が起こる前に、頭の中でシミュレーションして成功状態を確立してから現実を回せ。これができるかどうかが、上のランクに行けるかどうかの分水嶺になる」
+        </div>
+      </div>
+    </div>
+
+    <!-- 右: 議事録まとめ -->
+    <div class="panel">
+      <div class="block" style="margin-bottom:0;">
+        <h2>議論サマリ</h2>
+        <div class="summary">
+          <div class="scard amber">
+            <span class="label">進捗（EVM）</span>
+            <p>約0.5日の遅れ。休暇取得に加え、品質管理プロセス構築（エージェント作成）の試行錯誤が要因。来週中に回復見込み。</p>
+          </div>
+          <div class="scard">
+            <span class="label">チェック基準ファースト</span>
+            <p>まず人間が「検査基準（マトリックス）」を策定しAIに組込む。FE／BE／インフラ別に正常系・異常系を定義。<strong>リグレッション・スコープ・エージェント</strong>が、基準・仕様変更・リポジトリ・差分を取り込み、影響範囲／テスト観点／工数を自動出力（PR・チケット文も自動生成）。</p>
+          </div>
+          <div class="scard red">
+            <span class="label">経営からの指摘 ─ 「誰が」チェックするか</span>
+            <p>説明に承認権限の視点が欠落。作業は誰でもよいが、<strong>チェック（承認）は権限を持つ管理職</strong>が行って初めて組織活動として成立する。AIを使う＝能力未知の部下を持つこと。着手前にPMと「I／P／O（インプット・プロセス・アウトプット）」の枠組みを合意することが手戻りを防ぐ唯一の方法。</p>
+          </div>
+          <div class="scard">
+            <span class="label">「世界は2度作る」</span>
+            <p>現実を走る前に頭の中で1回走りきる。着手前の5〜10分の壁打ちで、10件中2件起こる致命的な手戻りを防ぐ。上位ランクの必須スキルとして標準文化に定着させる。</p>
+          </div>
+          <div class="scard">
+            <span class="label">レポート構成（ホワイトボックス化）</span>
+            <p>AIDDの経緯・目的を残す「業務設計の解説書」と定義。読み手（大衆心理）が知りたいこと（どこで失敗するか／どんな手戻りか）を先回り。具体例は頭に準備し質問へ即答できる構えを持つ。</p>
+          </div>
+        </div>
       </div>
     </div>
 
