@@ -732,6 +732,11 @@
   .ministep .ms.off .mst { color: var(--muted); }
   .ministep .msarrow { display: flex; align-items: center; color: var(--key); font-size: 16px; font-weight: 800; padding: 0 8px; }
 
+  /* 使い方ノート */
+  .keystone .usage { margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--key-line); font-size: 14px; color: var(--ink); }
+  .keystone .usage .ut { display: inline-block; font-size: 11px; font-weight: 800; color: #fff; background: var(--key); border-radius: 5px; padding: 1px 9px; margin-right: 10px; letter-spacing: 0.04em; vertical-align: 1px; }
+  .keystone .usage code { font-family: ui-monospace, monospace; background: var(--key-soft); color: var(--key); border: 1px solid var(--key-line); padding: 1px 7px; border-radius: 5px; font-weight: 700; }
+
 </style>
 </head>
 <body>
@@ -752,7 +757,7 @@
         </div>
       </div>
       <div class="slide-kicker">PW / AIDD ｜ regression-scope・pr-writer・ticket-writer</div>
-      <div class="slide-no">1 / 7</div>
+      <div class="slide-no">1 / 8</div>
     </section>
 
     <!-- ============ 2. V字モデル ============ -->
@@ -851,7 +856,7 @@
         </div>
       </div>
       <div class="slide-kicker">これまでのAI駆動開発 ／ 現在の問題点</div>
-      <div class="slide-no">2 / 7</div>
+      <div class="slide-no">2 / 8</div>
     </section>
 
     <!-- ============ 3. 運用（3ステップ） ============ -->
@@ -889,7 +894,7 @@
         </div>
       </div>
       <div class="slide-kicker">運用</div>
-      <div class="slide-no">3 / 7</div>
+      <div class="slide-no">3 / 8</div>
     </section>
 
     <!-- ============ 5. ステップ1 チェック基準マトリクス ============ -->
@@ -932,7 +937,7 @@
         </div>
       </div>
       <div class="slide-kicker">運用 ／ ステップ1</div>
-      <div class="slide-no">4 / 7</div>
+      <div class="slide-no">4 / 8</div>
     </section>
 
     <!-- ============ 6. ステップ2 エージェント連携 ============ -->
@@ -998,10 +1003,13 @@
               </svg>
             </div>
           </div>
+          <div class="usage">
+            <span class="ut">使い方</span>Claude Code に「<code>PRを書いて</code>」「<code>チケットを書いて</code>」と指示するだけでよい。
+          </div>
         </div>
       </div>
       <div class="slide-kicker">運用 ／ ステップ2</div>
-      <div class="slide-no">5 / 7</div>
+      <div class="slide-no">5 / 8</div>
     </section>
 
     <!-- ============ 6. ステップ3 確認・判断 ============ -->
@@ -1039,7 +1047,7 @@
         </div>
       </div>
       <div class="slide-kicker">運用 ／ ステップ3</div>
-      <div class="slide-no">6 / 7</div>
+      <div class="slide-no">6 / 8</div>
     </section>
 
     <!-- ============ 7. 役割分担（RACI） ============ -->
@@ -1062,14 +1070,110 @@
             <tr><td>リリース可否の判断</td><td class="hu">PM / PO / QA</td><td>品質ゲートでの意思決定</td></tr>
           </tbody>
         </table>
-        <div class="keystone" style="margin-top:12px; padding:14px 18px;">
-          <div class="gateline" style="margin-top:0; padding-top:0; border-top:none;">
-            <b>AIと人の境界</b> ―― 3エージェントは「テスト範囲の確定」と「PR文書・チケット要点の作成」まで。実際のテスト実施と<b>最終的なリリース可否の意思決定・取捨選択は PM/PO・QA</b> が行う。AI は抜け漏れと属人性を減らし、人の判断をより確実にする土台。
-          </div>
-        </div>
       </div>
       <div class="slide-kicker">役割分担</div>
-      <div class="slide-no">7 / 7</div>
+      <div class="slide-no">7 / 8</div>
+    </section>
+
+    <!-- ============ 8. まとめ：問題が解決したV字モデル ============ -->
+    <section class="slide">
+      <div class="pad">
+        <h2>まとめ<span class="ttl-dash"></span>問題が解決したV字モデル</h2>
+        <div class="section-sub">AIの出力に<b>チェック基準・影響範囲・要テスト範囲</b>が加わり、品質確認が<b>客観的な根拠</b>を持つようになった。</div>
+        <div class="vmodel">
+          <div class="vmodel-lane-labels">
+            <div class="lane-label design">▼ 設計レーン</div>
+            <div class="lane-label derive">テスト派生</div>
+            <div class="lane-label test">▲ テストレーン</div>
+          </div>
+          <div class="vrow lv1">
+            <div class="phase design dim">
+              <div class="phase-head">
+                <span class="phase-title">① 要件定義 <span class="out-of-scope">対象外</span></span>
+                <span class="phase-stage">Level 1</span>
+              </div>
+            </div>
+            <div class="derive-cell"></div>
+            <div class="phase test dim">
+              <div class="phase-head">
+                <span class="phase-title">⑦ 受入テスト <span class="out-of-scope">対象外</span></span>
+                <span class="phase-stage">Level 1</span>
+              </div>
+            </div>
+          </div>
+          <div class="vrow lv2">
+            <div class="phase design dim">
+              <div class="phase-head">
+                <span class="phase-title">② 基本設計 <span class="out-of-scope">対象外</span></span>
+                <span class="phase-stage">Level 2</span>
+              </div>
+            </div>
+            <div class="derive-cell"></div>
+            <div class="phase test dim">
+              <div class="phase-head">
+                <span class="phase-title">⑥ システムテスト <span class="out-of-scope">対象外</span></span>
+                <span class="phase-stage">Level 2</span>
+              </div>
+            </div>
+          </div>
+          <div class="vrow boundary-row" style="padding: 0 75px; margin-bottom: 10px;">
+            <div class="boundary-line left">
+              <svg class="bl-arrow-input" width="50" height="50" viewBox="0 0 50 50" aria-hidden="true">
+                <polygon points="18,0 32,0 32,30 45,30 25,50 5,30 18,30" fill="#d63a3a"/>
+              </svg>
+              <span class="boundary-label with-inputs">
+                <span class="bl-human">仕様注入</span>
+                <span class="bl-io-label">AIへの入力</span>
+                <span class="bl-inputs">
+                  <span class="bl-badge">spec</span>
+                  <span class="bl-badge">UX</span>
+                  <span class="bl-badge" style="border-style:solid; border-color:#4338ca; color:#4338ca;">チェック基準</span>
+                </span>
+              </span>
+            </div>
+            <div class="derive-cell"></div>
+            <div class="boundary-line right">
+              <span class="boundary-label with-inputs">
+                <span class="bl-io-label">AIからの出力</span>
+                <span class="bl-inputs">
+                  <span class="bl-badge">ソースコード</span>
+                  <span class="bl-badge">テスト実施レポート</span>
+                  <span class="bl-badge" style="border-style:solid; border-color:#4338ca; color:#4338ca;">影響範囲・要テスト範囲</span>
+                </span>
+                <span class="bl-human">基準で客観確認</span>
+                <svg class="bl-arrow-output" width="50" height="50" viewBox="0 0 50 50" aria-hidden="true">
+                  <polygon points="25,0 45,20 32,20 32,50 18,50 18,20 5,20" fill="#2c8a5e"/>
+                </svg>
+              </span>
+            </div>
+          </div>
+          <div class="vrow lv2">
+            <div class="phase apex" style="grid-column: 1 / -1;">
+              <div class="phase-head" style="border-bottom-color: rgba(0,0,0,0.18);">
+                <span class="phase-title" style="color: #1e6042;">③ 詳細設計 ／ ④ 実装 ／ ⑤ 機能テスト</span>
+                <span class="phase-stage">Level 3〜4 / 対象</span>
+              </div>
+              <ul class="apex-bullets">
+                <li class="design"><span class="b-dot"></span><span class="b-task">DBのテーブル設計・更新</span><span class="b-ai">バックエンドAI</span></li>
+                <li class="test"><span class="b-dot"></span><span class="b-task">ユニットテスト設計・実装</span><span class="b-ai">テストAI</span></li>
+                <li class="impl"><span class="b-dot"></span><span class="b-task">CRUD API 実装</span><span class="b-ai">バックエンドAI</span></li>
+                <li class="test"><span class="b-dot"></span><span class="b-task">機能テスト実装</span><span class="b-ai">テストAI</span></li>
+                <li class="impl"><span class="b-dot"></span><span class="b-task">CRUD画面実装</span><span class="b-ai">フロントエンドAI</span></li>
+                <li class="test"><span class="b-dot"></span><span class="b-task">テスト実施</span><span class="b-ai">テストAI</span></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:12px; background:var(--tobe-soft); border:1px solid var(--tobe-line); border-left:4px solid var(--tobe); border-radius:12px; padding:14px 20px; font-size:14px;">
+          <b style="color:var(--tobe);">解決されたこと</b>
+          <ul style="margin:6px 0 0; line-height:1.8;">
+            <li>品質チェックの基準を<b>事前に明文化（チェック基準ファースト）</b>し、AI出力に<b>影響範囲・要テスト範囲</b>が加わった → <b style="color:var(--tobe);">AIの一存でなく、人と同じ観点で確認できる</b>。</li>
+            <li>影響範囲・テスト項目を<b>文書で自動確定</b> → <b style="color:var(--tobe);">属人性が下がり、リリース可能な品質かを客観的に判断できる</b>。</li>
+          </ul>
+        </div>
+      </div>
+      <div class="slide-kicker">まとめ</div>
+      <div class="slide-no">8 / 8</div>
     </section>
 
   </div>
