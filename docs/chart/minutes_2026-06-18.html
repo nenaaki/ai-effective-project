@@ -61,12 +61,25 @@
     font-size: 11px;
     flex-shrink: 0;
   }
+  .item .num.done { background: #10b981; }
   .item .title { font-weight: 600; color: #1f2937; }
   .item .desc { color: #4b5563; margin-top: 2px; font-size: 11.5px; }
 
   .item .badge-todo {
     display: inline-block;
     background: #f59e0b;
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 3px;
+    margin-left: 6px;
+    vertical-align: 1px;
+    letter-spacing: 0.04em;
+  }
+  .item .badge-doing {
+    display: inline-block;
+    background: #10b981;
     color: white;
     font-size: 10px;
     font-weight: 700;
@@ -195,23 +208,23 @@
       <h2>今後のアクションアイテム</h2>
       <div class="items">
         <div class="item">
-          <span class="num">1</span>
+          <span class="num done">1</span>
           <div>
-            <div class="title">正常系の「変更対応プロセス」を定義</div>
+            <div class="title">正常系の「変更管理」「仕様変更」のプロセスを定義<span class="badge-doing">完了</span></div>
             <div class="desc">後からの仕様変更・変更管理・品質チェックの <strong>ノウハウ／手順を明文化</strong>。結果確認に <strong>予防線（チェック基準）</strong> を張る運用にする。記録は自他チームの役に立つ</div>
           </div>
         </div>
         <div class="item">
-          <span class="num">2</span>
+          <span class="num done">2</span>
           <div>
-            <div class="title">影響範囲の「チェック基準」を検討</div>
+            <div class="title">影響範囲の「チェック基準」を検討<span class="badge-doing">完了</span></div>
             <div class="desc">結合テストとは <strong>別建て</strong> で、変更の影響範囲をどう確認するかの基準を設けるか検討する</div>
           </div>
         </div>
         <div class="item">
-          <span class="num">3</span>
+          <span class="num done">3</span>
           <div>
-            <div class="title">変更チェックの具体化を試行<span class="badge-todo">3時間程度</span></div>
+            <div class="title">変更チェックの具体化を試行<span class="badge-todo">3時間程度</span><span class="badge-doing">完了</span></div>
             <div class="desc">変更チェックの具体化をしっかり設け、実際に <strong>やってみる流れ</strong> を組む（まず 3 時間程度を想定）</div>
             <div class="item-detail">
               <div class="head">背景となるリスク認識</div>
@@ -220,9 +233,9 @@
           </div>
         </div>
         <div class="item">
-          <span class="num">4</span>
+          <span class="num done">4</span>
           <div>
-            <div class="title">報告スライドを「森→木→森」構成に修正</div>
+            <div class="title">報告スライドを「森→木→森」構成に修正<span class="badge-doing">完了</span></div>
             <div class="desc">右記の構成方針に沿ってスライドを直し、<strong>骨子を金子さんへ送付</strong>。チェック基準は <strong>置き場所だけ先に決め</strong>、確定後に埋め込む</div>
           </div>
         </div>
