@@ -738,8 +738,7 @@
       <div class="kicker reveal">15 <span class="dim">反対側</span></div>
       <h2 class="reveal">ただし、過剰抽象の罠は増幅する</h2>
       <div class="cards reveal">
-        <div class="item warn"><span class="n">!</span><h4>一瞬でDSLが作れる</h4><p>AIはルールエンジンやDSLを即生成できる。<b>誰も理解していない仕組み</b>が生まれやすい。<br><span style="color:var(--faint)">※ DSL＝独自のルール記法＋解釈器（例: SQL・正規表現）</span></p></div>
-        <div class="item warn"><span class="n">!</span><h4>解釈器がブラックボックス化</h4><p>定義もエンジンもAI製だと中身が不透明。<b>平たい手続きの方が監査しやすい</b>こともある。</p></div>
+        <div class="item warn"><span class="n">!</span><h4>AI製DSLがブラックボックス化</h4><p>AIはDSL/ルールエンジンを即生成できるが、定義もエンジンもAI製だと<b>誰も中身を読めない</b>。平たい手続きの方が監査しやすいことも。<br><span style="color:var(--faint)">※ DSL＝独自のルール記法＋解釈器（例: SQL・正規表現）</span></p></div>
         <div class="item warn"><span class="n">!</span><h4>「間違った抽象」がより重い</h4><p>間違った抽象は無抽象より悪い ― 第1部の警句がAI時代に重みを増す。</p></div>
         <div class="item warn"><span class="n">!</span><h4>修正コストも下がった</h4><p>「直すのが面倒」という抽象化の動機の一部を、AIが消してしまった。</p></div>
       </div>
@@ -800,8 +799,8 @@
   <!-- 19 ROLES + WORKFLOW (merged) -->
   <section class="slide" data-part="3">
     <div class="wrap">
-      <div class="kicker reveal">19 <span class="dim">全体像 · ワークフロー</span></div>
-      <h2 class="reveal">三者で分業し、1サイクルで回す</h2>
+      <div class="kicker reveal">19 <span class="dim">ワークフロー</span></div>
+      <h2 class="reveal">1サイクルの回し方</h2>
       <div class="loop reveal">
         <div class="lstep lstep--def"><div class="lt">人 ▸ 定義を更新</div><div class="ld">仕様・型・表を書き、所有する</div></div>
         <div class="larrow"><small>生成</small>›</div>
@@ -812,7 +811,7 @@
         <div class="lstep lstep--def"><div class="lt">人 ▸ レビュー</div><div class="ld">見るのは「定義の差分」</div></div>
       </div>
       <div class="loop-note reveal">↻ 検査が通るまではAIが自律的に反復 ― 人手が入るのは両端（定義とレビュー）だけ</div>
-      <p class="caption reveal"><b>人＝定義</b>（所有・レビュー）／<b>AI＝手続き</b>（再生成可能な使い捨て）／<b>機械＝検査</b>（違反を機械的に弾く）。レビューの重心も「手続きの差分」から<b>「定義の差分」</b>へ移る。<br>この<b>役割の境界が崩れる</b>と問題が起きる ― 人が生成コードに手を入れ再生成不能にする／定義をAIに丸投げする／検査なしで生成を信じる。</p>
+      <p class="caption reveal">人手が入るのは<b>定義とレビューの両端だけ</b>。生成コードは直接いじらず（再生成できなくなる）、直すときは必ず<b>定義側を直して回し直す</b>。なぜこの分担になるかは第2部（境界）を参照。</p>
     </div>
   </section>
 
@@ -866,27 +865,19 @@
   <!-- 25 THE BOUNDARY -->
   <section class="slide" data-part="3">
     <div class="wrap">
-      <div class="kicker reveal">23 <span class="dim">境界の引き方</span></div>
-      <h2 class="reveal">何を定義にし、何を手続きに捨てるか</h2>
-      <div class="concept reveal">
-        <div class="ccard ccard--def">
-          <h3>定義にする</h3>
-          <ul>
-            <li>それが<b>仕様変更の「軸」そのもの</b>である</li>
-            <li>同じ形の分岐が<b>3度</b>現れた</li>
-            <li>仕様書に<b>表として</b>書ける構造をしている</li>
-          </ul>
-        </div>
-        <div class="ccard ccard--proc">
-          <h3>手続きでよい</h3>
-          <ul>
-            <li>いま2個で、<b>今後も変わらない</b>分岐</li>
-            <li>その分岐は<b>仕様の軸ではない</b></li>
-            <li>解釈器を作るほうが<b>高くつく</b>（YAGNI）</li>
-          </ul>
-        </div>
+      <div class="kicker reveal">23 <span class="dim">境界の引き方 · 第2部を実務へ</span></div>
+      <h2 class="reveal">その境界は、3つの質問で引く</h2>
+      <p class="lead reveal" style="margin-bottom:clamp(14px,2vw,20px)">第2部の境界（<b>定義＝耐久資産 / 手続き＝使い捨て</b>）を、目の前のコードに当てて判定する。</p>
+      <div class="cards reveal">
+        <div class="item"><span class="n">Q1</span><h4>仕様変更の「軸」か？</h4><p>よく変わる<b>中心のロジック</b>か。たまにしか触らないなら No。</p></div>
+        <div class="item"><span class="n">Q2</span><h4>同じ形が3度現れたか？</h4><p>1〜2回ならまだ<b>待つ</b>。3度目で初めて切り出す。</p></div>
+        <div class="item"><span class="n">Q3</span><h4>表・スキーマで書けるか？</h4><p><b>データとして外に出せる</b>構造か。手順そのものなら No。</p></div>
       </div>
-      <p class="caption reveal">AIは“安いから作れてしまう”。だから境界は <b>YAGNI 寄りに引く</b>。変わる軸にだけ定義を置き、変わらない所は素直な手続きでAIに再生成させる。</p>
+      <div class="grid2 reveal" style="margin-top:clamp(12px,1.8vw,18px)">
+        <div class="panel panel--def" style="flex-direction:row;align-items:baseline;flex-wrap:wrap;gap:4px 12px;padding:13px 18px"><b class="def-c">すべて Yes → 定義にする</b><span style="color:var(--muted);font-size:13px">人が所有し、型・表で固定</span></div>
+        <div class="panel panel--proc" style="flex-direction:row;align-items:baseline;flex-wrap:wrap;gap:4px 12px;padding:13px 18px"><b class="proc-c">ひとつでも No → 手続きでよい</b><span style="color:var(--muted);font-size:13px">AIに素直に書かせ、変わったら再生成</span></div>
+      </div>
+      <p class="caption reveal">迷ったら<b>手続き側に倒す</b> ― AIが安く再生成できるので、必要になってから定義へ昇格すればよい。</p>
     </div>
   </section>
 
@@ -924,8 +915,8 @@
   <section class="slide" data-part="3">
     <div class="wrap" style="text-align:center">
       <div class="kicker reveal" style="justify-content:center">26 <span class="dim">まとめ</span></div>
-      <div class="pull pull--center reveal"><span class="def-c">定義</span>は人が書き、<span class="proc-c">手続き</span>はAIが書き、<br>機械が検査する。</div>
-      <p class="lead reveal" style="margin:clamp(22px,3vw,32px) auto 0;text-align:center">三部の結論 ― コードを<strong>仕様の写像</strong>に保ち、手続きはAIに任せ、人は<strong>定義に集中する</strong>。これを回せるチームになる。</p>
+      <div class="pull pull--center reveal">あとは、<span class="def-c">小さく回す</span>だけ。</div>
+      <p class="lead reveal" style="margin:clamp(22px,3vw,32px) auto 0;text-align:center"><strong>定義 → AIが実装 → 機械が検査 → 定義をレビュー</strong>。<br>まず1モジュールで、この1サイクルを回し、<strong>回り方を体に入れる</strong>。</p>
       <div class="title-rule reveal" style="margin-left:auto;margin-right:auto;margin-top:clamp(26px,4vw,40px)"></div>
       <div class="title-hint reveal" style="text-align:center">第1部・第2部・第3部 おわり &nbsp;—&nbsp; さあ、実装へ</div>
     </div>
