@@ -3,279 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>定義を実装する ― 全3部</title>
+<title>手続きではなく定義を実装する ― 全3部</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-
-  :root{
-    --ink:#0E1117;
-    --panel:#161C28;
-    --panel-2:#1B2230;
-    --line:#2A3242;
-    --paper:#E8EBF2;
-    --muted:#8A93A8;
-    --faint:#5C667C;
-
-    --def:#6FB1FC;            /* 定義 / 宣言的 = 澄んだ青（主役・正） */
-    --def-dim:rgba(111,177,252,.13);
-    --def-line:rgba(111,177,252,.38);
-
-    --proc:#D6A86A;           /* 手続き / 命令的 = くすんだ黄土（レガシー手順書） */
-    --proc-dim:rgba(214,168,106,.12);
-    --proc-line:rgba(214,168,106,.36);
-
-    --danger:#E0796F;
-
-    /* code syntax */
-    --t-cm:#646E84;
-    --t-kw:#8FA6CE;
-    --t-st:#A6C58C;
-    --t-nm:#D9B57A;
-    --t-fn:#7FB6F2;
-    --t-tx:#C6CDDC;
-
-    --jp:"Zen Kaku Gothic New", system-ui, -apple-system, "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
-    --dp:"Space Grotesk", var(--jp);
-    --mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
-  }
-
-  *{box-sizing:border-box;}
-  html,body{height:100%;}
-  body{
-    margin:0;
-    background:
-      radial-gradient(1200px 700px at 80% -10%, rgba(111,177,252,.07), transparent 60%),
-      radial-gradient(900px 600px at -5% 110%, rgba(214,168,106,.05), transparent 55%),
-      var(--ink);
-    color:var(--paper);
-    font-family:var(--jp);
-    -webkit-font-smoothing:antialiased;
-    overflow:hidden;
-  }
-
-  /* ---------- deck frame ---------- */
-  .deck{position:fixed;inset:0;}
-  .slide{
-    position:absolute;inset:0;
-    display:flex;flex-direction:column;justify-content:center;
-    padding:clamp(28px,5vw,84px);
-    opacity:0;visibility:hidden;
-    transform:translateY(14px);
-    transition:opacity .5s ease, transform .5s ease, visibility .5s;
-    overflow-y:auto;
-  }
-  .slide.is-active{opacity:1;visibility:visible;transform:none;}
-  .wrap{width:100%;max-width:1080px;margin:0 auto;}
-
-  /* staggered children reveal */
-  .slide.is-active .reveal{animation:rise .55s cubic-bezier(.2,.7,.2,1) both;}
-  .slide.is-active .reveal:nth-child(2){animation-delay:.06s;}
-  .slide.is-active .reveal:nth-child(3){animation-delay:.12s;}
-  .slide.is-active .reveal:nth-child(4){animation-delay:.18s;}
-  .slide.is-active .reveal:nth-child(5){animation-delay:.24s;}
-  @keyframes rise{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:none;}}
-
-  /* ---------- typography ---------- */
-  .kicker{
-    font-family:var(--dp);
-    font-size:clamp(11px,1.1vw,13.5px);
-    letter-spacing:.22em;text-transform:uppercase;
-    color:var(--def);
-    display:flex;align-items:center;gap:.7em;
-    margin-bottom:clamp(16px,2.4vw,30px);
-  }
-  .kicker::before{content:"";width:30px;height:1px;background:var(--def-line);}
-  .kicker .dim{color:var(--muted);letter-spacing:.16em;}
-
-  h1{
-    font-family:var(--jp);font-weight:900;
-    font-size:clamp(34px,6.6vw,80px);
-    line-height:1.08;letter-spacing:-.01em;margin:0;
-  }
-  h2{
-    font-family:var(--jp);font-weight:900;
-    font-size:clamp(26px,4.4vw,52px);
-    line-height:1.16;letter-spacing:-.01em;margin:0 0 .55em;
-  }
-  .lead{
-    font-size:clamp(15px,1.9vw,21px);
-    line-height:1.85;color:#C2C9D8;font-weight:400;
-    max-width:60ch;
-  }
-  .lead strong{color:var(--paper);font-weight:700;}
-  .def-c{color:var(--def);}
-  .proc-c{color:var(--proc);}
-
-  .caption{
-    margin-top:clamp(16px,2.2vw,26px);
-    font-size:clamp(13px,1.5vw,16px);line-height:1.8;color:var(--muted);
-    max-width:74ch;
-  }
-  .caption b{color:#CDD4E2;font-weight:700;}
-
-  /* ---------- title slide ---------- */
-  .title-eyebrow{
-    font-family:var(--dp);letter-spacing:.3em;text-transform:uppercase;
-    color:var(--muted);font-size:clamp(11px,1.1vw,13px);margin-bottom:clamp(24px,4vw,44px);
-  }
-  .title-main{font-weight:900;font-size:clamp(40px,9vw,108px);line-height:1.02;letter-spacing:-.02em;}
-  .title-main .small{font-size:.52em;font-weight:700;color:var(--proc);}
-  .title-sub{
-    margin-top:clamp(22px,3vw,34px);
-    font-size:clamp(16px,2.4vw,26px);color:#C2C9D8;font-weight:500;letter-spacing:.01em;
-  }
-  .title-rule{width:64px;height:2px;background:var(--def);margin:clamp(26px,4vw,40px) 0 clamp(14px,2vw,20px);}
-  .title-hint{font-family:var(--mono);font-size:13px;color:var(--faint);letter-spacing:.02em;}
-  .title-hint kbd{
-    font-family:var(--mono);color:var(--def);background:var(--def-dim);
-    border:1px solid var(--def-line);border-radius:5px;padding:1px 7px;font-size:12px;
-  }
-
-  /* ---------- panels (手続き / 定義 diptych) ---------- */
-  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:clamp(14px,1.8vw,22px);align-items:stretch;}
-  .panel{
-    background:var(--panel);
-    border:1px solid var(--line);border-radius:14px;
-    padding:clamp(14px,1.6vw,20px);
-    display:flex;flex-direction:column;min-width:0;
-  }
-  .panel--proc{border-color:var(--proc-line);background:linear-gradient(180deg,var(--proc-dim),transparent 42%),var(--panel);}
-  .panel--def{border-color:var(--def-line);background:linear-gradient(180deg,var(--def-dim),transparent 42%),var(--panel);}
-  .panel__tag{
-    display:inline-flex;align-items:center;gap:.5em;align-self:flex-start;
-    font-family:var(--dp);font-weight:700;font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;
-    padding:5px 11px;border-radius:999px;margin-bottom:12px;
-  }
-  .panel--proc .panel__tag{color:var(--proc);background:var(--proc-dim);border:1px solid var(--proc-line);}
-  .panel--def .panel__tag{color:var(--def);background:var(--def-dim);border:1px solid var(--def-line);}
-  .panel__tag .jp{font-family:var(--jp);letter-spacing:.04em;text-transform:none;font-size:13.5px;}
-  .panel__foot{
-    margin-top:auto;padding-top:12px;
-    font-size:12.5px;line-height:1.65;color:var(--muted);
-  }
-  .badge{
-    display:inline-block;font-family:var(--mono);font-size:11.5px;font-weight:700;
-    padding:3px 9px;border-radius:6px;margin-top:10px;letter-spacing:.01em;
-  }
-  .badge--bad{color:var(--danger);background:rgba(224,121,111,.12);border:1px solid rgba(224,121,111,.34);}
-  .badge--good{color:var(--def);background:var(--def-dim);border:1px solid var(--def-line);}
-
-  /* ---------- code ---------- */
-  .code{
-    font-family:var(--mono);
-    font-size:clamp(11.5px,1.18vw,14px);
-    line-height:1.62;color:var(--t-tx);
-    white-space:normal;overflow-x:auto;
-    background:rgba(8,11,17,.55);
-    border:1px solid var(--line);border-radius:10px;
-    padding:14px 16px;
-  }
-  .panel .code{background:rgba(8,11,17,.5);}
-  .ln{display:block;white-space:pre;min-height:1.62em;}
-  .ln.is-changed{
-    background:var(--def-dim);
-    box-shadow:inset 3px 0 0 var(--def);
-    border-radius:0 4px 4px 0;
-    margin:0 -16px;padding:0 16px 0 13px;
-  }
-  .panel--proc .ln.is-changed{background:rgba(224,121,111,.13);box-shadow:inset 3px 0 0 var(--danger);}
-  .slide.is-active .ln.is-changed{animation:flash 1.1s ease 1;}
-  @keyframes flash{0%{background:transparent;}30%{background:rgba(111,177,252,.3);}100%{}}
-
-  .t-cm{color:var(--t-cm);font-style:italic;}
-  .t-kw{color:var(--t-kw);}
-  .t-st{color:var(--t-st);}
-  .t-nm{color:var(--t-nm);}
-  .t-fn{color:var(--t-fn);}
-
-  /* ---------- generic cards / concept ---------- */
-  .concept{display:grid;grid-template-columns:1fr 1fr;gap:clamp(14px,1.8vw,22px);margin-top:6px;}
-  .ccard{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:clamp(18px,2.2vw,26px);}
-  .ccard--proc{border-color:var(--proc-line);}
-  .ccard--def{border-color:var(--def-line);}
-  .ccard h3{margin:0 0 .5em;font-size:clamp(18px,2.2vw,24px);font-weight:900;}
-  .ccard--proc h3{color:var(--proc);}
-  .ccard--def h3{color:var(--def);}
-  .ccard .how{font-family:var(--dp);font-size:12px;letter-spacing:.18em;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:14px;}
-  .ccard p{margin:0;font-size:clamp(13.5px,1.5vw,16px);line-height:1.8;color:#C2C9D8;}
-  .ccard code{font-family:var(--mono);font-size:.92em;color:var(--paper);background:rgba(255,255,255,.05);padding:1px 5px;border-radius:4px;}
-
-  /* formula slide */
-  .formula{
-    font-family:var(--dp);font-weight:700;
-    font-size:clamp(30px,6.4vw,68px);
-    text-align:center;letter-spacing:-.01em;
-    margin:clamp(20px,3.5vw,40px) 0;
-  }
-  .formula .d{color:var(--def);}
-  .formula .p{color:var(--proc);}
-  .formula .op{color:var(--muted);margin:0 .25em;}
-
-  .pull{
-    border-left:3px solid var(--def);
-    padding:6px 0 6px 20px;margin-top:clamp(18px,2.6vw,28px);
-    font-size:clamp(16px,2vw,22px);line-height:1.7;color:var(--paper);font-weight:500;
-    max-width:62ch;
-  }
-  .pull--center{border:0;text-align:center;padding:0;font-weight:900;font-size:clamp(24px,4.4vw,46px);line-height:1.3;}
-
-  /* list cards */
-  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:clamp(12px,1.4vw,18px);margin-top:8px;}
-  .item{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:clamp(15px,1.8vw,20px);}
-  .item .n{font-family:var(--dp);font-weight:700;font-size:13px;color:var(--def);letter-spacing:.06em;}
-  .item h4{margin:.35em 0 .45em;font-size:clamp(15px,1.7vw,18px);font-weight:700;}
-  .item p{margin:0;font-size:clamp(12.5px,1.4vw,14.5px);line-height:1.7;color:var(--muted);}
-  .item p code{font-family:var(--mono);color:#B9C3D6;font-size:.92em;}
-
-  /* checklist */
-  .check{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:clamp(10px,1.2vw,14px);}
-  .check li{
-    display:flex;gap:14px;align-items:flex-start;
-    background:var(--panel);border:1px solid var(--line);border-radius:11px;
-    padding:clamp(13px,1.5vw,17px) clamp(15px,1.7vw,20px);
-    font-size:clamp(13.5px,1.55vw,17px);line-height:1.6;color:#CDD4E2;
-  }
-  .check .box{flex:none;width:20px;height:20px;border:2px solid var(--def-line);border-radius:5px;margin-top:2px;}
-  .check b{color:#fff;font-weight:700;}
-
-  /* ---------- chrome (header/footer) ---------- */
-  .chrome{position:fixed;left:0;right:0;z-index:20;pointer-events:none;}
-  .chrome.top{top:0;display:flex;justify-content:space-between;align-items:center;padding:clamp(16px,2.2vw,26px) clamp(20px,3.5vw,40px);}
-  .mark{font-family:var(--dp);font-weight:700;font-size:13px;letter-spacing:.04em;color:var(--muted);}
-  .mark b{color:var(--def);}
-  .counter{font-family:var(--mono);font-size:13px;color:var(--muted);letter-spacing:.05em;}
-  .counter b{color:var(--paper);}
-
-  .progress{position:fixed;left:0;bottom:0;height:3px;background:var(--def);width:0;z-index:21;transition:width .4s cubic-bezier(.3,.7,.2,1);box-shadow:0 0 14px rgba(111,177,252,.5);}
-
-  .nav{position:fixed;right:clamp(18px,3vw,32px);bottom:clamp(20px,3vw,30px);z-index:22;display:flex;gap:10px;}
-  .nav button{
-    pointer-events:auto;cursor:pointer;
-    width:42px;height:42px;border-radius:50%;
-    background:var(--panel-2);border:1px solid var(--line);color:var(--paper);
-    font-size:17px;display:grid;place-items:center;transition:.18s;
-  }
-  .nav button:hover{border-color:var(--def-line);color:var(--def);background:var(--panel);}
-  .nav button:focus-visible{outline:2px solid var(--def);outline-offset:2px;}
-  .nav button:disabled{opacity:.3;cursor:default;}
-
-  .dots{position:fixed;left:50%;transform:translateX(-50%);bottom:clamp(18px,2.6vw,26px);z-index:22;display:flex;gap:8px;pointer-events:auto;}
-  .dots button{width:8px;height:8px;border-radius:50%;border:0;padding:0;cursor:pointer;background:var(--line);transition:.2s;}
-  .dots button.on{background:var(--def);width:22px;border-radius:5px;}
-  .dots button:focus-visible{outline:2px solid var(--def);outline-offset:2px;}
-
-  @media (max-width:760px){
-    .grid2,.concept{grid-template-columns:1fr;}
-    .dots{display:none;}
-    .slide{padding-top:64px;padding-bottom:74px;}
-  }
-  @media (prefers-reduced-motion:reduce){
-    *{animation:none !important;transition:opacity .2s linear !important;}
-    .slide{transform:none;}
-  }
-
 
   :root{
     --ink:#0E1117; --panel:#161C28; --panel-2:#1B2230; --line:#2A3242;
@@ -299,6 +31,7 @@
     color:var(--paper);font-family:var(--jp);-webkit-font-smoothing:antialiased;overflow:hidden;
   }
 
+  /* ---------- deck frame ---------- */
   .deck{position:fixed;inset:0;}
   .slide{
     position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;
@@ -314,30 +47,30 @@
   .slide.is-active .reveal:nth-child(5){animation-delay:.24s;}
   @keyframes rise{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:none;}}
 
-  .kicker{
-    font-family:var(--dp);font-size:clamp(11px,1.1vw,13.5px);
-    letter-spacing:.22em;text-transform:uppercase;color:var(--def);
-    display:flex;align-items:center;gap:.7em;margin-bottom:clamp(16px,2.4vw,30px);
-  }
+  /* ---------- typography ---------- */
+  .kicker{font-family:var(--dp);font-size:clamp(11px,1.1vw,13.5px);letter-spacing:.22em;text-transform:uppercase;color:var(--def);display:flex;align-items:center;gap:.7em;margin-bottom:clamp(16px,2.4vw,30px);}
   .kicker::before{content:"";width:30px;height:1px;background:var(--def-line);}
   .kicker .dim{color:var(--muted);letter-spacing:.16em;}
-
   h1{font-family:var(--jp);font-weight:900;font-size:clamp(34px,6.6vw,80px);line-height:1.08;letter-spacing:-.01em;margin:0;}
   h2{font-family:var(--jp);font-weight:900;font-size:clamp(26px,4.4vw,52px);line-height:1.16;letter-spacing:-.01em;margin:0 0 .55em;}
   .lead{font-size:clamp(15px,1.9vw,21px);line-height:1.85;color:#C2C9D8;font-weight:400;max-width:62ch;}
   .lead strong{color:var(--paper);font-weight:700;}
   .def-c{color:var(--def);} .proc-c{color:var(--proc);}
-  .caption{margin-top:clamp(16px,2.2vw,26px);font-size:clamp(13px,1.5vw,16px);line-height:1.8;color:var(--muted);max-width:76ch;}
+  .caption{margin-top:clamp(16px,2.2vw,26px);font-size:clamp(13px,1.5vw,16px);line-height:1.8;color:var(--muted);max-width:78ch;}
   .caption b{color:#CDD4E2;font-weight:700;}
+  .caption code{font-family:var(--mono);font-size:.9em;color:#B9C3D6;}
 
+  /* ---------- title slide ---------- */
   .title-eyebrow{font-family:var(--dp);letter-spacing:.3em;text-transform:uppercase;color:var(--muted);font-size:clamp(11px,1.1vw,13px);margin-bottom:clamp(24px,4vw,44px);}
   .title-eyebrow b{color:var(--def);}
-  .title-main{font-weight:900;font-size:clamp(36px,8vw,96px);line-height:1.04;letter-spacing:-.02em;}
+  .title-main{font-weight:900;font-size:clamp(38px,8.4vw,100px);line-height:1.04;letter-spacing:-.02em;}
+  .title-main .small{font-size:.52em;font-weight:700;color:var(--proc);}
   .title-sub{margin-top:clamp(22px,3vw,34px);font-size:clamp(16px,2.4vw,26px);color:#C2C9D8;font-weight:500;letter-spacing:.01em;}
   .title-rule{width:64px;height:2px;background:var(--def);margin:clamp(26px,4vw,40px) 0 clamp(14px,2vw,20px);}
   .title-hint{font-family:var(--mono);font-size:13px;color:var(--faint);letter-spacing:.02em;}
   .title-hint kbd{font-family:var(--mono);color:var(--def);background:var(--def-dim);border:1px solid var(--def-line);border-radius:5px;padding:1px 7px;font-size:12px;}
 
+  /* ---------- panels (手続き / 定義 diptych) ---------- */
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:clamp(14px,1.8vw,22px);align-items:stretch;}
   .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:clamp(14px,1.6vw,20px);display:flex;flex-direction:column;min-width:0;}
   .panel--proc{border-color:var(--proc-line);background:linear-gradient(180deg,var(--proc-dim),transparent 42%),var(--panel);}
@@ -352,6 +85,7 @@
   .badge--bad{color:var(--danger);background:rgba(224,121,111,.12);border:1px solid rgba(224,121,111,.34);}
   .badge--good{color:var(--def);background:var(--def-dim);border:1px solid var(--def-line);}
 
+  /* ---------- code ---------- */
   .code{font-family:var(--mono);font-size:clamp(11.5px,1.18vw,14px);line-height:1.62;color:var(--t-tx);white-space:normal;overflow-x:auto;background:rgba(8,11,17,.55);border:1px solid var(--line);border-radius:10px;padding:14px 16px;}
   .panel .code{background:rgba(8,11,17,.5);}
   .ln{display:block;white-space:pre;min-height:1.62em;}
@@ -361,152 +95,30 @@
   @keyframes flash{0%{background:transparent;}30%{background:rgba(111,177,252,.3);}100%{}}
   .t-cm{color:var(--t-cm);font-style:italic;} .t-kw{color:var(--t-kw);} .t-st{color:var(--t-st);} .t-nm{color:var(--t-nm);} .t-fn{color:var(--t-fn);}
 
+  /* ---------- concept / cards ---------- */
   .concept{display:grid;grid-template-columns:1fr 1fr;gap:clamp(14px,1.8vw,22px);margin-top:6px;}
   .ccard{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:clamp(18px,2.2vw,26px);}
   .ccard--proc{border-color:var(--proc-line);} .ccard--def{border-color:var(--def-line);}
-  .ccard h3{margin:0 0 .5em;font-size:clamp(18px,2.2vw,24px);font-weight:900;}
+  .ccard h3{margin:0 0 .6em;font-size:clamp(18px,2.2vw,24px);font-weight:900;}
   .ccard--proc h3{color:var(--proc);} .ccard--def h3{color:var(--def);}
   .ccard .how{font-family:var(--dp);font-size:12px;letter-spacing:.18em;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:14px;}
   .ccard p{margin:0;font-size:clamp(13.5px,1.5vw,16px);line-height:1.8;color:#C2C9D8;}
   .ccard p + p{margin-top:.8em;}
   .ccard p b{color:#fff;font-weight:700;}
   .ccard code{font-family:var(--mono);font-size:.9em;color:#B9C3D6;background:rgba(255,255,255,.05);padding:1px 6px;border-radius:5px;display:inline-block;margin-top:8px;}
+  .ccard ul{margin:0;padding-left:1.1em;}
+  .ccard li{font-size:clamp(13px,1.5vw,15.5px);line-height:1.85;color:#C2C9D8;}
+  .ccard li b{color:#fff;}
 
+  /* ---------- formula ---------- */
+  .formula{font-family:var(--dp);font-weight:700;font-size:clamp(30px,6.4vw,68px);text-align:center;letter-spacing:-.01em;margin:clamp(20px,3.5vw,40px) 0;}
+  .formula .d{color:var(--def);} .formula .p{color:var(--proc);} .formula .op{color:var(--muted);margin:0 .25em;}
+
+  /* ---------- pull quote ---------- */
   .pull{border-left:3px solid var(--def);padding:6px 0 6px 20px;margin-top:clamp(18px,2.6vw,28px);font-size:clamp(16px,2vw,22px);line-height:1.7;color:var(--paper);font-weight:500;max-width:64ch;}
   .pull--center{border:0;text-align:center;padding:0;font-weight:900;font-size:clamp(24px,4.4vw,46px);line-height:1.3;}
 
-  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:clamp(12px,1.4vw,18px);margin-top:8px;}
-  .item{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:clamp(15px,1.8vw,20px);}
-  .item .n{font-family:var(--dp);font-weight:700;font-size:13px;color:var(--def);letter-spacing:.06em;}
-  .item.warn .n{color:var(--proc);}
-  .item h4{margin:.35em 0 .45em;font-size:clamp(15px,1.7vw,18px);font-weight:700;}
-  .item p{margin:0;font-size:clamp(12.5px,1.4vw,14.5px);line-height:1.7;color:var(--muted);}
-  .item p b{color:#cdd4e2;}
-  .item p code{font-family:var(--mono);color:#B9C3D6;font-size:.92em;}
-
-  /* ---- Part 2 new components ---- */
-  .bars{display:grid;gap:clamp(16px,2.4vw,26px);margin-top:8px;}
-  .bar-row .rl{font-family:var(--dp);font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:9px;}
-  .track{display:flex;gap:8px;height:clamp(46px,6vw,58px);}
-  .seg{display:flex;align-items:center;justify-content:center;border-radius:9px;font-size:clamp(11.5px,1.35vw,14.5px);font-weight:700;padding:0 8px;border:1px solid;white-space:nowrap;overflow:hidden;}
-  .seg--w{color:var(--proc);background:var(--proc-dim);border-color:var(--proc-line);}
-  .seg--d{color:var(--def);background:var(--def-dim);border-color:var(--def-line);}
-
-  .loop{display:flex;align-items:stretch;gap:8px;flex-wrap:wrap;margin-top:6px;}
-  .lstep{flex:1;min-width:140px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:clamp(13px,1.6vw,18px);text-align:center;}
-  .lstep--def{border-color:var(--def-line);background:linear-gradient(180deg,var(--def-dim),transparent 60%),var(--panel);}
-  .lstep--bad{border-color:rgba(224,121,111,.34);background:linear-gradient(180deg,rgba(224,121,111,.1),transparent 60%),var(--panel);}
-  .lstep .lt{font-weight:700;font-size:clamp(14px,1.6vw,17px);}
-  .lstep--def .lt{color:var(--def);} .lstep--bad .lt{color:var(--danger);}
-  .lstep .ld{color:var(--muted);font-size:12px;line-height:1.55;margin-top:6px;}
-  .larrow{align-self:center;color:var(--def);font-family:var(--mono);font-size:18px;display:flex;flex-direction:column;align-items:center;line-height:1;}
-  .larrow small{font-family:var(--jp);font-size:10px;color:var(--muted);margin-bottom:3px;letter-spacing:.04em;}
-  .loop-note{margin-top:16px;font-family:var(--dp);font-size:13px;letter-spacing:.06em;color:var(--def);}
-
-  .core-outer{position:relative;border:2px solid var(--proc-line);border-radius:18px;background:var(--proc-dim);padding:clamp(20px,3vw,34px);margin-top:8px;}
-  .core-lbl{font-family:var(--dp);font-weight:700;font-size:clamp(12px,1.4vw,15px);letter-spacing:.06em;}
-  .core-outer > .core-lbl{color:var(--proc);}
-  .core-lbl .sub{display:block;font-family:var(--jp);font-weight:500;color:var(--muted);letter-spacing:.02em;font-size:.82em;margin-top:5px;}
-  .core-inner{border:2px solid var(--def-line);border-radius:14px;background:linear-gradient(180deg,var(--def-dim),rgba(8,11,17,.3));padding:clamp(18px,2.4vw,28px);margin-top:clamp(14px,2vw,20px);text-align:center;}
-  .core-inner > .core-lbl{color:var(--def);}
-  .core-items{margin-top:14px;display:flex;flex-wrap:wrap;gap:9px;justify-content:center;}
-  .core-items span{font-family:var(--mono);font-size:clamp(11.5px,1.3vw,13.5px);color:#CDD4E2;background:rgba(8,11,17,.45);border:1px solid var(--def-line);border-radius:8px;padding:6px 12px;}
-
-  .chrome{position:fixed;left:0;right:0;z-index:20;pointer-events:none;}
-  .chrome.top{top:0;display:flex;justify-content:space-between;align-items:center;padding:clamp(16px,2.2vw,26px) clamp(20px,3.5vw,40px);}
-  .mark{font-family:var(--dp);font-weight:700;font-size:13px;letter-spacing:.04em;color:var(--muted);}
-  .mark b{color:var(--def);} .mark .pt{color:var(--proc);}
-  .counter{font-family:var(--mono);font-size:13px;color:var(--muted);letter-spacing:.05em;}
-  .counter b{color:var(--paper);}
-  .progress{position:fixed;left:0;bottom:0;height:3px;background:var(--def);width:0;z-index:21;transition:width .4s cubic-bezier(.3,.7,.2,1);box-shadow:0 0 14px rgba(111,177,252,.5);}
-  .nav{position:fixed;right:clamp(18px,3vw,32px);bottom:clamp(20px,3vw,30px);z-index:22;display:flex;gap:10px;}
-  .nav button{pointer-events:auto;cursor:pointer;width:42px;height:42px;border-radius:50%;background:var(--panel-2);border:1px solid var(--line);color:var(--paper);font-size:17px;display:grid;place-items:center;transition:.18s;}
-  .nav button:hover{border-color:var(--def-line);color:var(--def);background:var(--panel);}
-  .nav button:focus-visible{outline:2px solid var(--def);outline-offset:2px;}
-  .nav button:disabled{opacity:.3;cursor:default;}
-  .dots{position:fixed;left:50%;transform:translateX(-50%);bottom:clamp(18px,2.6vw,26px);z-index:22;display:flex;gap:8px;pointer-events:auto;}
-  .dots button{width:8px;height:8px;border-radius:50%;border:0;padding:0;cursor:pointer;background:var(--line);transition:.2s;}
-  .dots button.on{background:var(--def);width:22px;border-radius:5px;}
-  .dots button:focus-visible{outline:2px solid var(--def);outline-offset:2px;}
-
-  @media (max-width:760px){
-    .grid2,.concept{grid-template-columns:1fr;}
-    .dots{display:none;}
-    .slide{padding-top:64px;padding-bottom:74px;}
-    .larrow{transform:rotate(90deg);}
-  }
-  @media (prefers-reduced-motion:reduce){
-    *{animation:none !important;transition:opacity .2s linear !important;}
-    .slide{transform:none;}
-  }
-
-
-  :root{
-    --ink:#0E1117; --panel:#161C28; --panel-2:#1B2230; --line:#2A3242;
-    --paper:#E8EBF2; --muted:#8A93A8; --faint:#5C667C;
-    --def:#6FB1FC; --def-dim:rgba(111,177,252,.13); --def-line:rgba(111,177,252,.38);
-    --proc:#D6A86A; --proc-dim:rgba(214,168,106,.12); --proc-line:rgba(214,168,106,.36);
-    --danger:#E0796F;
-    --t-cm:#646E84; --t-kw:#8FA6CE; --t-st:#A6C58C; --t-nm:#D9B57A; --t-fn:#7FB6F2; --t-tx:#C6CDDC;
-    --jp:"Zen Kaku Gothic New", system-ui, -apple-system, "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
-    --dp:"Space Grotesk", var(--jp);
-    --mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
-  }
-  *{box-sizing:border-box;}
-  html,body{height:100%;}
-  body{
-    margin:0;
-    background:
-      radial-gradient(1200px 700px at 80% -10%, rgba(111,177,252,.07), transparent 60%),
-      radial-gradient(900px 600px at -5% 110%, rgba(214,168,106,.05), transparent 55%),
-      var(--ink);
-    color:var(--paper);font-family:var(--jp);-webkit-font-smoothing:antialiased;overflow:hidden;
-  }
-
-  .deck{position:fixed;inset:0;}
-  .slide{
-    position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;
-    padding:clamp(28px,5vw,84px);opacity:0;visibility:hidden;transform:translateY(14px);
-    transition:opacity .5s ease, transform .5s ease, visibility .5s;overflow-y:auto;
-  }
-  .slide.is-active{opacity:1;visibility:visible;transform:none;}
-  .wrap{width:100%;max-width:1080px;margin:0 auto;}
-  .slide.is-active .reveal{animation:rise .55s cubic-bezier(.2,.7,.2,1) both;}
-  .slide.is-active .reveal:nth-child(2){animation-delay:.06s;}
-  .slide.is-active .reveal:nth-child(3){animation-delay:.12s;}
-  .slide.is-active .reveal:nth-child(4){animation-delay:.18s;}
-  .slide.is-active .reveal:nth-child(5){animation-delay:.24s;}
-  @keyframes rise{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:none;}}
-
-  .kicker{
-    font-family:var(--dp);font-size:clamp(11px,1.1vw,13.5px);
-    letter-spacing:.22em;text-transform:uppercase;color:var(--def);
-    display:flex;align-items:center;gap:.7em;margin-bottom:clamp(16px,2.4vw,30px);
-  }
-  .kicker::before{content:"";width:30px;height:1px;background:var(--def-line);}
-  .kicker .dim{color:var(--muted);letter-spacing:.16em;}
-
-  h1{font-family:var(--jp);font-weight:900;font-size:clamp(34px,6.6vw,80px);line-height:1.08;letter-spacing:-.01em;margin:0;}
-  h2{font-family:var(--jp);font-weight:900;font-size:clamp(26px,4.4vw,52px);line-height:1.16;letter-spacing:-.01em;margin:0 0 .55em;}
-  .lead{font-size:clamp(15px,1.9vw,21px);line-height:1.85;color:#C2C9D8;font-weight:400;max-width:62ch;}
-  .lead strong{color:var(--paper);font-weight:700;}
-  .def-c{color:var(--def);} .proc-c{color:var(--proc);}
-  .caption{margin-top:clamp(16px,2.2vw,26px);font-size:clamp(13px,1.5vw,16px);line-height:1.8;color:var(--muted);max-width:78ch;}
-  .caption b{color:#CDD4E2;font-weight:700;}
-  .caption code{font-family:var(--mono);font-size:.9em;color:#B9C3D6;}
-
-  .title-eyebrow{font-family:var(--dp);letter-spacing:.3em;text-transform:uppercase;color:var(--muted);font-size:clamp(11px,1.1vw,13px);margin-bottom:clamp(24px,4vw,44px);}
-  .title-eyebrow b{color:var(--def);}
-  .title-main{font-weight:900;font-size:clamp(38px,8.4vw,100px);line-height:1.04;letter-spacing:-.02em;}
-  .title-sub{margin-top:clamp(22px,3vw,34px);font-size:clamp(16px,2.4vw,26px);color:#C2C9D8;font-weight:500;letter-spacing:.01em;}
-  .title-rule{width:64px;height:2px;background:var(--def);margin:clamp(26px,4vw,40px) 0 clamp(14px,2vw,20px);}
-  .title-hint{font-family:var(--mono);font-size:13px;color:var(--faint);letter-spacing:.02em;}
-  .title-hint kbd{font-family:var(--mono);color:var(--def);background:var(--def-dim);border:1px solid var(--def-line);border-radius:5px;padding:1px 7px;font-size:12px;}
-
-  .pull{border-left:3px solid var(--def);padding:6px 0 6px 20px;margin-top:clamp(18px,2.6vw,28px);font-size:clamp(16px,2vw,22px);line-height:1.7;color:var(--paper);font-weight:500;max-width:64ch;}
-  .pull--center{border:0;text-align:center;padding:0;font-weight:900;font-size:clamp(24px,4.4vw,46px);line-height:1.3;}
-
-  /* cards / items */
+  /* ---------- list cards ---------- */
   .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:clamp(12px,1.4vw,18px);margin-top:8px;}
   .item{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:clamp(15px,1.8vw,20px);}
   .item .n{font-family:var(--dp);font-weight:700;font-size:13px;color:var(--def);letter-spacing:.06em;}
@@ -518,17 +130,7 @@
   .item .fix{display:block;margin-top:9px;font-size:12px;color:var(--def);}
   .item .fix b{color:var(--def);}
 
-  /* concept 2-col */
-  .concept{display:grid;grid-template-columns:1fr 1fr;gap:clamp(14px,1.8vw,22px);margin-top:6px;}
-  .ccard{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:clamp(18px,2.2vw,26px);}
-  .ccard--proc{border-color:var(--proc-line);} .ccard--def{border-color:var(--def-line);}
-  .ccard h3{margin:0 0 .6em;font-size:clamp(18px,2.2vw,24px);font-weight:900;}
-  .ccard--proc h3{color:var(--proc);} .ccard--def h3{color:var(--def);}
-  .ccard ul{margin:0;padding-left:1.1em;}
-  .ccard li{font-size:clamp(13px,1.5vw,15.5px);line-height:1.85;color:#C2C9D8;}
-  .ccard li b{color:#fff;}
-
-  /* roles (3) */
+  /* ---------- roles (3) ---------- */
   .roles{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(14px,1.8vw,22px);margin-top:6px;}
   .role{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:clamp(18px,2.2vw,26px);display:flex;flex-direction:column;gap:10px;min-height:190px;}
   .role .who{font-family:var(--dp);font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);}
@@ -540,7 +142,7 @@
   .role--chk .what{color:var(--paper);}
   .role--chk .what::after{content:" \2713";color:var(--def);}
 
-  /* layers ladder */
+  /* ---------- layers ladder ---------- */
   .layers{display:grid;gap:9px;margin-top:6px;}
   .layer{display:flex;align-items:center;gap:14px;background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:clamp(11px,1.4vw,15px) clamp(15px,1.7vw,19px);}
   .layer--m{border-color:var(--def-line);}
@@ -550,7 +152,7 @@
   .ltag--m{color:var(--def);background:var(--def-dim);border:1px solid var(--def-line);}
   .ltag--h{color:var(--proc);background:var(--proc-dim);border:1px solid var(--proc-line);}
 
-  /* loop / workflow */
+  /* ---------- loop / workflow ---------- */
   .loop{display:flex;align-items:stretch;gap:8px;flex-wrap:wrap;margin-top:6px;}
   .lstep{flex:1;min-width:140px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:clamp(13px,1.6vw,18px);text-align:center;}
   .lstep--def{border-color:var(--def-line);background:linear-gradient(180deg,var(--def-dim),transparent 60%),var(--panel);}
@@ -562,13 +164,54 @@
   .larrow small{font-family:var(--jp);font-size:10px;color:var(--muted);margin-bottom:3px;letter-spacing:.04em;}
   .loop-note{margin-top:16px;font-family:var(--dp);font-size:13px;letter-spacing:.04em;color:var(--def);}
 
-  /* checklist */
+  /* ---------- bars (Part 2) ---------- */
+  .bars{display:grid;gap:clamp(16px,2.4vw,26px);margin-top:8px;}
+  .bar-row .rl{font-family:var(--dp);font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:9px;}
+  .track{display:flex;gap:8px;height:clamp(46px,6vw,58px);}
+  .seg{display:flex;align-items:center;justify-content:center;border-radius:9px;font-size:clamp(11.5px,1.35vw,14.5px);font-weight:700;padding:0 8px;border:1px solid;white-space:nowrap;overflow:hidden;}
+  .seg--w{color:var(--proc);background:var(--proc-dim);border-color:var(--proc-line);}
+  .seg--d{color:var(--def);background:var(--def-dim);border-color:var(--def-line);}
+
+  /* ---------- core (Part 2) ---------- */
+  .core-outer{position:relative;border:2px solid var(--proc-line);border-radius:18px;background:var(--proc-dim);padding:clamp(20px,3vw,34px);margin-top:8px;}
+  .core-lbl{font-family:var(--dp);font-weight:700;font-size:clamp(12px,1.4vw,15px);letter-spacing:.06em;}
+  .core-outer > .core-lbl{color:var(--proc);}
+  .core-lbl .sub{display:block;font-family:var(--jp);font-weight:500;color:var(--muted);letter-spacing:.02em;font-size:.82em;margin-top:5px;}
+  .core-inner{border:2px solid var(--def-line);border-radius:14px;background:linear-gradient(180deg,var(--def-dim),rgba(8,11,17,.3));padding:clamp(18px,2.4vw,28px);margin-top:clamp(14px,2vw,20px);text-align:center;}
+  .core-inner > .core-lbl{color:var(--def);}
+  .core-items{margin-top:14px;display:flex;flex-wrap:wrap;gap:9px;justify-content:center;}
+  .core-items span{font-family:var(--mono);font-size:clamp(11.5px,1.3vw,13.5px);color:#CDD4E2;background:rgba(8,11,17,.45);border:1px solid var(--def-line);border-radius:8px;padding:6px 12px;}
+
+  /* ---------- checklist ---------- */
   .check{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:clamp(9px,1.1vw,13px);}
   .check li{display:flex;gap:14px;align-items:flex-start;background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:clamp(12px,1.4vw,16px) clamp(15px,1.7vw,20px);font-size:clamp(13px,1.5vw,16.5px);line-height:1.6;color:#CDD4E2;}
   .check .box{flex:none;width:20px;height:20px;border:2px solid var(--def-line);border-radius:5px;margin-top:2px;}
   .check b{color:#fff;font-weight:700;}
   .check span small{display:block;color:var(--muted);font-size:.82em;margin-top:3px;}
 
+  /* ---------- agenda ---------- */
+  .agenda{display:grid;gap:clamp(12px,1.6vw,18px);margin-top:6px;}
+  .ag{display:flex;gap:clamp(16px,2.4vw,30px);align-items:flex-start;background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--def);border-radius:12px;padding:clamp(16px,2vw,24px) clamp(18px,2.4vw,28px);cursor:pointer;transition:border-color .18s, background .18s, transform .18s;}
+  .ag:hover{border-color:var(--def-line);background:var(--panel-2);transform:translateX(3px);}
+  .ag:focus-visible{outline:2px solid var(--def);outline-offset:3px;}
+  .ag .no{font-family:var(--dp);font-weight:700;font-size:clamp(14px,1.7vw,19px);color:var(--def);letter-spacing:.06em;flex:none;min-width:max-content;padding-top:2px;}
+  .ag .body{display:flex;flex-direction:column;gap:5px;min-width:0;}
+  .ag .ttl{font-size:clamp(17px,2.2vw,24px);font-weight:900;color:var(--paper);line-height:1.2;}
+  .ag .ttl em{font-style:normal;color:var(--muted);font-weight:500;font-size:.66em;margin-left:.5em;}
+  .ag .sub{color:var(--muted);font-size:clamp(12.5px,1.45vw,15px);line-height:1.55;}
+
+  /* ---------- chapter divider (幕間) ---------- */
+  .slide.divider{overflow:hidden;justify-content:center;}
+  .divider .div-bg{position:absolute;right:clamp(-20px,-1vw,0px);bottom:clamp(-40px,-2vw,0px);font-family:var(--dp);font-weight:700;font-size:clamp(200px,46vw,560px);line-height:.78;color:rgba(111,177,252,.06);letter-spacing:-.05em;pointer-events:none;user-select:none;z-index:0;}
+  .divider .wrap{position:relative;z-index:1;}
+  .div-eyebrow{font-family:var(--dp);letter-spacing:.26em;text-transform:uppercase;color:var(--def);font-size:clamp(12px,1.3vw,15px);display:flex;align-items:center;gap:.8em;margin-bottom:clamp(18px,2.6vw,30px);}
+  .div-eyebrow::before{content:"";width:42px;height:1px;background:var(--def-line);}
+  .div-title{font-family:var(--jp);font-weight:900;font-size:clamp(48px,10.5vw,128px);line-height:1.0;letter-spacing:-.02em;}
+  .div-essence{margin-top:clamp(18px,2.4vw,28px);font-size:clamp(15px,2vw,22px);line-height:1.7;color:#C2C9D8;max-width:48ch;}
+  .div-pos{margin-top:clamp(26px,4vw,42px);font-family:var(--mono);font-size:14px;color:var(--faint);letter-spacing:.12em;}
+  .div-pos .on{color:var(--def);font-weight:700;}
+
+  /* ---------- chrome (header/footer) ---------- */
   .chrome{position:fixed;left:0;right:0;z-index:20;pointer-events:none;}
   .chrome.top{top:0;display:flex;justify-content:space-between;align-items:center;padding:clamp(16px,2.2vw,26px) clamp(20px,3.5vw,40px);}
   .mark{font-family:var(--dp);font-weight:700;font-size:13px;letter-spacing:.04em;color:var(--muted);}
@@ -586,47 +229,7 @@
   .dots button.on{background:var(--def);width:22px;border-radius:5px;}
   .dots button:focus-visible{outline:2px solid var(--def);outline-offset:2px;}
 
-  @media (max-width:820px){
-    .roles{grid-template-columns:1fr;}
-    .role{min-height:0;}
-  }
-  @media (max-width:760px){
-    .concept{grid-template-columns:1fr;}
-    .dots{display:none;}
-    .slide{padding-top:64px;padding-bottom:74px;}
-    .larrow{transform:rotate(90deg);}
-    .layer{flex-wrap:wrap;}
-    .layer .ltag{margin-left:auto;}
-  }
-  @media (prefers-reduced-motion:reduce){
-    *{animation:none !important;transition:opacity .2s linear !important;}
-    .slide{transform:none;}
-  }
-
-
-  .title-eyebrow b{color:var(--def);}
-  .agenda{display:grid;gap:clamp(12px,1.6vw,18px);margin-top:6px;}
-  .ag{display:flex;gap:clamp(16px,2.4vw,30px);align-items:flex-start;background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--def);border-radius:12px;padding:clamp(16px,2vw,24px) clamp(18px,2.4vw,28px);cursor:pointer;transition:border-color .18s, background .18s, transform .18s;}
-  .ag:hover{border-color:var(--def-line);background:var(--panel-2);transform:translateX(3px);}
-  .ag:focus-visible{outline:2px solid var(--def);outline-offset:3px;}
-  .ag .no{font-family:var(--dp);font-weight:700;font-size:clamp(14px,1.7vw,19px);color:var(--def);letter-spacing:.06em;flex:none;min-width:max-content;padding-top:2px;}
-  .ag .body{display:flex;flex-direction:column;gap:5px;min-width:0;}
-  .ag .ttl{font-size:clamp(17px,2.2vw,24px);font-weight:900;color:var(--paper);line-height:1.2;}
-  .ag .ttl em{font-style:normal;color:var(--muted);font-weight:500;font-size:.66em;margin-left:.5em;}
-  .ag .sub{color:var(--muted);font-size:clamp(12.5px,1.45vw,15px);line-height:1.55;}
-
-  /* chapter divider (幕間) */
-  .slide.divider{overflow:hidden;justify-content:center;}
-  .divider .div-bg{position:absolute;right:clamp(-20px,-1vw,0px);bottom:clamp(-40px,-2vw,0px);font-family:var(--dp);font-weight:700;font-size:clamp(200px,46vw,560px);line-height:.78;color:rgba(111,177,252,.06);letter-spacing:-.05em;pointer-events:none;user-select:none;z-index:0;}
-  .divider .wrap{position:relative;z-index:1;}
-  .div-eyebrow{font-family:var(--dp);letter-spacing:.26em;text-transform:uppercase;color:var(--def);font-size:clamp(12px,1.3vw,15px);display:flex;align-items:center;gap:.8em;margin-bottom:clamp(18px,2.6vw,30px);}
-  .div-eyebrow::before{content:"";width:42px;height:1px;background:var(--def-line);}
-  .div-title{font-family:var(--jp);font-weight:900;font-size:clamp(48px,10.5vw,128px);line-height:1.0;letter-spacing:-.02em;}
-  .div-essence{margin-top:clamp(18px,2.4vw,28px);font-size:clamp(15px,2vw,22px);line-height:1.7;color:#C2C9D8;max-width:48ch;}
-  .div-pos{margin-top:clamp(26px,4vw,42px);font-family:var(--mono);font-size:14px;color:var(--faint);letter-spacing:.12em;}
-  .div-pos .on{color:var(--def);font-weight:700;}
-
-  /* annotation: pen / erase */
+  /* ---------- annotation: pen / erase ---------- */
   #ink{position:fixed;inset:0;z-index:15;pointer-events:none;touch-action:none;}
   .pen-on #ink{cursor:crosshair;}
   #penframe{position:fixed;inset:0;z-index:19;pointer-events:none;border:2px solid transparent;transition:border-color .2s;}
@@ -639,13 +242,47 @@
   .tool.on{color:#fff;background:#ff2d2d;border-color:#ff2d2d;box-shadow:0 0 0 4px rgba(255,45,45,.2);}
   .tool.on:hover{color:#fff;background:#ff4040;border-color:#ff4040;}
 
+  /* ---------- triptych + state matrix (P9) ---------- */
+  .cols3{display:grid;grid-template-columns:1.05fr 1fr 1fr;gap:clamp(10px,1.1vw,16px);align-items:stretch;margin-top:6px;}
+  .cols3 .panel{padding:clamp(12px,1.3vw,16px);}
+  .cols3 .code{font-size:clamp(9px,.78vw,11.5px);line-height:1.6;padding:12px 13px;}
+  .cols3 .panel__foot{font-size:11.5px;}
+  .mxwrap{overflow-x:auto;}
+  .mx{border-collapse:collapse;font-family:var(--mono);font-size:clamp(9.5px,.8vw,11.5px);width:100%;}
+  .mx th,.mx td{border:1px solid var(--line);padding:4px 6px;text-align:center;white-space:nowrap;}
+  .mx thead th{color:var(--muted);font-weight:700;background:rgba(255,255,255,.02);}
+  .mx thead th:first-child{color:var(--faint);text-align:left;}
+  .mx tbody th{text-align:left;color:var(--paper);font-weight:700;background:rgba(255,255,255,.03);}
+  .mx td.to{color:var(--def);font-weight:700;}
+  .mx td.no{color:var(--faint);}
+  .panel__tag--mx{color:var(--paper);background:rgba(255,255,255,.05);border:1px solid var(--line);}
+  @media (max-width:980px){.cols3{grid-template-columns:1fr;}}
+
+  /* ---------- responsive / motion ---------- */
+  @media (max-width:820px){
+    .roles{grid-template-columns:1fr;}
+    .role{min-height:0;}
+  }
+  @media (max-width:760px){
+    .grid2,.concept{grid-template-columns:1fr;}
+    .dots{display:none;}
+    .slide{padding-top:64px;padding-bottom:74px;}
+    .larrow{transform:rotate(90deg);}
+    .layer{flex-wrap:wrap;}
+    .layer .ltag{margin-left:auto;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none !important;transition:opacity .2s linear !important;}
+    .slide{transform:none;}
+  }
+
 </style>
 </head>
 <body>
 
 <div class="chrome top">
   <div class="mark"><b>定義</b>を実装する <span class="pt" id="partlbl"></span></div>
-  <div class="counter"><b id="cur">1</b> / <span id="tot">41</span></div>
+  <div class="counter"><b id="cur">1</b> / <span id="tot">31</span></div>
 </div>
 
 <main class="deck" id="deck">
@@ -654,7 +291,7 @@
   <section class="slide" data-part="0">
     <div class="wrap">
       <div class="title-eyebrow reveal">勉強会 · 全3部 · Software Design</div>
-      <div class="title-main reveal"><span class="def-c">定義</span>を実装する</div>
+      <div class="title-main reveal"><span class="small proc-c">手続き</span> ではなく<br><span class="def-c">定義</span> を実装する</div>
       <div class="title-sub reveal">仕様変更に強いコード ― 原則から、AI駆動開発の実践まで</div>
       <div class="title-rule reveal"></div>
       <div class="title-hint reveal"><kbd>→</kbd> / <kbd>Space</kbd> で進む ・ <kbd>←</kbd> で戻る</div>
@@ -671,21 +308,21 @@
           <span class="no">第1部</span>
           <span class="body">
             <span class="ttl">原則編 <em>定義 vs 手続き</em></span>
-            <span class="sub">手続きではなく定義を実装すると、なぜ仕様変更に強いのか。FizzBuzz・バリデーション・状態遷移などの具体例で。</span>
+            <span class="sub">なぜ定義を実装すると仕様変更に強いのか。FizzBuzz・バリデーション・状態遷移で。</span>
           </span>
         </div>
         <div class="ag" data-goto="2" role="button" tabindex="0">
           <span class="no">第2部</span>
           <span class="body">
             <span class="ttl">AI駆動開発編 <em>優劣は変わるか</em></span>
-            <span class="sub">AIが書く時代に定義型はどう効くか。ボトルネックの移動、自己修正ループ、そして手続きへ回帰する罠。</span>
+            <span class="sub">AIが書く時代に定義型はどう効くか。ボトルネックの移動、自己修正ループ、手続き回帰の罠。</span>
           </span>
         </div>
         <div class="ag" data-goto="3" role="button" tabindex="0">
           <span class="no">第3部</span>
           <span class="body">
             <span class="ttl">実践編 <em>プレイブック</em></span>
-            <span class="sub">定義ファーストでAI駆動開発を回す。三者分業・ワークフロー・ガードレール・レビュー・導入の手順。</span>
+            <span class="sub">三者分業・ワークフロー・ガードレール・レビュー・導入の手順。</span>
           </span>
         </div>
       </div>
@@ -705,23 +342,12 @@
   </section>
 
 
-  <!-- 1. TITLE -->
-  <section class="slide" data-part="1">
-    <div class="wrap">
-      <div class="title-eyebrow reveal">勉強会 · <b>第1部</b> · Principles</div>
-      <div class="title-main reveal"><span class="small proc-c">手続き</span> ではなく<br><span class="def-c">定義</span> を実装する</div>
-      <div class="title-sub reveal">仕様変更に強いコードの書き方</div>
-      <div class="title-rule reveal"></div>
-      <div class="title-hint reveal"><kbd>→</kbd> / <kbd>Space</kbd> で進む ・ <kbd>←</kbd> で戻る</div>
-    </div>
-  </section>
-
-  <!-- 2. PROBLEM -->
+  <!-- 01 PROBLEM -->
   <section class="slide" data-part="1">
     <div class="wrap">
       <div class="kicker reveal">01 <span class="dim">あるある</span></div>
       <h2 class="reveal">仕様が変わるたび、<span class="proc-c">if</span> が増えていく</h2>
-      <p class="lead reveal">「条件をひとつ足すだけ」のはずが、毎回 <strong>分岐の組合せ・順序・抜け漏れ</strong> に悩む。テストも一緒に壊れる。<br>機能追加のコストが、機能の数に比例せず<strong>指数的に膨らんでいく</strong>。なぜだろう？</p>
+      <p class="lead reveal">「条件を1つ足すだけ」のはずが、毎回 <strong>分岐の組合せ・順序・抜け漏れ</strong> に悩む。テストも一緒に壊れる。機能追加のコストが、機能数に比例せず <strong>指数的に膨らむ</strong> ― なぜ？</p>
       <div class="code reveal" style="margin-top:clamp(18px,2.4vw,28px);max-width:640px">
 <span class="ln">function handle(req) {</span>
 <span class="ln">  if (req.type === "A") { /* ... */ }</span>
@@ -731,87 +357,47 @@
 <span class="ln">  // ...そして誰も全体を読めなくなる</span>
 <span class="ln">}</span>
       </div>
+      <p class="caption reveal">1本足す・順序を変えるだけで <b>後続の分岐すべて</b>の挙動が変わりうる。影響が<b>その行に閉じない</b>のが厄介。</p>
     </div>
   </section>
 
-  <!-- 3. THE QUESTION -->
+  <!-- 02 HOW vs WHAT (問い + 言葉の整理を統合) -->
   <section class="slide" data-part="1">
     <div class="wrap">
       <div class="kicker reveal">02 <span class="dim">問い</span></div>
-      <h2 class="reveal">そもそも「仕様」は何で書かれている？</h2>
+      <h2 class="reveal">仕様は「定義」で書かれている</h2>
       <div class="concept reveal">
         <div class="ccard ccard--proc">
           <span class="how">How — 手順</span>
           <h3>手続き</h3>
-          <p>「まず◯◯して、次に△△、もし□□なら…」<br>= 計算を<b>どう実行するか</b>の連なり。</p>
+          <p>「まず◯◯、次に△△、もし□□なら…」<br>＝計算を<b>どう実行するか</b>。知識が制御フローに溶ける。</p>
         </div>
         <div class="ccard ccard--def">
           <span class="how">What — 定義</span>
           <h3>定義</h3>
-          <p>「正しい入力とは / 価格とは / 状態とは」<br>= 対象が<b>何であるか</b>の取り決め。</p>
+          <p>「正しい入力とは／価格とは／状態とは」<br>＝対象が<b>何であるか</b>。知識がデータとして外に出る。</p>
         </div>
       </div>
-      <p class="caption reveal">仕様書はたいてい <b>定義（What）</b> で書かれている。なのに私たちはコードを <b>手続き（How）</b> で書きがち。この<b>ズレ</b>こそが、変更を難しくしている正体。</p>
+      <p class="caption reveal">仕様書は <b>定義（What）</b> で書かれるのに、コードは <b>手続き（How）</b> で書きがち。この<b>ズレ</b>が変更を難しくする。定義をデータで表し、解釈する汎用の仕組みを1つ用意する ― これが <b>宣言的プログラミング</b>（<code>SQL・正規表現・CSS・React</code>）の核。</p>
     </div>
   </section>
 
-  <!-- 4. CONCEPT -->
+  <!-- 03 CORE PRINCIPLE -->
   <section class="slide" data-part="1">
     <div class="wrap">
-      <div class="kicker reveal">03 <span class="dim">言葉の整理</span></div>
-      <h2 class="reveal">手続き的 と 定義的</h2>
-      <div class="concept reveal">
-        <div class="ccard ccard--proc">
-          <h3>手続き的</h3>
-          <p>計算の<b>手順</b>をコードに直接書く。ループ・分岐・代入の連なり。<br>知識が<b>コード（制御フロー）の中</b>に溶けている。</p>
-        </div>
-        <div class="ccard ccard--def">
-          <h3>定義的</h3>
-          <p>対象を<b>データ・型・スキーマ・表</b>として宣言し、それを解釈する<b>汎用の仕組みを1つ</b>用意する。<br>知識が<b>データ</b>として外に出ている。</p>
-        </div>
-      </div>
-      <p class="caption reveal">定義をデータとして表し、それを解釈する仕組みを用意する — これが <b>データ駆動 / 宣言的プログラミング</b> の核。<code style="font-family:var(--mono);color:#B9C3D6;font-size:.9em">SQL・正規表現・CSS・React</code> も同じ系譜にある。</p>
-    </div>
-  </section>
-
-  <!-- 5. CORE PRINCIPLE -->
-  <section class="slide" data-part="1">
-    <div class="wrap">
-      <div class="kicker reveal">04 <span class="dim">なぜ強いのか</span></div>
+      <div class="kicker reveal">03 <span class="dim">なぜ強いのか</span></div>
       <h2 class="reveal" style="text-align:center">変更の局所性</h2>
       <div class="formula reveal"><span class="op">Δ</span><span class="d">仕様</span><span class="op">≈</span><span class="op">Δ</span><span class="d">コード</span></div>
-      <p class="lead reveal" style="margin:0 auto;text-align:center">コードの構造を <strong>「定義」の構造</strong> に合わせると、<br>仕様の <strong>1つの変更</strong> が、コードの <strong>1つの箇所</strong> に対応する。</p>
-      <div class="pull pull--center reveal" style="margin-top:clamp(22px,3vw,34px)">保守性の正体は、<span class="def-c">変更が一箇所に収まるか</span>。</div>
-      <p class="caption reveal" style="text-align:center;margin-left:auto;margin-right:auto">手続きに定義を埋め込むと、1つの定義変更が手順の<b>あちこちに散る</b>（非局所）。これが指数的コストの原因。</p>
+      <p class="lead reveal" style="margin:0 auto;text-align:center">コードの構造を <strong>「定義」の構造</strong> に合わせると、<br>仕様の <strong>1つの変更</strong> が、コードの <strong>1箇所</strong> に対応する。</p>
+      <div class="pull pull--center reveal" style="margin-top:clamp(22px,3vw,34px)">保守性の正体は、<span class="def-c">仕様の1変更がコードの1箇所に収まるか</span>。</div>
+      <p class="caption reveal" style="text-align:center;margin-left:auto;margin-right:auto">逆に手続きへ定義を埋め込むと、仕様を1つ変えただけでも <b>影響が1箇所に収まらず</b>、手順のあちこちに波及する。これが指数的コストの原因。</p>
     </div>
   </section>
 
-  <!-- 6. FIZZBUZZ SETUP -->
+  <!-- 04 FIZZBUZZ (setup + diptych を統合) -->
   <section class="slide" data-part="1">
     <div class="wrap">
-      <div class="kicker reveal">05 <span class="dim">例1 · FizzBuzz</span></div>
-      <h2 class="reveal">まずは手続き版</h2>
-      <div class="panel panel--proc reveal" style="max-width:680px">
-        <span class="panel__tag"><span class="jp">手続き</span> · imperative</span>
-        <div class="code">
-<span class="ln">function fizzbuzz(n) {</span>
-<span class="ln">  for (let i = 1; i &lt;= n; i++) {</span>
-<span class="ln">    if      (i % 15 === 0) print("FizzBuzz");</span>
-<span class="ln">    else if (i % 3  === 0) print("Fizz");</span>
-<span class="ln">    else if (i % 5  === 0) print("Buzz");</span>
-<span class="ln">    else                   print(i);</span>
-<span class="ln">  }</span>
-<span class="ln">}</span>
-        </div>
-      </div>
-      <p class="caption reveal">3→Fizz、5→Buzz、両方→FizzBuzz。いまは <b>4分岐</b>。ここに仕様追加「<b>7の倍数 → Bazz</b>」が来たら、どうなる？</p>
-    </div>
-  </section>
-
-  <!-- 7. SIGNATURE DIPTYCH -->
-  <section class="slide" data-part="1">
-    <div class="wrap">
-      <div class="kicker reveal">05 <span class="dim">例1 · 仕様追加: 7の倍数 → "Bazz"</span></div>
+      <div class="kicker reveal">04 <span class="dim">例1 · FizzBuzz — 仕様追加: 7の倍数 → "Bazz"</span></div>
       <h2 class="reveal">同じ変更、ぜんぜん違う影響</h2>
       <div class="grid2 reveal">
         <div class="panel panel--proc">
@@ -826,7 +412,7 @@
 <span class="ln">    else if (i % 5  ===0) print("Buzz");</span>
 <span class="ln">    else                  print(i);</span>
           </div>
-          <div class="panel__foot">分岐が <b style="color:var(--proc)">4 → 8</b> に倍増。組合せ（21, 35, 105…）を手で網羅し、<b>順序</b>も正しく並べ替える必要がある。
+          <div class="panel__foot">分岐が <b style="color:var(--proc)">4 → 8</b> に倍増。組合せ（21, 35, 105…）を手で網羅し、<b>順序</b>も並べ替える必要がある。
           <br><span class="badge badge--bad">変更 = 分岐の作り直し / 抜け漏れ注意</span></div>
         </div>
         <div class="panel panel--def">
@@ -837,22 +423,23 @@
 <span class="ln">  { divisor: 5, word: "Buzz" },</span>
 <span class="ln is-changed">  { divisor: 7, word: "Bazz" },</span>
 <span class="ln">];</span>
-<span class="ln"> </span>
-<span class="ln"><span class="t-cm">// 解釈する仕組みは一切触らない</span></span>
-<span class="ln"><span class="t-cm">// 21="FizzBazz" 等の組合せは自動</span></span>
+<span class="ln"><span class="t-cm">// ↓ この定義を動かす本体（変更不要）</span></span>
+<span class="ln">const out = rules</span>
+<span class="ln">  .filter(r =&gt; i % r.divisor === 0)</span>
+<span class="ln">  .map(r =&gt; r.word).join("") || i;</span>
           </div>
-          <div class="panel__foot">「Fizz とは何か」を<b>定義</b>しているので、組合せは定義から<b>自動で導かれる</b>。手続き本体には手を入れない。
+          <div class="panel__foot">「Fizz とは何か」を<b>定義</b>するので、組合せは定義から<b>自動で導かれる</b>。本体には手を入れない。
           <br><span class="badge badge--good">変更 = データに +1 行</span></div>
         </div>
       </div>
-      <p class="caption reveal">参考 · 定義版の本体： <span style="font-family:var(--mono);font-size:.88em;color:#B9C3D6">rules.filter(r =&gt; i % r.divisor === 0).map(r =&gt; r.word).join("") || i</span></p>
+      <p class="caption reveal">定義（データ）と<b>解釈する1つの汎用ロジック</b>を分離 ― 仕様追加はデータに1行、ロジックは不変（21=FizzBazz 等の組合せも自動）。</p>
     </div>
   </section>
 
-  <!-- 8. VALIDATION -->
+  <!-- 05 VALIDATION -->
   <section class="slide" data-part="1">
     <div class="wrap">
-      <div class="kicker reveal">06 <span class="dim">例2 · 入力バリデーション</span></div>
+      <div class="kicker reveal">05 <span class="dim">例2 · 入力バリデーション</span></div>
       <h2 class="reveal">ルールを「スキーマ」として定義する</h2>
       <div class="grid2 reveal">
         <div class="panel panel--proc">
@@ -867,7 +454,7 @@
 <span class="ln">  <span class="t-cm">// 項目が増えるたび関数が伸びる…</span></span>
 <span class="ln">}</span>
           </div>
-          <div class="panel__foot">検証ルールが手続きの中に散在。項目追加・順序・国際化で関数が肥大化する。</div>
+          <div class="panel__foot">検証ルールが手続きに散在。項目追加・順序・国際化で関数が肥大化する。</div>
         </div>
         <div class="panel panel--def">
           <span class="panel__tag"><span class="jp">定義</span></span>
@@ -884,131 +471,121 @@
           <div class="panel__foot">仕様 = スキーマ。項目やルールの増減は<b>データ編集</b>で済む。<b>Zod / JSON Schema</b> はこの発想の製品化。</div>
         </div>
       </div>
-      <p class="caption reveal">おまけ — スキーマはそのまま<b>フォーム生成・APIドキュメント・型</b>にも使い回せる。定義が単一の真実の源になる。</p>
+      <p class="caption reveal">スキーマはそのまま<b>フォーム生成・APIドキュメント・型</b>にも使い回せる。定義が単一の真実の源になる。</p>
     </div>
   </section>
 
-  <!-- 9. STATE MACHINE -->
-  <section class="slide" data-part="1">
-    <div class="wrap">
-      <div class="kicker reveal">07 <span class="dim">例3 · 状態遷移</span></div>
-      <h2 class="reveal">遷移を「表」として定義する</h2>
-      <div class="grid2 reveal">
+  <!-- 06 STATE MACHINE -->
+  <section class="slide" data-part="1" style="justify-content:flex-start;padding-left:clamp(18px,2.5vw,40px);padding-right:clamp(18px,2.5vw,40px);padding-top:clamp(56px,7vh,80px)">
+    <div class="wrap" style="max-width:1340px">
+      <div class="kicker reveal">06 <span class="dim">例3 · 状態遷移</span></div>
+      <h2 class="reveal">同じ「マトリクス」を、手続き と 定義 で表す</h2>
+      <div class="cols3 reveal">
+
+        <!-- LEFT: matrix (spec) -->
+        <div class="panel">
+          <span class="panel__tag panel__tag--mx"><span class="jp">マトリクス＋型</span> · 仕様</span>
+          <div class="mxwrap">
+          <table class="mx">
+            <thead>
+              <tr><th>state＼event</th><th>pay</th><th>cancel</th><th>ship</th><th>deliver</th><th>returnReq</th></tr>
+            </thead>
+            <tbody>
+              <tr><th>draft</th><td class="to">paid</td><td class="to">canceled</td><td class="no">·</td><td class="no">·</td><td class="no">·</td></tr>
+              <tr><th>paid</th><td class="no">·</td><td class="to">canceled</td><td class="to">shipped</td><td class="no">·</td><td class="no">·</td></tr>
+              <tr><th>shipped</th><td class="no">·</td><td class="no">·</td><td class="no">·</td><td class="to">done</td><td class="no">·</td></tr>
+              <tr><th>done</th><td class="no">·</td><td class="no">·</td><td class="no">·</td><td class="no">·</td><td class="to">returned</td></tr>
+              <tr><th>returned</th><td class="no">·</td><td class="no">·</td><td class="no">·</td><td class="no">·</td><td class="no">·</td></tr>
+              <tr><th>canceled</th><td class="no">·</td><td class="no">·</td><td class="no">·</td><td class="no">·</td><td class="no">·</td></tr>
+            </tbody>
+          </table>
+          </div>
+          <div class="code" style="margin-top:10px">
+<span class="ln"><span class="t-cm">// 表を型で固定（中央・右で共用）</span></span>
+<span class="ln">type State = "draft"|"paid"|"shipped"</span>
+<span class="ln">           |"done"|"returned"|"canceled";</span>
+<span class="ln">type Event = "pay"|"cancel"|"ship"</span>
+<span class="ln">           |"deliver"|"returnReq";</span>
+<span class="ln">type Table = Partial&lt;Record&lt;State,</span>
+<span class="ln">             Partial&lt;Record&lt;Event, State&gt;&gt;&gt;&gt;;</span>
+          </div>
+          <div class="panel__foot">行＝状態、列＝イベント、セル＝次の状態。<b>表と型が唯一の仕様</b> ― 中央・右はこれを写す。</div>
+        </div>
+
+        <!-- MIDDLE: procedural -->
         <div class="panel panel--proc">
-          <span class="panel__tag"><span class="jp">手続き</span></span>
+          <span class="panel__tag"><span class="jp">手続き</span> · imperative</span>
           <div class="code">
-<span class="ln">if (order.isPaid &amp;&amp;</span>
-<span class="ln">    !order.isShipped &amp;&amp;</span>
-<span class="ln">    !order.isCanceled) {</span>
-<span class="ln">  order.isShipped = true;</span>
+<span class="ln">function next(s: State, e: Event): State {</span>
+<span class="ln">  if (s==="draft" &amp;&amp; e==="pay") return "paid";</span>
+<span class="ln">  if (s==="draft" &amp;&amp; e==="cancel") return "canceled";</span>
+<span class="ln">  if (s==="paid" &amp;&amp; e==="ship") return "shipped";</span>
+<span class="ln">  if (s==="paid" &amp;&amp; e==="cancel") return "canceled";</span>
+<span class="ln">  if (s==="shipped" &amp;&amp; e==="deliver") return "done";</span>
+<span class="ln">  if (s==="done" &amp;&amp; e==="returnReq") return "returned";</span>
+<span class="ln">  return s; <span class="t-cm">// それ以外は現状維持</span></span>
 <span class="ln">}</span>
-<span class="ln"> </span>
-<span class="ln"><span class="t-cm">// boolフラグの組合せで</span></span>
-<span class="ln"><span class="t-cm">// "未払いなのに発送済" も表現できてしまう</span></span>
           </div>
-          <div class="panel__foot">状態がフラグの組合せに散る。<b style="color:var(--danger)">ありえない状態</b>が型上は作れてしまう。</div>
+          <div class="panel__foot">セル1つ = 分岐1本。<b>状態×イベントの数だけ if が増える</b>。順序・抜け漏れも人手で管理する。</div>
         </div>
+
+        <!-- RIGHT: declarative -->
         <div class="panel panel--def">
-          <span class="panel__tag"><span class="jp">定義</span></span>
+          <span class="panel__tag"><span class="jp">定義</span> · declarative</span>
           <div class="code">
-<span class="ln">type State = "draft"|"paid"|"shipped"|"done";</span>
-<span class="ln"> </span>
-<span class="ln">const next = {</span>
-<span class="ln">  draft:   { pay: "paid" },</span>
-<span class="ln">  paid:    { ship: "shipped" },</span>
+<span class="ln">const table: Table = {</span>
+<span class="ln">  draft:   { pay: "paid",     cancel: "canceled" },</span>
+<span class="ln">  paid:    { ship: "shipped", cancel: "canceled" },</span>
 <span class="ln">  shipped: { deliver: "done" },</span>
-<span class="ln is-changed">  shipped2:{ returnReq: "returning" },</span>
-<span class="ln">} as const;</span>
-          </div>
-          <div class="panel__foot">状態と遷移を<b>表に定義</b>。状態追加 = 表に1行。型に無い状態は<b>表現不可能</b>（make illegal states unrepresentable）。</div>
-        </div>
-      </div>
-      <p class="caption reveal">遷移の実行はすべて <span style="font-family:var(--mono);font-size:.88em;color:#B9C3D6">next[state][event]</span> という<b>1つの汎用関数</b>に集約される。</p>
-    </div>
-  </section>
-
-  <!-- 10. PRICING -->
-  <section class="slide" data-part="1">
-    <div class="wrap">
-      <div class="kicker reveal">08 <span class="dim">例4 · 料金・割引</span></div>
-      <h2 class="reveal">ビジネスルールをデータにする</h2>
-      <div class="panel panel--def reveal" style="max-width:720px">
-        <span class="panel__tag"><span class="jp">定義</span> · rules as data</span>
-        <div class="code">
-<span class="ln">const rules = [</span>
-<span class="ln">  { when: c =&gt; c.total &gt;= 5000, off: 500,  label: "5千円以上" },</span>
-<span class="ln">  { when: c =&gt; c.has("SPRING"), off: 0.10, label: "春クーポン" },</span>
-<span class="ln is-changed">  { when: c =&gt; c.isMember,      off: 0.05, label: "会員割" },</span>
-<span class="ln">];</span>
+<span class="ln">  done:    { returnReq: "returned" },</span>
+<span class="ln">};</span>
 <span class="ln"> </span>
-<span class="ln">const applied = rules.filter(r =&gt; r.when(cart));</span>
+<span class="ln">function next(s: State, e: Event): State {</span>
+<span class="ln">  return table[s]?.[e] ?? s; <span class="t-cm">// 表を引くだけ</span></span>
+<span class="ln">}</span>
+          </div>
+          <div class="panel__foot"><b>型付きの表</b>そのもの。遷移追加 = 行/列に1要素。表に無い状態・イベントは<b>コンパイルエラー</b>。</div>
         </div>
+
       </div>
-      <p class="caption reveal">新キャンペーン = 配列に<b>1要素追加</b>。割引の「定義」とコードが<b>1対1</b>に対応する。企画書の表をそのままコードに写せる状態が理想。</p>
+      <p class="caption reveal">同じ<b>マトリクス（左）</b>を手続き（中）と定義（右）で表現。State/Event を型で固定したので<b>両方とも引数・戻り値が型安全</b>。手続きはセルの数だけ分岐が要り、定義は<b>表を写すだけ</b> ― 表に無い状態・イベントはコンパイルで弾ける。</p>
     </div>
   </section>
 
-  <!-- 11. PRINCIPLES -->
+  <!-- 07 PRINCIPLES + CAUTIONS (merged) -->
   <section class="slide" data-part="1">
     <div class="wrap">
-      <div class="kicker reveal">09 <span class="dim">原則</span></div>
-      <h2 class="reveal">「定義を実装する」ための道具箱</h2>
-      <div class="cards reveal">
-        <div class="item">
-          <span class="n">A</span><h4>データ駆動 / 表駆動</h4>
-          <p>知識を<b style="color:#cdd4e2">コードでなくデータ</b>に置き、解釈する汎用の仕組みを1つ用意する。</p>
+      <div class="kicker reveal">07 <span class="dim">原則と注意</span></div>
+      <h2 class="reveal">定義に寄せる ― 道具と、引き際</h2>
+      <div class="concept reveal">
+        <div class="ccard ccard--def">
+          <h3>使う：定義に寄せる道具</h3>
+          <ul>
+            <li><b>データ / 表駆動</b> ― 知識をデータに出し、解釈する汎用の仕組みを1つ</li>
+            <li><b>宣言的に</b> ― How でなく What（SQL・正規表現・CSS の発想）</li>
+            <li><b>仕様の語彙に合わせる</b> ― 仕様の一文がコードで探せる</li>
+            <li><b>型で表す</b> ― 不正な状態を表現不可能に（違反はコンパイルエラー）</li>
+            <li><b>SSOT</b>（単一の真実の源）― 定義は一箇所だけに置く。コピーは必ずズレる</li>
+          </ul>
         </div>
-        <div class="item">
-          <span class="n">B</span><h4>宣言的に書く</h4>
-          <p>How でなく What を記述。<code>SQL・正規表現・CSS</code> の発想を自分のコードにも。</p>
-        </div>
-        <div class="item">
-          <span class="n">C</span><h4>語彙を仕様に合わせる</h4>
-          <p>仕様書の名詞・動詞が、同じ名前でコードに現れる。仕様の一文が探せる。</p>
-        </div>
-        <div class="item">
-          <span class="n">D</span><h4>型で定義を表す</h4>
-          <p>直和型などで<b style="color:#cdd4e2">不正な状態を表現不可能</b>に。違反はコンパイルエラーへ。</p>
-        </div>
-        <div class="item">
-          <span class="n">E</span><h4>単一の真実の源 (SSOT)</h4>
-          <p>定義は<b style="color:#cdd4e2">一箇所だけ</b>に置く。コピーされた定義は必ずズレる。</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- 12. TRADEOFFS -->
-  <section class="slide" data-part="1">
-    <div class="wrap">
-      <div class="kicker reveal">10 <span class="dim">注意</span></div>
-      <h2 class="reveal">「定義化」はいつでも正解、ではない</h2>
-      <div class="cards reveal">
-        <div class="item">
-          <span class="n">!</span><h4>過剰抽象 (YAGNI)</h4>
-          <p>2個しかなく今後も変わらない分岐に、汎用エンジンは<b style="color:#cdd4e2">やりすぎ</b>。素直な if が読みやすい。</p>
-        </div>
-        <div class="item">
-          <span class="n">!</span><h4>間違った抽象は無抽象より悪い</h4>
-          <p>ドメインに合わない「定義」は、将来ずっと足かせになる。安易に共通化しない。</p>
-        </div>
-        <div class="item">
-          <span class="n">!</span><h4>3度の法則</h4>
-          <p>同じ形の分岐が<b style="color:#cdd4e2">3回</b>現れたら、データに切り出す目安。早すぎる抽象化は避ける。</p>
-        </div>
-        <div class="item">
-          <span class="n">!</span><h4>可読性・デバッグ性</h4>
-          <p>間接化はステップ実行を追いにくくする。読み手のコストとのトレードオフを意識。</p>
+        <div class="ccard ccard--proc">
+          <h3>引く：やりすぎない</h3>
+          <ul>
+            <li><b>過剰抽象 (YAGNI)</b> ― 「たぶん要らない（You Aren't Gonna Need It）」。2個で不変の分岐に汎用エンジンは過剰</li>
+            <li><b>間違った抽象は無抽象より悪い</b> ― 合わない定義は将来の足かせ</li>
+            <li><b>3度の法則</b> ― 同じ形が3回現れてからデータに切り出す</li>
+            <li><b>可読性・デバッグ性</b> ― 間接化は追いにくさとのトレードオフ</li>
+          </ul>
         </div>
       </div>
       <div class="pull reveal">変わる軸にだけ「定義」を。<span class="def-c">変わらない所は素直な手続きで</span>。</div>
     </div>
   </section>
 
-  <!-- 13. CHECKLIST -->
+  <!-- 09 CHECKLIST -->
   <section class="slide" data-part="1">
     <div class="wrap">
-      <div class="kicker reveal">11 <span class="dim">見抜き方</span></div>
+      <div class="kicker reveal">08 <span class="dim">見抜き方</span></div>
       <h2 class="reveal">レビューで使えるチェックリスト</h2>
       <ul class="check reveal">
         <li><span class="box"></span><span><b>仕様書の一文</b>が、コードの一箇所に対応しているか？</span></li>
@@ -1020,14 +597,14 @@
     </div>
   </section>
 
-  <!-- 14. CLOSING -->
+  <!-- 10 CLOSING P1 -->
   <section class="slide" data-part="1">
     <div class="wrap" style="text-align:center">
-      <div class="kicker reveal" style="justify-content:center">12 <span class="dim">まとめ</span></div>
+      <div class="kicker reveal" style="justify-content:center">09 <span class="dim">まとめ</span></div>
       <div class="pull pull--center reveal"><span class="proc-c">手続き</span>は「いま」を解く。<br><span class="def-c">定義</span>は「仕様」を解く。</div>
       <p class="lead reveal" style="margin:clamp(22px,3vw,32px) auto 0;text-align:center">コードを<strong>仕様の写像</strong>にすれば、<br>仕様変更は写像のまま、<strong>小さく一箇所に</strong>収まる。</p>
       <div class="title-rule reveal" style="margin-left:auto;margin-right:auto;margin-top:clamp(26px,4vw,40px)"></div>
-      <div class="title-hint reveal" style="text-align:center">議論・質問へ &nbsp;—&nbsp; ありがとうございました</div>
+      <div class="title-hint reveal" style="text-align:center">第1部おわり &nbsp;—&nbsp; 第2部へ</div>
     </div>
   </section>
 
@@ -1044,31 +621,20 @@
   </section>
 
 
-  <!-- 1. TITLE -->
+  <!-- 11 PREMISE -->
   <section class="slide" data-part="2">
     <div class="wrap">
-      <div class="title-eyebrow reveal">勉強会 · <b>第2部</b> · AI-Driven Development</div>
-      <div class="title-main reveal">AIが書くなら、<br><span class="proc-c">手続き</span> と <span class="def-c">定義</span> の優劣は変わるか</div>
-      <div class="title-sub reveal">コードの多くをAIが書く時代の、設計の重心</div>
-      <div class="title-rule reveal"></div>
-      <div class="title-hint reveal"><kbd>→</kbd> / <kbd>Space</kbd> で進む ・ <kbd>←</kbd> で戻る</div>
-    </div>
-  </section>
-
-  <!-- 2. PREMISE -->
-  <section class="slide" data-part="2">
-    <div class="wrap">
-      <div class="kicker reveal">13 <span class="dim">前提</span></div>
+      <div class="kicker reveal">10 <span class="dim">前提</span></div>
       <h2 class="reveal">第1部の論拠は「人間の保守性」だった</h2>
-      <p class="lead reveal">変更の局所性も、不正な状態の排除も、根拠は結局 <strong>「人間が読み・直し・壊さない」</strong> ため。<br>では、コードの多くを <strong>AIが書く</strong> なら、この話は変わるのか？</p>
-      <div class="pull reveal">優劣というより —— AI駆動開発は <span class="def-c">定義型を相対的に有利にする</span>。ただし<strong>理由が変わり</strong>、油断すると<strong>逆に手続きが増殖する</strong>。</div>
+      <p class="lead reveal">変更の局所性も、不正な状態の排除も、根拠は <strong>「人間が読み・直し・壊さない」</strong> ため。では、コードの多くを <strong>AIが書く</strong> なら、この話は変わるのか？</p>
+      <div class="pull reveal">AI駆動開発は <span class="def-c">定義型を相対的に有利にする</span>。ただし<strong>理由が変わり</strong>、油断すると<strong>逆に手続きが増殖する</strong>。</div>
     </div>
   </section>
 
-  <!-- 3. BOTTLENECK SHIFT -->
+  <!-- 12 BOTTLENECK SHIFT -->
   <section class="slide" data-part="2">
     <div class="wrap">
-      <div class="kicker reveal">14 <span class="dim">核心</span></div>
+      <div class="kicker reveal">11 <span class="dim">核心</span></div>
       <h2 class="reveal">ボトルネックが移動する</h2>
       <div class="bars reveal">
         <div class="bar-row">
@@ -1087,36 +653,36 @@
           </div>
         </div>
       </div>
-      <p class="caption reveal">「書く」コストは縮み、重心は <b>意図を伝える</b> と <b>出力を検証する</b> へ移る。そして —— このどちらも、<b style="color:var(--def)">定義型に味方する</b>。</p>
+      <p class="caption reveal">「書く」コストは縮み、重心は <b>意図を伝える</b> と <b>出力を検証する</b> へ移る。そして、このどちらも <b style="color:var(--def)">定義型に味方する</b>。</p>
     </div>
   </section>
 
-  <!-- 4. IMPLICATION 1 -->
+  <!-- 13 IMPLICATION 1 -->
   <section class="slide" data-part="2">
     <div class="wrap">
-      <div class="kicker reveal">15 <span class="dim">含意 ①</span></div>
+      <div class="kicker reveal">12 <span class="dim">含意 ①</span></div>
       <h2 class="reveal">定義型が効く、二つの局面</h2>
       <div class="concept reveal">
         <div class="ccard ccard--def">
           <span class="how">Tell — 伝える</span>
           <h3>宣言 = 仕様 = 良い指示</h3>
-          <p>型・スキーマ・ルール表は、そのまま仕様であり、そのまま<b>AIへの曖昧さの少ない指示</b>になる。手続きを言葉で説明するより、定義を渡す方が速く正確。</p>
+          <p>型・スキーマ・ルール表は、そのまま仕様であり、<b>AIへの曖昧さの少ない指示</b>になる。手続きを言葉で説明するより速く正確。</p>
           <code>const schema = { age: [min(0), max(150)] }</code>
         </div>
         <div class="ccard ccard--def">
           <span class="how">Verify — 検証する</span>
           <h3>目視で照合できる</h3>
-          <p>ルール表は仕様書と<b>突き合わせて確認できる</b>。手続きは実行を追わないと正しさを判断できない。AIへの委譲が増えるほど、この「検証の安さ」が効いてくる。</p>
+          <p>ルール表は仕様書と<b>突き合わせて確認できる</b>。手続きは実行を追わないと正しさを判断できない。委譲が増えるほど「検証の安さ」が効く。</p>
         </div>
       </div>
       <p class="caption reveal">人間時代の論拠は「直しやすさ」。AI時代の論拠は <b>「伝えやすさ」と「確かめやすさ」</b> に移る。</p>
     </div>
   </section>
 
-  <!-- 5. IMPLICATION 2 — self-correction loop -->
+  <!-- 14 IMPLICATION 2 — self-correction loop -->
   <section class="slide" data-part="2">
     <div class="wrap">
-      <div class="kicker reveal">16 <span class="dim">含意 ②</span></div>
+      <div class="kicker reveal">13 <span class="dim">含意 ②</span></div>
       <h2 class="reveal">機械可読な定義は、AIの自己修正ループになる</h2>
       <div class="loop reveal">
         <div class="lstep lstep--def"><div class="lt">定義</div><div class="ld">型・テスト・網羅された状態</div></div>
@@ -1132,10 +698,10 @@
     </div>
   </section>
 
-  <!-- 6. IMPLICATION 3 — callback to Part 1 -->
+  <!-- 15 IMPLICATION 3 — callback to Part 1 -->
   <section class="slide" data-part="2">
     <div class="wrap">
-      <div class="kicker reveal">17 <span class="dim">含意 ③ · 第1部の「あるある」再び</span></div>
+      <div class="kicker reveal">14 <span class="dim">含意 ③ · 第1部の「あるある」再び</span></div>
       <h2 class="reveal">AIは「もう1つ if を足す」を、最もやりがち</h2>
       <div class="grid2 reveal">
         <div class="panel panel--proc">
@@ -1162,29 +728,29 @@
           <br><span class="badge badge--good">変更 = データに +1 行</span></div>
         </div>
       </div>
-      <p class="caption reveal">だからこそ「定義に寄せる設計」は、AI時代に<b>こそ</b>効く。良い構造は、AIを良い変更へと誘導する“レール”になる。</p>
+      <p class="caption reveal">そもそもAIは<b>周囲の既存コードのスタイルに倣う</b> ― 手続き的なコードには手続きを、定義的なコードには定義を足す。だから「定義に寄せる設計」はAI時代に<b>こそ</b>効く。良い構造が、AIを良い変更へ誘導する“レール”になる。</p>
     </div>
   </section>
 
-  <!-- 7. THE OTHER SIDE -->
+  <!-- 16 THE OTHER SIDE -->
   <section class="slide" data-part="2">
     <div class="wrap">
-      <div class="kicker reveal">18 <span class="dim">反対側</span></div>
+      <div class="kicker reveal">15 <span class="dim">反対側</span></div>
       <h2 class="reveal">ただし、過剰抽象の罠は増幅する</h2>
       <div class="cards reveal">
-        <div class="item warn"><span class="n">!</span><h4>一瞬でDSLが作れる</h4><p>AIはルールエンジンやDSLを即生成できる。<b>誰も理解していない仕組み</b>が生まれやすい。</p></div>
+        <div class="item warn"><span class="n">!</span><h4>一瞬でDSLが作れる</h4><p>AIはルールエンジンやDSLを即生成できる。<b>誰も理解していない仕組み</b>が生まれやすい。<br><span style="color:var(--faint)">※ DSL＝独自のルール記法＋解釈器（例: SQL・正規表現）</span></p></div>
         <div class="item warn"><span class="n">!</span><h4>解釈器がブラックボックス化</h4><p>定義もエンジンもAI製だと中身が不透明。<b>平たい手続きの方が監査しやすい</b>こともある。</p></div>
-        <div class="item warn"><span class="n">!</span><h4>「間違った抽象」がより重い</h4><p>第1部の警句 —— 間違った抽象は無抽象より悪い —— がAI時代に重みを増す。</p></div>
-        <div class="item warn"><span class="n">!</span><h4>修正コストも下がった</h4><p>「直すのが面倒」という抽象化の動機の一部は、AIが消してしまった。</p></div>
+        <div class="item warn"><span class="n">!</span><h4>「間違った抽象」がより重い</h4><p>間違った抽象は無抽象より悪い ― 第1部の警句がAI時代に重みを増す。</p></div>
+        <div class="item warn"><span class="n">!</span><h4>修正コストも下がった</h4><p>「直すのが面倒」という抽象化の動機の一部を、AIが消してしまった。</p></div>
       </div>
-      <div class="pull reveal">安く作れることは、<span class="proc-c">作るべき理由にはならない</span>。</div>
+      <div class="pull reveal"><b>安く作れる</b>ことと<b>作る価値がある</b>ことは別 ― 抽象は「安いから」ではなく「<span class="def-c">必要だから</span>」作る。</div>
     </div>
   </section>
 
-  <!-- 8. CONCLUSION — the boundary -->
+  <!-- 17 CONCLUSION — the boundary -->
   <section class="slide" data-part="2">
     <div class="wrap">
-      <div class="kicker reveal">19 <span class="dim">結論</span></div>
+      <div class="kicker reveal">16 <span class="dim">結論</span></div>
       <h2 class="reveal">問いは「優劣」ではなく「境界」</h2>
       <div class="core-outer reveal">
         <div class="core-lbl">手続き（How）<span class="sub">AIが生成する · 再生成可能 · “使い捨て”の実装</span></div>
@@ -1193,39 +759,18 @@
           <div class="core-items"><span>型</span><span>スキーマ</span><span>ルール表</span><span>状態遷移表</span></div>
         </div>
       </div>
-      <p class="caption reveal">仕様が変わったら —— <b>定義を直し、手続きはAIに書き直させる</b>。守るべき中核と、捨てられる外側を分けておく。これがAI時代の設計の重心。</p>
+      <p class="caption reveal">仕様が変わったら ― <b>定義を直し、手続きはAIに書き直させる</b>。守るべき中核と捨てられる外側を分ける。これがAI時代の設計の重心。最小抵抗経路は「とりあえず手続きを生成」なので、<b>定義に寄せる規律は、人間時代よりいっそう意識的に</b>持つ。</p>
     </div>
   </section>
 
-  <!-- 9. THE PITFALL -->
-  <section class="slide" data-part="2">
-    <div class="wrap">
-      <div class="kicker reveal">20 <span class="dim">落とし穴</span></div>
-      <h2 class="reveal">最小抵抗経路は「とりあえず手続きを生成」</h2>
-      <p class="lead reveal">AIに頼むと、まず手続きが出てくる。<strong>書くコスト（即時）は消える</strong>が、<strong>検証・ドリフト・局所性のコスト（遅延）は見えにくい</strong>。放っておけば、コードは手続きへと回帰していく。</p>
-      <div class="pull reveal">だから「定義に寄せる規律」は、<span class="def-c">人間が手で書いていた時代より、いっそう意識的に</span>持つ必要がある。</div>
-    </div>
-  </section>
-
-  <!-- 10. CONVERGENCE -->
-  <section class="slide" data-part="2">
-    <div class="wrap">
-      <div class="kicker reveal">21 <span class="dim">収束</span></div>
-      <h2 class="reveal">仕様駆動・意図駆動 は、定義型設計の別名</h2>
-      <p class="lead reveal">近年のAI開発スタイル —— <strong>仕様を書き、AIが実装する</strong> —— は、第1部の「定義を実装する」とほぼ同じ方向を向いている。</p>
-      <div class="pull pull--center reveal" style="margin-top:clamp(24px,3.6vw,40px)">仕様こそが、プログラム。</div>
-      <p class="caption reveal" style="text-align:center;margin-left:auto;margin-right:auto">宣言的設計とAI駆動開発は、別々の動機から生まれて、同じ場所に着いた。</p>
-    </div>
-  </section>
-
-  <!-- 11. CLOSING -->
+  <!-- 18 CLOSING P2 (収束を統合) -->
   <section class="slide" data-part="2">
     <div class="wrap" style="text-align:center">
-      <div class="kicker reveal" style="justify-content:center">22 <span class="dim">まとめ</span></div>
+      <div class="kicker reveal" style="justify-content:center">17 <span class="dim">まとめ</span></div>
       <div class="pull pull--center reveal">AIが <span class="proc-c">手続き</span> を安く書けるからこそ、<br>人間が握るべき資産は <span class="def-c">定義</span> に寄る。</div>
-      <p class="lead reveal" style="margin:clamp(22px,3vw,32px) auto 0;text-align:center">手続きの優劣ではない。<strong>何を「定義」として耐久資産に持ち、<br>何を「手続き」としてAIに再生成させ捨てるか</strong> —— その線引きが本質。</p>
-      <div class="title-rule reveal" style="margin-left:auto;margin-right:auto;margin-top:clamp(26px,4vw,40px)"></div>
-      <div class="title-hint reveal" style="text-align:center">第1部・第2部 おわり &nbsp;—&nbsp; 議論へ</div>
+      <p class="lead reveal" style="margin:clamp(22px,3vw,32px) auto 0;text-align:center"><strong>何を「定義」として耐久資産に持ち、<br>何を「手続き」としてAIに再生成させ捨てるか</strong> ― その線引きが本質。</p>
+      <div class="pull pull--center reveal" style="font-size:clamp(20px,3.4vw,34px);margin-top:clamp(20px,3vw,30px)">仕様こそが、プログラム。</div>
+      <div class="title-hint reveal" style="text-align:center;margin-top:clamp(20px,3vw,28px)">第1部・第2部 おわり &nbsp;—&nbsp; 第3部へ</div>
     </div>
   </section>
 
@@ -1242,108 +787,71 @@
   </section>
 
 
-  <!-- 1. TITLE -->
+  <!-- 19 STANCE -->
   <section class="slide" data-part="3">
     <div class="wrap">
-      <div class="title-eyebrow reveal">勉強会 · <b>第3部</b> · The Playbook</div>
-      <div class="title-main reveal">定義ファーストで<br>AI駆動開発を <span class="def-c">回す</span></div>
-      <div class="title-sub reveal">実践プレイブック ― では、どう運用するか</div>
-      <div class="title-rule reveal"></div>
-      <div class="title-hint reveal"><kbd>→</kbd> / <kbd>Space</kbd> で進む ・ <kbd>←</kbd> で戻る</div>
-    </div>
-  </section>
-
-  <!-- 2. STANCE -->
-  <section class="slide" data-part="3">
-    <div class="wrap">
-      <div class="kicker reveal">23 <span class="dim">方針</span></div>
+      <div class="kicker reveal">18 <span class="dim">方針</span></div>
       <h2 class="reveal">「やる」と決めたら、問いは <span class="def-c">How</span> に変わる</h2>
-      <p class="lead reveal">第1部は<strong>原則</strong>（なぜ定義か）、第2部は<strong>AI時代の含意</strong>（むしろ有利、ただし罠）。<br>AI駆動開発で進めると決まったいま、必要なのは <strong>「どう回すか」</strong> の具体です。</p>
+      <p class="lead reveal">第1部は<strong>原則</strong>（なぜ定義か）、第2部は<strong>AI時代の含意</strong>（むしろ有利、ただし罠）。AI駆動開発で進めると決まったいま、必要なのは <strong>「どう回すか」</strong> の具体です。</p>
       <div class="pull reveal">第3部は ― 定義ファーストのAI駆動開発を、<span class="def-c">現場で回すためのプレイブック</span>。</div>
     </div>
   </section>
 
-  <!-- 3. THREE ROLES -->
+  <!-- 19 ROLES + WORKFLOW (merged) -->
   <section class="slide" data-part="3">
     <div class="wrap">
-      <div class="kicker reveal">24 <span class="dim">全体像</span></div>
-      <h2 class="reveal">三者で分業する</h2>
-      <div class="roles reveal">
-        <div class="role role--def">
-          <span class="who">Human</span>
-          <span class="what">定義</span>
-          <span class="desc">仕様・型・ルールを<b>書き、所有し、レビュー</b>する。意図と一致しているかを保証する唯一の役。</span>
-        </div>
-        <div class="role role--proc">
-          <span class="who">AI</span>
-          <span class="what">手続き</span>
-          <span class="desc">定義から手続きを<b>生成・改修</b>する。出力は再生成可能な“使い捨て”として扱う。</span>
-        </div>
-        <div class="role role--chk">
-          <span class="who">Machine</span>
-          <span class="what">検査</span>
-          <span class="desc">型・テスト・CIが<b>定義への違反を機械的に弾く</b>。AIの自己修正ループを支える土台。</span>
-        </div>
+      <div class="kicker reveal">19 <span class="dim">全体像 · ワークフロー</span></div>
+      <h2 class="reveal">三者で分業し、1サイクルで回す</h2>
+      <div class="loop reveal">
+        <div class="lstep lstep--def"><div class="lt">人 ▸ 定義を更新</div><div class="ld">仕様・型・表を書き、所有する</div></div>
+        <div class="larrow"><small>生成</small>›</div>
+        <div class="lstep"><div class="lt">AI ▸ 実装</div><div class="ld">手続きを生成・改修（使い捨て）</div></div>
+        <div class="larrow"><small>検査</small>›</div>
+        <div class="lstep lstep--bad"><div class="lt">機械 ▸ 検査</div><div class="ld">型・テスト・CIが違反を弾く</div></div>
+        <div class="larrow"><small>確認</small>›</div>
+        <div class="lstep lstep--def"><div class="lt">人 ▸ レビュー</div><div class="ld">見るのは「定義の差分」</div></div>
       </div>
-      <p class="caption reveal">この分業が崩れる瞬間に問題が起きる ― 人が手続きに手を入れて再生成不能にする、定義をAIに丸投げする、検査が無いまま生成を信じる。<b>役割の境界を守ること</b>が運用の核。</p>
+      <div class="loop-note reveal">↻ 検査が通るまではAIが自律的に反復 ― 人手が入るのは両端（定義とレビュー）だけ</div>
+      <p class="caption reveal"><b>人＝定義</b>（所有・レビュー）／<b>AI＝手続き</b>（再生成可能な使い捨て）／<b>機械＝検査</b>（違反を機械的に弾く）。レビューの重心も「手続きの差分」から<b>「定義の差分」</b>へ移る。<br>この<b>役割の境界が崩れる</b>と問題が起きる ― 人が生成コードに手を入れ再生成不能にする／定義をAIに丸投げする／検査なしで生成を信じる。</p>
     </div>
   </section>
 
-  <!-- 4. WHERE DEFINITIONS LIVE -->
+  <!-- 21 WHERE DEFINITIONS LIVE -->
   <section class="slide" data-part="3">
     <div class="wrap">
-      <div class="kicker reveal">25 <span class="dim">定義の置き場</span></div>
+      <div class="kicker reveal">20 <span class="dim">定義の置き場</span></div>
       <h2 class="reveal">定義はどこに宿すか</h2>
       <div class="layers reveal">
-        <div class="layer"><span class="lname">仕様ドキュメント / ADR</span><span class="lnote">自然言語の定義。AIへの一次入力</span><span class="ltag ltag--h">人が所有</span></div>
+        <div class="layer"><span class="lname">仕様ドキュメント / ADR</span><span class="lnote">自然言語の定義。AIへの一次入力（ADR＝設計判断の記録）</span><span class="ltag ltag--h">人が所有</span></div>
         <div class="layer"><span class="lname">リポジトリ規約</span><span class="lnote">CLAUDE.md 等。AIへの恒常的なルール</span><span class="ltag ltag--h">人が所有</span></div>
         <div class="layer layer--m"><span class="lname">スキーマ</span><span class="lnote">型・実行時検証・ドキュメントを一枚で兼ねる</span><span class="ltag ltag--m">常時検査</span></div>
         <div class="layer layer--m"><span class="lname">状態遷移表 / ルール表</span><span class="lnote">データとしての定義</span><span class="ltag ltag--m">常時検査</span></div>
         <div class="layer layer--m"><span class="lname">テスト</span><span class="lnote">実行可能な仕様＝契約</span><span class="ltag ltag--m">常時検査</span></div>
         <div class="layer layer--m"><span class="lname">型</span><span class="lnote">最も安く、常に効く定義</span><span class="ltag ltag--m">常時検査</span></div>
       </div>
-      <p class="caption reveal">上ほど人が所有する自然言語、下ほど機械が常時検査する形式。<b>機械検査可能な層に寄せるほど、AIの自己修正が効く</b>。最上流の自然言語の定義は、形式の層と<b>ズレないよう一本化</b>しておく。</p>
+      <p class="caption reveal">上ほど人が所有する自然言語、下ほど機械が常時検査する形式。<b>機械検査可能な層に寄せるほど、AIの自己修正が効く</b>。最上流の自然言語の定義は、形式の層と<b>ズレないよう一本化</b>する。</p>
     </div>
   </section>
 
-  <!-- 5. WORKFLOW LOOP -->
+  <!-- 21 GUARDRAILS -->
   <section class="slide" data-part="3">
     <div class="wrap">
-      <div class="kicker reveal">26 <span class="dim">ワークフロー</span></div>
-      <h2 class="reveal">1サイクルの回し方</h2>
-      <div class="loop reveal">
-        <div class="lstep lstep--def"><div class="lt">定義を更新</div><div class="ld">人が仕様・型・表を書く</div></div>
-        <div class="larrow"><small>生成</small>›</div>
-        <div class="lstep"><div class="lt">AIが実装</div><div class="ld">手続きを生成・改修</div></div>
-        <div class="larrow"><small>検査</small>›</div>
-        <div class="lstep lstep--bad"><div class="lt">機械が検査</div><div class="ld">型・テスト・CI／失敗は自己修正へ</div></div>
-        <div class="larrow"><small>確認</small>›</div>
-        <div class="lstep lstep--def"><div class="lt">人がレビュー</div><div class="ld">見るのは「定義の差分」</div></div>
-      </div>
-      <div class="loop-note reveal">↻ 検査が通るまではAIが自律的に反復 ― 人手が入るのは両端（定義とレビュー）だけ</div>
-      <p class="caption reveal">コードレビューの重心が <b>「手続きの差分」から「定義の差分」へ</b> 移る。手続きの正しさは機械が保証し、人は意図との一致だけを見る。</p>
-    </div>
-  </section>
-
-  <!-- 6. GUARDRAILS -->
-  <section class="slide" data-part="3">
-    <div class="wrap">
-      <div class="kicker reveal">27 <span class="dim">初期投資</span></div>
+      <div class="kicker reveal">21 <span class="dim">初期投資</span></div>
       <h2 class="reveal">ガードレールは「先に」作る</h2>
       <div class="cards reveal">
         <div class="item"><span class="n">A</span><h4>厳しい型</h4><p><code>any</code>禁止・網羅性チェック。<b>不正な状態を表現不可能</b>にし、AIの間違いをコンパイルで止める。</p></div>
         <div class="item"><span class="n">B</span><h4>契約としてのテスト</h4><p>出力値でなく<b>不変条件</b>を縛る（プロパティ/契約テスト）。「通った」が「正しい」になる。</p></div>
-        <div class="item"><span class="n">C</span><h4>CIを自己修正ループに</h4><p>型・テスト・lintを<b>AIが回せる速さ</b>で自動実行。失敗が即フィードバックになる。</p></div>
+        <div class="item"><span class="n">C</span><h4>全チェックを通し切らせる</h4><p>AIに<b>lint・build・jest・cspell 等を実行し、エラーを全て解消してから完了</b>と指示。CI任せにせず、生成のたびに手元で回し切らせる。</p></div>
         <div class="item"><span class="n">D</span><h4>具体的な失敗メッセージ</h4><p>失敗が<b>機械可読で具体的</b>なほど、AIは自分で直せる。曖昧な失敗は人を呼び戻す。</p></div>
       </div>
-      <p class="caption reveal">第2部の「ガードレールが厚いほどAIは自律的に走れる」を、具体に落とした回。<b>薄いガードレールの下では、AIは静かに間違える。</b></p>
+      <p class="caption reveal">「ガードレールが厚いほどAIは自律的に走れる」を具体に落とした回。<b>薄いガードレールの下では、AIは静かに間違える。</b></p>
     </div>
   </section>
 
-  <!-- 7. REVIEW -->
+  <!-- 24 REVIEW -->
   <section class="slide" data-part="3">
     <div class="wrap">
-      <div class="kicker reveal">28 <span class="dim">レビュー</span></div>
+      <div class="kicker reveal">22 <span class="dim">レビュー</span></div>
       <h2 class="reveal">人が見る場所が変わる</h2>
       <ul class="check reveal">
         <li><span class="box"></span><span>見ているのは <b>「定義の差分」</b> か？<small>手続きの差分は機械任せでよい</small></span></li>
@@ -1355,10 +863,10 @@
     </div>
   </section>
 
-  <!-- 8. THE BOUNDARY -->
+  <!-- 25 THE BOUNDARY -->
   <section class="slide" data-part="3">
     <div class="wrap">
-      <div class="kicker reveal">29 <span class="dim">境界の引き方</span></div>
+      <div class="kicker reveal">23 <span class="dim">境界の引き方</span></div>
       <h2 class="reveal">何を定義にし、何を手続きに捨てるか</h2>
       <div class="concept reveal">
         <div class="ccard ccard--def">
@@ -1382,10 +890,10 @@
     </div>
   </section>
 
-  <!-- 9. ANTI-PATTERNS -->
+  <!-- 26 ANTI-PATTERNS -->
   <section class="slide" data-part="3">
     <div class="wrap">
-      <div class="kicker reveal">30 <span class="dim">アンチパターン</span></div>
+      <div class="kicker reveal">24 <span class="dim">アンチパターン</span></div>
       <h2 class="reveal">現場で踏む地雷</h2>
       <div class="cards reveal">
         <div class="item warn"><span class="n">!</span><h4>定義のドリフト / 二重ソース</h4><p>型・スキーマ・ドキュメントがズレていく。<span class="fix"><b>対策:</b> 単一ソースから生成する</span></p></div>
@@ -1397,10 +905,10 @@
     </div>
   </section>
 
-  <!-- 10. FIRST STEPS -->
+  <!-- 27 FIRST STEPS -->
   <section class="slide" data-part="3">
     <div class="wrap">
-      <div class="kicker reveal">31 <span class="dim">導入</span></div>
+      <div class="kicker reveal">25 <span class="dim">導入</span></div>
       <h2 class="reveal">最初の一歩（一気にやらない）</h2>
       <div class="cards reveal">
         <div class="item"><span class="n">01</span><h4>ガードレールに投資</h4><p>まず<b>型・テスト・CI</b>を整える。土台が無いと自己修正が回らない。</p></div>
@@ -1412,12 +920,12 @@
     </div>
   </section>
 
-  <!-- 11. CLOSING -->
+  <!-- 28 CLOSING P3 -->
   <section class="slide" data-part="3">
     <div class="wrap" style="text-align:center">
-      <div class="kicker reveal" style="justify-content:center">32 <span class="dim">まとめ</span></div>
+      <div class="kicker reveal" style="justify-content:center">26 <span class="dim">まとめ</span></div>
       <div class="pull pull--center reveal"><span class="def-c">定義</span>は人が書き、<span class="proc-c">手続き</span>はAIが書き、<br>機械が検査する。</div>
-      <p class="lead reveal" style="margin:clamp(22px,3vw,32px) auto 0;text-align:center">三部の結論 ― コードを<strong>仕様の写像</strong>に保ち、手続きはAIに任せ、<br>人は<strong>定義に集中する</strong>。これを回せるチームになる。</p>
+      <p class="lead reveal" style="margin:clamp(22px,3vw,32px) auto 0;text-align:center">三部の結論 ― コードを<strong>仕様の写像</strong>に保ち、手続きはAIに任せ、人は<strong>定義に集中する</strong>。これを回せるチームになる。</p>
       <div class="title-rule reveal" style="margin-left:auto;margin-right:auto;margin-top:clamp(26px,4vw,40px)"></div>
       <div class="title-hint reveal" style="text-align:center">第1部・第2部・第3部 おわり &nbsp;—&nbsp; さあ、実装へ</div>
     </div>
@@ -1473,7 +981,8 @@
   var PARTS={"0":"全3部","1":"第1部 · 原則編","2":"第2部 · AI駆動開発編","3":"第3部 · 実践編"};
   tot.textContent=total;
 
-  function go(i){
+  function go(i,opts){
+    opts=opts||{};
     idx=Math.max(0,Math.min(total-1,i));
     slides.forEach(function(s,k){s.classList.toggle("is-active",k===idx);});
     bar.style.width=((idx+1)/total*100)+"%"; cur.textContent=idx+1;
@@ -1481,9 +990,25 @@
     partlbl.textContent=PARTS[p];
     prev.disabled=idx===0; next.disabled=idx===total-1;
     try{slides[idx].scrollTop=0;}catch(e){}
+    // sync URL so Back/Forward and direct #N links work
+    var hash="#"+(idx+1);
+    try{
+      if(opts.replace) history.replaceState({idx:idx},"",hash);
+      else if(!opts.fromPop && location.hash!==hash) history.pushState({idx:idx},"",hash);
+    }catch(e){ if(!opts.fromPop) location.hash=hash; }
     clearInk();
   }
   function nextS(){go(idx+1);} function prevS(){go(idx-1);}
+
+  // URL <-> slide sync (Back/Forward button & direct #N navigation)
+  function slideFromHash(){
+    var n=parseInt((location.hash||"").replace(/[^0-9]/g,""),10);
+    var i=isNaN(n)?0:n-1;
+    return Math.max(0,Math.min(total-1,i));
+  }
+  function syncFromHash(){ var i=slideFromHash(); if(i!==idx) go(i,{fromPop:true}); }
+  window.addEventListener("popstate",syncFromHash);
+  window.addEventListener("hashchange",syncFromHash);
 
   // agenda jump
   Array.prototype.forEach.call(document.querySelectorAll("[data-goto]"),function(el){
@@ -1568,7 +1093,7 @@
   window.addEventListener("resize", sizeCanvas);
 
   sizeCanvas();
-  go(0);
+  go(slideFromHash(),{replace:true});
 })();
 </script>
 </body>
