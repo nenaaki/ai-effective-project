@@ -321,8 +321,8 @@
         <div class="ag" data-goto="3" role="button" tabindex="0">
           <span class="no">第3部</span>
           <span class="body">
-            <span class="ttl">実践編 <em>プレイブック</em></span>
-            <span class="sub">三者分業・ワークフロー・ガードレール・レビュー・導入の手順。</span>
+            <span class="ttl">実践編 <em>ハンズオン</em></span>
+            <span class="sub">CSV取り込みを題材に ― 仕様 → 定義テーブル → 汎用エンジンを実際に組む。</span>
           </span>
         </div>
       </div>
@@ -780,145 +780,290 @@
     <div class="wrap">
       <div class="div-eyebrow reveal">Chapter 03 &middot; 第3部</div>
       <div class="div-title reveal">実践編</div>
-      <div class="div-essence reveal">定義ファーストでAI駆動開発を回す、実践プレイブック</div>
+      <div class="div-essence reveal">仕様 → 定義テーブル → 汎用エンジン ― CSV取り込みを、実際に組む</div>
       <div class="div-pos reveal"><span class="on">3</span> / 3</div>
     </div>
   </section>
 
 
-  <!-- 19 STANCE -->
+  <!-- 18 BRIEF / SPEC -->
   <section class="slide" data-part="3">
     <div class="wrap">
-      <div class="kicker reveal">18 <span class="dim">方針</span></div>
-      <h2 class="reveal">「やる」と決めたら、問いは <span class="def-c">How</span> に変わる</h2>
-      <p class="lead reveal">第1部は<strong>原則</strong>（なぜ定義か）、第2部は<strong>AI時代の含意</strong>（むしろ有利、ただし罠）。AI駆動開発で進めると決まったいま、必要なのは <strong>「どう回すか」</strong> の具体です。</p>
-      <div class="pull reveal">第3部は ― 定義ファーストのAI駆動開発を、<span class="def-c">現場で回すためのプレイブック</span>。</div>
-    </div>
-  </section>
-
-  <!-- 19 ROLES + WORKFLOW (merged) -->
-  <section class="slide" data-part="3">
-    <div class="wrap">
-      <div class="kicker reveal">19 <span class="dim">ワークフロー</span></div>
-      <h2 class="reveal">1サイクルの回し方</h2>
-      <div class="loop reveal">
-        <div class="lstep lstep--def"><div class="lt">人 ▸ 定義を更新</div><div class="ld">仕様・型・表を書き、所有する</div></div>
-        <div class="larrow"><small>生成</small>›</div>
-        <div class="lstep"><div class="lt">AI ▸ 実装</div><div class="ld">手続きを生成・改修（使い捨て）</div></div>
-        <div class="larrow"><small>検査</small>›</div>
-        <div class="lstep lstep--bad"><div class="lt">機械 ▸ 検査</div><div class="ld">型・テスト・CIが違反を弾く</div></div>
-        <div class="larrow"><small>確認</small>›</div>
-        <div class="lstep lstep--def"><div class="lt">人 ▸ レビュー</div><div class="ld">見るのは「定義の差分」</div></div>
+      <div class="kicker reveal">18 <span class="dim">お題 · これを作る</span></div>
+      <h2 class="reveal">CSVを読み込んで、検証する</h2>
+      <div class="grid2 reveal">
+        <div class="panel">
+          <span class="panel__tag panel__tag--mx"><span class="jp">入力</span> · CSV（1行目＝カラム名）</span>
+          <div class="code">
+<span class="ln">名前,年齢,住所</span>
+<span class="ln">山田太郎,34,東京都新宿区…</span>
+<span class="ln">佐藤花子,29,大阪府大阪市…</span>
+<span class="ln">鈴木一郎,-5,</span>
+          </div>
+          <div class="panel__foot">列の<b>順番</b>も、不正値（-5）や空欄も、現実には混ざる。</div>
+        </div>
+        <div class="panel panel--def">
+          <span class="panel__tag"><span class="jp">仕様</span> · 人間の言葉（定義の源）</span>
+          <div class="code">
+<span class="ln"><span class="t-cm"># 取り込む列 → フィールド / 型 / 検証</span></span>
+<span class="ln">名前 → name     string / 必須 / 最大40</span>
+<span class="ln">年齢 → age      number / 必須 / 0〜120</span>
+<span class="ln">住所 → address  string / 必須</span>
+<span class="ln"> </span>
+<span class="ln"><span class="t-cm"># 不正な行はまとめてエラーで返す</span></span>
+          </div>
+          <div class="panel__foot">人が所有する<b>仕様</b>。これを実装に落としていく。</div>
+        </div>
       </div>
-      <div class="loop-note reveal">↻ 検査が通るまではAIが自律的に反復 ― 人手が入るのは両端（定義とレビュー）だけ</div>
-      <p class="caption reveal">人手が入るのは<b>定義とレビューの両端だけ</b>。生成コードは直接いじらず（再生成できなくなる）、直すときは必ず<b>定義側を直して回し直す</b>。なぜこの分担になるかは第2部（境界）を参照。</p>
+      <p class="caption reveal">やることは3つ ― <b>① 列をフィールドへ対応</b>・<b>② 型変換</b>・<b>③ 検証</b>。これを<b>AIにどう頼むか</b>で、出てくるコードが変わる。</p>
     </div>
   </section>
 
-  <!-- 21 WHERE DEFINITIONS LIVE -->
+  <!-- 19 TWO PROMPTS / FORK -->
   <section class="slide" data-part="3">
     <div class="wrap">
-      <div class="kicker reveal">20 <span class="dim">定義の置き場</span></div>
-      <h2 class="reveal">定義はどこに宿すか</h2>
-      <div class="layers reveal">
-        <div class="layer"><span class="lname">仕様ドキュメント / ADR</span><span class="lnote">自然言語の定義。AIへの一次入力（ADR＝設計判断の記録）</span><span class="ltag ltag--h">人が所有</span></div>
-        <div class="layer"><span class="lname">リポジトリ規約</span><span class="lnote">CLAUDE.md 等。AIへの恒常的なルール</span><span class="ltag ltag--h">人が所有</span></div>
-        <div class="layer layer--m"><span class="lname">スキーマ</span><span class="lnote">型・実行時検証・ドキュメントを一枚で兼ねる</span><span class="ltag ltag--m">常時検査</span></div>
-        <div class="layer layer--m"><span class="lname">状態遷移表 / ルール表</span><span class="lnote">データとしての定義</span><span class="ltag ltag--m">常時検査</span></div>
-        <div class="layer layer--m"><span class="lname">テスト</span><span class="lnote">実行可能な仕様＝契約</span><span class="ltag ltag--m">常時検査</span></div>
-        <div class="layer layer--m"><span class="lname">型</span><span class="lnote">最も安く、常に効く定義</span><span class="ltag ltag--m">常時検査</span></div>
+      <div class="kicker reveal">19 <span class="dim">分かれ道 · 同じ仕様、違う頼み方</span></div>
+      <h2 class="reveal">同じAIでも、<span class="proc-c">頼み方</span>で出力が変わる</h2>
+      <div class="grid2 reveal">
+        <div class="panel panel--proc">
+          <span class="panel__tag"><span class="jp">指示A</span> · やりたいことだけ伝える</span>
+          <div style="font-size:clamp(12.5px,1.45vw,15.5px);line-height:1.7;color:#C8CFDE;background:rgba(8,11,17,.4);border:1px solid var(--line);border-radius:10px;padding:12px 14px">「CSVを読み込んで。1行目がカラム名。<b>名前・年齢・住所</b>を name / age / address に取り出して、数値に変換、必須チェックと年齢0〜120の検証もして。」</div>
+          <div class="panel__foot">手順の言葉で頼む → AIは最短で<b>1本の関数</b>に分岐と throw を並べる。
+          <br><span class="badge badge--bad">→ 手続きコード（次ページ）</span></div>
+        </div>
+        <div class="panel panel--def">
+          <span class="panel__tag"><span class="jp">指示B</span> · 成果物の「形」を指定する</span>
+          <div style="font-size:clamp(12.5px,1.45vw,15.5px);line-height:1.7;color:#C8CFDE;background:rgba(8,11,17,.4);border:1px solid var(--line);border-radius:10px;padding:12px 14px">「<b>手続き的に書かないで。</b>① 列対応・型変換・検証を<b>定義テーブル schema</b> にする ② schema を読む<b>汎用クラス CsvMapper を1つ</b>書く（分岐を書かない）③ 出力型は schema から導出、エラーは集約。<b>仕様は添付の仕様書のとおり。</b>」<span style="display:block;margin-top:8px;font-size:.82em;color:var(--def)">📎 仕様書を添付</span></div>
+          <div class="panel__foot">構造と禁止事項を指定 → <b>定義と汎用エンジン</b>に分離する。
+          <br><span class="badge badge--good">→ 定義ファースト（この先）</span></div>
+        </div>
       </div>
-      <p class="caption reveal">上ほど人が所有する自然言語、下ほど機械が常時検査する形式。<b>機械検査可能な層に寄せるほど、AIの自己修正が効く</b>。最上流の自然言語の定義は、形式の層と<b>ズレないよう一本化</b>する。</p>
+      <p class="caption reveal">仕様の中身は<b>まったく同じ</b>。違うのは「<b>手順</b>を述べたか、<b>定義と構造</b>を述べたか」だけ。<b style="color:var(--def)">定義ファーストは、まず“指示の側”で定義に寄せること</b> ― AIは放っておくと手続きに倒れる。</p>
     </div>
   </section>
 
-  <!-- 21 GUARDRAILS -->
+  <!-- 20 NAIVE PROCEDURAL -->
   <section class="slide" data-part="3">
     <div class="wrap">
-      <div class="kicker reveal">21 <span class="dim">初期投資</span></div>
-      <h2 class="reveal">ガードレールは「先に」作る</h2>
-      <div class="cards reveal">
-        <div class="item"><span class="n">A</span><h4>厳しい型</h4><p><code>any</code>禁止・網羅性チェック。<b>不正な状態を表現不可能</b>にし、AIの間違いをコンパイルで止める。</p></div>
-        <div class="item"><span class="n">B</span><h4>契約としてのテスト</h4><p>出力値でなく<b>不変条件</b>を縛る（プロパティ/契約テスト）。「通った」が「正しい」になる。</p></div>
-        <div class="item"><span class="n">C</span><h4>全チェックを通し切らせる</h4><p>AIに<b>lint・build・jest・cspell 等を実行し、エラーを全て解消してから完了</b>と指示。CI任せにせず、生成のたびに手元で回し切らせる。</p></div>
-        <div class="item"><span class="n">D</span><h4>具体的な失敗メッセージ</h4><p>失敗が<b>機械可読で具体的</b>なほど、AIは自分で直せる。曖昧な失敗は人を呼び戻す。</p></div>
+      <div class="kicker reveal">20 <span class="dim">指示A の結果 · 第1部の再来</span></div>
+      <h2 class="reveal">手続きだと、対応・型変換・検証が絡まる</h2>
+      <div class="panel panel--proc reveal" style="max-width:720px">
+        <span class="panel__tag"><span class="jp">手続き</span></span>
+        <div class="code" style="font-size:clamp(9px,.78vw,11px);line-height:1.55">
+<span class="ln"><span class="t-cm">// CSVを1行ずつ、手で組み立てる</span></span>
+<span class="ln">for (let i = 1; i &lt; lines.length; i++) {</span>
+<span class="ln">  const c = lines[i].split(",");</span>
+<span class="ln">  const name = c[0];                 <span class="t-cm">// ① 列の位置を直書き</span></span>
+<span class="ln">  const age  = Number(c[1]);         <span class="t-cm">// ② 型変換も手書き</span></span>
+<span class="ln">  const address = c[2];</span>
+<span class="ln is-changed">  if (!name) throw "名前必須";         <span class="t-cm">// ③ 検証が散らばる</span></span>
+<span class="ln is-changed">  if (name.length &gt; 40) throw "名前長すぎ";</span>
+<span class="ln is-changed">  if (isNaN(age)) throw "年齢が数値でない";</span>
+<span class="ln is-changed">  if (age &lt; 0 || age &gt; 120) throw "範囲外";</span>
+<span class="ln is-changed">  if (!address) throw "住所必須";</span>
+<span class="ln">  out.push({ name, age, address });</span>
+<span class="ln">}</span>
+        </div>
+        <div class="panel__foot">①対応・②型変換・③検証が<b style="color:var(--proc)">1つの手順に溶けている</b>。列の追加・順序変更も、ここを書き換える。
+        <br><span class="badge badge--bad">列を1つ足す = この手順を数行書き換え</span></div>
       </div>
-      <p class="caption reveal">「ガードレールが厚いほどAIは自律的に走れる」を具体に落とした回。<b>薄いガードレールの下では、AIは静かに間違える。</b></p>
+      <p class="caption reveal">第1部の「if が増える」が CSV でも再来。しかも <b>throw</b> は<b>最初の1件で止まり</b>、全エラーを返せない ― 3つの関心事を<b>分離</b>しよう。</p>
     </div>
   </section>
 
-  <!-- 24 REVIEW -->
+  <!-- 20 STEP 1 — DEFINITION TABLE -->
   <section class="slide" data-part="3">
     <div class="wrap">
-      <div class="kicker reveal">22 <span class="dim">レビュー</span></div>
-      <h2 class="reveal">人が見る場所が変わる</h2>
-      <ul class="check reveal">
-        <li><span class="box"></span><span>見ているのは <b>「定義の差分」</b> か？<small>手続きの差分は機械任せでよい</small></span></li>
-        <li><span class="box"></span><span>その手続きは、<b>定義から決定的に導ける</b>か？<small>導けないなら、定義が不足しているサイン</small></span></li>
-        <li><span class="box"></span><span>定義は <b>意図と一致</b> しているか？<small>ここだけは、最後まで人間の仕事</small></span></li>
-        <li><span class="box"></span><span>生成コードに <b>手で継ぎ足していない</b> か？<small>再生成可能性を壊さない</small></span></li>
-        <li><span class="box"></span><span>その抽象は <b>「3度」現れた実需</b> に基づくか？<small>AI製DSLの過剰を弾く</small></span></li>
-      </ul>
+      <div class="kicker reveal">21 <span class="dim">STEP ① · 定義（指示B）</span></div>
+      <h2 class="reveal">仕様を、そのまま<span class="def-c">テーブル</span>に写す</h2>
+      <div class="grid2 reveal">
+        <div class="panel panel--def">
+          <span class="panel__tag"><span class="jp">定義</span> · フィールド定義テーブル</span>
+          <div class="code" style="font-size:clamp(9px,.78vw,11px);line-height:1.5">
+<span class="ln"><span class="t-cm">// 列→フィールド・型変換・検証を 1 つの表に</span></span>
+<span class="ln">const schema = {</span>
+<span class="ln">  name:    { col: "名前", as: str, rules: [required(), maxLen(40)] },</span>
+<span class="ln">  age:     { col: "年齢", as: num, rules: [required(), min(0), max(120)] },</span>
+<span class="ln">  address: { col: "住所", as: str, rules: [required()] },</span>
+<span class="ln">};</span>
+          </div>
+          <div class="panel__foot"><b>col</b>＝CSVの列名、<b>as</b>＝型変換、<b>rules</b>＝検証。仕様の一行が、表の一行に対応する。</div>
+        </div>
+        <div class="panel">
+          <span class="panel__tag panel__tag--mx"><span class="jp">部品</span> · 小さく再利用</span>
+          <div class="code" style="font-size:clamp(9px,.78vw,11px);line-height:1.5">
+<span class="ln"><span class="t-cm">// 型変換（raw文字列 → 値）</span></span>
+<span class="ln">const str = (s) =&gt; s.trim();</span>
+<span class="ln">const num = (s) =&gt; Number(s);</span>
+<span class="ln"><span class="t-cm">// 検証ルール（第1部と同じ語彙）</span></span>
+<span class="ln">const required = () =&gt; ({ ok: v =&gt; v !== "" &amp;&amp; v != null, msg: "必須" });</span>
+<span class="ln">const min = (n) =&gt; ({ ok: v =&gt; v &gt;= n, msg: n + "以上" });</span>
+<span class="ln">const max = (n) =&gt; ({ ok: v =&gt; v &lt;= n, msg: n + "以下" });</span>
+          </div>
+          <div class="panel__foot">変換も検証も<b>小さな部品</b>。表から名前で呼ぶだけ。</div>
+        </div>
+      </div>
+      <p class="caption reveal">これが<b>定義ファースト</b> ― 「何を」（What）だけを宣言し、「どう」（How）は書かない。第1部のスキーマと同じ形。</p>
     </div>
   </section>
 
-  <!-- 25 THE BOUNDARY -->
+  <!-- 21 STEP 2 — GENERIC ENGINE -->
   <section class="slide" data-part="3">
     <div class="wrap">
-      <div class="kicker reveal">23 <span class="dim">境界の引き方 · 第2部を実務へ</span></div>
-      <h2 class="reveal">その境界は、3つの質問で引く</h2>
-      <p class="lead reveal" style="margin-bottom:clamp(14px,2vw,20px)">第2部の境界（<b>定義＝耐久資産 / 手続き＝使い捨て</b>）を、目の前のコードに当てて判定する。</p>
-      <div class="cards reveal">
-        <div class="item"><span class="n">Q1</span><h4>仕様変更の「軸」か？</h4><p>よく変わる<b>中心のロジック</b>か。たまにしか触らないなら No。</p></div>
-        <div class="item"><span class="n">Q2</span><h4>同じ形が3度現れたか？</h4><p>1〜2回ならまだ<b>待つ</b>。3度目で初めて切り出す。</p></div>
-        <div class="item"><span class="n">Q3</span><h4>表・スキーマで書けるか？</h4><p><b>データとして外に出せる</b>構造か。手順そのものなら No。</p></div>
+      <div class="kicker reveal">22 <span class="dim">STEP ② · 汎用エンジン</span></div>
+      <h2 class="reveal">定義を解釈する、<span class="def-c">1つ</span>の汎用クラス</h2>
+      <div class="grid2 reveal">
+        <div class="panel panel--def">
+          <span class="panel__tag"><span class="jp">型</span> · 定義から自動で決まる</span>
+          <div class="code" style="font-size:clamp(9px,.78vw,11px);line-height:1.62">
+<span class="ln">type Conv&lt;T&gt; = (raw: string) =&gt; T;</span>
+<span class="ln">type Rule&lt;T&gt; = { ok: (v: T) =&gt; boolean; msg: string };</span>
+<span class="ln">type Field&lt;T&gt; =</span>
+<span class="ln">  { col: string; as: Conv&lt;T&gt;; rules: Rule&lt;T&gt;[] };</span>
+<span class="ln">type Schema = Record&lt;string, Field&lt;any&gt;&gt;;</span>
+<span class="ln"> </span>
+<span class="ln"><span class="t-cm">// 出力の型を定義から導出（手で書かない）</span></span>
+<span class="ln">type Row&lt;S&gt; = { [K in keyof S]:</span>
+<span class="ln">  S[K] extends Field&lt;infer T&gt; ? T : never };</span>
+          </div>
+        </div>
+        <div class="panel panel--def">
+          <span class="panel__tag"><span class="jp">汎用</span> · CsvMapper（変更不要）</span>
+          <div class="code" style="font-size:clamp(9px,.78vw,11px);line-height:1.55;padding:12px 13px">
+<span class="ln">class CsvMapper&lt;S extends Schema&gt; {</span>
+<span class="ln">  constructor(private schema: S) {}</span>
+<span class="ln">  parse(csv: string) {</span>
+<span class="ln">    const [head, ...lines] = csv.trim().split("\n");</span>
+<span class="ln">    const cols = head.split(",");</span>
+<span class="ln">    const rows: Row&lt;S&gt;[] = [], errors = [];</span>
+<span class="ln">    lines.forEach((line, i) =&gt; {</span>
+<span class="ln">      const cells = line.split(",");</span>
+<span class="ln">      const rec = {};</span>
+<span class="ln">      for (const key in this.schema) {</span>
+<span class="ln">        const f = this.schema[key];</span>
+<span class="ln">        const raw = cells[cols.indexOf(f.col)] ?? "";</span>
+<span class="ln">        const v = f.as(raw);          <span class="t-cm">// ② 型変換</span></span>
+<span class="ln">        for (const r of f.rules)      <span class="t-cm">// ③ 検証</span></span>
+<span class="ln">          if (!r.ok(v)) errors.push(</span>
+<span class="ln">            { line: i+2, field: key, msg: r.msg });</span>
+<span class="ln">        rec[key] = v;                 <span class="t-cm">// ① 対応</span></span>
+<span class="ln">      }</span>
+<span class="ln">      rows.push(rec as Row&lt;S&gt;);</span>
+<span class="ln">    });</span>
+<span class="ln">    return { rows, errors };</span>
+<span class="ln">  }</span>
+<span class="ln">}</span>
+          </div>
+        </div>
       </div>
-      <div class="grid2 reveal" style="margin-top:clamp(12px,1.8vw,18px)">
-        <div class="panel panel--def" style="flex-direction:row;align-items:baseline;flex-wrap:wrap;gap:4px 12px;padding:13px 18px"><b class="def-c">すべて Yes → 定義にする</b><span style="color:var(--muted);font-size:13px">人が所有し、型・表で固定</span></div>
-        <div class="panel panel--proc" style="flex-direction:row;align-items:baseline;flex-wrap:wrap;gap:4px 12px;padding:13px 18px"><b class="proc-c">ひとつでも No → 手続きでよい</b><span style="color:var(--muted);font-size:13px">AIに素直に書かせ、変わったら再生成</span></div>
-      </div>
-      <p class="caption reveal">迷ったら<b>手続き側に倒す</b> ― AIが安く再生成できるので、必要になってから定義へ昇格すればよい。</p>
+      <p class="caption reveal">①対応・②型変換・③検証を、<b>定義から決定的に</b>実行する。この<b>エンジンは仕様が変わっても触らない</b> ― 変わるのは schema だけ。</p>
     </div>
   </section>
 
-  <!-- 26 ANTI-PATTERNS -->
+  <!-- 22 STEP 3 — RUN -->
   <section class="slide" data-part="3">
     <div class="wrap">
-      <div class="kicker reveal">24 <span class="dim">アンチパターン</span></div>
-      <h2 class="reveal">現場で踏む地雷</h2>
-      <div class="cards reveal">
-        <div class="item warn"><span class="n">!</span><h4>定義のドリフト / 二重ソース</h4><p>型・スキーマ・ドキュメントがズレていく。<span class="fix"><b>対策:</b> 単一ソースから生成する</span></p></div>
-        <div class="item warn"><span class="n">!</span><h4>ブラックボックスDSL</h4><p>AI製エンジンを誰も読めない。<span class="fix"><b>対策:</b> 解釈器は小さく・人が読める範囲に</span></p></div>
-        <div class="item warn"><span class="n">!</span><h4>テストなき自己修正ループ</h4><p>AIが“通る”までコードを壊す。<span class="fix"><b>対策:</b> 契約テストを先に置く</span></p></div>
-        <div class="item warn"><span class="n">!</span><h4>手作業での介入</h4><p>生成コードに手を入れ再生成不能に。<span class="fix"><b>対策:</b> 直すのは常に定義側</span></p></div>
+      <div class="kicker reveal">23 <span class="dim">STEP ③ · 実行</span></div>
+      <h2 class="reveal">流すだけ ― 型付きの結果と、エラー集約</h2>
+      <div class="grid2 reveal">
+        <div class="panel panel--def">
+          <span class="panel__tag"><span class="jp">使う</span></span>
+          <div class="code">
+<span class="ln">const { rows, errors } =</span>
+<span class="ln">  new CsvMapper(schema).parse(csv);</span>
+<span class="ln"> </span>
+<span class="ln"><span class="t-cm">// rows は型推論される ↓</span></span>
+<span class="ln"><span class="t-cm">// { name: string; age: number; address: string }[]</span></span>
+<span class="ln">rows[0].age + 1;   <span class="t-cm">// ✅ number として扱える</span></span>
+          </div>
+          <div class="panel__foot">戻り値の型は <b>Row&lt;S&gt;</b> で<b>schema から自動導出</b>。age は number、キャスト不要。</div>
+        </div>
+        <div class="panel">
+          <span class="panel__tag panel__tag--mx"><span class="jp">エラー</span> · まとめて返る</span>
+          <div class="code">
+<span class="ln">errors = [</span>
+<span class="ln">  { line: 4, field: "age",     msg: "0以上" },</span>
+<span class="ln">  { line: 4, field: "address", msg: "必須" },</span>
+<span class="ln">]</span>
+          </div>
+          <div class="panel__foot"><b>throw で止めず</b>、全行・全項目を集約。どこが悪いか一覧で分かる。</div>
+        </div>
       </div>
-      <p class="caption reveal">共通の処方箋はひとつ ― <b>「単一の定義から、決定的に導く」</b> を崩さないこと。</p>
+      <p class="caption reveal">人が書いたのは <b>schema（定義）だけ</b>。列の対応・型変換・検証・エラー集約は、汎用エンジンが定義から導いた。</p>
     </div>
   </section>
 
-  <!-- 27 FIRST STEPS -->
+  <!-- 23 SPEC CHANGE -->
   <section class="slide" data-part="3">
     <div class="wrap">
-      <div class="kicker reveal">25 <span class="dim">導入</span></div>
-      <h2 class="reveal">最初の一歩（一気にやらない）</h2>
-      <div class="cards reveal">
-        <div class="item"><span class="n">01</span><h4>ガードレールに投資</h4><p>まず<b>型・テスト・CI</b>を整える。土台が無いと自己修正が回らない。</p></div>
-        <div class="item"><span class="n">02</span><h4>1モジュールで試す</h4><p>小さな範囲で<b>定義ファースト × AI生成</b>を実際に回してみる。</p></div>
-        <div class="item"><span class="n">03</span><h4>レビュー規約を更新</h4><p>「<b>差分は定義中心で見る</b>」をチームの合意にする。</p></div>
-        <div class="item"><span class="n">04</span><h4>横展開</h4><p>うまく回った型を、他のモジュールへ広げる。</p></div>
+      <div class="kicker reveal">24 <span class="dim">仕様変更 · 第1部の答え合わせ</span></div>
+      <h2 class="reveal">「メール」列が増えた ― さて、何行直す？</h2>
+      <div class="grid2 reveal">
+        <div class="panel panel--def">
+          <span class="panel__tag"><span class="jp">定義</span> · テーブルに1行</span>
+          <div class="code" style="font-size:clamp(9px,.78vw,11px);line-height:1.62">
+<span class="ln">const schema = {</span>
+<span class="ln">  name:    { col: "名前", as: str, rules: [required(), maxLen(40)] },</span>
+<span class="ln">  age:     { col: "年齢", as: num, rules: [required(), min(0), max(120)] },</span>
+<span class="ln">  address: { col: "住所", as: str, rules: [required()] },</span>
+<span class="ln is-changed">  email:   { col: "メール", as: str, rules: [required(), pattern(EMAIL)] },</span>
+<span class="ln">};</span>
+          </div>
+          <div class="panel__foot"><span class="badge badge--good">変更 = データに +1 行</span></div>
+        </div>
+        <div class="panel">
+          <span class="panel__tag panel__tag--mx"><span class="jp">波及</span> · ぜんぶ自動</span>
+          <div class="code">
+<span class="ln"><span class="t-cm">// 出力の型も自動で増える</span></span>
+<span class="ln">type Row = {</span>
+<span class="ln">  name: string; age: number; address: string;</span>
+<span class="ln is-changed">  email: string;  <span class="t-cm">// ← 追加</span></span>
+<span class="ln">}</span>
+<span class="ln"> </span>
+<span class="ln"><span class="t-cm">// CsvMapper は 1 文字も変更不要</span></span>
+          </div>
+          <div class="panel__foot">列の対応・型変換・検証・型定義 ― すべて schema 一箇所から。<b>Δ仕様 ≈ Δコード</b>。</div>
+        </div>
       </div>
-      <p class="caption reveal">小さく回して、<b>回り方そのものを学ぶ</b>。プレイブックは導入しながら自分たちの形に育てる。</p>
+      <p class="caption reveal">第1部の「1行足すだけ」が、実物でも本当に1行。<b>変更が定義の一箇所に閉じる</b> ― これが目指した形。</p>
     </div>
   </section>
 
-  <!-- 28 CLOSING P3 -->
+  <!-- 24 DIVISION OF LABOR -->
+  <section class="slide" data-part="3">
+    <div class="wrap">
+      <div class="kicker reveal">25 <span class="dim">分担 · これがAI駆動開発</span></div>
+      <h2 class="reveal">誰が、何を書いたか</h2>
+      <div class="roles reveal">
+        <div class="role role--def">
+          <span class="who">人間 — 所有する</span>
+          <span class="what">定義</span>
+          <span class="desc">仕様と <b>schema（テーブル）</b>。意図そのもの。ここだけは手放さない。</span>
+        </div>
+        <div class="role role--proc">
+          <span class="who">AI — 生成する</span>
+          <span class="what">エンジン</span>
+          <span class="desc"><b>CsvMapper・型変換・検証部品</b>。定義が固まれば、いつでも書き直せる使い捨て。</span>
+        </div>
+        <div class="role role--chk">
+          <span class="who">機械 — 検査する</span>
+          <span class="what">型・テスト</span>
+          <span class="desc"><b>Row&lt;S&gt; の型・エラー集約・テスト</b>が、定義どおりかを自動で弾く。</span>
+        </div>
+      </div>
+      <p class="caption reveal">変わるのは<b>テーブルだけ</b>。人がそこを握り、AIがエンジンを生成し、機械が検査する ― 第2部の分担が、そのまま実物に落ちている。</p>
+    </div>
+  </section>
+
+  <!-- 25 CLOSING P3 -->
   <section class="slide" data-part="3">
     <div class="wrap" style="text-align:center">
       <div class="kicker reveal" style="justify-content:center">26 <span class="dim">まとめ</span></div>
-      <div class="pull pull--center reveal">あとは、<span class="def-c">小さく回す</span>だけ。</div>
-      <p class="lead reveal" style="margin:clamp(22px,3vw,32px) auto 0;text-align:center"><strong>定義 → AIが実装 → 機械が検査 → 定義をレビュー</strong>。<br>まず1モジュールで、この1サイクルを回し、<strong>回り方を体に入れる</strong>。</p>
+      <div class="pull pull--center reveal">仕様を <span class="def-c">テーブル</span> に。<br>あとは汎用エンジンが解く。</div>
+      <p class="lead reveal" style="margin:clamp(22px,3vw,32px) auto 0;text-align:center"><strong>仕様 → 定義テーブル → 汎用エンジン</strong>。<br>CSV取り込みも、FizzBuzz も、状態遷移も ― <strong>同じ形</strong>で書ける。</p>
+      <div class="pull pull--center reveal" style="font-size:clamp(20px,3.4vw,34px);margin-top:clamp(20px,3vw,30px)">手続きではなく、定義を実装する。</div>
       <div class="title-rule reveal" style="margin-left:auto;margin-right:auto;margin-top:clamp(26px,4vw,40px)"></div>
-      <div class="title-hint reveal" style="text-align:center">第1部・第2部・第3部 おわり &nbsp;—&nbsp; さあ、実装へ</div>
+      <div class="title-hint reveal" style="text-align:center">全3部 おわり &nbsp;—&nbsp; さあ、定義から作ろう</div>
     </div>
   </section>
 
