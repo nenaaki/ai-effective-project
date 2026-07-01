@@ -291,10 +291,16 @@ function buildGantt(sortedScreens, containerId, title, palette, mode){
       if (r.IFID) {
         const key = `if::${r.IFID}`;
         if (!summary[key]) {
-          summary[key] = { 画面名: r.IF名 || r.IFID, ドメイン: r.カテゴリ || "IF", 工数: 0, isFeOnly: false, 担当者: null, 実施順: null, 実工数: 0, kind: "if", 状況: null, 進捗率: null };
+          summary[key] = { 画面名: r.IF名 || r.IFID, ドメイン: r.カテゴリ || "IF", 工数: 0, isFeOnly: false, 担当者: null, 実施順: null, 実工数: 0, kind: "if", 状況: r.状況 || null, 進捗率: r.進捗率 ?? null };
           order.push(key);
         }
         summary[key].工数 += hH / PERSON_DAY_HOURS;
+        const effHIf = parseFloat(r["実工数(h)"]) || 0;
+        if (effHIf > 0) summary[key].実工数 += effHIf;
+        const tIf = parseInt(r.担当者);
+        if (!isNaN(tIf) && summary[key].担当者 == null) summary[key].担当者 = tIf;
+        const ordIf = parseFloat(r.実施順);
+        if (!isNaN(ordIf) && summary[key].実施順 == null) summary[key].実施順 = ordIf;
         return;
       }
       // 変更対応・資料整理行: 画面実装とは別グループ。DM条件なし、固定工数の1バー (kind="change")

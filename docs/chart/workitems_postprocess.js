@@ -118,8 +118,11 @@ function postprocessWorkitems(rawData){
   SCREENS.forEach(r=>{
     if (r.画面名 in STATUS_MAP) r.状況 = STATUS_MAP[r.画面名];
   });
-  // IFは一律「実装不可」(進捗率 0)
-  IFS.forEach(r=>{ r.状況 = "実装不可"; r.進捗率 = 0; });
+  // IFは原則「実装不可」(進捗率 0)。ただしデータ側で 状況/進捗率 を明示した行は尊重する。
+  IFS.forEach(r=>{
+    if (r.状況 == null)   r.状況 = "実装不可";
+    if (r.進捗率 == null) r.進捗率 = 0;
+  });
 
   // 10. 状況 fallback: 空欄なら備考の内容を取り込む。進捗率は未設定なら 0 (PROGRESS_MAP が後で上書き)
   ALL.forEach(r=>{
