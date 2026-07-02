@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>議事まとめ 2026-06-10 / 今後のアクション・決定事項</title>
+<title>議事まとめ 2026-06-10 / 今後のアクション・決定事項・相談事項</title>
 <style>
   html, body { margin: 0; padding: 0; height: 100%; }
   body {
@@ -94,6 +94,23 @@
     letter-spacing: 0.04em;
     margin-bottom: 3px;
   }
+  .item-detail ul { margin: 0; padding-left: 16px; }
+  .item-detail li { margin: 2px 0; }
+
+  /* 依頼原文（引用） */
+  .quote-meta { font-size: 11px; color: #6b7280; margin-bottom: 8px; }
+  .quote {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-left: 3px solid #2563eb;
+    border-radius: 6px;
+    padding: 12px 14px;
+    font-size: 12px;
+    line-height: 1.75;
+    color: #374151;
+    white-space: pre-wrap;
+  }
+  .quote .from { font-weight: 700; color: #1e40af; font-size: 11px; margin-bottom: 6px; }
 
   .note-line {
     margin-top: 8px;
@@ -198,7 +215,7 @@
 </head>
 <body>
 <div class="page">
-  <h1>議事まとめ 2026-06-10 — 今後のアクション / 決定事項</h1>
+  <h1>議事まとめ 2026-06-10 — 今後のアクション / 決定事項 / 相談事項</h1>
   <div class="sub">AIDD</div>
 
   <div class="grid">
@@ -241,6 +258,25 @@
         </div>
       </div>
       <div class="note-line">次回定例: 1 時間を予定</div>
+
+      <h2 style="margin-top:14px;">相談事項</h2>
+      <div class="items">
+        <div class="item">
+          <span class="num">1</span>
+          <div>
+            <div class="title">他部署・他チームからの情報共有依頼への対応方針<span class="badge-todo">要相談</span></div>
+            <div class="desc">「AI開発の取り組み内容・状況・今後の展望を説明してほしい」と依頼された場合、<strong>いつまで・どこまで・誰が・どう対応するか</strong> の方針を決めたい（例: TNOさん）。</div>
+            <div class="item-detail">
+              <div class="head">相談ポイント</div>
+              <ul>
+                <li><strong>対応可否と窓口</strong> — 応じるか／誰が説明役を担うか</li>
+                <li><strong>資料の提示可否</strong> — chart の資料・AI駆動の概略図などを見せても良いか？良いならその範囲は？</li>
+                <li><strong>事前承認の要否</strong></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- 右: 決定事項 + マイルストーン + 総括 -->
@@ -284,6 +320,15 @@
           EVM で進捗を定量管理しつつ、AI 駆動の効果を <strong>As-Is / To-Be でホワイトボックス化</strong>して説明可能にする方針を確認。
           テストは <strong>「納品品質の物差し」へ再定義</strong>し、実装とテスト項目書を AI で「対」管理する。社外・他チームへの共有も <strong>統一ストーリーライン</strong>で対応する体制を合意した。
         </div>
+      </div>
+
+      <div style="margin-top:12px;">
+        <div class="quote-meta">依頼内容（メッセージ / 例: TNOさん）</div>
+        <div class="quote"><div class="from">TNOさん より</div>いまAI開発の何かをやってると思いますが、その取り組み内容とか状況とか今後の展望などを私に説明いただくこと可能でしょうか？
+
+いまXXXXXXXX様の設備設計チームとAI検討を行ってるのですが（6月からですが）、どんなAI開発の取り組みをされているのか説明してほしい、と言われており、一度〇〇さんの活動を把握しておきたいなと思ったためです。
+
+ご検討よろしくお願いします。</div>
       </div>
     </div>
 

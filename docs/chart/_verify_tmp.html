@@ -530,7 +530,7 @@
 <script src="workitems_postprocess.js"></script>
 <script src="aidd_report.js"></script>
 <script>
-  let currentKey = TAB_ORDER[0];
+  let currentKey = "wi-if-PR03";
 
   const sum = (arr, key) => arr.reduce((a, t) => a + t[key], 0);
   const fmtH = (h) => {
@@ -561,7 +561,7 @@
     return "画面処理";
   }
   // 折りたたみ状態 (帳票・ファイル出力 / バックエンド実装 / IF は初期折りたたみ、画面処理は展開)
-  const groupCollapsed = { "帳票・ファイル出力": true, "バックエンド実装": true, "IF": true, "画面処理": false };
+  const groupCollapsed = { "帳票・ファイル出力": true, "バックエンド実装": true, "IF": false, "画面処理": true };
   // currentKey の属するグループは必ず開く
   function ensureGroupVisible(k) {
     if (k !== "total") groupCollapsed[classifyGroup(k)] = false;
