@@ -1206,6 +1206,38 @@
         "<strong>AsIs は実績コード量(概算)から推定</strong>: フロント 約644行→12.6h・バックエンド実装 約470行→9h・API単体テスト 384行→5.5h。UX/レビュー/動作確認は人間工数として AsIs=ToBe。合計 約32.6h → ToBe 3.26h(削減 約90%)。<span style=\"color:#9333ea\">試行特有のデグレチェック形式定義 0.6h は AsIs に対応物なし(0)</span>。LOC は概算。",
       ],
     },
+    // 配送管理マップ (FE007 / PW-176 / DM03 配送管理) — 閲覧スコープ・フルスタック。ToBe は実測 (time-log.jsonl): 5.66h(系統A・試行特有0)。
+    // DB: m_customers に緯度経度カラム(Decimal(9,6) nullable)追加。API: DeliverySummary に lat/lng(Float)露出。FE: 検索/リスト/ドロワー/凡例 + 埋め込みGoogleマップ + 色分けピン。2フェーズ(非地図→地図)。LOC は PR#128 diff (FE 約1509・BE 約33・prisma 約100)。
+    'wi-screen-DM03FE007': {
+      lede: "AIDD 試行「配送管理マップ」(FE007 / PW-176) の開発工数比較。<strong>配送先を埋め込み Google マップ上に色分けピンで表示し、検索/一覧/詳細ドロワーと連動</strong>する<strong>閲覧スコープ</strong>の画面。<strong>フルスタック</strong>(DB=m_customers に緯度経度カラム追加・API=DeliverySummary に座標露出・FE=埋め込み地図＋ピン)。座標は取込時ジオコーディングで算出する方針が業務確定し、2フェーズ(非地図→地図)で完結。<strong>ToBe は実測</strong>(time-log) <strong>5.66h</strong>(系統A・試行特有0)。AsIs は実績コード量(概算)から推定。",
+      bugCategories: [
+        { key: "syntax", label: "構文/型エラー",                                                  color: "#ef4444", asis: 3, tobe: 0 },
+        { key: "logic",  label: "ロジックバグ (未配車判定=保管中・エリアareaId是正・ピン色優先)",        color: "#f59e0b", asis: 4, tobe: 2 },
+        { key: "edge",   label: "エッジケース漏れ (deliveryDate epoch-ms表示クラッシュ / 座標NULL非描画)", color: "#8b5cf6", asis: 3, tobe: 1 },
+        { key: "spec",   label: "仕様解釈ミス (ピングリフ id→便番号 / status語彙↔code / 地図種別トグル)",  color: "#ec4899", asis: 3, tobe: 2 },
+        { key: "ui",     label: "UI 細部の不整合 (凡例色#E55D42 / (仮)表示 / ドロワー左オフセット)",      color: "#06b6d4", asis: 3, tobe: 1 },
+      ],
+      bugRateNote: "※ 配送管理マップ 約 1.6 KLOC(FE 約1509行＋BE 約33行＋prisma 約100行)。論点は <strong>配送先座標の backing</strong>(高・業務確定で m_customers に緯度経度カラム追加・取込時ジオコーディング)・<strong>未配車判定</strong>(保管中005000・FE005整合)・<strong>ピングリフの識別子</strong>(id末尾→便番号に是正)で「仕様解釈ミス」が残る(mock縮退せず暫定＋questions/PW-176.tsv _1〜_8 記録)。<strong>frontend-tester が静的レビュー後の実バグ</strong>(deliveryDate が epoch-ms で届き .slice クラッシュ→検索後リスト全滅)を捕捉→toJSTDateStr で修正。",
+      tasks: {
+        'data-design': { asis: 1.5,            tobe: 0.3, tobeEng: 0.2, agents: ["DBアーキテクトAI", "エンジニア"] },
+        'data-impl':   { asis: 1.5,  loc: 100, tobe: 0.2,               agents: ["DBアーキテクトAI"] },
+        'api-impl':    { asis: 1,    loc: 33,  tobe: 0.3,               agents: ["バックエンドAI"] },
+        'api-test':    { asis: 0.5,  loc: 0,   tobe: 0.1,               agents: ["バックエンドテスターAI"] },
+        'api-review':  { asis: 0.3,            tobe: 0.3, tobeEng: 0.3, agents: ["バックエンドレビュワーAI", "エンジニア"] },
+        'ux':          { asis: 3,              tobe: 0.5, tobeEng: 0.4, agents: ["プランナーAI", "エンジニア"] },
+        'fe-design':   { asis: 1.5,            tobe: 0,                 agents: ["フロントエンドAI"] },
+        'fe-impl':     { asis: 29.6, loc: 1509, tobe: 2.8, tobeEng: 0,  agents: ["フロントエンドAI"] },
+        'fe-test':     {                                                agents: ["—"] },
+        'fe-review':   { asis: 0.5,            tobe: 0.5, tobeEng: 0.4, agents: ["フロントエンドレビュワーAI", "エンジニア"] },
+        'verify':      { asis: 1,              tobe: 0.7, tobeEng: 0.5, agents: ["フロントエンドテスターAI", "エンジニア"] },
+      },
+      contextNotes: [
+        "対象画面: 配送管理マップ (FE007 / PW-176 / DM03 配送管理・mock=delivery-manage)。検索(デポ＋エリア/担当者＋配送予定日) + 左ペイン配送リスト(表示順切替・便番号) + 詳細ドロワー(既存流用) + 凡例 + <strong>埋め込み Google マップ(@vis.gl/react-google-maps)＋色分けピン</strong>。閲覧スコープ。フルスタック: <strong>DB=m_customers に緯度経度カラム(Decimal(9,6) nullable)追加</strong>・API=DeliverySummary に座標(Float)露出・FE=地図/ピン/(仮)表示。",
+        "<strong>ToBe は実測</strong> (time-log.jsonl・2026-06-29〜06-30): <strong>5.66h</strong>(メインループ アクティブwall-clock・20分ギャップ閾値・素span24.36hから夜間909分等を除外)。系統A のみ(試行特有=系統B 0)。サブエージェント逐次計上は約3.41h(21体)。2フェーズ: フェーズ1(非地図・検索/リスト/ドロワー/サイドバー)→中間質疑(status/未配車/areaId/座標方針)→フェーズ2(T1 db→T2 be→T3 fe=埋め込み地図＋ピン)。",
+        "<strong>手戻り</strong>: frontend-reviewer がフェーズ1 Major2+Minor3、フェーズ2 Major1(ピングリフ id.slice→便番号に是正)を検出→修正。<strong>frontend-tester が静的レビューで見逃した実バグ</strong>(deliveryDate が DateTime スカラー=epoch-ms で届き .slice でクラッシュ→検索後リストが全滅)を捕捉→toJSTDateStr で number/ISO 両対応に修正。backend-reviewer Minor1・backend-tester は clean(座標が number で返り NULL=null を確認)。",
+        "<strong>AsIs は実績コード量(概算)から推定</strong>: フロント 約1509行→29.6h・バックエンド 約33行→0.6h・prisma/seed 約100行→1.5h。UX/レビュー/動作確認は人間工数として AsIs を計上。合計 約40h → ToBe 5.66h(削減 約86%)。<strong>純粋な機能実装(試行特有のオーバーヘッド無し)</strong>。LOC は概算。",
+      ],
+    },
     // ステータスチェック (FE006 / PW-150 / DM03 配送管理) — スキャン照合・閲覧中心。ToBe は実測 (time-log.jsonl): 1.5h。
     // 新規API・スキーマ変更なし (searchDeliveryHistory + 既存詳細ドロワー流用)。git worktree による並行開発 (PW-151 と同時)。
     'wi-screen-DM03FE006': {
@@ -1332,6 +1364,36 @@
         "対象画面: 未配車リスト (FE005 / DM02FE005 / DM02 配車管理)。未配車の配送明細を一覧表示する閲覧画面。既存の 配送(t_delivery)・配送会社 を流用想定で <strong>スキーマ変更なし・新規API最小</strong>。配車登録(FE004)の未配車情報ドロワー(PW-144_3・静的表示)とは別の独立リスト画面。",
         "<strong>ToBe は実測 3.26h</strong> (workitems time-log)。<strong>うち レビュー(API/FE 各0.5h)＋動作確認 1.0h ＝ 約2.0h は人手工数で AsIs と同水準</strong>(AI で削減されない)。AI が削減するのは API/FE 実装・単体テスト工程に限定され、ToBe の約6割が人手のレビュー・動作確認。",
         "<strong>AsIs は類似の閲覧画面から推定</strong>: 翌日配車表示(FE036・閲覧)を基準に API/FE 実装・単体テスト・UX を概算。合計 約14h → ToBe 3.26h(<strong>削減 約77%</strong>)。<strong>内訳・AsIs・想定バグは概算</strong>(確定実測は ToBe 合計 3.26h)。工程別の time-log 内訳が出れば差し替え可能。",
+      ],
+    },
+    'wi-screen-DM03FE008': {
+      lede: "AIDD 試行「配送状況」(FE008 / PW-185) の開発工数比較。<strong>地域×都道府県×デポ×エリア×荷主×商品 を行、時間帯×(配送数/未完了/訪問完了/完了率)＋前日繰越2列を列とする集計マトリクス</strong>＋2段ドロワー(明細→配送詳細)の<strong>閲覧スコープ</strong>画面。新規スキーマ変更なし・集計API1本(既存資産を流用)。実装後に業務確認(SME)で集計を12ステータス内訳→3種+率へ確定、加えて<strong>実機レビューで多数の細部不具合を検出・修正</strong>(件数不一致・地理データ不整合・UI細部)。<strong>ToBe は実測</strong>(time-log) <strong>6.50h</strong>(系統A) ＋ <span style=\"color:#9333ea\">試行特有(系統B) 0.02h</span>。AsIs は実績コード量(概算)から推定。",
+      bugCategories: [
+        { key: "syntax", label: "構文/型エラー",                                                     color: "#ef4444", asis: 3, tobe: 0 },
+        { key: "logic",  label: "ロジックバグ (権限スコープ非対称・前日繰越日付/時間帯マッピング・0件バグ・JST/UTCズレ)", color: "#f59e0b", asis: 9, tobe: 7 },
+        { key: "edge",   label: "エッジケース漏れ (荷主null不一致・同エリア重複行・荷主options空・pointer-eventsブロック)", color: "#8b5cf6", asis: 7, tobe: 6 },
+        { key: "spec",   label: "仕様解釈ミス (12→3種集計確定・荷主グループ定義・前日繰越起算・ドリルダウン粒度)",       color: "#ec4899", asis: 4, tobe: 6 },
+        { key: "ui",     label: "UI 細部の不整合 (ドロワー幅逆転・件数ラベル・地理不整合表示・顧客1名固定)",             color: "#06b6d4", asis: 3, tobe: 4 },
+      ],
+      bugRateNote: "※ 配送状況 約 2.9 KLOC(FE 約1.67KLOC＋BE 約0.71KLOC＋seed 約0.53KLOC)。実機レビューで<strong>件数一致の穴</strong>(同region/prefecture/depot/shipper/productで異area複数行・productNamesフィルタ未適用の既存潜在バグ)と<strong>seed全体のJST/UTC構造バグ</strong>(new Date().setHours(0,0,0,0)がローカル0時切り詰め→@db.Date保存時に前日ズレ)を検出、根本修正まで実施(questions/PW-185.tsv _5)。荷主グループ定義・前日繰越起算・ドリルダウン時間帯粒度は暫定実装で継続(_1・_3・_4)。",
+      tasks: {
+        'data-design': { asis: 0,               tobe: 0,                  agents: ["—"] },
+        'data-impl':   { asis: 8,   loc: 528,   tobe: 0.3,                agents: ["バックエンドAI"] },
+        'api-impl':    { asis: 20,  loc: 710,   tobe: 1.0, tobeEng: 0.1,  agents: ["バックエンドAI", "エンジニア"] },
+        'api-test':    { asis: 2,   loc: 0,     tobe: 0.4, tobeEng: 0.1,  agents: ["バックエンドテスターAI", "エンジニア"] },
+        'api-review':  { asis: 0.5,             tobe: 0.3, tobeEng: 0.2,  agents: ["バックエンドレビュワーAI", "エンジニア"] },
+        'ux':          { asis: 4,               tobe: 0.8, tobeEng: 0.4,  agents: ["プランナーAI", "エンジニア"] },
+        'fe-design':   { asis: 1,               tobe: 0.2,                agents: ["フロントエンドAI"] },
+        'fe-impl':     { asis: 33,  loc: 1669,  tobe: 2.1, tobeEng: 0.1,  agents: ["フロントエンドAI"] },
+        'fe-test':     {                                                  agents: ["—"] },
+        'fe-review':   { asis: 0.5,             tobe: 0.3, tobeEng: 0.2,  agents: ["フロントエンドレビュワーAI", "エンジニア"] },
+        'verify':      { asis: 3,               tobe: 1.1, tobeEng: 0.9,  agents: ["フロントエンドテスターAI", "エンジニア"] },
+      },
+      contextNotes: [
+        "対象画面: 配送状況 (FE008 / PW-185 / DM03 配送管理・mock=delay)。検索(荷主グループ/荷主/地域/デポ/商品) + 集計マトリクス(行=地域×都道府県×デポ×エリア×荷主×商品、列=時間帯×(配送数/未完了/訪問完了/完了率)＋前日繰越2列) + セルクリックで2段ドロワー(明細一覧→配送詳細)。閲覧スコープ・DBスキーマ変更なし。既存 FE007 資産(ステータス値カタログ・時間帯マスタ・エリア直リレーション)を流用。",
+        "<strong>ToBe は実測</strong> (time-log.jsonl・2026-06-30〜07-01): <strong>6.50h</strong>(メインループ アクティブwall-clock・20分ギャップ閾値・素span15.35hから夜間443分等を除外)。系統A のみ(試行特有=系統B 0.02h・handoffスキルへのmock URL追加を分離)。サブエージェント逐次計上は約3.64h(19体・resume含め40回)。",
+        "<strong>手戻り</strong>: backend-reviewer/tester が複数ラウンド(件数一致の権限スコープ非対称・時間帯マッピングキー不一致・regionNames+日付0件バグ)を検出→修正・再検証。frontend-reviewer(モードA/B)が構造・実装の両面でMajor計4件検出→修正。frontend-testerが実行時にクリア非動作・ドリルダウン0件・pointer-eventsブロックを検出→修正。<strong>SME業務確認で集計仕様が12ステータス内訳→3種+率に確定</strong>し、確定仕様への整理作業(リファクタ)が発生。<strong>ユーザーの画面実機レビューで多数の追加不具合</strong>(ドロワー幅逆転・×位置/配色・件数ラベル・前日繰越日付範囲・地図ピン非表示・地理データ不整合・ドリルダウン顧客固定化)を検出→都度修正。",
+        "<strong>AsIs は実績コード量(概算)から推定</strong>: フロント 約1669行→33h・バックエンド 約710行→20h・seed(データ)約528行→8h。UX/レビュー/動作確認は人間工数として AsIs を計上(動作確認は特に手戻りが多く3h)。合計 約72h → ToBe 6.50h(削減 約91%)。<strong>手戻り比率が高い試行</strong>(仕様確定前実装・実機レビュー起因の追加修正が多数)。LOC は概算(origin/main比・非マージコミットのnumstat集計)。",
       ],
     },
   };
