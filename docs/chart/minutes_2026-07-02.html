@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>議題と議事録まとめ 2026-07-02</title>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body {
+    font-family: -apple-system, "Hiragino Kaku Gothic ProN", "Yu Gothic", system-ui, sans-serif;
+    color: #1f2937;
+    background: #fafafa;
+    padding: 28px 32px;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+  .page { max-width: 1240px; margin: 0 auto; height: 100%; display: flex; flex-direction: column; }
+  h1 { font-size: 19px; margin: 0; border-bottom: 3px solid #2563eb; padding-bottom: 6px; }
+  .sub { color: #6b7280; font-size: 12px; margin: 6px 0 14px; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 18px;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+  }
+  .panel {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: auto;
+  }
+  h2 { font-size: 13px; margin: 0 0 10px; padding-left: 8px; border-left: 3px solid #2563eb; }
+
+  .items { display: flex; flex-direction: column; gap: 6px; }
+  .item {
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 7px 11px;
+    font-size: 12px;
+    line-height: 1.5;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .item .num {
+    background: #2563eb;
+    color: white;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 11px;
+    flex-shrink: 0;
+  }
+  .item .title { font-weight: 600; color: #1f2937; }
+  .item .desc { color: #4b5563; margin-top: 2px; font-size: 11.5px; }
+  .item .desc a, .ref-line a { color: #2563eb; text-decoration: none; }
+  .item .desc a:hover, .ref-line a:hover { text-decoration: underline; }
+
+  .item .badge-ref {
+    display: inline-block;
+    background: #6b7280;
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 3px;
+    margin-left: 6px;
+    vertical-align: 1px;
+    letter-spacing: 0.04em;
+  }
+
+  .item-detail {
+    margin-top: 5px;
+    background: #f9fafb;
+    border-left: 2px solid #2563eb;
+    border-radius: 3px;
+    padding: 5px 9px;
+    font-size: 11px;
+    line-height: 1.5;
+    color: #374151;
+  }
+  .item-detail .head {
+    font-size: 10px;
+    font-weight: 700;
+    color: #1e40af;
+    letter-spacing: 0.04em;
+    margin-bottom: 4px;
+  }
+  .item-detail ul { margin: 0; padding-left: 16px; }
+  .item-detail li { margin: 2px 0; }
+
+  .ref-line { margin-top: 6px; font-size: 11px; color: #6b7280; padding-left: 4px; }
+
+  /* 決定事項 */
+  .decisions { display: flex; flex-direction: column; gap: 6px; }
+  .decision {
+    background: #ecfdf5;
+    border-left: 3px solid #10b981;
+    border-radius: 4px;
+    padding: 8px 10px;
+    font-size: 11.5px;
+    line-height: 1.55;
+  }
+  .decision .tag {
+    display: inline-block;
+    background: #10b981;
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 3px;
+    margin-right: 6px;
+    vertical-align: 1px;
+  }
+
+  /* 議論サマリ */
+  .summary { display: flex; flex-direction: column; gap: 5px; }
+  .scard {
+    border: 1px solid #e5e7eb;
+    border-left: 3px solid #2563eb;
+    border-radius: 4px;
+    padding: 5px 9px;
+    font-size: 10.5px;
+    line-height: 1.5;
+    background: #f9fafb;
+  }
+  .scard .label { font-weight: 700; color: #1e40af; font-size: 10.5px; }
+  .scard.amber { border-left-color: #f59e0b; }
+  .scard.amber .label { color: #b45309; }
+  .scard.red { border-left-color: #ef4444; }
+  .scard.red .label { color: #b91c1c; }
+  .scard p { margin: 2px 0 0; color: #374151; }
+
+  /* プレースホルダ（議事録は会議後に追記） */
+  .placeholder {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: #9ca3af;
+    font-size: 12px;
+    line-height: 1.7;
+    border: 1px dashed #d1d5db;
+    border-radius: 6px;
+    background: #fbfbfb;
+  }
+
+  /* 最終メッセージ */
+  .quote {
+    background: #fef3c7;
+    border-left: 3px solid #f59e0b;
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 10.5px;
+    line-height: 1.55;
+    color: #78350f;
+    font-style: italic;
+  }
+  .quote .who { display: block; font-style: normal; font-weight: 700; font-size: 10px; color: #b45309; margin-bottom: 2px; letter-spacing: 0.04em; }
+
+  .block { margin-bottom: 10px; }
+  .block:last-child { margin-bottom: 0; }
+  .panel .block h2 { margin-bottom: 7px; }
+  .decisions { gap: 5px; }
+  .decision { padding: 6px 9px; font-size: 10.5px; line-height: 1.5; }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>議題と議事録まとめ 2026-07-02</h1>
+  <div class="sub">AIDD</div>
+
+  <div class="grid">
+
+    <!-- 左: 議題 -->
+    <div class="panel">
+      <h2>本日の議題</h2>
+      <div class="items">
+        <div class="item">
+          <span class="num">1</span>
+          <div>
+            <div class="title">管理フローの再設計 ─ 「I／P／O」合意工程とチェック権限の明文化<span class="badge-ref">6/25 フロー・権限</span></div>
+            <div class="desc"><a href="minutes_2026-06-25.html">2026-06-25 議事まとめ</a> の決定事項「フロー」「権限」について。前回の指摘を受けて修正したスライドで結果を共有 → <a href="../ai-08/regression-scope-asis-tobe.html">ai-08 リグレッション・スコープ AsIs/ToBe</a></div>
+            <div class="item-detail">
+              <div class="head">対象アクションアイテム（6/25）</div>
+              <ul>
+                <li><strong>フロー</strong> 着手前にPMと「I／P／O（インプット・プロセス・アウトプット）」枠組みを合意する工程を、開発プロセス図の最前段に追加。</li>
+                <li><strong>権限</strong> フロー図に「誰が作業し、誰が権限を持ってチェック（承認）するか」を明示。作業は誰でもよいが、チェックは権限を持つ管理職が行って初めて組織活動として成立する。</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="item">
+          <span class="num">2</span>
+          <div>
+            <div class="title">今後のミッション・課題について</div>
+            <div class="desc">AIDD の次フェーズに向けたミッションと、取り組むべき課題の整理・共有。現在の作業は <strong>7/3 にある程度の仕様Fix</strong> が見込まれ、<strong>7/10 のエンドに向けて加速</strong>する予定。</div>
+          </div>
+        </div>
+      </div>
+      <div class="ref-line">前回議事: <a href="minutes_2026-06-25.html">minutes_2026-06-25.html</a></div>
+
+      <div class="block" style="margin-top:10px;">
+        <h2>決定事項・アクションアイテム</h2>
+        <div class="placeholder">議事録は会議後に追記</div>
+      </div>
+    </div>
+
+    <!-- 右: 議事録まとめ -->
+    <div class="panel">
+      <div class="block" style="margin-bottom:0; flex:1; display:flex; flex-direction:column;">
+        <h2>議論サマリ</h2>
+        <div class="placeholder">議事録は会議後に追記</div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+</body>
+</html>
