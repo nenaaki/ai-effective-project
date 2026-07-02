@@ -27,6 +27,9 @@
     --c-scope: #2f6fb0;
     --c-pr: #7c3aed;
     --c-ticket: #0e7490;
+    --ai: #7c3aed;
+    --ai-soft: #f3ecfd;
+    --ai-line: #d9c7f7;
   }
   * { box-sizing: border-box; }
   body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Yu Gothic UI", sans-serif; background: var(--bg); color: var(--ink); line-height: 1.75; }
@@ -137,8 +140,31 @@
   .kstep p { margin: 0; font-size: 12.5px; color: var(--muted); }
   .kstep .who { display: inline-block; margin-top: 8px; font-size: 10.5px; font-weight: 800; padding: 2px 8px; border-radius: 5px; }
   .kstep .who.h { color: var(--asis); background: var(--asis-soft); border: 1px solid var(--asis-line); }
-  .kstep .who.a { color: var(--c-scope); background: var(--accent-soft); border: 1px solid #bcd6ec; }
+  .kstep .who.a { color: var(--ai); background: var(--ai-soft); border: 1px solid var(--ai-line); }
   .kstep .who.pmpo { color: var(--tobe); background: var(--tobe-soft); border: 1px solid var(--tobe-line); }
+  .kstep .iotag { display: inline-block; margin-left: 8px; font-size: 10px; font-weight: 800; letter-spacing: 0.09em; padding: 2px 9px; border-radius: 5px; vertical-align: 2px; }
+  .kstep .iotag.in   { color: var(--key); background: var(--key-soft); border: 1px solid var(--key-line); }
+  .kstep .iotag.proc { color: var(--ai); background: var(--ai-soft); border: 1px solid var(--ai-line); }
+  .kstep .iotag.out  { color: var(--tobe); background: var(--tobe-soft); border: 1px solid var(--tobe-line); }
+  /* INPUT詳細ページの3カラムフロー（入力 → AIドラフト → 合意・承認） */
+  .flow-cap { font-size: 11px; font-weight: 800; letter-spacing: 0.04em; display: inline-block; padding: 2px 9px; border-radius: 5px; }
+  .flow-cap.src { color: var(--accent); background: var(--accent-soft); border: 1px solid #bcd6ec; }
+  .flow-cap.ai  { color: var(--ai); background: var(--ai-soft); border: 1px solid var(--ai-line); }
+  .flow-cap.ok  { color: var(--tobe); background: var(--tobe-soft); border: 1px solid var(--tobe-line); }
+  .io-list { display: flex; flex-direction: column; gap: 7px; }
+  .io-item { text-align: left; font-size: 13px; font-weight: 700; color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 7px; padding: 9px 11px; }
+  /* AIが担当する項目＝バイオレット / 人（担当者）が担当＝赤系 */
+  .io-item.ai { border-left-color: var(--ai); background: var(--ai-soft); }
+  .io-item.hu { border-left-color: var(--asis); background: var(--asis-soft); }
+  .ai-chip, .hu-chip { display: inline-block; font-size: 9.5px; font-weight: 800; color: #fff; border-radius: 4px; padding: 1px 7px; margin-right: 7px; letter-spacing: 0.04em; vertical-align: 1px; }
+  .ai-chip { background: var(--ai); }
+  .hu-chip { background: var(--asis); }
+  .tk-link { display: inline-block; font-family: ui-monospace, monospace; font-size: 11px; color: var(--c-ticket); background: #e6f3f6; border: 1px solid #bcdfe6; border-radius: 5px; padding: 4px 9px; text-decoration: none; margin-bottom: 9px; }
+  .tk-link:hover { box-shadow: 0 2px 8px rgba(14,116,144,0.15); }
+  .tk-list { margin: 0; padding-left: 18px; font-size: 12.5px; color: var(--ink); line-height: 1.75; }
+  .tk-note { margin-top: 10px; font-size: 11px; line-height: 1.55; color: #a05f1d; background: var(--asis-soft); border: 1px solid var(--asis-line); border-radius: 7px; padding: 8px 10px; }
+  .tk-note b { color: var(--asis); }
+  .ok-badge { display: inline-block; margin-top: 12px; font-size: 12.5px; font-weight: 800; color: #fff; background: var(--tobe); border-radius: 7px; padding: 6px 13px; }
   .karrow { display: flex; align-items: center; justify-content: center; font-size: 22px; color: var(--key); }
   .keystone .gateline { margin-top: 18px; padding-top: 16px; border-top: 1px dashed var(--key-line); font-size: 13.5px; }
   .keystone .gateline b { color: var(--key); }
@@ -240,7 +266,7 @@
     grid-template-columns: 1fr 90px 1fr;
     gap: 12px;
     align-items: stretch;
-    margin-bottom: 10px;
+    margin-bottom: 6px;
   }
   /* V字を視覚的に表現するためのインデント */
   .vrow.lv1 { padding: 0; }
@@ -558,6 +584,30 @@
     line-height: 1.5;
   }
 
+  /* 入出力が交わる層（今回取り組む課題）を黄色枠で1つの層として囲む */
+  .io-layer {
+    position: relative;
+    background: #fef9c3;
+    border: 2px solid #eab308;
+    border-radius: 12px;
+    padding: 12px 16px 7px;
+    margin: 8px 0 4px;
+  }
+  .io-layer-tab {
+    position: absolute;
+    top: -11px;
+    left: 16px;
+    background: #facc15;
+    color: #713f12;
+    font-size: 10.5px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    padding: 2px 12px;
+    border-radius: 999px;
+    z-index: 6;
+  }
+  .io-layer .boundary-row { margin-bottom: 0 !important; }
+
   /* 期待入力（対象外フェーズに、AI が受け取りたいもの） */
   .expected-outputs {
     margin-top: 6px;
@@ -757,14 +807,323 @@
         </div>
       </div>
       <div class="slide-kicker">PW / AIDD ｜ regression-scope・pr-writer・ticket-writer</div>
-      <div class="slide-no">1 / 8</div>
+      <div class="slide-no">1 / 10</div>
     </section>
 
     <!-- ============ 2. V字モデル ============ -->
     <section class="slide">
       <div class="pad">
-        <h2>これまでのAI駆動開発（V字モデル）</h2>
-        <div class="section-sub">上部の対象外フェーズと AI 担当領域を境界線で分離。③〜⑤は AI 担当領域として一括表示。</div>
+        <h2>これまでのAI駆動開発（V字モデル）<span class="ttl-dash"></span>今回取り組む課題</h2>
+        <div class="section-sub">上部の対象外フェーズと AI 担当領域を境界線で分離。③〜⑤は AI 担当領域として一括表示。<b style="color:#a05f1d;">中央の黄色枠（AIとの入出力が交わる層）が今回取り組む課題。</b></div>
+        <div class="vmodel">
+          <div class="vmodel-lane-labels">
+            <div class="lane-label design">▼ 設計レーン</div>
+            <div class="lane-label derive">テスト派生</div>
+            <div class="lane-label test">▲ テストレーン</div>
+          </div>
+          <div class="vrow lv1">
+            <div class="phase design dim">
+              <div class="phase-head">
+                <span class="phase-title">① 要件定義 <span class="out-of-scope">対象外</span></span>
+                <span class="phase-stage">Level 1</span>
+              </div>
+            </div>
+            <div class="derive-cell"></div>
+            <div class="phase test dim">
+              <div class="phase-head">
+                <span class="phase-title">⑦ 受入テスト <span class="out-of-scope">対象外</span></span>
+                <span class="phase-stage">Level 1</span>
+              </div>
+            </div>
+          </div>
+          <div class="vrow lv2">
+            <div class="phase design dim">
+              <div class="phase-head">
+                <span class="phase-title">② 基本設計 <span class="out-of-scope">対象外</span></span>
+                <span class="phase-stage">Level 2</span>
+              </div>
+            </div>
+            <div class="derive-cell"></div>
+            <div class="phase test dim">
+              <div class="phase-head">
+                <span class="phase-title">⑥ システムテスト <span class="out-of-scope">対象外</span></span>
+                <span class="phase-stage">Level 2</span>
+              </div>
+            </div>
+          </div>
+          <div class="io-layer">
+            <span class="io-layer-tab">今回取り組む課題</span>
+            <div class="vrow boundary-row" style="padding: 0 75px; margin-bottom: 0;">
+              <div class="boundary-line left">
+                <svg class="bl-arrow-input" width="50" height="50" viewBox="0 0 50 50" aria-hidden="true">
+                  <polygon points="18,0 32,0 32,30 45,30 25,50 5,30 18,30" fill="#d63a3a"/>
+                </svg>
+                <span class="boundary-label with-inputs">
+                  <span class="bl-human">仕様注入</span>
+                  <span class="bl-io-label">AIへの入力</span>
+                  <span class="bl-inputs">
+                    <span class="bl-badge">spec</span>
+                    <span class="bl-badge">UX</span>
+                  </span>
+                </span>
+              </div>
+              <div class="derive-cell"></div>
+              <div class="boundary-line right">
+                <span class="boundary-label with-inputs">
+                  <span class="bl-io-label">AIからの出力</span>
+                  <span class="bl-inputs">
+                    <span class="bl-badge">ソースコード</span>
+                    <span class="bl-badge">テスト実施レポート</span>
+                  </span>
+                  <span class="bl-human">品質チェック</span>
+                  <svg class="bl-arrow-output" width="50" height="50" viewBox="0 0 50 50" aria-hidden="true">
+                    <polygon points="25,0 45,20 32,20 32,50 18,50 18,20 5,20" fill="#2c8a5e"/>
+                  </svg>
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="vrow lv2">
+            <div class="phase apex" style="grid-column: 1 / -1;">
+              <div class="phase-head" style="border-bottom-color: rgba(0,0,0,0.18);">
+                <span class="phase-title" style="color: #1e6042;">③ 詳細設計 ／ ④ 実装 ／ ⑤ 機能テスト</span>
+                <span class="phase-stage">Level 3〜4 / 対象</span>
+              </div>
+              <ul class="apex-bullets">
+                <li class="design"><span class="b-dot"></span><span class="b-task">DBのテーブル設計・更新</span><span class="b-ai">バックエンドAI</span></li>
+                <li class="test"><span class="b-dot"></span><span class="b-task">ユニットテスト設計・実装</span><span class="b-ai">テストAI</span></li>
+                <li class="impl"><span class="b-dot"></span><span class="b-task">CRUD API 実装</span><span class="b-ai">バックエンドAI</span></li>
+                <li class="test"><span class="b-dot"></span><span class="b-task">機能テスト実装</span><span class="b-ai">テストAI</span></li>
+                <li class="impl"><span class="b-dot"></span><span class="b-task">CRUD画面実装</span><span class="b-ai">フロントエンドAI</span></li>
+                <li class="test"><span class="b-dot"></span><span class="b-task">テスト実施</span><span class="b-ai">テストAI</span></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="limit" style="margin-top:8px;">
+          <b>現在の問題点</b>
+          <ul style="margin:6px 0 0; line-height:1.8;">
+            <li><b>タスクの完了状態を定義するためのプロセス</b>が明確になっていない。</li>
+            <li>品質チェックの基準が <b>AI の一存</b> になっており、<b>人間と同じ方向を向いているか分からない</b>。</li>
+            <li>影響範囲やテスト項目に <b>相変わらず属人性がある</b>ため、<b>リリース可能な品質に達しているか客観的に分からない</b>。</li>
+          </ul>
+        </div>
+      </div>
+      <div class="slide-kicker">これまでのAI駆動開発 ／ 現在の問題点</div>
+      <div class="slide-no">2 / 10</div>
+    </section>
+
+    <!-- ============ 3. 運用（3ステップ） ============ -->
+    <section class="slide">
+      <div class="pad">
+        <h2 class="keyhead">運用<span class="ttl-dash"></span>タスクの進め方（INPUT → PROCESS → OUTPUT）</h2>
+        <p class="note"><b>「タスクの完了状態」を、着手前の合意と完了時の承認で挟む</b>。ゴールを先に握り、実装後に PM が達成を確認してから完了とする。</p>
+        <div class="keystone">
+          <div class="lede">
+            タスクを <b>INPUT（ゴール設定）→ PROCESS（AI駆動開発）→ OUTPUT（達成確認・承認）</b> の3段で回す。
+            <b>何をもって完了とするか</b>を最初に握り、<b>PM の承認をもってタスク完了</b>とすることで、完了状態を明確にする。
+          </div>
+          <div class="keysteps">
+            <div class="kstep">
+              <span class="kn">1</span><span class="iotag in">INPUT</span>
+              <h4>PMと担当者で仕様を握る</h4>
+              <p>タスクのゴールを設定する。「何をもって完了とするか」を着手前に PM と担当者で合意しておく。</p>
+              <span class="who pmpo">PM・担当者</span>
+            </div>
+            <div class="karrow">→</div>
+            <div class="kstep">
+              <span class="kn">2</span><span class="iotag proc">PROCESS</span>
+              <h4>担当者による AI 駆動開発</h4>
+              <p>握ったゴールに沿って、担当者が AI を用いて実装を進める。</p>
+              <span class="who a">担当者 × AI</span>
+            </div>
+            <div class="karrow">→</div>
+            <div class="kstep">
+              <span class="kn">3</span><span class="iotag out">OUTPUT</span>
+              <h4>PMがゴール達成を確認</h4>
+              <p>担当者の実装に対して、PM が設定したゴールの達成を確認する。承認をもってタスク完了とする。</p>
+              <span class="who pmpo">PM</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="slide-kicker">運用</div>
+      <div class="slide-no">3 / 10</div>
+    </section>
+
+    <!-- ============ 4. INPUT詳細：PMと担当者で仕様を握る ============ -->
+    <section class="slide">
+      <div class="pad">
+        <h2 class="keyhead">INPUT<span class="ttl-dash"></span>PMと担当者で仕様を握る</h2>
+        <div class="ministep">
+          <div class="ms on"><span class="msn">1</span><span class="mst">INPUT ― 仕様を握る</span></div>
+          <div class="msarrow">→</div>
+          <div class="ms off"><span class="msn">2</span><span class="mst">PROCESS ― AI駆動開発</span></div>
+          <div class="msarrow">→</div>
+          <div class="ms off"><span class="msn">3</span><span class="mst">OUTPUT ― 達成確認・承認</span></div>
+        </div>
+        <div class="keystone">
+          <div class="lede">
+            担当者が<b>材料を揃え</b>、<b>AI がチケット（ドラフト）を出力</b>。<b>PM と担当者で合意</b>して、実施可能・承認済みのチケットにする。
+          </div>
+          <div class="keysteps" style="margin-top:16px; align-items:stretch;">
+            <div class="kstep" style="border-top-color: var(--accent);">
+              <span class="flow-cap src">顧客と相談の上チームで用意</span>
+              <h4>インプット</h4>
+              <div class="io-list">
+                <div class="io-item">担当者に割り当てられたタスク</div>
+                <div class="io-item">仕様書</div>
+                <div class="io-item">プロジェクト内の品質基準</div>
+                <div class="io-item">リポジトリ（既存の実装）</div>
+              </div>
+            </div>
+            <div class="karrow">→</div>
+            <div class="kstep" style="border-top-color: var(--key);">
+              <span class="flow-cap ai">AIが生成・担当者が確認・修正</span>
+              <h4>チケット（ドラフト）を出力</h4>
+              <a class="tk-link" href="PW-171.ticket.html" target="_blank" rel="noopener">出力例：PW-171.ticket.html →</a>
+              <ul class="tk-list">
+                <li>概要</li>
+                <li>作業内容</li>
+                <li><b>完了条件（ゴール・チェックボックス）</b>
+                  <ul class="tk-list" style="margin:4px 0 0;"><li>既存実装から予想された影響範囲</li></ul>
+                </li>
+                <li>必要に応じて資料へのリンク</li>
+              </ul>
+              <div class="tk-note">チケットのフォーマットは<b>プロジェクト内のテンプレートに準拠</b>。<b>PM と実装担当者チームで合意したもの</b>を用いる。</div>
+            </div>
+            <div class="karrow">→</div>
+            <div class="kstep" style="border-top-color: var(--tobe);">
+              <span class="flow-cap ok">PM・担当者で合意</span>
+              <h4>チケットを承認</h4>
+              <p style="font-size:13px; color:var(--muted); margin:0; line-height:1.7;">ドラフトを PM と担当者で確認・調整し、合意する。合意をもって着手できる状態にする。</p>
+              <span class="ok-badge">実施可能・承認済みチケット</span>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:14px; background:var(--ai-soft); border:1px solid var(--ai-line); border-left:4px solid var(--ai); border-radius:12px; padding:13px 18px; font-size:13.5px; line-height:1.7;">
+          <b style="color:var(--ai);">AI でドラフト出力する狙い</b><br>
+          <b>PM が読みたい内容</b>・<b>担当者が誤解しない完了条件</b>を<b>均質な粒度</b>で出力する（<b>担当者によるバラつきを抑止</b>する狙い）。
+        </div>
+      </div>
+      <div class="slide-kicker">運用 ／ INPUT</div>
+      <div class="slide-no">4 / 10</div>
+    </section>
+
+    <!-- ============ 5. PROCESS詳細：担当者によるAI駆動開発 ============ -->
+    <section class="slide">
+      <div class="pad">
+        <h2 class="keyhead">PROCESS<span class="ttl-dash"></span>担当者によるAI駆動開発</h2>
+        <div class="ministep">
+          <div class="ms off"><span class="msn">1</span><span class="mst">INPUT ― 仕様を握る</span></div>
+          <div class="msarrow">→</div>
+          <div class="ms on"><span class="msn">2</span><span class="mst">PROCESS ― AI駆動開発</span></div>
+          <div class="msarrow">→</div>
+          <div class="ms off"><span class="msn">3</span><span class="mst">OUTPUT ― 達成確認・承認</span></div>
+        </div>
+        <div class="keystone">
+          <div class="lede">
+            承認済みチケットを起点に、担当者が <b>AI 駆動で実装・自動テスト</b>。<b>影響範囲抽出・PR 作成</b>まで行い、テストを反映して<b>完了条件を満たした PR</b> に仕上げる。
+          </div>
+          <div class="keysteps" style="margin-top:10px; align-items:stretch;">
+            <div class="kstep" style="border-top-color: var(--accent);">
+              <span class="flow-cap src">起点・実施</span>
+              <h4>担当者 × AI 駆動開発</h4>
+              <div class="io-list">
+                <div class="io-item">
+                  実行可能チケット
+                  <a class="tk-link" style="display:block; width:fit-content; margin:6px 0 0;" href="PW-171.ticket.html" target="_blank" rel="noopener">チケット → PW-171.ticket.html</a>
+                </div>
+                <div class="io-item">仕様書</div>
+                <div class="io-item">プロジェクト内の品質基準</div>
+                <div class="io-item ai"><span class="ai-chip">AI</span>AI駆動による実装</div>
+                <div class="io-item ai"><span class="ai-chip">AI</span>自動テスト</div>
+              </div>
+            </div>
+            <div class="karrow">→</div>
+            <div class="kstep" style="border-top-color: var(--key);">
+              <span class="flow-cap ai">AI・担当者で生成</span>
+              <h4>詳細・影響範囲・PR</h4>
+              <div class="io-list">
+                <div class="io-item ai">
+                  <span class="ai-chip">AI</span>実施内容の詳細と影響範囲抽出
+                  <a class="tk-link" style="display:block; width:fit-content; margin:6px 0 0;" href="PW-171.regression-scope.html" target="_blank" rel="noopener">例：PW-171.regression-scope.html →</a>
+                </div>
+                <div class="io-item ai">
+                  <span class="ai-chip">AI</span>PR作成・自動テスト結果の反映
+                  <a class="tk-link" style="display:block; width:fit-content; margin:6px 0 0;" href="PW-171.pr.html" target="_blank" rel="noopener">例：PW-171.pr.html →</a>
+                </div>
+                <div class="io-item hu"><span class="hu-chip">担当者</span>担当者によるテスト（PR へ反映）</div>
+              </div>
+            </div>
+            <div class="karrow">→</div>
+            <div class="kstep" style="border-top-color: var(--tobe);">
+              <span class="flow-cap ok">アウトプット</span>
+              <h4>チケットのゴール</h4>
+              <div class="io-item hu">
+                <span class="hu-chip">チーム</span>PRのレビューとマージ
+                <a class="tk-link" style="display:block; width:fit-content; margin:6px 0 0;" href="PW-171.pr.html?state=merged" target="_blank" rel="noopener">マージ済み PR → PW-171.pr.html</a>
+              </div>
+              <div class="io-item hu" style="margin-top:7px;">
+                <span class="hu-chip">担当者</span>☑ チケット完了条件へのチェック
+                <a class="tk-link" style="display:block; width:fit-content; margin:6px 0 0;" href="PW-171.ticket.html?state=done" target="_blank" rel="noopener">チケット → PW-171.ticket.html</a>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:10px; background:var(--asis-soft); border:1px solid var(--asis-line); border-left:4px solid var(--amber); border-radius:12px; padding:11px 18px; font-size:13px; line-height:1.6;">
+          <b style="color:var(--amber);">要点</b>　仕様を握る際に<b>明確にできなかった影響範囲</b>が見つかった場合は、担当者が<b>チケットに追記して PM と再度握る</b>ことが必要。
+        </div>
+      </div>
+      <div class="slide-kicker">運用 ／ PROCESS</div>
+      <div class="slide-no">5 / 10</div>
+    </section>
+
+    <!-- ============ 6. OUTPUT詳細：PMによるゴール達成の確認・承認 ============ -->
+    <section class="slide">
+      <div class="pad">
+        <h2 class="keyhead">OUTPUT<span class="ttl-dash"></span>PMによるゴール達成の確認・承認</h2>
+        <div class="ministep">
+          <div class="ms off"><span class="msn">1</span><span class="mst">INPUT ― 仕様を握る</span></div>
+          <div class="msarrow">→</div>
+          <div class="ms off"><span class="msn">2</span><span class="mst">PROCESS ― AI駆動開発</span></div>
+          <div class="msarrow">→</div>
+          <div class="ms on"><span class="msn">3</span><span class="mst">OUTPUT ― 達成確認・承認</span></div>
+        </div>
+        <div class="keystone">
+          <div class="lede">
+            PM は基本、<b>担当者と握ったチケット（完了条件のチェック）を確認するだけ</b>で承認できる。<b>承認作業は重くない</b>。
+          </div>
+          <div class="keysteps" style="margin-top:12px; grid-template-columns: 1fr 34px 1fr; align-items:stretch;">
+            <div class="kstep" style="border-top-color: var(--c-ticket);">
+              <span class="flow-cap" style="color:var(--c-ticket); background:#e6f3f6; border:1px solid #bcdfe6;">PMが確認</span>
+              <h4>握ったチケットを確認</h4>
+              <p style="font-size:13px; color:var(--muted); margin:0 0 8px; line-height:1.7;">確認するのは<b>担当者と握ったチケット1枚</b>。<b>完了条件（ゴール）がすべてチェック済み</b>かを見るだけ。</p>
+              <a class="tk-link" style="display:block; width:fit-content;" href="PW-171.ticket.html?state=done" target="_blank" rel="noopener">確認するチケット → PW-171.ticket.html</a>
+            </div>
+            <div class="karrow">→</div>
+            <div class="kstep" style="border-top-color: var(--tobe);">
+              <span class="flow-cap ok">承認</span>
+              <h4>ゴール達成を承認 → タスク完了</h4>
+              <p style="font-size:13px; color:var(--muted); margin:0 0 10px; line-height:1.7;">完了条件が満たされていれば<b>承認</b>。（PR はチームでレビュー・マージ済み）</p>
+              <span class="ok-badge">タスク完了・承認</span>
+            </div>
+          </div>
+          <div style="margin-top:14px; background:#fff; border:1px dashed var(--c-scope); border-radius:12px; padding:12px 18px; font-size:13px; line-height:1.7;">
+            <b style="color:var(--c-scope);">必要に応じて（任意）</b>　詳細の確認が必要と感じた場合は、<b>PR を参照</b>したり、<b>担当者に説明を求める</b>こともできる。
+            <a class="tk-link" style="margin-left:6px;" href="PW-171.pr.html?state=merged" target="_blank" rel="noopener">PR → PW-171.pr.html</a>
+          </div>
+        </div>
+      </div>
+      <div class="slide-kicker">運用 ／ OUTPUT</div>
+      <div class="slide-no">6 / 10</div>
+    </section>
+
+    <!-- ============ 7. まとめ：問題が解決したV字モデル ============ -->
+    <section class="slide">
+      <div class="pad">
+        <h2>改善後のプロセス<span class="ttl-dash"></span>問題が解決したV字モデル</h2>
+        <div class="section-sub">AIの出力に<b>チェック基準・影響範囲・要テスト範囲</b>が加わり、品質確認が<b>客観的な根拠</b>を持つようになった。</div>
         <div class="vmodel">
           <div class="vmodel-lane-labels">
             <div class="lane-label design">▼ 設計レーン</div>
@@ -812,18 +1171,19 @@
                 <span class="bl-inputs">
                   <span class="bl-badge">spec</span>
                   <span class="bl-badge">UX</span>
+                  <span class="bl-badge" style="border-style:solid; border-color:#4338ca; color:#4338ca;">PM合意済みチケット</span>
                 </span>
               </span>
             </div>
             <div class="derive-cell"></div>
             <div class="boundary-line right">
               <span class="boundary-label with-inputs">
-                <span class="bl-io-label">AIからの出力</span>
+                <span class="bl-io-label">AI・担当者の出力</span>
                 <span class="bl-inputs">
                   <span class="bl-badge">ソースコード</span>
                   <span class="bl-badge">テスト実施レポート</span>
                 </span>
-                <span class="bl-human">品質チェック</span>
+                <span class="bl-human">影響範囲確認 → PMレビュー依頼</span>
                 <svg class="bl-arrow-output" width="50" height="50" viewBox="0 0 50 50" aria-hidden="true">
                   <polygon points="25,0 45,20 32,20 32,50 18,50 18,20 5,20" fill="#2c8a5e"/>
                 </svg>
@@ -847,70 +1207,27 @@
             </div>
           </div>
         </div>
-        <div class="limit" style="margin-top:12px;">
-          <b>現在の問題点</b>
-          <ul style="margin:6px 0 0; line-height:1.8;">
-            <li>品質チェックの基準が <b>AI の一存</b> になっており、<b>人間と同じ方向を向いているか分からない</b>。</li>
-            <li>影響範囲やテスト項目に <b>相変わらず属人性がある</b>ため、<b>リリース可能な品質に達しているか客観的に分からない</b>。</li>
+        <div style="margin-top:10px; background:var(--tobe-soft); border:1px solid var(--tobe-line); border-left:4px solid var(--tobe); border-radius:12px; padding:12px 20px; font-size:13px;">
+          <b style="color:var(--tobe);">解決されたこと</b>（P2 の課題への対応）
+          <ul style="margin:5px 0 0; line-height:1.7;">
+            <li><b style="color:var(--amber);">完了状態を定義するプロセスが不明確</b> → INPUT で<b>完了条件（ゴール）をチケットに明記し PM と合意</b>、OUTPUT で<b>その完了条件のチェックをもって承認</b> → <b style="color:var(--tobe);">タスクの完了が定義・共有される</b>。</li>
+            <li><b style="color:var(--amber);">品質チェックが AI の一存</b> → <b>チェック基準を事前に定め</b>、AI・担当者が<b>影響範囲・要テスト範囲を出力</b> → <b style="color:var(--tobe);">人と同じ観点で客観的に確認できる</b>。</li>
+            <li><b style="color:var(--amber);">影響範囲・テストに属人性</b> → 影響範囲・テスト項目を<b>文書で自動確定し PR／チケットで可視化</b> → <b style="color:var(--tobe);">属人性が下がり、リリース可能な品質かを客観的に判断できる</b>。</li>
           </ul>
         </div>
       </div>
-      <div class="slide-kicker">これまでのAI駆動開発 ／ 現在の問題点</div>
-      <div class="slide-no">2 / 8</div>
-    </section>
-
-    <!-- ============ 3. 運用（3ステップ） ============ -->
-    <section class="slide">
-      <div class="pad">
-        <h2 class="keyhead">運用<span class="ttl-dash"></span>チェック基準ファースト</h2>
-        <p class="note"><b>「動いているものへの変更」は、変更後も動く保証が難しい</b>。結果を見てから直すのではなく、<b>確認の基準を先に決める</b>。</p>
-        <div class="keystone">
-          <div class="lede">
-            変更時は、AI に <b>「影響範囲」と「要テスト範囲」を出力</b>させ、<b>その確認をもって品質的に OK と判断</b>する。
-            開発工数だけでなく<b>チェック工数も削減</b>でき、<b>変更を重ねても品質を保ったまま開発を速く回せる</b>。
-          </div>
-          <div class="keysteps">
-            <div class="kstep">
-              <span class="kn">1</span>
-              <h4>チェック基準を先に定める</h4>
-              <p>変更に着手する前に「どのような観点でテストすべきか」を決めておく。定めた観点は<b>関連する AI エージェントに組み込んでおく</b>。</p>
-              <span class="who h">人（事前）</span>
-            </div>
-            <div class="karrow">→</div>
-            <div class="kstep">
-              <span class="kn">2</span>
-              <h4>仕様・実装内容を元に影響範囲・テスト項目を出力</h4>
-              <p>仕様・実装内容（差分）をもとに、変更の波及先と要テスト範囲を自動で確定し、文書化する。</p>
-              <span class="who a">AI（自動）</span>
-            </div>
-            <div class="karrow">→</div>
-            <div class="kstep">
-              <span class="kn">3</span>
-              <h4>確認をもって品質 OK と判断</h4>
-              <p>出力された範囲・乖離・要確認項目を確認。その確認の通過をもって「品質的に OK」とする。</p>
-              <span class="who pmpo">PM/PO・QA</span>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="slide-kicker">運用</div>
-      <div class="slide-no">3 / 8</div>
+      <div class="slide-kicker">改善後のプロセス</div>
+      <div class="slide-no">7 / 10</div>
     </section>
 
     <!-- ============ 5. ステップ1 チェック基準マトリクス ============ -->
     <section class="slide">
       <div class="pad">
-        <h2 class="keyhead">ステップ1<span class="ttl-dash"></span>チェック基準（観点マトリクス）</h2>
-        <div class="ministep">
-          <div class="ms on"><span class="msn">1</span><span class="mst">チェック基準を先に定める</span></div>
-          <div class="msarrow">→</div>
-          <div class="ms off"><span class="msn">2</span><span class="mst">影響範囲・要テスト範囲を出力</span></div>
-          <div class="msarrow">→</div>
-          <div class="ms off"><span class="msn">3</span><span class="mst">確認をもって品質OKと判断</span></div>
-        </div>
+        <h2 class="keyhead">Appendix 1<span class="ttl-dash"></span>チェック基準（観点マトリクス）</h2>
+        <p class="note">ひな形を下敷きに、<b>プロジェクトチーム内で策定</b>する。</p>
         <div class="keystone">
           <div class="basis" style="margin-top:0;">
-            <div class="bt">ステップ1「チェック基準」の中身（雛形）<span class="tagN">策定中</span></div>
+            <div class="bt">チェック基準（観点マトリクス）のひな形<span class="tagN">策定中</span></div>
             <div class="sub"><b>レイヤー（縦）× テスト系統（横）</b>のマトリクスで、確認すべき観点を先に定めておく。</div>
             <div class="matrix">
               <div class="mh corner"></div>
@@ -936,25 +1253,19 @@
           </div>
         </div>
       </div>
-      <div class="slide-kicker">運用 ／ ステップ1</div>
-      <div class="slide-no">4 / 8</div>
+      <div class="slide-kicker">Appendix 1 ／ チェック基準</div>
+      <div class="slide-no">8 / 10</div>
     </section>
 
     <!-- ============ 6. ステップ2 エージェント連携 ============ -->
     <section class="slide">
       <div class="pad">
-        <h2 class="keyhead">ステップ2<span class="ttl-dash"></span>エージェント連携（自動化）</h2>
-        <div class="ministep">
-          <div class="ms off"><span class="msn">1</span><span class="mst">チェック基準を先に定める</span></div>
-          <div class="msarrow">→</div>
-          <div class="ms on"><span class="msn">2</span><span class="mst">影響範囲・要テスト範囲を出力</span></div>
-          <div class="msarrow">→</div>
-          <div class="ms off"><span class="msn">3</span><span class="mst">確認をもって品質OKと判断</span></div>
-        </div>
+        <h2 class="keyhead">Appendix 2<span class="ttl-dash"></span>エージェント連携（自動化）</h2>
+        <p class="note">影響範囲・要テスト範囲・文書を、<b>3エージェントが自動生成</b>する。</p>
         <div class="keystone">
           <div class="basis" style="margin-top:0;">
-            <div class="bt">ステップ2「影響範囲・要テスト範囲の出力」</div>
-            <div class="sub">ステップ1で定めた観点を入力に、<b>3エージェントが影響範囲・要テスト範囲・文書を自動生成</b>する。人は出力を確認し、記載されているテストを実施する。</div>
+            <div class="bt">影響範囲・要テスト範囲の出力</div>
+            <div class="sub">チェック基準（Appendix 1）で定めた観点を入力に、<b>3エージェントが影響範囲・要テスト範囲・文書を自動生成</b>する。人は出力を確認し、記載されているテストを実施する。</div>
             <div class="flow" style="margin-top:12px;">
               <svg viewBox="0 0 920 250" role="img" aria-label="3エージェント連携パイプライン（自動化）">
                 <rect x="8" y="56" width="134" height="27" rx="7" fill="#eef2ff" stroke="#4338ca" stroke-width="1.5"/>
@@ -1008,60 +1319,14 @@
           </div>
         </div>
       </div>
-      <div class="slide-kicker">運用 ／ ステップ2</div>
-      <div class="slide-no">5 / 8</div>
-    </section>
-
-    <!-- ============ 6. ステップ3 確認・判断 ============ -->
-    <section class="slide">
-      <div class="pad">
-        <h2 class="keyhead">ステップ3<span class="ttl-dash"></span>確認をもって品質OKと判断</h2>
-        <div class="ministep">
-          <div class="ms off"><span class="msn">1</span><span class="mst">チェック基準を先に定める</span></div>
-          <div class="msarrow">→</div>
-          <div class="ms off"><span class="msn">2</span><span class="mst">影響範囲・要テスト範囲を出力</span></div>
-          <div class="msarrow">→</div>
-          <div class="ms on"><span class="msn">3</span><span class="mst">確認をもって品質OKと判断</span></div>
-        </div>
-        <div class="keystone">
-          <div class="lede">
-            エンジニアは、<b>変更の影響範囲を文書で確認</b>し、<b>テスト項目をすべて確認・消化</b>する。終えたら<b>作業完了をチケットに記載</b>し、<b>PM に見せられる状態</b>にする。確認・記載の材料は下記の出力（PW-171 の実物にリンク）。
-          </div>
-          <div class="docs" style="margin-top:14px;">
-            <a class="doc scope" href="PW-171.regression-scope.html" target="_blank" rel="noopener">
-              <div class="fn">PW-171.regression-scope</div>
-              <h5 style="color:var(--c-scope);">影響範囲・テスト項目を確認 →</h5>
-              <div class="row">影響API・画面別チェックリスト・テスト工数見積り・乖離分析・スコープ外。<b>確認すべき範囲とテスト項目の一覧</b>。</div>
-            </a>
-            <a class="doc pr" href="PW-171.pr.html" target="_blank" rel="noopener">
-              <div class="fn">pr-writer → PR文書</div>
-              <h5>レビュー観点を確認 →</h5>
-              <div class="row">追加機能・テスト観点・影響範囲を整理。<b>レビュー・マージに向けた説明</b>。</div>
-            </a>
-            <a class="doc ticket" href="PW-171.ticket.html" target="_blank" rel="noopener">
-              <div class="fn">ticket-writer → チケット本文</div>
-              <h5>作業完了を記載・PMへ →</h5>
-              <div class="row">影響範囲・テスト工数・要点を集約。<b>完了報告として PM に見せられる状態</b>に。</div>
-            </a>
-          </div>
-        </div>
-        <div style="margin-top:14px; display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-          <div style="background:var(--tobe-soft); border:1px solid var(--tobe-line); border-left:4px solid var(--tobe); border-radius:10px; padding:11px 15px; font-size:13px; line-height:1.65;">
-            <b style="color:var(--tobe);">エンジニアの声</b><br>PR文書の内容は、<b>テスト内容が過不足なく良い感触</b>だった。
-          </div>
-          <div style="background:var(--asis-soft); border:1px solid var(--asis-line); border-left:4px solid var(--amber); border-radius:10px; padding:11px 15px; font-size:13px; line-height:1.65;">
-            <b style="color:var(--amber);">今後（改善中）</b><br>チケットの内容は、<b>PMからフィードバック</b>をいただき、内容を改善していく予定。
-          </div>
-        </div>
-      </div>
-      <div class="slide-kicker">運用 ／ ステップ3</div>
-      <div class="slide-no">6 / 8</div>
+      <div class="slide-kicker">Appendix 2 ／ エージェント連携</div>
+      <div class="slide-no">9 / 10</div>
     </section>
 
     <!-- ============ 7. 役割分担（RACI） ============ -->
     <section class="slide">
       <div class="pad">
-        <h2>役割分担<span class="ttl-dash"></span>AIと人の境界</h2>
+        <h2 class="keyhead">Appendix 3<span class="ttl-dash"></span>役割分担（AIと人の境界）</h2>
         <table class="raci">
           <thead>
             <tr><th style="width:40%">タスク</th><th style="width:24%">担い手</th><th>補足</th></tr>
@@ -1079,109 +1344,8 @@
           </tbody>
         </table>
       </div>
-      <div class="slide-kicker">役割分担</div>
-      <div class="slide-no">7 / 8</div>
-    </section>
-
-    <!-- ============ 8. まとめ：問題が解決したV字モデル ============ -->
-    <section class="slide">
-      <div class="pad">
-        <h2>まとめ<span class="ttl-dash"></span>問題が解決したV字モデル</h2>
-        <div class="section-sub">AIの出力に<b>チェック基準・影響範囲・要テスト範囲</b>が加わり、品質確認が<b>客観的な根拠</b>を持つようになった。</div>
-        <div class="vmodel">
-          <div class="vmodel-lane-labels">
-            <div class="lane-label design">▼ 設計レーン</div>
-            <div class="lane-label derive">テスト派生</div>
-            <div class="lane-label test">▲ テストレーン</div>
-          </div>
-          <div class="vrow lv1">
-            <div class="phase design dim">
-              <div class="phase-head">
-                <span class="phase-title">① 要件定義 <span class="out-of-scope">対象外</span></span>
-                <span class="phase-stage">Level 1</span>
-              </div>
-            </div>
-            <div class="derive-cell"></div>
-            <div class="phase test dim">
-              <div class="phase-head">
-                <span class="phase-title">⑦ 受入テスト <span class="out-of-scope">対象外</span></span>
-                <span class="phase-stage">Level 1</span>
-              </div>
-            </div>
-          </div>
-          <div class="vrow lv2">
-            <div class="phase design dim">
-              <div class="phase-head">
-                <span class="phase-title">② 基本設計 <span class="out-of-scope">対象外</span></span>
-                <span class="phase-stage">Level 2</span>
-              </div>
-            </div>
-            <div class="derive-cell"></div>
-            <div class="phase test dim">
-              <div class="phase-head">
-                <span class="phase-title">⑥ システムテスト <span class="out-of-scope">対象外</span></span>
-                <span class="phase-stage">Level 2</span>
-              </div>
-            </div>
-          </div>
-          <div class="vrow boundary-row" style="padding: 0 75px; margin-bottom: 10px;">
-            <div class="boundary-line left">
-              <svg class="bl-arrow-input" width="50" height="50" viewBox="0 0 50 50" aria-hidden="true">
-                <polygon points="18,0 32,0 32,30 45,30 25,50 5,30 18,30" fill="#d63a3a"/>
-              </svg>
-              <span class="boundary-label with-inputs">
-                <span class="bl-human">仕様注入</span>
-                <span class="bl-io-label">AIへの入力</span>
-                <span class="bl-inputs">
-                  <span class="bl-badge">spec</span>
-                  <span class="bl-badge">UX</span>
-                  <span class="bl-badge" style="border-style:solid; border-color:#4338ca; color:#4338ca;">チェック基準</span>
-                </span>
-              </span>
-            </div>
-            <div class="derive-cell"></div>
-            <div class="boundary-line right">
-              <span class="boundary-label with-inputs">
-                <span class="bl-io-label">AIからの出力</span>
-                <span class="bl-inputs">
-                  <span class="bl-badge">ソースコード</span>
-                  <span class="bl-badge">テスト実施レポート</span>
-                  <span class="bl-badge" style="border-style:solid; border-color:#4338ca; color:#4338ca;">影響範囲・要テスト範囲</span>
-                </span>
-                <span class="bl-human">基準で客観確認</span>
-                <svg class="bl-arrow-output" width="50" height="50" viewBox="0 0 50 50" aria-hidden="true">
-                  <polygon points="25,0 45,20 32,20 32,50 18,50 18,20 5,20" fill="#2c8a5e"/>
-                </svg>
-              </span>
-            </div>
-          </div>
-          <div class="vrow lv2">
-            <div class="phase apex" style="grid-column: 1 / -1;">
-              <div class="phase-head" style="border-bottom-color: rgba(0,0,0,0.18);">
-                <span class="phase-title" style="color: #1e6042;">③ 詳細設計 ／ ④ 実装 ／ ⑤ 機能テスト</span>
-                <span class="phase-stage">Level 3〜4 / 対象</span>
-              </div>
-              <ul class="apex-bullets">
-                <li class="design"><span class="b-dot"></span><span class="b-task">DBのテーブル設計・更新</span><span class="b-ai">バックエンドAI</span></li>
-                <li class="test"><span class="b-dot"></span><span class="b-task">ユニットテスト設計・実装</span><span class="b-ai">テストAI</span></li>
-                <li class="impl"><span class="b-dot"></span><span class="b-task">CRUD API 実装</span><span class="b-ai">バックエンドAI</span></li>
-                <li class="test"><span class="b-dot"></span><span class="b-task">機能テスト実装</span><span class="b-ai">テストAI</span></li>
-                <li class="impl"><span class="b-dot"></span><span class="b-task">CRUD画面実装</span><span class="b-ai">フロントエンドAI</span></li>
-                <li class="test"><span class="b-dot"></span><span class="b-task">テスト実施</span><span class="b-ai">テストAI</span></li>
-              </ul>
-            </div>
-          </div>
-        </div>
-        <div style="margin-top:12px; background:var(--tobe-soft); border:1px solid var(--tobe-line); border-left:4px solid var(--tobe); border-radius:12px; padding:14px 20px; font-size:14px;">
-          <b style="color:var(--tobe);">解決されたこと</b>
-          <ul style="margin:6px 0 0; line-height:1.8;">
-            <li>品質チェックの基準を<b>事前に明文化（チェック基準ファースト）</b>し、AI出力に<b>影響範囲・要テスト範囲</b>が加わった → <b style="color:var(--tobe);">AIの一存でなく、人と同じ観点で確認できる</b>。</li>
-            <li>影響範囲・テスト項目を<b>文書で自動確定</b> → <b style="color:var(--tobe);">属人性が下がり、リリース可能な品質かを客観的に判断できる</b>。</li>
-          </ul>
-        </div>
-      </div>
-      <div class="slide-kicker">まとめ</div>
-      <div class="slide-no">8 / 8</div>
+      <div class="slide-kicker">Appendix 3 ／ 役割分担</div>
+      <div class="slide-no">10 / 10</div>
     </section>
 
   </div>
@@ -1203,14 +1367,36 @@
     dotsEl.appendChild(d);
   });
   const dots = Array.from(dotsEl.children);
-  function go(i) {
-    if (i < 0 || i >= slides.length) return;
+  // 表示だけ切り替える（履歴は触らない）
+  function render(i) {
     slides[cur].classList.remove('active');
     dots[cur].classList.remove('on');
     cur = i;
     slides[cur].classList.add('active');
     dots[cur].classList.add('on');
   }
+  // ユーザー操作でのページ移動：ブラウザ履歴に積む（戻る/進むで行き来できる）
+  function go(i) {
+    if (i < 0 || i >= slides.length || i === cur) return;
+    render(i);
+    history.pushState({ slide: i }, '', '#' + (i + 1));
+  }
+  // URL ハッシュ（#1〜#10）／戻る・進むを反映
+  function goFromHash() {
+    let n = parseInt(location.hash.slice(1), 10);
+    if (isNaN(n)) n = 1;
+    render(Math.min(Math.max(n - 1, 0), slides.length - 1));
+  }
+  window.addEventListener('popstate', goFromHash);
+  window.addEventListener('hashchange', goFromHash);
+  // 初期表示：現在のハッシュを反映し、履歴の基点を作る
+  (function initNav() {
+    let n = parseInt(location.hash.slice(1), 10);
+    if (isNaN(n)) n = 1;
+    const i = Math.min(Math.max(n - 1, 0), slides.length - 1);
+    render(i);
+    history.replaceState({ slide: i }, '', '#' + (i + 1));
+  })();
   document.addEventListener('keydown', e => {
     if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { go(cur + 1); e.preventDefault(); }
     else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { go(cur - 1); e.preventDefault(); }

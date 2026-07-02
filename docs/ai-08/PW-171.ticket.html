@@ -17,7 +17,7 @@
       <div style="display:flex; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
         <span style="display:inline-block; font-weight:700; font-size:13px; letter-spacing:.04em; color:#009d6b; background:#e8f7f1; border:1px solid #00b279; border-radius:4px; padding:3px 10px;">PW-171</span>
         <span style="display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:700; color:#ffffff; background:#5bb87f; border-radius:14px; padding:4px 12px;">
-          <span style="display:inline-block; width:7px; height:7px; border-radius:50%; background:#ffffff;"></span>処理中
+          <span style="display:inline-block; width:7px; height:7px; border-radius:50%; background:#ffffff;"></span><span class="js-status">処理中</span>
         </span>
       </div>
       <h1 style="margin:0; font-size:22px; font-weight:700; color:#34313a; line-height:1.45;">トップメニューに配送日変更リスト・未配車リストを表示</h1>
@@ -30,7 +30,7 @@
         <div style="display:flex; gap:14px; align-items:baseline;">
           <span style="flex:0 0 92px; font-size:12px; color:#7c7a82;">状態</span>
           <span style="font-size:14px; color:#34313a;">
-            <span style="display:inline-block; font-size:12px; font-weight:700; color:#ffffff; background:#5bb87f; border-radius:12px; padding:2px 10px;">処理中</span>
+            <span class="js-status" style="display:inline-block; font-size:12px; font-weight:700; color:#ffffff; background:#5bb87f; border-radius:12px; padding:2px 10px;">処理中</span>
           </span>
         </div>
 
@@ -146,6 +146,17 @@
   </div>
 
 </div>
+
+<script>
+  // URLパラメータ ?state=done（または ?checked / ?done）で完了条件を全チェックにする
+  (function () {
+    var p = new URLSearchParams(location.search);
+    if (p.get('state') !== 'done' && !p.has('checked') && !p.has('done')) return;
+    document.querySelectorAll('input[type="checkbox"]').forEach(function (c) { c.checked = true; });
+    // ステータス: 処理中 → レビュー依頼中
+    document.querySelectorAll('.js-status').forEach(function (s) { s.textContent = 'レビュー依頼中'; });
+  })();
+</script>
 
 </body>
 </html>

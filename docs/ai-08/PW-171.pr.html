@@ -382,11 +382,11 @@
       <h4>1. 管理画面トップ（<code>/</code>）— 配送日変更リストパネル</h4>
       <p><strong>影響の原因:</strong> <code>DeliveryDateChangePanel</code> の中身が「準備中」テキスト → <code>&lt;ReschedulePanel defaultItemsPerPage={5} perPageOptions={[5, 20, 50, 100]} showSearch={false} /&gt;</code> に差し替え</p>
       <ul class="task-list">
-        <li><input type="checkbox" disabled><span>トップメニュー（<code>/</code>）を開き、「配送日変更リスト」チェックボックスをONにする → パネルが表示され「準備中」文字列が消えていること</span></li>
-        <li><input type="checkbox" disabled><span>表示されたパネルに「配送日変更リスト」のタイトルヘッダーが表示されること</span></li>
-        <li><input type="checkbox" disabled><span>検索フォームエリアが表示されていないこと（<code>showSearch=false</code> の確認）</span></li>
+        <li><input type="checkbox" checked disabled><span>トップメニュー（<code>/</code>）を開き、「配送日変更リスト」チェックボックスをONにする → パネルが表示され「準備中」文字列が消えていること</span></li>
+        <li><input type="checkbox" checked disabled><span>表示されたパネルに「配送日変更リスト」のタイトルヘッダーが表示されること</span></li>
+        <li><input type="checkbox" checked disabled><span>検索フォームエリアが表示されていないこと（<code>showSearch=false</code> の確認）</span></li>
         <li><input type="checkbox" disabled><span>データ行が存在する場合、1ページ5件で表示されること（<code>defaultItemsPerPage=5</code>）</span></li>
-        <li><input type="checkbox" disabled><span>ページネーションのページサイズ選択肢が「5、20、50、100」であること</span></li>
+        <li><input type="checkbox" checked disabled><span>ページネーションのページサイズ選択肢が「5、20、50、100」であること</span></li>
         <li><input type="checkbox" disabled><span>データ行のいずれかをクリックし、配送詳細ドロワーが開くこと</span></li>
         <li><input type="checkbox" disabled><span>未読行をクリックしてドロワーを開いた場合、「既読にする」ボタンが表示されること</span></li>
         <li><input type="checkbox" disabled><span>「既読にする」ボタンをクリックすると成功トーストが表示され、行のステータスが更新されること（refetch）</span></li>
@@ -398,32 +398,32 @@
       <h4>2. 管理画面トップ（<code>/</code>）— 未配車リストパネル</h4>
       <p><strong>影響の原因:</strong> <code>UnassignedDeliveriesPanel</code> の中身が「準備中」テキスト → <code>&lt;UnassignedSummaryTable /&gt;</code> に差し替え</p>
       <ul class="task-list">
-        <li><input type="checkbox" disabled><span>トップメニュー（<code>/</code>）を開き、「未配車リスト」チェックボックスをONにする → パネルが表示され「準備中」文字列が消えていること</span></li>
-        <li><input type="checkbox" disabled><span>パネル内にサマリテーブルのヘッダー行が表示されること（「No.」「デポ名」「エリア名」「午前中」「12:00-14:00」「14:00-16:00」「16:00-18:00」「18:00-21:00」「指定なし」の各列）</span></li>
-        <li><input type="checkbox" disabled><span>テーブルのデータ行が空（tbody が空白）であること（PW-144_3 集計API未実装のため意図された状態）</span></li>
+        <li><input type="checkbox" checked disabled><span>トップメニュー（<code>/</code>）を開き、「未配車リスト」チェックボックスをONにする → パネルが表示され「準備中」文字列が消えていること</span></li>
+        <li><input type="checkbox" checked disabled><span>パネル内にサマリテーブルのヘッダー行が表示されること（「No.」「デポ名」「エリア名」「午前中」「12:00-14:00」「14:00-16:00」「16:00-18:00」「18:00-21:00」「指定なし」の各列）</span></li>
+        <li><input type="checkbox" checked disabled><span>テーブルのデータ行が空（tbody が空白）であること（PW-144_3 集計API未実装のため意図された状態）</span></li>
       </ul>
 
       <h4>3. 管理画面 配送日変更リスト（<code>/notifications/reschedule</code>）— リファクタ後の動作確認</h4>
       <p><strong>影響の原因:</strong> ページ内に直書きされていた全ロジックを <code>ReschedulePanel</code> に抽出。ページは <code>&lt;ReschedulePanel /&gt;</code> を呼ぶだけになった。<code>defaultItemsPerPage=20</code>、<code>perPageOptions=[20, 50, 100]</code>、<code>showSearch=true</code>（いずれもデフォルト値）。</p>
       <ul class="task-list">
-        <li><input type="checkbox" disabled><span><code>/notifications/reschedule</code> を開き、「配送日変更リスト」のタイトルと検索フォームが表示されること</span></li>
-        <li><input type="checkbox" disabled><span>検索フォームが初期表示で展開状態（<code>isSearchFormOpen=true</code>）であること</span></li>
+        <li><input type="checkbox" checked disabled><span><code>/notifications/reschedule</code> を開き、「配送日変更リスト」のタイトルと検索フォームが表示されること</span></li>
+        <li><input type="checkbox" checked disabled><span>検索フォームが初期表示で展開状態（<code>isSearchFormOpen=true</code>）であること</span></li>
         <li><input type="checkbox" disabled><span>検索フォームの折りたたみトグルボタンをクリックすると、検索フォームが折りたたまれ・展開されること</span></li>
-        <li><input type="checkbox" disabled><span>検索フォームのデポ選択肢にデポ一覧が表示されること</span></li>
+        <li><input type="checkbox" checked disabled><span>検索フォームのデポ選択肢にデポ一覧が表示されること</span></li>
         <li><input type="checkbox" disabled><span>検索条件（デポ・エリア・配送予定日範囲など）を入力して「検索」ボタンを押すと、一覧が絞り込まれること</span></li>
         <li><input type="checkbox" disabled><span>データ行が存在する場合、1ページ20件で表示されること</span></li>
-        <li><input type="checkbox" disabled><span>ページネーションのページサイズ選択肢が「20、50、100」であること（5 は含まれないこと）</span></li>
+        <li><input type="checkbox" checked disabled><span>ページネーションのページサイズ選択肢が「20、50、100」であること（5 は含まれないこと）</span></li>
         <li><input type="checkbox" disabled><span>ソートアイコンをクリックすると昇順 → 降順 → 解除の3段階でソートされること</span></li>
         <li><input type="checkbox" disabled><span>行クリックで配送詳細ドロワーが開くこと</span></li>
         <li><input type="checkbox" disabled><span>未読行のドロワーで「既読にする」が機能すること（一覧の既読表示が切り替わる）</span></li>
-        <li><input type="checkbox" disabled><span>コンソールエラー・JSエラーが発生していないこと（リファクタ前後で挙動に差がないこと）</span></li>
+        <li><input type="checkbox" checked disabled><span>コンソールエラー・JSエラーが発生していないこと（リファクタ前後で挙動に差がないこと）</span></li>
       </ul>
 
       <h4>4. 管理画面 配車ドロワー（<code>/dispatch</code>）— 既存の未配車情報タブへの非影響確認</h4>
       <p><strong>影響の原因:</strong> <code>UnassignedListContent.tsx</code> 内の <code>UnassignedSummaryTable</code> を <code>export</code> に変えた。<code>UnassignedListContent</code> コンポーネント自体は変わっておらず、dispatch ページへの影響は想定されないが、export 変更による import 解決の問題がないことを確認する。</p>
       <ul class="task-list">
-        <li><input type="checkbox" disabled><span><code>/dispatch</code> を開き、配車ドロワー内の「未配車情報」タブが正常に表示されること（テーブル・検索フォームが崩れていないこと）</span></li>
-        <li><input type="checkbox" disabled><span>コンソールエラーが発生していないこと</span></li>
+        <li><input type="checkbox" checked disabled><span><code>/dispatch</code> を開き、配車ドロワー内の「未配車情報」タブが正常に表示されること（テーブル・検索フォームが崩れていないこと）</span></li>
+        <li><input type="checkbox" checked disabled><span>コンソールエラーが発生していないこと</span></li>
       </ul>
 
       <h3>スコープ外（変更の影響なし）</h3>
@@ -445,7 +445,7 @@
       <p>このPRは、以下がすべて満たされた場合にのみマージ可能とする。</p>
       <ul class="task-list">
         <li><input type="checkbox" disabled><span><strong>上記「テスト範囲」の全テスト項目（計27項目）がパスすること</strong></span></li>
-        <li class="sub"><input type="checkbox" disabled><span>自動の画面ランタイム検証で Critical / fail が 0 件</span></li>
+        <li class="sub"><input type="checkbox" checked disabled><span>自動の画面ランタイム検証で Critical / fail が 0 件</span></li>
         <li class="sub"><input type="checkbox" disabled><span>人間による手動テスト（複数パネルの同時表示・トップメニューのチェックボックス開閉操作・既読化の業務フローなど自動検証でカバーできない項目）が完了</span></li>
         <li><input type="checkbox" disabled><span>レビュー承認</span></li>
       </ul>
@@ -471,5 +471,45 @@
   </div>
 
 </div>
+
+<script>
+  // URLパラメータ ?state=merged（または ?merged）で「全チェック・マージ済み」表示に切り替える
+  (function () {
+    var p = new URLSearchParams(location.search);
+    if (p.get('state') !== 'merged' && !p.has('merged')) return;
+
+    var MERGED = '#8250df';
+
+    // 全チェックボックスをON
+    document.querySelectorAll('input[type="checkbox"]').forEach(function (c) { c.checked = true; });
+
+    // ステータスバッジ: Open → Merged
+    var badge = document.querySelector('.badge-open');
+    if (badge) {
+      badge.style.background = MERGED;
+      badge.innerHTML = '<svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M5.45 5.154A4.25 4.25 0 0 0 9.25 7.5h1.378a2.251 2.251 0 1 1 0 1.5H9.25A5.734 5.734 0 0 1 5 7.123v3.505a2.25 2.25 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.95-.218ZM4.25 13.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm8.5-4.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5ZM5 3.25a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Z"></path></svg> Merged';
+    }
+    var st = document.querySelector('.status-text');
+    if (st) st.innerHTML = 'pr-writer (AI) が <code>f/PW-171</code> を <code>main</code> にマージしました';
+
+    // マージ完了ボックス
+    var dot = document.querySelector('.merge-dot');
+    if (dot) dot.style.background = MERGED;
+    var mt = document.querySelector('.merge-title');
+    if (mt) mt.textContent = 'マージ完了 — このPRはマージされ、クローズされました';
+    var ms = document.querySelector('.merge-sub');
+    if (ms) ms.textContent = '全テスト項目（計27項目）パス・自動検証 Critical / fail 0件・レビュー承認済み。';
+    var bi = document.querySelector('.branch-info');
+    if (bi) bi.innerHTML = '<code>f/PW-171</code> は <code>main</code> にマージ済み ・ ブランチは削除できます';
+    var btn = document.querySelector('.btn-merge');
+    if (btn) {
+      btn.textContent = 'マージ済み';
+      btn.style.background = MERGED;
+      btn.style.borderColor = 'rgba(31,35,40,0.15)';
+      btn.style.opacity = '1';
+      btn.style.cursor = 'default';
+    }
+  })();
+</script>
 </body>
 </html>
