@@ -1,0 +1,1424 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI駆動開発の品質担保 — INPUT（ゴール合意）→ PROCESS → OUTPUT（承認）でタスク完了を明確にする</title>
+<style>
+  :root {
+    --bg: #fafaf7;
+    --card: #ffffff;
+    --panel: #f3f5fa;
+    --line: #d8dbe2;
+    --ink: #1a1a1a;
+    --muted: #5b6573;
+    --accent: #2f6fb0;
+    --accent-soft: #eaf2fa;
+    --asis: #c2410c;
+    --asis-soft: #fff4ec;
+    --asis-line: #f4c8a8;
+    --tobe: #15803d;
+    --tobe-soft: #eefaf0;
+    --tobe-line: #bbe6c4;
+    --amber: #b45309;
+    --key: #4338ca;
+    --key-soft: #eef2ff;
+    --key-line: #c7d2fe;
+    --c-scope: #2f6fb0;
+    --c-pr: #7c3aed;
+    --c-ticket: #0e7490;
+    --ai: #7c3aed;
+    --ai-soft: #f3ecfd;
+    --ai-line: #d9c7f7;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Yu Gothic UI", sans-serif; background: var(--bg); color: var(--ink); line-height: 1.75; }
+  .wrap { max-width: 1060px; margin: 0 auto; padding: 52px 26px 88px; }
+
+  header.hero { padding-bottom: 28px; border-bottom: 1px solid var(--line); margin-bottom: 42px; }
+  .eyebrow { color: var(--accent); font-size: 12.5px; letter-spacing: 0.16em; font-weight: 800; }
+  h1 { font-size: 28px; margin: 12px 0 10px; font-weight: 800; letter-spacing: -0.01em; }
+  .lead { color: var(--muted); font-size: 15px; max-width: 820px; }
+  .chips { margin-top: 14px; }
+  .chip { display: inline-block; font-size: 12px; background: var(--card); border: 1px solid var(--line); color: var(--muted); padding: 4px 11px; border-radius: 999px; margin-right: 6px; margin-bottom: 6px; }
+
+  h2 { font-size: 19px; margin: 50px 0 16px; padding-left: 11px; border-left: 4px solid var(--accent); font-weight: 800; }
+  h2 .step-no { color: var(--accent); font-size: 13px; font-weight: 800; letter-spacing: 0.08em; margin-right: 8px; }
+  h2.mori { border-left-color: var(--accent); }
+  h2.ki { border-left-color: var(--amber); }
+  h2.ki .step-no { color: var(--amber); }
+  h2.keyhead { border-left-color: var(--key); }
+  h2.keyhead .step-no { color: var(--key); }
+  h2 .newbadge { font-size: 10px; font-weight: 800; color: #fff; background: var(--key); border-radius: 6px; padding: 2px 8px; margin-left: 8px; vertical-align: 3px; letter-spacing: 0.06em; }
+  p.note { color: var(--muted); font-size: 14px; margin-top: -8px; }
+
+  /* 森① 100% definition */
+  .def100 { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 26px 32px; margin-top: 6px; box-shadow: 0 1px 3px rgba(20,30,50,0.04); }
+  .def100 .q { font-size: 17px; font-weight: 800; color: var(--ink); }
+  .def100 .a { font-size: 15px; margin-top: 12px; line-height: 1.85; }
+  .def100 .a b { color: var(--accent); }
+  .def100 .hundred { display: inline-block; background: var(--accent); color: #fff; font-weight: 800; border-radius: 8px; padding: 1px 12px; font-size: 16px; }
+  .def100 .why { margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--line); font-size: 13.5px; color: var(--muted); }
+  .def100 .why b { color: var(--asis); }
+
+  /* 森② effect numbers */
+  .effgrid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: 6px; }
+  .effbox { border-radius: 10px; padding: 14px 16px; text-align: center; }
+  .effbox .cap { font-size: 11px; font-weight: 700; }
+  .effbox .big { font-size: 24px; font-weight: 800; margin: 2px 0; }
+  .effbox .sm { font-size: 11px; color: var(--muted); }
+
+  /* 木③ three effect elements */
+  .three { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 12px; }
+  .eff { background: var(--card); border: 1px solid var(--line); border-top-width: 4px; border-radius: 12px; padding: 18px 20px; }
+  .eff.e1 { border-top-color: var(--c-scope); }
+  .eff.e2 { border-top-color: var(--asis); }
+  .eff.e3 { border-top-color: var(--c-pr); }
+  .eff .n { font-size: 12px; font-weight: 800; letter-spacing: 0.04em; }
+  .eff.e1 .n { color: var(--c-scope); }
+  .eff.e2 .n { color: var(--asis); }
+  .eff.e3 .n { color: var(--c-pr); }
+  .eff h4 { margin: 6px 0 6px; font-size: 15px; font-weight: 800; }
+  .eff p { margin: 0; font-size: 13px; color: var(--muted); }
+  .eff .pw { display: inline-block; margin-top: 10px; font-size: 11px; color: var(--tobe); font-weight: 700; background: var(--tobe-soft); border: 1px solid var(--tobe-line); border-radius: 5px; padding: 2px 8px; }
+
+  .limit { background: var(--asis-soft); border: 1px solid var(--asis-line); border-left: 4px solid var(--asis); border-radius: 12px; padding: 18px 22px; margin-top: 16px; font-size: 13.5px; }
+  .limit b { color: var(--asis); }
+  .limit ul { margin: 8px 0 0; padding-left: 1.2em; line-height: 1.75; }
+
+  /* 木 detail: pipeline */
+  details.more { margin-top: 18px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); overflow: hidden; }
+  details.more > summary { cursor: pointer; padding: 14px 20px; font-weight: 800; font-size: 14px; color: var(--accent); list-style: none; background: var(--panel); }
+  details.more > summary::-webkit-details-marker { display: none; }
+  details.more > summary::before { content: "▸ "; }
+  details.more[open] > summary::before { content: "▾ "; }
+  details.more .inner { padding: 8px 20px 22px; }
+
+  .flow { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 22px 24px; margin-top: 14px; overflow-x: auto; }
+  .flow svg { display: block; min-width: 760px; width: 100%; height: auto; }
+
+  .agents { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 16px; }
+  .agent { background: var(--card); border: 1px solid var(--line); border-top-width: 4px; border-radius: 12px; padding: 18px 20px; }
+  .agent.scope { border-top-color: var(--c-scope); }
+  .agent.pr { border-top-color: var(--c-pr); }
+  .agent.ticket { border-top-color: var(--c-ticket); }
+  .agent .badge { font-size: 11px; font-weight: 800; letter-spacing: 0.04em; padding: 3px 9px; border-radius: 6px; display: inline-block; color: #fff; }
+  .agent.scope .badge { background: var(--c-scope); }
+  .agent.pr .badge { background: var(--c-pr); }
+  .agent.ticket .badge { background: var(--c-ticket); }
+  .agent h3 { font-size: 15px; margin: 10px 0 4px; font-weight: 800; }
+  .agent .reader { font-size: 11.5px; color: var(--muted); margin-bottom: 10px; }
+  .agent ul { margin: 0; padding-left: 17px; font-size: 13px; }
+  .agent li { margin-bottom: 6px; }
+
+  .concern { background: var(--card); border: 1px solid var(--line); border-radius: 12px; margin-top: 16px; overflow: hidden; }
+  .concern .head { padding: 14px 20px; font-weight: 800; font-size: 15px; background: var(--panel); border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 10px; }
+  .concern .head .ico { width: 26px; height: 26px; border-radius: 7px; background: var(--accent); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 14px; flex: none; }
+  .concern .head .by { margin-left: auto; font-size: 11px; font-weight: 700; color: #fff; padding: 3px 9px; border-radius: 999px; }
+  .by.scope { background: var(--c-scope); }
+  .by.pr { background: var(--c-pr); }
+  .by.ticket { background: var(--c-ticket); }
+  .concern .body { display: grid; grid-template-columns: 1fr 1fr; }
+  .concern .col { padding: 18px 22px; font-size: 14px; }
+  .concern .col.asis { border-right: 1px solid var(--line); }
+  .concern .col .tag { font-size: 11px; font-weight: 800; letter-spacing: 0.04em; padding: 2px 9px; border-radius: 5px; display: inline-block; margin-bottom: 10px; }
+  .concern .col.asis { background: var(--asis-soft); }
+  .concern .col.asis .tag { background: #fff; color: var(--asis); border: 1px solid var(--asis-line); }
+  .concern .col.tobe { background: var(--tobe-soft); }
+  .concern .col.tobe .tag { background: #fff; color: var(--tobe); border: 1px solid var(--tobe-line); }
+  .concern .col ul { margin: 0; padding-left: 18px; }
+  .concern .col li { margin-bottom: 7px; }
+
+  /* 森④ KEYSTONE: check-basis-first */
+  .keystone { background: var(--key-soft); border: 1px solid var(--key-line); border-radius: 14px; padding: 24px 26px; margin-top: 8px; }
+  .keystone .lede { font-size: 14.5px; color: var(--ink); }
+  .keystone .lede b { color: var(--key); }
+  .keysteps { display: grid; grid-template-columns: 1fr 34px 1fr 34px 1fr; align-items: stretch; margin-top: 18px; }
+  .kstep { background: #fff; border: 1px solid var(--key-line); border-top: 4px solid var(--key); border-radius: 12px; padding: 16px 16px; }
+  .kstep .kn { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: var(--key); color: #fff; font-size: 12px; font-weight: 800; }
+  .kstep h4 { margin: 8px 0 5px; font-size: 14.5px; font-weight: 800; }
+  .kstep p { margin: 0; font-size: 12.5px; color: var(--muted); }
+  .kstep .who { display: inline-block; margin-top: 8px; font-size: 10.5px; font-weight: 800; padding: 2px 8px; border-radius: 5px; }
+  .kstep .who.h { color: var(--asis); background: var(--asis-soft); border: 1px solid var(--asis-line); }
+  .kstep .who.a { color: var(--ai); background: var(--ai-soft); border: 1px solid var(--ai-line); }
+  .kstep .who.pmpo { color: var(--tobe); background: var(--tobe-soft); border: 1px solid var(--tobe-line); }
+  .kstep .iotag { display: inline-block; margin-left: 8px; font-size: 10px; font-weight: 800; letter-spacing: 0.09em; padding: 2px 9px; border-radius: 5px; vertical-align: 2px; }
+  .kstep .iotag.in   { color: var(--key); background: var(--key-soft); border: 1px solid var(--key-line); }
+  .kstep .iotag.proc { color: var(--ai); background: var(--ai-soft); border: 1px solid var(--ai-line); }
+  .kstep .iotag.out  { color: var(--tobe); background: var(--tobe-soft); border: 1px solid var(--tobe-line); }
+  /* INPUT詳細ページの3カラムフロー（入力 → AIドラフト → 合意・承認） */
+  .flow-cap { font-size: 11px; font-weight: 800; letter-spacing: 0.04em; display: inline-block; padding: 2px 9px; border-radius: 5px; }
+  .flow-cap.src { color: var(--accent); background: var(--accent-soft); border: 1px solid #bcd6ec; }
+  .flow-cap.ai  { color: var(--ai); background: var(--ai-soft); border: 1px solid var(--ai-line); }
+  .flow-cap.ok  { color: var(--tobe); background: var(--tobe-soft); border: 1px solid var(--tobe-line); }
+  .io-list { display: flex; flex-direction: column; gap: 7px; }
+  .io-item { text-align: left; font-size: 13px; font-weight: 700; color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 7px; padding: 9px 11px; }
+  /* AIが担当する項目＝バイオレット / 人（担当者）が担当＝赤系 / 今回の追加入力＝藍 */
+  .io-item.ai { border-left-color: var(--ai); background: var(--ai-soft); }
+  .io-item.hu { border-left-color: var(--asis); background: var(--asis-soft); }
+  .io-item.key { border-left-color: var(--key); background: var(--key-soft); }
+  .ai-chip, .hu-chip, .key-chip { display: inline-block; font-size: 9.5px; font-weight: 800; color: #fff; border-radius: 4px; padding: 1px 7px; margin-right: 7px; letter-spacing: 0.04em; vertical-align: 1px; }
+  .ai-chip { background: var(--ai); }
+  .hu-chip { background: var(--asis); }
+  .key-chip { background: var(--key); }
+  .tk-link { display: inline-block; font-family: ui-monospace, monospace; font-size: 11px; color: var(--c-ticket); background: #e6f3f6; border: 1px solid #bcdfe6; border-radius: 5px; padding: 4px 9px; text-decoration: none; margin-bottom: 9px; }
+  .tk-link:hover { box-shadow: 0 2px 8px rgba(14,116,144,0.15); }
+  .tk-list { margin: 0; padding-left: 18px; font-size: 12.5px; color: var(--ink); line-height: 1.75; }
+  .tk-note { margin-top: 10px; font-size: 11px; line-height: 1.55; color: #a05f1d; background: var(--asis-soft); border: 1px solid var(--asis-line); border-radius: 7px; padding: 8px 10px; }
+  .tk-note b { color: var(--asis); }
+  .ok-badge { display: inline-block; margin-top: 12px; font-size: 12.5px; font-weight: 800; color: #fff; background: var(--tobe); border-radius: 7px; padding: 6px 13px; }
+  .karrow { display: flex; align-items: center; justify-content: center; font-size: 22px; color: var(--key); }
+  .keystone .gateline { margin-top: 18px; padding-top: 16px; border-top: 1px dashed var(--key-line); font-size: 13.5px; }
+  .keystone .gateline b { color: var(--key); }
+  .keystone .basis { margin-top: 16px; background: #fff; border: 1px solid var(--key-line); border-radius: 12px; padding: 16px 18px; }
+  .keystone .basis .bt { font-size: 13px; font-weight: 800; color: var(--key); }
+  .keystone .basis .bt .tagN { font-size: 10px; font-weight: 800; color: #fff; background: var(--asis); border-radius: 5px; padding: 1px 7px; margin-left: 8px; vertical-align: 2px; letter-spacing: 0.04em; }
+  .keystone .basis .sub { font-size: 12px; color: var(--muted); margin-top: 3px; }
+  .keystone .basis .axes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 12px; }
+  .keystone .basis .axis { border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px; }
+  .keystone .basis .axis .an { font-size: 12px; font-weight: 800; color: var(--ink); }
+  .keystone .basis .axis .ad { font-size: 11px; color: var(--muted); margin-top: 2px; line-height: 1.5; }
+  .keystone .basis .link { margin-top: 12px; font-size: 12.5px; color: var(--muted); }
+  .keystone .basis .link b { color: var(--c-scope); }
+  .keystone .basis .draft { margin-top: 10px; font-size: 11.5px; color: var(--asis); background: var(--asis-soft); border: 1px solid var(--asis-line); border-radius: 8px; padding: 8px 11px; }
+  .keystone .basis .draft b { color: var(--asis); }
+  .keystone .basis .matrix { margin-top: 12px; display: grid; grid-template-columns: 96px repeat(3, 1fr); gap: 6px; }
+  .keystone .basis .matrix .mh { font-size: 11.5px; font-weight: 800; text-align: center; padding: 6px 4px; border-radius: 6px; }
+  .keystone .basis .matrix .mh.corner { background: transparent; }
+  .keystone .basis .matrix .mh.normal { color: var(--tobe); background: var(--tobe-soft); border: 1px solid var(--tobe-line); }
+  .keystone .basis .matrix .mh.abn { color: var(--asis); background: var(--asis-soft); border: 1px solid var(--asis-line); }
+  .keystone .basis .matrix .mh.etc { color: var(--accent); background: var(--accent-soft); border: 1px solid #bcd6ee; }
+  .keystone .basis .matrix .rh { font-size: 12px; font-weight: 800; color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 9px 8px; display: flex; align-items: center; }
+  .keystone .basis .matrix .cell { font-size: 11px; color: var(--muted); line-height: 1.5; background: #fff; border: 1px solid var(--line); border-radius: 6px; padding: 8px 9px; }
+
+  .raci { width: 100%; border-collapse: collapse; font-size: 13.5px; margin-top: 16px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+  .raci th { background: var(--panel); text-align: left; padding: 11px 16px; font-size: 12px; color: var(--muted); }
+  .raci td { padding: 12px 16px; border-top: 1px solid var(--line); vertical-align: top; }
+  .raci .ai { color: var(--tobe); font-weight: 700; }
+  .raci .hu { color: var(--asis); font-weight: 700; }
+  .raci .who2 { font-size: 11px; font-weight: 800; padding: 2px 7px; border-radius: 5px; color: #fff; }
+  .who2.scope { background: var(--c-scope); }
+  .who2.pr { background: var(--c-pr); }
+  .who2.ticket { background: var(--c-ticket); }
+
+  /* deliverable links */
+  .docs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 14px; }
+  .doc { background: #fff; border: 1px solid var(--line); border-left-width: 4px; border-radius: 10px; padding: 14px 16px; font-size: 12.5px; text-decoration: none; color: inherit; display: block; transition: box-shadow .15s; }
+  .doc:hover { box-shadow: 0 4px 14px rgba(30,40,70,0.07); }
+  .doc.scope { border-left-color: var(--c-scope); }
+  .doc.pr { border-left-color: var(--c-pr); }
+  .doc.ticket { border-left-color: var(--c-ticket); }
+  .doc .fn { font-family: ui-monospace, monospace; font-size: 11px; padding: 3px 8px; border-radius: 5px; display: inline-block; margin-bottom: 8px; }
+  .doc.scope .fn { color: var(--c-scope); background: var(--accent-soft); }
+  .doc.pr .fn { color: var(--c-pr); background: #f3ecfd; }
+  .doc.ticket .fn { color: var(--c-ticket); background: #e6f3f6; }
+  .doc h5 { margin: 0 0 4px; font-size: 12.5px; }
+  .doc .row { color: var(--muted); }
+
+  .foot { color: var(--muted); font-size: 12px; margin-top: 50px; padding-top: 18px; border-top: 1px solid var(--line); }
+
+  @media (max-width: 800px) {
+    .agents, .three, .effgrid, .docs { grid-template-columns: 1fr; }
+    .concern .body { grid-template-columns: 1fr; }
+    .concern .col.asis { border-right: none; border-bottom: 1px solid var(--line); }
+    .keysteps { grid-template-columns: 1fr; }
+    .karrow { transform: rotate(90deg); padding: 6px 0; }
+    .keystone .basis .axes { grid-template-columns: 1fr 1fr; }
+  }
+
+  /* ===== V字モデル（ai-06/vmodel.html より複製） ===== */
+  /* Section */
+  .section { margin-bottom: 32px; }
+  .section-title { font-size: 14px; font-weight: 700; color: #444; letter-spacing: 0.04em; margin-bottom: 10px; padding-left: 10px; border-left: 4px solid #6e68c2; }
+  .section-sub { font-size: 12px; color: #777; margin-bottom: 14px; padding-left: 14px; }
+
+  /* V-model area */
+  .vmodel {
+    position: relative;
+    background: #fff;
+    border: 1px solid #d8dbe2;
+    border-radius: 14px;
+    padding: 28px 24px 24px;
+  }
+
+  /* V-model のレーンラベル (上端) */
+  .vmodel-lane-labels {
+    display: grid;
+    grid-template-columns: 1fr 90px 1fr;
+    gap: 12px;
+    margin-bottom: 14px;
+    align-items: center;
+  }
+  .lane-label {
+    text-align: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: #444;
+    letter-spacing: 0.04em;
+    padding: 6px 10px;
+    border-radius: 6px;
+  }
+  .lane-label.design { background: #e8e2f5; color: #4d479e; }
+  .lane-label.derive { background: transparent; color: #888; font-size: 11px; }
+  .lane-label.test   { background: #fdebd0; color: #a05f1d; }
+
+  /* V-model の各行 */
+  .vrow {
+    display: grid;
+    grid-template-columns: 1fr 90px 1fr;
+    gap: 12px;
+    align-items: stretch;
+    margin-bottom: 6px;
+  }
+  /* V字を視覚的に表現するためのインデント */
+  .vrow.lv1 { padding: 0; }
+  .vrow.lv2 { padding: 0 50px; }
+  .vrow.lv3 { padding: 0 100px; }
+  .vrow.lv4 { padding: 0 150px; margin-bottom: 0; }
+
+  /* 各フェーズブロック */
+  .phase {
+    position: relative;
+    border-radius: 12px;
+    padding: 12px 14px 14px;
+    min-height: 100px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .phase.design  { background: #f1edfa; border: 2px solid #6e68c2; }
+  .phase.test    { background: #fdf3e2; border: 2px solid #d69a3a; }
+  .phase.apex    { background: linear-gradient(135deg, #f1edfa 0%, #d4f0de 50%, #fdf3e2 100%); border: 2px solid #2c8a5e; padding: 14px 16px 16px; min-height: auto; }
+
+  /* グレー（対象外）スタイル */
+  .phase.dim {
+    background: #f3f4f6 !important;
+    border: 1.5px dashed #c0c5cf !important;
+    min-height: 60px;
+  }
+  .phase.dim .phase-title { color: #6b7280 !important; }
+  .phase.dim .phase-stage { color: #9ca3af; }
+
+  .phase-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+    padding-bottom: 4px;
+    border-bottom: 1px dashed rgba(0,0,0,0.12);
+  }
+  .phase.dim .phase-head { border-bottom-color: rgba(0,0,0,0.08); padding-bottom: 0; border-bottom: none; }
+  .phase-title { font-size: 13px; font-weight: 700; }
+  .phase.design .phase-title { color: #4d479e; }
+  .phase.test   .phase-title { color: #a05f1d; }
+  .phase-stage  { font-size: 10px; color: #888; letter-spacing: 0.04em; }
+
+  /* ステップカード（フェーズ内に置く） */
+  .vsteps { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+  .vsteps.horiz { flex-direction: row; gap: 8px; flex-wrap: wrap; }
+
+  .vstep {
+    background: #fff;
+    border: 1.5px solid;
+    border-radius: 8px;
+    padding: 8px 10px 9px;
+    min-width: 0;
+    flex: 1;
+  }
+  .vstep.design { border-color: #6e68c2; }
+  .vstep.impl   { border-color: #2c8a5e; }
+  .vstep.test   { border-color: #d69a3a; }
+  .vstep.exit   { border-color: #6b7280; }
+
+  .vs-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 5px;
+  }
+  .vs-num {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    padding: 1px 6px;
+    border-radius: 3px;
+    color: #fff;
+  }
+  .vstep.design .vs-num { background: #6e68c2; }
+  .vstep.impl   .vs-num { background: #2c8a5e; }
+  .vstep.test   .vs-num { background: #d69a3a; }
+  .vstep.exit   .vs-num { background: #6b7280; }
+
+  .vs-task {
+    font-size: 12px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 4px;
+    line-height: 1.4;
+  }
+  .vs-ai {
+    display: inline-block;
+    font-size: 10.5px;
+    font-weight: 600;
+    padding: 1px 7px;
+    border-radius: 4px;
+  }
+  .vstep.design .vs-ai { background: #f1edfa; color: #4d479e; border: 1px solid #b6a7e1; }
+  .vstep.impl   .vs-ai { background: #e0f3e6; color: #1e6042; border: 1px solid #5cb085; }
+  .vstep.test   .vs-ai { background: #fdf3e2; color: #a05f1d; border: 1px solid #d69a3a; }
+  .vstep.exit   .vs-ai { background: #f3f4f6; color: #4b5563; border: 1px solid #9ca3af; }
+  /* ステップ + 出力 ペア */
+  .vstep-grp {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+    min-width: 0;
+  }
+  .vstep-out-box {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 3px 4px;
+    padding: 4px 6px;
+    background: #fff;
+    border: 1px dashed #b6bcc7;
+    border-radius: 6px;
+  }
+  .out-badge {
+    display: inline-block;
+    padding: 1px 7px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1.5;
+    white-space: nowrap;
+  }
+  .vstep-out-box.design .out-badge { background: #d8cef0; color: #3d3680; border: 1px solid #b6a7e1; }
+  .vstep-out-box.impl   .out-badge { background: #cee9d6; color: #1d5a3f; border: 1px solid #8cc7a3; }
+  .vstep-out-box.test   .out-badge { background: #f9d9a4; color: #7a4a0a; border: 1px solid #e1ad59; }
+  .vstep-out-box.exit   .out-badge { background: #e5e7eb; color: #374151; border: 1px solid #9ca3af; }
+  .vstep-out-box.dim-out .out-badge { background: #fff; color: #4b5563; border: 1px dashed #9ca3af; }
+
+  /* AI と人間の境界線 */
+  .boundary-row {
+    margin-bottom: 6px !important;
+    position: relative;
+    z-index: 5;
+  }
+  .boundary-line {
+    position: relative;
+    height: 18px;
+    border-top: 3px dashed #d63a3a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: visible;
+  }
+  .boundary-label {
+    position: absolute;
+    top: -10px;
+    background: #fff;
+    padding: 0 10px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #d63a3a;
+    letter-spacing: 0.04em;
+    border: 1px solid #d63a3a;
+    border-radius: 999px;
+  }
+  .boundary-label.with-inputs {
+    top: -13px;
+    padding: 4px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-radius: 14px;
+    white-space: nowrap;
+  }
+  .bl-arrow-input,
+  .bl-arrow-output {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 0;
+    pointer-events: none;
+  }
+  /* 入力矢印（下向き）：矢じりが下の箱内に届くよう深めに配置 */
+  .bl-arrow-input { top: 12px; }
+  /* 出力矢印（上向き）：ラベル直下に貼り付ける */
+  .bl-arrow-output { top: 100%; }
+  .boundary-label { z-index: 2; }
+  /* 右側（AIからの出力）は緑系で統一 */
+  .boundary-line.right { border-top-color: #2c8a5e; }
+  .boundary-line.right .boundary-label {
+    color: #1e6042;
+    border-color: #2c8a5e;
+  }
+  .boundary-line.right .boundary-label .bl-human {
+    background: #e8f7ee;
+    color: #1e6042;
+    border-color: #2c8a5e;
+  }
+  .boundary-line.right .boundary-label .bl-human::before {
+    background: #2c8a5e;
+    color: #fff;
+  }
+
+  /* 人間の責務（システムテスト枠内） */
+  .human-tasks {
+    margin-top: 8px;
+    padding: 8px 10px;
+    background: #fff;
+    border: 1.5px dashed #d63a3a;
+    border-radius: 8px;
+  }
+  .ht-label {
+    display: inline-block;
+    background: #d63a3a;
+    color: #fff;
+    font-size: 9.5px;
+    font-weight: 700;
+    padding: 1px 8px;
+    border-radius: 999px;
+    letter-spacing: 0.04em;
+    margin-bottom: 6px;
+  }
+  .human-tasks ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 6px;
+  }
+  .human-tasks li {
+    background: #fff7f7;
+    color: #a32424;
+    border: 1px solid #d63a3a;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 10.5px;
+    font-weight: 600;
+  }
+
+  /* spec / UX 例 */
+  .io-examples {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .io-example {
+    background: #fff;
+    border: 1px solid #d8dbe2;
+    border-radius: 10px;
+    padding: 12px 14px;
+  }
+  .io-example.spec { border-left: 4px solid #6e68c2; }
+  .io-example.ux   { border-left: 4px solid #4d479e; }
+  .io-ex-head {
+    font-size: 12px;
+    font-weight: 700;
+    color: #4d479e;
+    margin-bottom: 6px;
+    letter-spacing: 0.04em;
+  }
+  .io-ex-body {
+    font-size: 12px;
+    color: #444;
+    line-height: 1.7;
+  }
+  .io-ex-body .hl {
+    background: #f1edfa;
+    color: #3d3680;
+    border: 1px solid #b6a7e1;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 11px;
+  }
+  .boundary-label .bl-dir { color: #d63a3a; }
+  .boundary-label .bl-io-label {
+    color: #4b5563;
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+  .boundary-label .bl-inputs {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 3px 4px;
+  }
+  .boundary-label .bl-badge {
+    display: inline-block;
+    background: #fff;
+    color: #4b5563;
+    border: 1px dashed #9ca3af;
+    padding: 1px 7px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1.5;
+  }
+  .boundary-label .bl-human {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #fff7f7;
+    color: #a32424;
+    border: 1px solid #d63a3a;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+  .boundary-label .bl-human::before {
+    content: "人の責務";
+    background: #d63a3a;
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 0 6px;
+    border-radius: 999px;
+    line-height: 1.5;
+  }
+
+  /* 入出力が交わる層（今回取り組む課題）を黄色枠で1つの層として囲む */
+  .io-layer {
+    position: relative;
+    background: #fef9c3;
+    border: 2px solid #eab308;
+    border-radius: 12px;
+    padding: 12px 16px 7px;
+    margin: 8px 0 4px;
+  }
+  .io-layer-tab {
+    position: absolute;
+    top: -11px;
+    left: 16px;
+    background: #facc15;
+    color: #713f12;
+    font-size: 10.5px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    padding: 2px 12px;
+    border-radius: 999px;
+    z-index: 6;
+  }
+  .io-layer .boundary-row { margin-bottom: 0 !important; }
+
+  /* 期待入力（対象外フェーズに、AI が受け取りたいもの） */
+  .expected-outputs {
+    margin-top: 6px;
+  }
+  .eo-label {
+    font-size: 9.5px;
+    font-weight: 700;
+    color: #4b5563;
+    letter-spacing: 0.04em;
+    margin-bottom: 3px;
+  }
+
+  /* apex 内のレイアウト：実装と単体テストを一つの枠で示す */
+  .apex-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 14px;
+    margin-top: 6px;
+  }
+  .apex-section h4 {
+    font-size: 11.5px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    letter-spacing: 0.02em;
+  }
+  .apex-section.impl h4 { color: #1e6042; }
+  .apex-section.test h4 { color: #a05f1d; }
+
+  /* apex 内 箇条書き（高密度・1行） */
+  .apex-bullets {
+    list-style: none;
+    padding: 8px 14px;
+    margin: 8px 0 0;
+    background: #fff;
+    border-radius: 10px;
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 4px 10px;
+  }
+  .apex-bullets li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 6px;
+    padding: 2px 0;
+    font-size: 11.5px;
+    line-height: 1.5;
+    flex: 1 1 0;
+    min-width: 0;
+  }
+  .b-dot {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    align-self: center;
+  }
+  li.design .b-dot { background: #6e68c2; }
+  li.impl   .b-dot { background: #2c8a5e; }
+  li.test   .b-dot { background: #d69a3a; }
+  .b-task { font-weight: 700; color: #1a1a1a; }
+  .b-ai {
+    font-size: 10.5px;
+    font-weight: 600;
+    padding: 0 6px;
+    border-radius: 3px;
+  }
+  li.design .b-ai { color: #4d479e; background: #f1edfa; }
+  li.impl   .b-ai { color: #1e6042; background: #e0f3e6; }
+  li.test   .b-ai { color: #a05f1d; background: #fdf3e2; }
+  .b-outs {
+    color: #555;
+    font-size: 11px;
+  }
+
+  /* V字外 (post-V) */
+  .post-v {
+    margin-top: 14px;
+    padding: 14px 18px;
+    background: #fff;
+    border: 1.5px dashed #6b7280;
+    border-radius: 12px;
+  }
+  .post-v-title {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #4b5563;
+    margin-bottom: 10px;
+    letter-spacing: 0.04em;
+  }
+  .post-v-row {
+    display: flex;
+    gap: 10px;
+    align-items: stretch;
+  }
+  .post-v-row .vstep { max-width: 280px; }
+  .post-v-arrow { display: flex; align-items: center; color: #9ca3af; font-size: 16px; font-weight: 700; }
+
+  /* グレー帯のフェーズ内に小さく "対象外" タグ */
+  .out-of-scope {
+    display: inline-block;
+    font-size: 9.5px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 3px;
+    background: #d8dbe2;
+    color: #4b5563;
+    letter-spacing: 0.04em;
+    margin-left: 6px;
+  }
+
+  /* 凡例 */
+  .legend {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 18px;
+    margin-top: 18px;
+    padding: 10px 18px;
+    background: #fff;
+    border: 1px solid #d8dbe2;
+    border-radius: 12px;
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #444; }
+  .legend-swatch { width: 16px; height: 16px; border-radius: 4px; }
+  .legend-swatch.design { background: #f1edfa; border: 2px solid #6e68c2; }
+  .legend-swatch.impl   { background: #e0f3e6; border: 2px solid #2c8a5e; }
+  .legend-swatch.test   { background: #fdf3e2; border: 2px solid #d69a3a; }
+  .legend-swatch.dim    { background: #f3f4f6; border: 1.5px dashed #c0c5cf; }
+  .legend-swatch.exit   { background: #fff; border: 1.5px dashed #6b7280; }
+
+  /* ===== スライド・チェイス（ページ単位スライド化 / 16:9） ===== */
+  html, body { height: 100%; }
+  body { background: #11131a; overflow: hidden; }
+  #viewport { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+  #stage { width: 1280px; height: 720px; transform-origin: center center; position: relative; }
+  .slide { position: absolute; inset: 0; background: var(--bg); border-radius: 16px; overflow: hidden; display: none; box-shadow: 0 30px 80px rgba(0,0,0,.5); }
+  .slide.active { display: block; }
+  .pad { position: absolute; inset: 0; padding: 38px 52px 50px; display: flex; flex-direction: column; overflow: hidden; }
+  .slide-no { position: absolute; right: 20px; bottom: 14px; font-size: 12px; color: #9aa0ab; font-weight: 700; }
+  .slide-kicker { position: absolute; left: 52px; bottom: 14px; font-size: 12px; color: #9aa0ab; font-weight: 700; letter-spacing: .04em; }
+
+  /* スライド内ではセクション余白を詰める（縦1画面に収める） */
+  .slide .pad > h2 { margin: 0 0 8px; font-size: 22px; }
+  .slide .pad > .section-sub { margin: 0 0 10px; padding-left: 0; }
+  .slide .pad > p.note { margin: 0 0 12px; }
+  .slide .keystone { margin-top: 4px; }
+  .slide .vmodel { margin-top: 2px; }
+  .slide .raci { margin-top: 6px; }
+  .slide .docs { margin-top: 12px; }
+
+  /* ナビ */
+  #hint { position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%); color: #aeb4bf; font-size: 12px; background: rgba(255,255,255,.08); padding: 5px 14px; border-radius: 999px; z-index: 20; }
+  #dots { position: fixed; right: 16px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 9px; z-index: 20; }
+  #dots .d { width: 9px; height: 9px; border-radius: 50%; background: #4a5160; cursor: pointer; transition: all .2s; }
+  #dots .d.on { background: #fff; transform: scale(1.35); }
+  .navzone { position: fixed; top: 0; bottom: 0; width: 14%; z-index: 5; cursor: pointer; }
+  .navzone.left { left: 0; } .navzone.right { right: 0; }
+
+  /* タイトルの区切りダッシュ（フォント依存の上寄りを避け、中央に罫線で描く） */
+  .ttl-dash { display: inline-block; width: 1.1em; height: 0; border-top: 3px solid currentColor; vertical-align: 0.28em; margin: 0 0.32em; }
+
+  /* ステップ進行ヘッダー（3ステップの簡略表示・現在地を強調） */
+  .ministep { display: flex; align-items: stretch; gap: 0; margin: 2px 0 16px; }
+  .ministep .ms { flex: 1; display: flex; align-items: center; gap: 9px; background: #fff; border: 1px solid var(--key-line); border-radius: 10px; padding: 8px 12px; }
+  .ministep .ms.on { background: var(--key-soft); border-color: var(--key); box-shadow: 0 0 0 2px var(--key-line); }
+  .ministep .ms.off { opacity: 0.55; }
+  .ministep .msn { width: 22px; height: 22px; border-radius: 50%; background: #c3c7de; color: #fff; font-weight: 800; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+  .ministep .ms.on .msn { background: var(--key); }
+  .ministep .mst { font-size: 12.5px; font-weight: 700; color: var(--ink); line-height: 1.3; }
+  .ministep .ms.off .mst { color: var(--muted); }
+  .ministep .msarrow { display: flex; align-items: center; color: var(--key); font-size: 16px; font-weight: 800; padding: 0 8px; }
+
+  /* 使い方ノート */
+  .keystone .usage { margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--key-line); font-size: 14px; color: var(--ink); }
+  .keystone .usage .ut { display: inline-block; font-size: 11px; font-weight: 800; color: #fff; background: var(--key); border-radius: 5px; padding: 1px 9px; margin-right: 10px; letter-spacing: 0.04em; vertical-align: 1px; }
+  .keystone .usage code { font-family: ui-monospace, monospace; background: var(--key-soft); color: var(--key); border: 1px solid var(--key-line); padding: 1px 7px; border-radius: 5px; font-weight: 700; }
+
+</style>
+</head>
+<body>
+
+<div id="viewport">
+  <div id="stage">
+
+    <!-- ============ 1. タイトル ============ -->
+    <section class="slide active">
+      <div class="pad" style="justify-content:center;">
+        <div class="eyebrow">QUALITY ASSURANCE × INPUT → PROCESS → OUTPUT</div>
+        <h1 style="font-size:42px; line-height:1.3; margin:16px 0 22px; max-width:1040px;">AI駆動開発の品質担保<br><span class="ttl-dash"></span>タスクの「完了」をゴール合意と承認で定義する</h1>
+        <div class="chips">
+          <span class="chip">INPUT：ゴール・完了条件をPMと合意</span>
+          <span class="chip">PROCESS：担当者×AI駆動開発</span>
+          <span class="chip">OUTPUT：PMがゴール達成を承認</span>
+          <span class="chip">完了状態の定義・共有</span>
+        </div>
+      </div>
+      <div class="slide-kicker">PW / AIDD ｜ regression-scope・pr-writer・ticket-writer</div>
+      <div class="slide-no">1 / 10</div>
+    </section>
+
+    <!-- ============ 2. V字モデル ============ -->
+    <section class="slide">
+      <div class="pad">
+        <h2>これまでのAI駆動開発（V字モデル）<span class="ttl-dash"></span>今回取り組む課題</h2>
+        <div class="section-sub">上部の対象外フェーズと AI 担当領域を境界線で分離。③〜⑤は AI 担当領域として一括表示。<b style="color:#a05f1d;">中央の黄色枠（AIとの入出力が交わる層）が今回取り組む課題。</b></div>
+        <div class="vmodel">
+          <div class="vmodel-lane-labels">
+            <div class="lane-label design">▼ 設計レーン</div>
+            <div class="lane-label derive">テスト派生</div>
+            <div class="lane-label test">▲ テストレーン</div>
+          </div>
+          <div class="vrow lv1">
+            <div class="phase design dim">
+              <div class="phase-head">
+                <span class="phase-title">① 要件定義 <span class="out-of-scope">対象外</span></span>
+                <span class="phase-stage">Level 1</span>
+              </div>
+            </div>
+            <div class="derive-cell"></div>
+            <div class="phase test dim">
+              <div class="phase-head">
+                <span class="phase-title">⑦ 受入テスト <span class="out-of-scope">対象外</span></span>
+                <span class="phase-stage">Level 1</span>
+              </div>
+            </div>
+          </div>
+          <div class="vrow lv2">
+            <div class="phase design dim">
+              <div class="phase-head">
+                <span class="phase-title">② 基本設計 <span class="out-of-scope">対象外</span></span>
+                <span class="phase-stage">Level 2</span>
+              </div>
+            </div>
+            <div class="derive-cell"></div>
+            <div class="phase test dim">
+              <div class="phase-head">
+                <span class="phase-title">⑥ システムテスト <span class="out-of-scope">対象外</span></span>
+                <span class="phase-stage">Level 2</span>
+              </div>
+            </div>
+          </div>
+          <div class="io-layer">
+            <span class="io-layer-tab">今回取り組む課題</span>
+            <div class="vrow boundary-row" style="padding: 0 75px; margin-bottom: 0;">
+              <div class="boundary-line left">
+                <svg class="bl-arrow-input" width="50" height="50" viewBox="0 0 50 50" aria-hidden="true">
+                  <polygon points="18,0 32,0 32,30 45,30 25,50 5,30 18,30" fill="#d63a3a"/>
+                </svg>
+                <span class="boundary-label with-inputs">
+                  <span class="bl-human">仕様注入</span>
+                  <span class="bl-io-label">AIへの入力</span>
+                  <span class="bl-inputs">
+                    <span class="bl-badge">spec</span>
+                    <span class="bl-badge">UX</span>
+                  </span>
+                </span>
+              </div>
+              <div class="derive-cell"></div>
+              <div class="boundary-line right">
+                <span class="boundary-label with-inputs">
+                  <span class="bl-io-label">AIからの出力</span>
+                  <span class="bl-inputs">
+                    <span class="bl-badge">ソースコード</span>
+                    <span class="bl-badge">テスト実施レポート</span>
+                  </span>
+                  <span class="bl-human">品質チェック</span>
+                  <svg class="bl-arrow-output" width="50" height="50" viewBox="0 0 50 50" aria-hidden="true">
+                    <polygon points="25,0 45,20 32,20 32,50 18,50 18,20 5,20" fill="#2c8a5e"/>
+                  </svg>
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="vrow lv2">
+            <div class="phase apex" style="grid-column: 1 / -1;">
+              <div class="phase-head" style="border-bottom-color: rgba(0,0,0,0.18);">
+                <span class="phase-title" style="color: #1e6042;">③ 詳細設計 ／ ④ 実装 ／ ⑤ 機能テスト</span>
+                <span class="phase-stage">Level 3〜4 / 対象</span>
+              </div>
+              <ul class="apex-bullets">
+                <li class="design"><span class="b-dot"></span><span class="b-task">DBのテーブル設計・更新</span><span class="b-ai">バックエンドAI</span></li>
+                <li class="test"><span class="b-dot"></span><span class="b-task">ユニットテスト設計・実装</span><span class="b-ai">テストAI</span></li>
+                <li class="impl"><span class="b-dot"></span><span class="b-task">CRUD API 実装</span><span class="b-ai">バックエンドAI</span></li>
+                <li class="test"><span class="b-dot"></span><span class="b-task">機能テスト実装</span><span class="b-ai">テストAI</span></li>
+                <li class="impl"><span class="b-dot"></span><span class="b-task">CRUD画面実装</span><span class="b-ai">フロントエンドAI</span></li>
+                <li class="test"><span class="b-dot"></span><span class="b-task">テスト実施</span><span class="b-ai">テストAI</span></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="limit" style="margin-top:8px;">
+          <b>現在の問題点</b>
+          <ul style="margin:6px 0 0; line-height:1.8;">
+            <li><b>タスクの完了状態を定義するためのプロセス</b>が明確になっていない。</li>
+            <li>品質チェックの基準が <b>AI の一存</b> になっており、<b>人間と同じ方向を向いているか分からない</b>。</li>
+            <li>影響範囲やテスト項目に <b>相変わらず属人性がある</b>ため、<b>リリース可能な品質に達しているか客観的に分からない</b>。</li>
+          </ul>
+        </div>
+      </div>
+      <div class="slide-kicker">これまでのAI駆動開発 ／ 現在の問題点</div>
+      <div class="slide-no">2 / 10</div>
+    </section>
+
+    <!-- ============ 3. 運用（3ステップ） ============ -->
+    <section class="slide">
+      <div class="pad">
+        <h2 class="keyhead">運用<span class="ttl-dash"></span>タスクの進め方（INPUT → PROCESS → OUTPUT）</h2>
+        <p class="note"><b>「タスクの完了状態」を、着手前の合意と完了時の承認で挟む</b>。ゴールを先に握り、実装後に PM が達成を確認してから完了とする。</p>
+        <div class="keystone">
+          <div class="lede">
+            タスクを <b>INPUT（ゴール設定）→ PROCESS（AI駆動開発）→ OUTPUT（達成確認・承認）</b> の3段で回す。
+            <b>何をもって完了とするか</b>を最初に握り、<b>PM の承認をもってタスク完了</b>とすることで、完了状態を明確にする。
+          </div>
+          <div class="keysteps">
+            <div class="kstep">
+              <span class="kn">1</span><span class="iotag in">INPUT</span>
+              <h4>PMと担当者で仕様を握る</h4>
+              <p>タスクのゴールを設定する。「何をもって完了とするか」を着手前に PM と担当者で合意しておく。</p>
+              <span class="who pmpo">PM・担当者</span>
+            </div>
+            <div class="karrow">→</div>
+            <div class="kstep">
+              <span class="kn">2</span><span class="iotag proc">PROCESS</span>
+              <h4>担当者による AI 駆動開発</h4>
+              <p>握ったゴールに沿って、担当者が AI を用いて実装を進める。</p>
+              <span class="who a">担当者 × AI</span>
+            </div>
+            <div class="karrow">→</div>
+            <div class="kstep">
+              <span class="kn">3</span><span class="iotag out">OUTPUT</span>
+              <h4>PMがゴール達成を確認</h4>
+              <p>担当者の実装に対して、PM が設定したゴールの達成を確認する。承認をもってタスク完了とする。</p>
+              <span class="who pmpo">PM</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="slide-kicker">運用</div>
+      <div class="slide-no">3 / 10</div>
+    </section>
+
+    <!-- ============ 4. INPUT詳細：PMと担当者で仕様を握る ============ -->
+    <section class="slide">
+      <div class="pad">
+        <h2 class="keyhead">INPUT<span class="ttl-dash"></span>PMと担当者で仕様を握る</h2>
+        <div class="ministep">
+          <div class="ms on"><span class="msn">1</span><span class="mst">INPUT ― 仕様を握る</span></div>
+          <div class="msarrow">→</div>
+          <div class="ms off"><span class="msn">2</span><span class="mst">PROCESS ― AI駆動開発</span></div>
+          <div class="msarrow">→</div>
+          <div class="ms off"><span class="msn">3</span><span class="mst">OUTPUT ― 達成確認・承認</span></div>
+        </div>
+        <div class="keystone" style="padding:16px 22px 18px;">
+          <div class="lede">
+            担当者が<b>材料を揃え</b>、<b>AI がチケット（ドラフト）を出力</b>。<b>PM と担当者で合意</b>して、実施可能・承認済みのチケットにする。
+          </div>
+          <div class="keysteps" style="margin-top:10px; align-items:stretch;">
+            <div class="kstep" style="border-top-color: var(--accent);">
+              <span class="flow-cap src">顧客と相談の上チームで用意</span>
+              <h4>インプット</h4>
+              <div class="io-list">
+                <div class="io-item">担当者に割り当てられたタスク</div>
+                <div class="io-item">仕様書</div>
+                <div class="io-item">プロジェクト内の品質基準</div>
+                <div class="io-item">リポジトリ（既存の実装）</div>
+              </div>
+            </div>
+            <div class="karrow">→</div>
+            <div class="kstep" style="border-top-color: var(--key);">
+              <span class="flow-cap ai">AIが生成・担当者が確認・修正</span>
+              <h4>チケット（ドラフト）を出力</h4>
+              <a class="tk-link" href="PW-171.ticket.html" target="_blank" rel="noopener">出力例：PW-171.ticket.html →</a>
+              <ul class="tk-list">
+                <li>概要</li>
+                <li>作業内容</li>
+                <li><b>完了条件（ゴール・チェックボックス）</b>
+                  <ul class="tk-list" style="margin:4px 0 0;"><li>既存実装から予想された影響範囲</li></ul>
+                  <div style="font-size:11px; color:var(--muted); margin-top:3px; line-height:1.5;">※ 必要に応じて、何に対するどのエビデンスを載せる必要があるかも条件として記載する</div>
+                </li>
+                <li><b>確認事項</b>（チケットが進められないほどの決定事項を記載）</li>
+                <li>必要に応じて資料へのリンク</li>
+              </ul>
+              <div class="tk-note">チケットのフォーマットは<b>プロジェクト内のテンプレートに準拠</b>。<b>PM と実装担当者チームで合意したもの</b>を用いる。</div>
+            </div>
+            <div class="karrow">→</div>
+            <div class="kstep" style="border-top-color: var(--tobe);">
+              <span class="flow-cap ok">PM・担当者で合意</span>
+              <h4>チケットを承認</h4>
+              <p style="font-size:12.5px; color:var(--muted); margin:0; line-height:1.6;">PM と担当者で確認・調整して合意し、着手可能にする。</p>
+              <div style="margin-top:8px; border:1px dashed var(--line); border-radius:8px; padding:7px 9px; background:#fff;">
+                <div style="font-size:10.5px; font-weight:800; color:var(--ink); margin-bottom:4px;">合意した完了条件の実例（配送管理マップ）</div>
+                <div style="font-size:9.5px; line-height:1.45; color:var(--ink); display:flex; flex-direction:column; gap:3px;">
+                  <div style="background:var(--asis-soft); border-left:3px solid var(--amber); border-radius:4px; padding:2px 5px;"><span style="display:inline-block; font-size:8.5px; font-weight:800; color:#fff; background:var(--amber); border-radius:3px; padding:0 5px; margin-right:4px;">見た目</span>☐ 画面を開くと検索フォーム・空リスト・ピン無しマップ・凡例が表示</div>
+                  <div style="background:var(--panel); border-left:3px solid var(--accent); border-radius:4px; padding:2px 5px;"><span style="display:inline-block; font-size:8.5px; font-weight:800; color:#fff; background:var(--accent); border-radius:3px; padding:0 5px; margin-right:4px;">機能</span>☐ 検索でマップに色分けピンが立ち、配送リストが表示</div>
+                  <div style="background:var(--panel); border-left:3px solid var(--accent); border-radius:4px; padding:2px 5px;"><span style="display:inline-block; font-size:8.5px; font-weight:800; color:#fff; background:var(--accent); border-radius:3px; padding:0 5px; margin-right:4px;">機能</span>☐ クリアで検索条件と結果（リスト・ピン）が空に戻る</div>
+                  <div style="background:var(--panel); border-left:3px solid var(--accent); border-radius:4px; padding:2px 5px;"><span style="display:inline-block; font-size:8.5px; font-weight:800; color:#fff; background:var(--accent); border-radius:3px; padding:0 5px; margin-right:4px;">機能</span>☐ ピン選択でマップがフォーカスし、詳細ドロワーが開く</div>
+                  <div style="background:var(--panel); border-left:3px solid var(--accent); border-radius:4px; padding:2px 5px;"><span style="display:inline-block; font-size:8.5px; font-weight:800; color:#fff; background:var(--accent); border-radius:3px; padding:0 5px; margin-right:4px;">機能</span>☐ ドロワー表示時、ピンがかぶらない位置（左側）に表示</div>
+                  <div style="background:var(--panel); border-left:3px solid var(--accent); border-radius:4px; padding:2px 5px;"><span style="display:inline-block; font-size:8.5px; font-weight:800; color:#fff; background:var(--accent); border-radius:3px; padding:0 5px; margin-right:4px;">機能</span>☐ 表示順（配車登録順/時間帯順）切替でリストの並びが変わる</div>
+                </div>
+              </div>
+              <span class="ok-badge">実施可能・承認済みチケット</span>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:10px; display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div style="background:var(--ai-soft); border:1px solid var(--ai-line); border-left:4px solid var(--ai); border-radius:12px; padding:9px 15px; font-size:12px; line-height:1.6;">
+            <b style="color:var(--ai);">AI でドラフト出力する狙い</b>　<b>PM が読みたい内容</b>・<b>担当者が誤解しない完了条件</b>を<b>均質な粒度</b>で出力する（<b>担当者によるバラつきを抑止</b>）。
+          </div>
+          <div style="background:var(--asis-soft); border:1px solid var(--asis-line); border-left:4px solid var(--amber); border-radius:12px; padding:9px 15px; font-size:12px; line-height:1.6;">
+            <b style="color:var(--amber);">実運用での学び ― 完了条件の粒度</b>　粒度に悩んだ結果、<b>見た目は mock との一致のみで評価</b>し、<b>機能は網羅的に記述</b>する、とした。
+          </div>
+        </div>
+      </div>
+      <div class="slide-kicker">運用 ／ INPUT</div>
+      <div class="slide-no">4 / 10</div>
+    </section>
+
+    <!-- ============ 5. PROCESS詳細：担当者によるAI駆動開発 ============ -->
+    <section class="slide">
+      <div class="pad">
+        <h2 class="keyhead">PROCESS<span class="ttl-dash"></span>担当者によるAI駆動開発</h2>
+        <div class="ministep">
+          <div class="ms off"><span class="msn">1</span><span class="mst">INPUT ― 仕様を握る</span></div>
+          <div class="msarrow">→</div>
+          <div class="ms on"><span class="msn">2</span><span class="mst">PROCESS ― AI駆動開発</span></div>
+          <div class="msarrow">→</div>
+          <div class="ms off"><span class="msn">3</span><span class="mst">OUTPUT ― 達成確認・承認</span></div>
+        </div>
+        <div class="keystone">
+          <div class="lede">
+            オーケストレーション自体は<b>従来どおり</b>。変わるのは、元々 <b>UX・spec</b> を受け取っていた入力に、<b>INPUT で握った完了条件（承認済みチケット）が加わる</b>こと。
+          </div>
+          <div class="keysteps" style="margin-top:10px; align-items:stretch;">
+            <div style="display:flex; flex-direction:column; justify-content:center; gap:8px; padding:0 6px;">
+              <span class="flow-cap src" style="align-self:flex-start;">インプット</span>
+              <div class="io-item">spec</div>
+              <div class="io-item">UX</div>
+              <div class="io-item key"><span class="key-chip">追加</span>完了条件（承認済みチケット）</div>
+            </div>
+            <div class="karrow">→</div>
+            <div class="kstep" style="border-top-color: var(--ai); display:flex; flex-direction:column; justify-content:center; text-align:center;">
+              <span class="flow-cap ai" style="align-self:center;">PROCESS</span>
+              <h4 style="font-size:17px; margin:12px 0 8px;">AI オーケストレーション</h4>
+              <p style="font-size:12.5px; color:var(--muted); margin:0; line-height:1.8;">担当者 × AI 駆動開発<br>（実装・自動テスト・PR 作成）</p>
+            </div>
+            <div class="karrow">→</div>
+            <div style="display:flex; flex-direction:column; justify-content:center; gap:8px; padding:0 6px;">
+              <span class="flow-cap ok" style="align-self:flex-start;">アウトプット</span>
+              <div class="io-item">ソースコード（PR）</div>
+              <div class="io-item">テスト実施レポート</div>
+              <div class="io-item">☑ 完了条件チェック済みチケット</div>
+              <div style="font-size:10.5px; color:var(--muted);">→ OUTPUT（PM承認）で確認</div>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:10px; background:var(--asis-soft); border:1px solid var(--asis-line); border-left:4px solid var(--amber); border-radius:12px; padding:11px 18px; font-size:13px; line-height:1.6;">
+          <b style="color:var(--amber);">要点</b>　仕様を握る際に<b>明確にできなかった影響範囲</b>が見つかった場合は、担当者が<b>チケットに追記して PM と再度握る</b>ことが必要。
+        </div>
+      </div>
+      <div class="slide-kicker">運用 ／ PROCESS</div>
+      <div class="slide-no">5 / 10</div>
+    </section>
+
+    <!-- ============ 6. OUTPUT詳細：PMによるゴール達成の確認・承認 ============ -->
+    <section class="slide">
+      <div class="pad">
+        <h2 class="keyhead">OUTPUT<span class="ttl-dash"></span>PMによるゴール達成の確認・承認</h2>
+        <div class="ministep">
+          <div class="ms off"><span class="msn">1</span><span class="mst">INPUT ― 仕様を握る</span></div>
+          <div class="msarrow">→</div>
+          <div class="ms off"><span class="msn">2</span><span class="mst">PROCESS ― AI駆動開発</span></div>
+          <div class="msarrow">→</div>
+          <div class="ms on"><span class="msn">3</span><span class="mst">OUTPUT ― 達成確認・承認</span></div>
+        </div>
+        <div class="keystone">
+          <div class="lede">
+            PM は基本、<b>担当者と握ったチケット（完了条件のチェック）を確認するだけ</b>で承認できる。<b>承認作業は重くない</b>。
+          </div>
+          <div class="keysteps" style="margin-top:12px; align-items:stretch;">
+            <div class="kstep" style="border-top-color: var(--accent);">
+              <span class="flow-cap src">PROCESSから受け取る</span>
+              <h4>受け取るもの</h4>
+              <div class="io-list">
+                <div class="io-item">
+                  マージ済みPR
+                  <a class="tk-link" style="display:block; width:fit-content; margin:6px 0 0;" href="PW-171.pr.html?state=merged" target="_blank" rel="noopener">PR → PW-171.pr.html</a>
+                </div>
+                <div class="io-item">
+                  ☑ 完了条件チェック済みチケット
+                  <a class="tk-link" style="display:block; width:fit-content; margin:6px 0 0;" href="PW-171.ticket.html?state=done" target="_blank" rel="noopener">チケット → PW-171.ticket.html</a>
+                </div>
+              </div>
+            </div>
+            <div class="karrow">→</div>
+            <div class="kstep" style="border-top-color: var(--c-ticket);">
+              <span class="flow-cap" style="color:var(--c-ticket); background:#e6f3f6; border:1px solid #bcdfe6;">PMが確認</span>
+              <h4>完了条件を満たしていることを確認</h4>
+              <p style="font-size:13px; color:var(--muted); margin:0; line-height:1.7;">確認するのは<b>担当者と握ったチケット1枚</b>。<b>完了条件（ゴール）がすべてチェック済み</b>かを見るだけ。</p>
+            </div>
+            <div class="karrow">→</div>
+            <div class="kstep" style="border-top-color: var(--tobe);">
+              <span class="flow-cap ok">承認</span>
+              <h4>ゴール達成を承認 → タスク完了</h4>
+              <p style="font-size:13px; color:var(--muted); margin:0 0 10px; line-height:1.7;">完了条件が満たされていれば<b>承認</b>。（PR はチームでレビュー・マージ済み）</p>
+              <span class="ok-badge">タスク完了・承認</span>
+            </div>
+          </div>
+          <div style="margin-top:14px; background:#fff; border:1px dashed var(--c-scope); border-radius:12px; padding:12px 18px; font-size:13px; line-height:1.7;">
+            <b style="color:var(--c-scope);">必要に応じて（任意）</b>　詳細の確認が必要と感じた場合は、<b>PR を参照</b>したり、<b>担当者に説明を求める</b>こともできる。
+            <a class="tk-link" style="margin-left:6px;" href="PW-171.pr.html?state=merged" target="_blank" rel="noopener">PR → PW-171.pr.html</a>
+          </div>
+        </div>
+      </div>
+      <div class="slide-kicker">運用 ／ OUTPUT</div>
+      <div class="slide-no">6 / 10</div>
+    </section>
+
+    <!-- ============ 7. まとめ：問題が解決したV字モデル ============ -->
+    <section class="slide">
+      <div class="pad">
+        <h2>改善後のプロセス<span class="ttl-dash"></span>問題が解決したV字モデル</h2>
+        <div class="section-sub">AIの出力に<b>チェック基準・影響範囲・要テスト範囲</b>が加わり、品質確認が<b>客観的な根拠</b>を持つようになった。</div>
+        <div class="vmodel">
+          <div class="vmodel-lane-labels">
+            <div class="lane-label design">▼ 設計レーン</div>
+            <div class="lane-label derive">テスト派生</div>
+            <div class="lane-label test">▲ テストレーン</div>
+          </div>
+          <div class="vrow lv1">
+            <div class="phase design dim">
+              <div class="phase-head">
+                <span class="phase-title">① 要件定義 <span class="out-of-scope">対象外</span></span>
+                <span class="phase-stage">Level 1</span>
+              </div>
+            </div>
+            <div class="derive-cell"></div>
+            <div class="phase test dim">
+              <div class="phase-head">
+                <span class="phase-title">⑦ 受入テスト <span class="out-of-scope">対象外</span></span>
+                <span class="phase-stage">Level 1</span>
+              </div>
+            </div>
+          </div>
+          <div class="vrow lv2">
+            <div class="phase design dim">
+              <div class="phase-head">
+                <span class="phase-title">② 基本設計 <span class="out-of-scope">対象外</span></span>
+                <span class="phase-stage">Level 2</span>
+              </div>
+            </div>
+            <div class="derive-cell"></div>
+            <div class="phase test dim">
+              <div class="phase-head">
+                <span class="phase-title">⑥ システムテスト <span class="out-of-scope">対象外</span></span>
+                <span class="phase-stage">Level 2</span>
+              </div>
+            </div>
+          </div>
+          <div class="vrow boundary-row" style="padding: 0 75px; margin-bottom: 10px;">
+            <div class="boundary-line left">
+              <svg class="bl-arrow-input" width="50" height="50" viewBox="0 0 50 50" aria-hidden="true">
+                <polygon points="18,0 32,0 32,30 45,30 25,50 5,30 18,30" fill="#d63a3a"/>
+              </svg>
+              <span class="boundary-label with-inputs">
+                <span class="bl-human">仕様注入</span>
+                <span class="bl-io-label">AIへの入力</span>
+                <span class="bl-inputs">
+                  <span class="bl-badge">spec</span>
+                  <span class="bl-badge">UX</span>
+                  <span class="bl-badge" style="border-style:solid; border-color:#4338ca; color:#4338ca;">PM合意済みチケット</span>
+                </span>
+              </span>
+            </div>
+            <div class="derive-cell"></div>
+            <div class="boundary-line right">
+              <span class="boundary-label with-inputs">
+                <span class="bl-io-label">AI・担当者の出力</span>
+                <span class="bl-inputs">
+                  <span class="bl-badge">ソースコード</span>
+                  <span class="bl-badge">テスト実施レポート</span>
+                </span>
+                <span class="bl-human">影響範囲確認 → PMレビュー依頼</span>
+                <svg class="bl-arrow-output" width="50" height="50" viewBox="0 0 50 50" aria-hidden="true">
+                  <polygon points="25,0 45,20 32,20 32,50 18,50 18,20 5,20" fill="#2c8a5e"/>
+                </svg>
+              </span>
+            </div>
+          </div>
+          <div class="vrow lv2">
+            <div class="phase apex" style="grid-column: 1 / -1;">
+              <div class="phase-head" style="border-bottom-color: rgba(0,0,0,0.18);">
+                <span class="phase-title" style="color: #1e6042;">③ 詳細設計 ／ ④ 実装 ／ ⑤ 機能テスト</span>
+                <span class="phase-stage">Level 3〜4 / 対象</span>
+              </div>
+              <ul class="apex-bullets">
+                <li class="design"><span class="b-dot"></span><span class="b-task">DBのテーブル設計・更新</span><span class="b-ai">バックエンドAI</span></li>
+                <li class="test"><span class="b-dot"></span><span class="b-task">ユニットテスト設計・実装</span><span class="b-ai">テストAI</span></li>
+                <li class="impl"><span class="b-dot"></span><span class="b-task">CRUD API 実装</span><span class="b-ai">バックエンドAI</span></li>
+                <li class="test"><span class="b-dot"></span><span class="b-task">機能テスト実装</span><span class="b-ai">テストAI</span></li>
+                <li class="impl"><span class="b-dot"></span><span class="b-task">CRUD画面実装</span><span class="b-ai">フロントエンドAI</span></li>
+                <li class="test"><span class="b-dot"></span><span class="b-task">テスト実施</span><span class="b-ai">テストAI</span></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:10px; background:var(--tobe-soft); border:1px solid var(--tobe-line); border-left:4px solid var(--tobe); border-radius:12px; padding:12px 20px; font-size:13px;">
+          <b style="color:var(--tobe);">解決されたこと</b>（P2 の課題への対応）
+          <ul style="margin:5px 0 0; line-height:1.7;">
+            <li><b style="color:var(--amber);">完了状態を定義するプロセスが不明確</b> → INPUT で<b>完了条件（ゴール）をチケットに明記し PM と合意</b>、OUTPUT で<b>その完了条件のチェックをもって承認</b> → <b style="color:var(--tobe);">タスクの完了が定義・共有される</b>。</li>
+            <li><b style="color:var(--amber);">品質チェックが AI の一存</b> → <b>チェック基準を事前に定め</b>、AI・担当者が<b>影響範囲・要テスト範囲を出力</b> → <b style="color:var(--tobe);">人と同じ観点で客観的に確認できる</b>。</li>
+            <li><b style="color:var(--amber);">影響範囲・テストに属人性</b> → 影響範囲・テスト項目を<b>文書で自動確定し PR／チケットで可視化</b> → <b style="color:var(--tobe);">属人性が下がり、リリース可能な品質かを客観的に判断できる</b>。</li>
+          </ul>
+        </div>
+      </div>
+      <div class="slide-kicker">改善後のプロセス</div>
+      <div class="slide-no">7 / 10</div>
+    </section>
+
+    <!-- ============ 5. ステップ1 チェック基準マトリクス ============ -->
+    <section class="slide">
+      <div class="pad">
+        <h2 class="keyhead">Appendix 1<span class="ttl-dash"></span>チェック基準（観点マトリクス）</h2>
+        <p class="note">ひな形を下敷きに、<b>プロジェクトチーム内で策定</b>する。</p>
+        <div class="keystone">
+          <div class="basis" style="margin-top:0;">
+            <div class="bt">チェック基準（観点マトリクス）のひな形<span class="tagN">策定中</span></div>
+            <div class="sub"><b>レイヤー（縦）× テスト系統（横）</b>のマトリクスで、確認すべき観点を先に定めておく。</div>
+            <div class="matrix">
+              <div class="mh corner"></div>
+              <div class="mh normal">正常系</div>
+              <div class="mh abn">異常系</div>
+              <div class="mh etc">その他</div>
+
+              <div class="rh">フロントエンド</div>
+              <div class="cell">表示・レイアウト・画面遷移・入力操作・権限別の見え方が想定どおりか</div>
+              <div class="cell">バリデーション／エラーメッセージが正しく表示されるか</div>
+              <div class="cell">表示崩れ・レスポンシブ・ブラウザ互換</div>
+
+              <div class="rh">バックエンド</div>
+              <div class="cell">API正常応答・業務ロジック・DB登録/更新/削除の整合</div>
+              <div class="cell">例外処理・エラーコード・トランザクションのロールバック</div>
+              <div class="cell">性能・同時実行・既存データへの影響・後方互換</div>
+
+              <div class="rh">インフラ</div>
+              <div class="cell">デプロイ・起動・疎通・DBマイグレーション・バッチ／ジョブの実行</div>
+              <div class="cell">障害時のリトライ／フェイルオーバー・排他制御・冪等性確保・監視通知</div>
+              <div class="cell">環境差分・設定値・権限/セキュリティ・データ移行</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="slide-kicker">Appendix 1 ／ チェック基準</div>
+      <div class="slide-no">8 / 10</div>
+    </section>
+
+    <!-- ============ 6. ステップ2 エージェント連携 ============ -->
+    <section class="slide">
+      <div class="pad">
+        <h2 class="keyhead">Appendix 2<span class="ttl-dash"></span>エージェント連携（自動化）</h2>
+        <p class="note">影響範囲・要テスト範囲・文書を、<b>3エージェントが自動生成</b>する。</p>
+        <div class="keystone">
+          <div class="basis" style="margin-top:0;">
+            <div class="bt">影響範囲・要テスト範囲の出力</div>
+            <div class="sub">チェック基準（Appendix 1）で定めた観点を入力に、<b>3エージェントが影響範囲・要テスト範囲・文書を自動生成</b>する。人は出力を確認し、記載されているテストを実施する。</div>
+            <div class="flow" style="margin-top:12px;">
+              <svg viewBox="0 0 920 250" role="img" aria-label="3エージェント連携パイプライン（自動化）">
+                <rect x="8" y="56" width="134" height="27" rx="7" fill="#eef2ff" stroke="#4338ca" stroke-width="1.5"/>
+                <text x="75" y="73" text-anchor="middle" font-size="10.5" font-weight="700" fill="#4338ca">チェック基準（事前準備）</text>
+                <rect x="8" y="89" width="134" height="27" rx="7" fill="#fff" stroke="#d8dbe2"/>
+                <text x="75" y="106" text-anchor="middle" font-size="11" font-weight="700" fill="#1a1a1a">仕様</text>
+                <rect x="8" y="122" width="134" height="27" rx="7" fill="#fff" stroke="#d8dbe2"/>
+                <text x="75" y="139" text-anchor="middle" font-size="11" font-weight="700" fill="#1a1a1a">リポジトリ</text>
+                <rect x="8" y="155" width="134" height="27" rx="7" fill="#fff" stroke="#d8dbe2"/>
+                <text x="75" y="172" text-anchor="middle" font-size="10.5" font-weight="700" fill="#1a1a1a">実装差分（git diff）</text>
+                <text x="75" y="196" text-anchor="middle" font-size="9" fill="#5b6573">差分＝AI駆動実装／人手修正</text>
+                <line x1="142" y1="69" x2="166" y2="125" stroke="#9aa3b2" stroke-width="1.5"/>
+                <line x1="142" y1="102" x2="166" y2="125" stroke="#9aa3b2" stroke-width="1.5"/>
+                <line x1="142" y1="135" x2="166" y2="125" stroke="#9aa3b2" stroke-width="1.5"/>
+                <line x1="142" y1="168" x2="166" y2="125" stroke="#9aa3b2" stroke-width="1.5"/>
+                <line x1="166" y1="125" x2="178" y2="125" stroke="#9aa3b2" stroke-width="2"/>
+                <polygon points="178,120 188,125 178,130" fill="#9aa3b2"/>
+                <rect x="184" y="78" width="200" height="94" rx="11" fill="#eaf2fa" stroke="#2f6fb0" stroke-width="2"/>
+                <text x="284" y="101" text-anchor="middle" font-size="13.5" font-weight="800" fill="#2f6fb0">regression-scope</text>
+                <text x="284" y="122" text-anchor="middle" font-size="11" fill="#1a1a1a">影響範囲・テスト観点</text>
+                <text x="284" y="138" text-anchor="middle" font-size="11" fill="#1a1a1a">テスト工数を見立てる</text>
+                <text x="284" y="158" text-anchor="middle" font-size="10.5" fill="#5b6573">分析結果を出力（正本）</text>
+                <line x1="386" y1="125" x2="430" y2="125" stroke="#9aa3b2" stroke-width="2"/>
+                <polygon points="430,120 440,125 430,130" fill="#9aa3b2"/>
+                <text x="408" y="116" text-anchor="middle" font-size="9.5" fill="#5b6573">出力を消費</text>
+                <line x1="440" y1="125" x2="470" y2="60" stroke="#9aa3b2" stroke-width="2"/>
+                <line x1="440" y1="125" x2="470" y2="190" stroke="#9aa3b2" stroke-width="2"/>
+                <rect x="476" y="28" width="220" height="76" rx="11" fill="#f3ecfd" stroke="#7c3aed" stroke-width="2"/>
+                <text x="586" y="50" text-anchor="middle" font-size="13" font-weight="800" fill="#7c3aed">pr-writer</text>
+                <text x="586" y="69" text-anchor="middle" font-size="10.5" fill="#1a1a1a">PR用文書（レビュー観点、テスト項目）</text>
+                <text x="586" y="88" text-anchor="middle" font-size="10.5" fill="#5b6573">読み手：レビュアー・開発者</text>
+                <rect x="476" y="148" width="220" height="76" rx="11" fill="#e6f3f6" stroke="#0e7490" stroke-width="2"/>
+                <text x="586" y="170" text-anchor="middle" font-size="13" font-weight="800" fill="#0e7490">ticket-writer</text>
+                <text x="586" y="189" text-anchor="middle" font-size="10.5" fill="#1a1a1a">チケット用文書（実装内容・影響範囲など）</text>
+                <text x="586" y="208" text-anchor="middle" font-size="10.5" fill="#5b6573">読み手：PM・PO</text>
+                <line x1="696" y1="66" x2="736" y2="66" stroke="#9aa3b2" stroke-width="2"/>
+                <polygon points="736,61 746,66 736,71" fill="#9aa3b2"/>
+                <rect x="748" y="40" width="160" height="52" rx="9" fill="#fff" stroke="#7c3aed"/>
+                <text x="828" y="62" text-anchor="middle" font-size="12" font-weight="700" fill="#7c3aed">PR</text>
+                <text x="828" y="79" text-anchor="middle" font-size="10" fill="#5b6573">レビュー・マージ判断へ</text>
+                <line x1="696" y1="186" x2="736" y2="186" stroke="#9aa3b2" stroke-width="2"/>
+                <polygon points="736,181 746,186 736,191" fill="#9aa3b2"/>
+                <rect x="748" y="160" width="160" height="52" rx="9" fill="#fff" stroke="#0e7490"/>
+                <text x="828" y="182" text-anchor="middle" font-size="12" font-weight="700" fill="#0e7490">チケット本文</text>
+                <text x="828" y="199" text-anchor="middle" font-size="10" fill="#5b6573">PM・POの判断材料へ</text>
+              </svg>
+            </div>
+          </div>
+          <div class="usage">
+            <span class="ut">使い方</span>Claude Code に「<code>PRを書いて</code>」「<code>チケットを書いて</code>」と指示するだけでよい。
+          </div>
+        </div>
+      </div>
+      <div class="slide-kicker">Appendix 2 ／ エージェント連携</div>
+      <div class="slide-no">9 / 10</div>
+    </section>
+
+    <!-- ============ 7. 役割分担（RACI） ============ -->
+    <section class="slide">
+      <div class="pad">
+        <h2 class="keyhead">Appendix 3<span class="ttl-dash"></span>役割分担（AIと人の境界）</h2>
+        <table class="raci">
+          <thead>
+            <tr><th style="width:40%">タスク</th><th style="width:24%">担い手</th><th>補足</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>チェック基準の事前定義</td><td class="hu">人（事前）</td><td>変更着手前に「どのような観点でテストすべきか」を決める</td></tr>
+            <tr><td>影響範囲の特定・スコープ確定</td><td><span class="who2 scope">regression-scope</span> <span class="ai">（自動）</span></td><td>仕様書と実装差分の両面から洗い出し</td></tr>
+            <tr><td>仕様と実装の食い違い検知</td><td><span class="who2 scope">regression-scope</span> <span class="ai">（自動）</span></td><td>「要確認」としてフラグ提示</td></tr>
+            <tr><td>テスト工数の概算見積もり</td><td><span class="who2 scope">regression-scope</span> <span class="ai">（自動）</span></td><td>項目数×係数でレンジ提示（確定値ではない）</td></tr>
+            <tr><td>PR文書の生成</td><td><span class="who2 pr">pr-writer</span> <span class="ai">（自動）</span></td><td>scope出力から機能・観点・影響範囲を整理</td></tr>
+            <tr><td>チケット要点のまとめ</td><td><span class="who2 ticket">ticket-writer</span> <span class="ai">（自動）</span></td><td>scope出力からPM向け要点を集約</td></tr>
+            <tr><td>テストの実施・結果記録</td><td class="hu">人 / 別AI</td><td>テスト担当・自動テストが実行</td></tr>
+            <tr><td>スコープ・文書の妥当性確認／取捨選択</td><td class="hu">PM / PO</td><td>提示された範囲・文書の最終確認</td></tr>
+            <tr><td>リリース可否の判断</td><td class="hu">PM / PO / QA</td><td>品質ゲートでの意思決定</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="slide-kicker">Appendix 3 ／ 役割分担</div>
+      <div class="slide-no">10 / 10</div>
+    </section>
+
+  </div>
+</div>
+
+<div id="dots"></div>
+<div class="navzone left"  onclick="go(cur-1)"></div>
+<div class="navzone right" onclick="go(cur+1)"></div>
+<div id="hint">← → でスライド移動 ／ クリックでも切替</div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  let cur = 0;
+  const dotsEl = document.getElementById('dots');
+  slides.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'd' + (i === 0 ? ' on' : '');
+    d.onclick = () => go(i);
+    dotsEl.appendChild(d);
+  });
+  const dots = Array.from(dotsEl.children);
+  // 表示だけ切り替える（履歴は触らない）
+  function render(i) {
+    slides[cur].classList.remove('active');
+    dots[cur].classList.remove('on');
+    cur = i;
+    slides[cur].classList.add('active');
+    dots[cur].classList.add('on');
+  }
+  // ユーザー操作でのページ移動：ブラウザ履歴に積む（戻る/進むで行き来できる）
+  function go(i) {
+    if (i < 0 || i >= slides.length || i === cur) return;
+    render(i);
+    history.pushState({ slide: i }, '', '#' + (i + 1));
+  }
+  // URL ハッシュ（#1〜#10）／戻る・進むを反映
+  function goFromHash() {
+    let n = parseInt(location.hash.slice(1), 10);
+    if (isNaN(n)) n = 1;
+    render(Math.min(Math.max(n - 1, 0), slides.length - 1));
+  }
+  window.addEventListener('popstate', goFromHash);
+  window.addEventListener('hashchange', goFromHash);
+  // 初期表示：現在のハッシュを反映し、履歴の基点を作る
+  (function initNav() {
+    let n = parseInt(location.hash.slice(1), 10);
+    if (isNaN(n)) n = 1;
+    const i = Math.min(Math.max(n - 1, 0), slides.length - 1);
+    render(i);
+    history.replaceState({ slide: i }, '', '#' + (i + 1));
+  })();
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { go(cur + 1); e.preventDefault(); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { go(cur - 1); e.preventDefault(); }
+    else if (e.key === 'Home') go(0);
+    else if (e.key === 'End') go(slides.length - 1);
+  });
+  function fit() {
+    const s = Math.min(window.innerWidth / 1280, window.innerHeight / 720) * 0.96;
+    document.getElementById('stage').style.transform = `scale(${s})`;
+  }
+  window.addEventListener('resize', fit);
+  fit();
+</script>
+</body>
+</html>
