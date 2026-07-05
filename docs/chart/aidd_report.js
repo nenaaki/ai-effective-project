@@ -356,6 +356,31 @@
   // workitems 由来テンプレートを実データで上書き。指定キーの工程だけ差分マージ、
   // 残工程は 0 のまま (= 未測定)。tasks.<key>.{asis, tobe, tobeEng, loc, agents} を任意指定。
   const SCENARIO_OVERRIDES = {
+    // 配送ログCSV出力 (FE050 / DM14 帳票・ファイル出力) - データ出力・抽出の CSV ダウンロードの一つ。
+    // 実績コード量: フロントエンド 188 行 (DB/API/テストなし)。
+    // AsIs: 今回は行数だけでは測れない (配送ログの抽出条件・出力仕様の解釈が重い)。行数ベース試算
+    //       (お知らせ登録 fe-impl 33.5h/1694行 → 3.7h) に対し、人力なら約2倍と判断し fe-impl 7.4h。
+    // ToBe: AI 実測 1.0h (配送ログ workitem 実工数と一致)。削減率 約87%。
+    'wi-fileio-DM14FE050-1': {
+      lede: "<strong>配送ログCSV出力</strong>（FE050 / DM14 帳票・ファイル入出力）の開発工数比較。<strong>データ出力・抽出の配送ログ CSV ダウンロード</strong>機能。実績コード量はフロントエンド <strong>188 行</strong>のみ（DB/API/テストなし）。<strong>AsIs は今回、行数だけでは測れない</strong>: 配送ログの抽出条件・出力仕様の解釈が重く、行数ベースの試算（お知らせ登録(FE015) の行あたり工数を適用し 3.7h）に対し <strong>人力なら約2倍</strong>と判断して fe-impl 7.4h とした。<strong>ToBe は実績 1.0h</strong>。削減率 <strong>約87%</strong>。",
+      bugCategories: [
+        { key: "syntax", label: "構文/型エラー",                          color: "#ef4444", asis: 0, tobe: 0 },
+        { key: "logic",  label: "ロジックバグ (抽出条件・整形)",          color: "#f59e0b", asis: 1, tobe: 0 },
+        { key: "edge",   label: "エッジケース漏れ (空・大量件数・文字コード)", color: "#8b5cf6", asis: 1, tobe: 1 },
+        { key: "spec",   label: "仕様解釈ミス (抽出条件・出力項目の解釈)", color: "#ec4899", asis: 2, tobe: 1 },
+        { key: "ui",     label: "UI 細部の不整合 (DLボタン・ファイル名)",  color: "#06b6d4", asis: 0, tobe: 0 },
+      ],
+      bugRateNote: "※ 配送ログCSV出力 約 0.19 KLOC × 参考レート（人力 12/KLOC ≒ 2件 / AI 5/KLOC ≒ 1件）で推定。配送ログの CSV ダウンロードで、論点は <strong>抽出条件・出力項目の解釈</strong>。行数のわりに業務ログの抽出仕様が重く、AsIs は行数試算より上振れする。",
+      tasks: {
+        'fe-impl':     { asis: 7.4,  loc: 188,  tobe: 1.0,  tobeEng: 0,   agents: ["フロントエンドAI"] },
+      },
+      contextNotes: [
+        "対象: 配送ログCSV出力（FE050 / DM14 帳票・ファイル入出力）。データ出力・抽出の配送ログ CSV ダウンロード機能。",
+        "<strong>実績コード量</strong>: フロントエンド <strong>188 行</strong>のみ（DB 0・API 0・ユニットテスト 0）。",
+        "<strong>AsIs（人力想定）は行数だけでは測れない</strong>: 行数ベース試算（お知らせ登録の行あたり工数 fe-impl 33.5h/1694行 → 188行で 3.7h）では過小。配送ログの抽出条件・出力仕様の解釈が重く、<strong>人力なら約2倍</strong>と判断して fe-impl 7.4h とした。",
+        "<strong>ToBe（AI駆動）は実績 1.0h</strong>（配送ログ workitem 実工数と一致）。削減率 <strong>約87%</strong>。レビュー・動作確認の工数は今回未計上（フロント実装工程のみの比較）。",
+      ],
+    },
     // 集計用リストCSV出力 (FE050 / DM14 帳票・ファイル出力) - データ出力・抽出の CSV ダウンロードの一つ。
     // 実績コード量: API 103 / フロントエンド 904 行 (DB/テストなし)。
     // AsIs: お知らせ登録(FE015) の行あたり工数を実績LOCに適用 (api-impl 8h/369行・fe-impl 33.5h/1694行)。fe-design/UX は按分過小のため実態値。合計 約25.1h。

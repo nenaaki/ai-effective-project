@@ -572,7 +572,9 @@
   const STRIKE_TABS = new Set(["訪問不在登録", "配車戻し登録", "その他未完了登録", "ドライバー持出登録", "未配車検索",
     "集計フラグ付リストCSV出力", "集計ステータス付リストCSV出力", "情報精査用リストCSV出力", "特記事項リストCSV出力",
     "個人情報リストCSV出力", "荷主用リストCSV出力",
-    "荷主情報 (IF)", "個人情報 (IF)", "集計フラグ付 (IF)", "集計ステータス付 (IF)", "情報精査用 (IF)", "特記事項 (IF)", "代引き一覧抽出 (IF)"]);
+    "お客様WEBCSV出力", "お客様情報変更依頼CSV出力", "IVR件数CSV出力",
+    "荷主情報 (IF)", "個人情報 (IF)", "集計フラグ付 (IF)", "集計ステータス付 (IF)", "情報精査用 (IF)", "特記事項 (IF)", "代引き一覧抽出 (IF)",
+    "お客様情報変更依頼 (IF)", "IVR件数抽出 (IF)", "お客様WEB抽出 (IF)", "配送ログ (IF)"]);
   // タブが完了扱いか: 実測値が記入済み or 打ち消し線 (工数0で完了・対応不要)
   function scenarioIsDone(k) {
     return scenarioHasData(scenarios[k]) || (scenarios[k] && STRIKE_TABS.has(scenarios[k].tabLabel));
