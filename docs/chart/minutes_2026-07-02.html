@@ -213,7 +213,14 @@
 
       <div class="block" style="margin-top:10px;">
         <h2>決定事項・アクションアイテム</h2>
-        <div class="placeholder">議事録は会議後に追記</div>
+        <div class="decisions">
+          <div class="decision"><span class="tag">分割</span>タスクは原則「1日（8h）で完結する単位」で構成する。日を跨ぐとハレーションのリスクが高まるため、精度が求められるタスクほど当日中に「入口から出口まで」をやり切る。</div>
+          <div class="decision"><span class="tag">対話</span>AIプロンプトを「Yes/No 承認」形式へブラッシュアップ。変更箇所の抽出（What）→ 具体的な実装アクションの提案（How）までAIに行わせ、人間はYes/Noで承認する。エージェントの問いかけ方のコントロールを改善タスク化。</div>
+          <div class="decision"><span class="tag">承認</span>完了条件のチェック（承認）はPMまたはチームリーダーが責任を持って行う。進捗確認より「作ろうとしているものが正しいか（顧客目線・他機能との整合性）」の判断を上位レイヤーが最終確認し、インパクトの大きいリスクを摘む。</div>
+          <div class="decision"><span class="tag">品質</span>タスク着手前にPMと担当者で「完了条件（ゴール）」を握る工程を徹底。AIに完了条件案（チケットのドラフト）を出させ人間が調整する形を標準化。すり合わせは異常系・権限などスコープに影響する点に絞る。</div>
+          <div class="decision"><span class="tag">スコープ</span>7月末までにPW案件から「CRUD以外の機能カテゴリ」を選定し第2スプリントを開始。新カテゴリでも As-Is（通常開発の見積） vs To-Be（AI駆動の実績）を記録し、AIの有効性を多角的に実証する。</div>
+          <div class="decision"><span class="tag">日程</span>7/3 に仕様がある程度Fixの見込み → 7/10 の現行タスク終了に向けて加速 → 7月末に第2スプリントのスコープを選定。</div>
+        </div>
       </div>
     </div>
 
@@ -221,7 +228,36 @@
     <div class="panel">
       <div class="block" style="margin-bottom:0; flex:1; display:flex; flex-direction:column;">
         <h2>議論サマリ</h2>
-        <div class="placeholder">議事録は会議後に追記</div>
+        <div class="summary">
+          <div class="scard">
+            <span class="label">進捗・EVM</span>
+            <p>EVM指標で先週の遅れから回復し計画線まで復帰。全体として非常に順調。残はドライバーアプリ・お客様Web・一部ファイル出力・一括入力等だが主要部は完了。工数は当初見立てより少なく着地する見込み。</p>
+          </div>
+          <div class="scard amber">
+            <span class="label">効率化の阻害要因（仕様検討）</span>
+            <p>PW案件で配送と住所のリレーション（郵便番号連携等）がルール化されておらず、仕様のすり合わせに2〜3回の手戻り。技術ではなく仕様検討の工数。</p>
+          </div>
+          <div class="scard amber">
+            <span class="label">AIテストの限界とTips</span>
+            <p>「同名のボタンが多数並ぶ画面」でAIが正しいボタンを押せず約3時間推論を繰り返す事例。人間が誤操作を検知しローカルの正しい動作を伝えて解決。複雑なUIの自動テストは要注意。</p>
+          </div>
+          <div class="scard">
+            <span class="label">対話形式の高度化（改善課題）</span>
+            <p>AIの問いかけが「どうしますか？」と曖昧になりがち。What抽出→How提案までAIに行わせ人はYes/Noで承認するフローを目指し、問いかけ方のコントロールを改善タスクに設定。</p>
+          </div>
+          <div class="scard red">
+            <span class="label">品質管理・承認権限（社長指示）</span>
+            <p>チェック（承認）は権限を持つ管理者（PM・チームリーダー）が行うべき。進捗確認より「作るものが正しいか（顧客目線・整合性）」の判断こそ管理者の仕事で、上位レイヤーが最終確認しリスクを摘む。</p>
+          </div>
+          <div class="scard">
+            <span class="label">次フェーズ（7月以降）</span>
+            <p>現行タスクが7/10頃終了 → PW案件内で次ターゲットを定め第2スプリント開始。CRUD（マスター系）中心から別特性の機能カテゴリへ適用範囲を拡張し、As-Is vs To-Be を記録して有効性を実証。</p>
+          </div>
+          <div class="quote">
+            <span class="who">社長 総括</span>
+            管理者の仕事は「進捗管理」ではなく「作るものの正しさ（スコープ）」を保証すること。AIを下駄として履き、経験が浅い者でも標準プロセスに沿って高品質なアウトプットが出せる体制を構築せよ。
+          </div>
+        </div>
       </div>
     </div>
 
