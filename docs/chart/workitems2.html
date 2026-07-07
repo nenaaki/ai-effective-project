@@ -99,6 +99,27 @@
   .legend span { margin-right:14px; }
   .note { font-size:11px; color:#6b7280; margin-top:6px; }
   .swatch { display:inline-block; width:12px; height:3px; vertical-align:middle; margin-right:4px; }
+
+  /* 選定基準タブ */
+  .crit-lead { border:1px solid #bbf7d0; background:#f0fdf4; border-left:4px solid #10b981; border-radius:8px; padding:10px 14px; font-size:13px; color:#14532d; margin:2px 0 16px; line-height:1.65; }
+  .crit-lead b { color:#065f46; }
+  .crit-mid { display:flex; gap:22px; align-items:center; flex-wrap:wrap; }
+  .crit-col { flex:1 1 320px; min-width:300px; display:flex; flex-direction:column; gap:10px; }
+  .crit-fig { flex:1 1 380px; min-width:340px; display:flex; align-items:center; justify-content:center; }
+  .crit-card { border:1px solid #e5e7eb; border-radius:8px; padding:10px 14px; background:#fff; }
+  .crit-card .ct { font-size:13.5px; font-weight:bold; margin-bottom:5px; display:flex; align-items:center; gap:8px; }
+  .crit-card .cx { font-size:12.5px; color:#4b5563; line-height:1.6; }
+  .crit-card .cx b { color:#1f2937; }
+  .crit-card .ax { font-size:11.5px; color:#334155; background:#f1f5f9; border-radius:4px; padding:3px 8px; margin:2px 0 6px; display:inline-block; font-weight:600; }
+  .crit-card.s1 { border-left:4px solid #64748b; }
+  .crit-card.s2 { border-left:4px solid #10b981; }
+  .crit-pill { display:inline-block; color:#fff; font-size:10px; font-weight:700; padding:2px 8px; border-radius:10px; }
+  .crit-bases { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:18px; }
+  .crit-base { border:1px solid #e5e7eb; border-radius:8px; padding:10px 13px; background:#fff; }
+  .crit-base .bh { font-size:13.5px; font-weight:bold; margin-bottom:6px; }
+  .crit-base .baxis { font-size:11px; font-weight:700; color:#fff; border-radius:4px; padding:2px 9px; display:inline-block; margin-bottom:7px; }
+  .crit-base .bd { font-size:12px; color:#4b5563; line-height:1.6; }
+  .crit-base .bd b { color:#1f2937; }
 </style>
 </head>
 <body>
@@ -109,6 +130,74 @@
     <button class="tab-btn active" data-tab="calendar">予実管理カレンダー</button>
     <button class="tab-btn" data-tab="worklist">作業一覧</button>
     <button class="tab-btn" data-tab="evm">EVM</button>
+    <button class="tab-btn" data-tab="criteria">スコープ選定基準</button>
+  </div>
+
+  <div id="tab-criteria" class="tab-panel">
+    <div class="crit-lead">
+      <b>選定の考え方</b>：スプリント1で「AIが縦串1本（DB→バックエンド→フロント）を通せる」ことを確認した。スプリント2は<b>1本の縦串では閉じない＝基盤整備で"軸"を1つ増やす</b>テーマを選び、1段上の複雑度をAI駆動で扱えるかを試す。
+    </div>
+    <div class="crit-mid">
+      <div class="crit-col">
+        <div class="crit-card s1">
+          <div class="ct">スプリント1 <span class="crit-pill" style="background:#64748b">2軸・平面</span></div>
+          <div class="ax">軸： データの形 × CRUD</div>
+          <div class="cx">1画面＝1マスを DB→BE→FE で縦に通す<b>反復</b>。データの形とCRUDの2軸で閉じる。「型」を渡せばAIで量産できる領域を検証した（＝土台）。</div>
+        </div>
+        <div class="crit-card s2">
+          <div class="ct">スプリント2 <span class="crit-pill" style="background:#10b981">3軸＋・奥行き</span></div>
+          <div class="ax">平面（データ × CRUD）＋ 第3軸＝基盤</div>
+          <div class="cx">3つの基盤整備で平面に<b>奥行き</b>を足す。いずれも縦串1本で閉じず、<b>横断・状態・抽象</b>という別種の軸をAIで扱えるかを問う。</div>
+        </div>
+      </div>
+      <div class="crit-fig">
+        <svg width="380" height="300" viewBox="0 0 380 300" style="max-width:100%;height:auto;font-family:inherit">
+          <!-- 奥（③②①）→手前（S1）の順に描画して重なりで奥行きを出す -->
+          <rect x="133" y="60"  width="130" height="120" rx="4" fill="#7c3aed" fill-opacity="0.10" stroke="#7c3aed" stroke-width="1.3"/>
+          <rect x="107" y="82"  width="130" height="120" rx="4" fill="#0891b2" fill-opacity="0.12" stroke="#0891b2" stroke-width="1.3"/>
+          <rect x="81"  y="104" width="130" height="120" rx="4" fill="#2563eb" fill-opacity="0.12" stroke="#2563eb" stroke-width="1.3"/>
+          <!-- 手前＝スプリント1の平面（データ×CRUD） -->
+          <rect x="55" y="126" width="130" height="120" rx="4" fill="#f1f5f9" stroke="#64748b" stroke-width="1.6"/>
+          <g stroke="#cbd5e1" stroke-width="0.6">
+            <line x1="87.5"  y1="126" x2="87.5"  y2="246"/><line x1="120" y1="126" x2="120" y2="246"/><line x1="152.5" y1="126" x2="152.5" y2="246"/>
+            <line x1="55" y1="156" x2="185" y2="156"/><line x1="55" y1="186" x2="185" y2="186"/><line x1="55" y1="216" x2="185" y2="216"/>
+          </g>
+          <!-- 2軸ラベル（手前平面） -->
+          <text x="120" y="264" text-anchor="middle" font-size="10.5" fill="#475569">データの形 →</text>
+          <text x="46" y="186" text-anchor="middle" font-size="10.5" fill="#475569" transform="rotate(-90 46 186)">CRUD ↑</text>
+          <!-- 奥行き軸（基盤） -->
+          <line x1="185" y1="126" x2="263" y2="60" stroke="#0f766e" stroke-width="2" stroke-dasharray="4 3" marker-end="url(#crit-arz)"/>
+          <text x="272" y="66" font-size="10.5" fill="#0f766e" font-weight="bold">基盤＝奥行き</text>
+          <!-- ①②③ タブ -->
+          <g font-size="11" font-weight="bold" text-anchor="middle">
+            <circle cx="81"  cy="104" r="10.5" fill="#2563eb"/><text x="81"  y="108" fill="#fff">①</text>
+            <circle cx="107" cy="82"  r="10.5" fill="#0891b2"/><text x="107" y="86"  fill="#fff">②</text>
+            <circle cx="133" cy="60"  r="10.5" fill="#7c3aed"/><text x="133" y="64"  fill="#fff">③</text>
+          </g>
+          <defs>
+            <marker id="crit-arz" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#0f766e"/></marker>
+          </defs>
+          <text x="190" y="290" text-anchor="middle" font-size="10" fill="#94a3b8">平面（2軸）に基盤3枚を重ね、"奥行き＝第3軸"を足す</text>
+        </svg>
+      </div>
+    </div>
+    <div class="crit-bases">
+      <div class="crit-base" style="border-left:4px solid #2563eb">
+        <div class="bh">① 認証・認可</div>
+        <div class="baxis" style="background:#2563eb">＋ 横断 × 範囲軸</div>
+        <div class="bd">1つの判定コアを<b>全API・全画面へ横展開</b>（cross-cutting）。範囲×操作×CRUD＝16bit。1機能で閉じない。</div>
+      </div>
+      <div class="crit-base" style="border-left:4px solid #0891b2">
+        <div class="bh">② 配送ステータス遷移</div>
+        <div class="baxis" style="background:#0891b2">＋ 状態遷移軸</div>
+        <div class="bd">CRUDの「更新」が単純上書き→<b>(from × event × actor)→to</b> の遷移マトリクス＋制約＋トランザクション。</div>
+      </div>
+      <div class="crit-base" style="border-left:4px solid #7c3aed">
+        <div class="bh">③ 外部連携(Export/Import)</div>
+        <div class="baxis" style="background:#7c3aed">＋ 抽象度軸</div>
+        <div class="bd">「機能」でなく<b>「機能を生む基盤」</b>を設計。定義とエンジンを分離し、定義追加だけで量産。</div>
+      </div>
+    </div>
   </div>
 
   <div id="tab-calendar" class="tab-panel active">
@@ -440,16 +529,28 @@ const laneRows = {1:1, 2:1};
     : `現時点は未着手（EV=AC=0）のため PV（計画値）＋計画完了マーカーのみ。7/13 着手後、各タスクの progress／actual を sprint2_data.js に記入すると EV・AC・SPI・CPI・EAC・完了予測日が算出されます。`;
 })();
 
-// ---- タブ切替（workitems と同挙動）----
+// ---- タブ切替（workitems と同挙動＋URLハッシュで直接オープン）----
+function activateTab(name){
+  const btn = document.querySelector('.tab-btn[data-tab="'+name+'"]');
+  const panel = document.getElementById('tab-'+name);
+  if(!btn || !panel) return false;
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  panel.classList.add('active');
+  return true;
+}
 document.querySelectorAll('.tab-btn').forEach(btn=>{
   btn.addEventListener('click', ()=>{
     const name = btn.dataset.tab;
-    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById('tab-'+name).classList.add('active');
+    activateTab(name);
+    history.replaceState(null, '', '#'+name);   // 共有できるよう URL ハッシュを更新
   });
 });
+// 初期表示：URL の #criteria 等があれば該当タブを直接開く
+activateTab((location.hash || '').replace('#',''));
+// 戻る/進む・ハッシュ手動変更にも追従
+window.addEventListener('hashchange', ()=> activateTab((location.hash||'').replace('#','')));
 </script>
 </body>
 </html>
