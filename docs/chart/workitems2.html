@@ -120,6 +120,9 @@
   .crit-base .baxis { font-size:11px; font-weight:700; color:#fff; border-radius:4px; padding:2px 9px; display:inline-block; margin-bottom:7px; }
   .crit-base .bd { font-size:12px; color:#4b5563; line-height:1.6; }
   .crit-base .bd b { color:#1f2937; }
+  .crit-base .bnew { font-size:11.5px; color:#334155; background:#f1f5f9; border-radius:5px; padding:5px 8px; margin-top:8px; line-height:1.55; }
+  .crit-base .bnew .bl { font-weight:700; color:#0f766e; }
+  .crit-base .bnew b { color:#1f2937; }
 </style>
 </head>
 <body>
@@ -135,7 +138,8 @@
 
   <div id="tab-criteria" class="tab-panel">
     <div class="crit-lead">
-      <b>選定の考え方</b>：スプリント1で「AIが縦串1本（DB→バックエンド→フロント）を通せる」ことを確認した。スプリント2は<b>1本の縦串では閉じない＝基盤整備で"軸"を1つ増やす</b>テーマを選び、1段上の複雑度をAI駆動で扱えるかを試す。
+      <b>選定の考え方</b>：スプリント1で「AIが縦串1本（DB→バックエンド→フロント）を通せる」ことを確認した。スプリント2は<b>1本の縦串では閉じない＝基盤整備で"軸"を1つ増やす</b>テーマを選び、1段上の複雑度をAI駆動で扱えるかを試す。<br>
+      <b>スプリント1との違い</b>：これまでは<b>データ型 × CRUD</b>で機能を作ってきた。スプリント2はそこに<b>「統制的な設計」を1軸加え</b>、<b>決めたルールをシステム全体へ浸透させる</b>ことを狙う。単一機能では閉じない一段上の複雑度を、AI駆動で扱えるかを検証する。説明軸は2つ：<b>①なぜこの領域か</b>（縦串で閉じない複雑度）と <b>②なぜAIでやるのか</b>（下段カードの「なぜAIで」）。
     </div>
     <div class="crit-mid">
       <div class="crit-col">
@@ -146,8 +150,8 @@
         </div>
         <div class="crit-card s2">
           <div class="ct">スプリント2 <span class="crit-pill" style="background:#10b981">3軸＋・奥行き</span></div>
-          <div class="ax">平面（データ × CRUD）＋ 第3軸＝基盤</div>
-          <div class="cx">3つの基盤整備で平面に<b>奥行き</b>を足す。いずれも縦串1本で閉じず、<b>横断・状態・抽象</b>という別種の軸をAIで扱えるかを問う。</div>
+          <div class="ax">平面（データ × CRUD）＋ 第3軸（統制的な設計）＝システム全体へのルールの浸透</div>
+          <div class="cx">3つの基盤整備で平面に<b>奥行き</b>を足す。いずれも縦串1本で閉じず、<b>横断・状態・外部境界</b>という別種の軸をAIで扱えるかを問う。</div>
         </div>
       </div>
       <div class="crit-fig">
@@ -185,17 +189,20 @@
       <div class="crit-base" style="border-left:4px solid #2563eb">
         <div class="bh">① 認証・認可</div>
         <div class="baxis" style="background:#2563eb">＋ 横断 × 範囲軸</div>
-        <div class="bd">1つの判定コアを<b>全API・全画面へ横展開</b>（cross-cutting）。範囲×操作×CRUD＝16bit。1機能で閉じない。</div>
+        <div class="bd">ユーザーの権限で<b>アクセスできる画面・画面上の機能・APIの可否</b>が決まる。全画面・全APIに横串で効き、1機能では閉じない。</div>
+        <div class="bnew"><span class="bl">なぜAIで</span>：判定の"型"さえ決めれば、<b>膨大な画面・APIへAIが一気に・ムラなく展開</b>でき、<b>横断的な自動テスト基盤</b>も用意しやすい。付け忘れと物量が最大の壁＝まさにAI向き。</div>
       </div>
       <div class="crit-base" style="border-left:4px solid #0891b2">
         <div class="bh">② 配送ステータス遷移</div>
         <div class="baxis" style="background:#0891b2">＋ 状態遷移軸</div>
         <div class="bd">CRUDの「更新」が単純上書き→<b>(from × event × actor)→to</b> の遷移マトリクス＋制約＋トランザクション。</div>
+        <div class="bnew"><span class="bl">なぜAIで</span>：遷移ルールを渡せば、<b>AIが漏れなくルールを検証し、実装し、テストまで網羅</b>できる。分岐・例外が多く人手では抜けやすい領域で効く。</div>
       </div>
       <div class="crit-base" style="border-left:4px solid #7c3aed">
-        <div class="bh">③ 外部連携(Export/Import)</div>
-        <div class="baxis" style="background:#7c3aed">＋ 抽象度軸</div>
-        <div class="bd">「機能」でなく<b>「機能を生む基盤」</b>を設計。定義とエンジンを分離し、定義追加だけで量産。</div>
+        <div class="bh">③ 外部連携(インポート＋SMS/IVR連携)</div>
+        <div class="baxis" style="background:#7c3aed">＋ 外部境界（I/F）軸</div>
+        <div class="bd"><b>外部システムとの境界を扱う</b>。<b>インポート</b>を既存エクスポート基盤と同じ<b>「定義型」</b>で新設（定義1個＝1帳票）。加えて<b>SMS/IVR連携のインターフェース＋ドライバ化</b>（例：配達遅延通知、再配達受付の希望日時取得）。</div>
+        <div class="bnew"><span class="bl">なぜAIで</span>：取込・連携は<b>定型コードの塊</b>。定義やインターフェースと連携先リファレンスを元にドライバーを作ることは<b>AIが得意とする分野</b>。</div>
       </div>
     </div>
   </div>

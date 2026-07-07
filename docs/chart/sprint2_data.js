@@ -22,14 +22,15 @@ const SPRINT2_DATA = {
   bases: [
     { key: "auth",   id: "①", name: "認証・認可",              color: "#2563eb" },
     { key: "status", id: "②", name: "配送ステータス遷移",      color: "#0891b2" },
-    { key: "export", id: "③", name: "外部連携(Export/Import)", color: "#7c3aed" },
+    { key: "export", id: "③", name: "外部連携(Import＋SMS/IVR)", color: "#7c3aed" },
     { key: "reserve", id: "予", name: "予備工数",              color: "#64748b" },
   ],
   tasks: [
     // ───────── ① 認証・認可：仕様精査 ─────────
     { name: "仕様精査(認可)",   base: "auth", person: 1, group: "仕様精査",   code: "SP",  owner: "両", deps: [], nobuffer: true, asis: 10.8, tobe: 7.2, status: "予定", progress: 0, actual: 0, desc: "認証・認可の要件・SEED権限データ・16bitモデルの精査と実装前の論点整理（scope複合・粒度・Cognito連携時期など）。" },
     // ───────── ① 認証・認可：基盤 ─────────
-    { name: "JWT実装",          base: "auth", person: 1, group: "基盤",       code: "A",   owner: "BE", deps: [],                    asis: 8,  tobe: 3.0, status: "予定", progress: 0, actual: 0, desc: "JwtAuthGuard 本実装（Cognito署名検証・実ユーザー注入、dev-bypass温存）。最優先。" },
+    { name: "Cognito整備",      base: "auth", person: 1, group: "基盤",       code: "A0",  owner: "BE", deps: [],                    asis: 5,  tobe: 3.0, status: "予定", progress: 0, actual: 0, desc: "Cognito ユーザープール／アプリクライアント／グループ（ロール）設定・トークンクレーム設計。AWS側整備でAI駆動範囲外の手作業を含む。JWT署名検証の前提。" },
+    { name: "JWT実装",          base: "auth", person: 1, group: "基盤",       code: "A",   owner: "BE", deps: ["Cognito整備"],       asis: 8,  tobe: 3.0, status: "予定", progress: 0, actual: 0, desc: "JwtAuthGuard 本実装（Cognito署名検証・実ユーザー注入、dev-bypass温存）。最優先。" },
     { name: "判定コア",         base: "auth", person: 1, group: "基盤",       code: "B",   owner: "BE", deps: ["JWT実装"],           asis: 12, tobe: 4.0, status: "予定", progress: 0, actual: 0, desc: "resolveAccess/can/allowedScope＋accessBits DataLoader＋scope→where変換＋16bit単体テスト。" },
     { name: "Guard・デコレータ", base: "auth", person: 1, group: "基盤",       code: "C",   owner: "BE", deps: ["判定コア"],          asis: 6,  tobe: 2.5, status: "予定", progress: 0, actual: 0, desc: "PermissionGuard＋@RequirePermission。高リスクMutationから付与、scopeをbuildPrismaWhere統合。" },
     { name: "権限配布API",       base: "auth", person: 1, group: "基盤",       code: "D",   owner: "BE", deps: ["判定コア"],          asis: 6,  tobe: 2.5, status: "予定", progress: 0, actual: 0, desc: "getUserPermission本実装。menu/operation/scope可否マップを返す、schema.gql更新。" },
@@ -63,19 +64,22 @@ const SPRINT2_DATA = {
     { name: "FE連携",           base: "status", person: 2, group: "基盤",      code: "G",   owner: "FE", deps: ["定数正本化", "mutation巻取り"], asis: 8, tobe: 3.0, status: "予定", progress: 0, actual: 0, desc: "business-actionsをstatusCode直送信→イベント送信へ。持ち戻りサブ化UI反映。" },
     { name: "遷移図ドキュメント", base: "status", person: 2, group: "基盤",    code: "H",   owner: "両", deps: ["遷移マトリクス"],    asis: 3,  tobe: 1.5, status: "予定", progress: 0, actual: 0, desc: "ステータス×イベントのマトリクス図を成果物化、m-delivery-status.md反映。" },
 
-    // ───────── ③ 外部連携（Export/Import）─────────
-    { name: "仕様精査(連携)",   base: "export", person: 2, group: "仕様精査", code: "SP",  owner: "両", deps: [], nobuffer: true, asis: 10.8, tobe: 7.2, status: "予定", progress: 0, actual: 0, desc: "エクスポート既存基盤／インポート新設の精査と実装前の論点整理（レジストリ化・ファイル授受方式・バリデーション正本・文字コード）。" },
-    { name: "Exportレジストリ", base: "export", person: 2, group: "Export",   code: "E1",  owner: "FE", deps: [],                    asis: 6,  tobe: 2.5, status: "予定", progress: 0, actual: 0, desc: "EXPORT_REGISTRY集約＋export-tableのmap描画化（SWCバグを1グループで先行検証）。" },
-    { name: "Formatter抽象化",  base: "export", person: 2, group: "Export",   code: "E2",  owner: "FE", deps: [],                    asis: 6,  tobe: 2.5, status: "予定", progress: 0, actual: 0, desc: "ExportFormatter I/F。csv/excel実装。cod-confirmation独自Excelの吸収検討。" },
-    { name: "列権限メタ",       base: "export", person: 2, group: "Export",   code: "E3",  owner: "FE", deps: ["Exportレジストリ", "権限ゲート(FE)"], asis: 3, tobe: 1.5, status: "予定", progress: 0, actual: 0, desc: "列定義にformat/必要権限メタ。認可基盤(①)連携でPII列を自動出し分け。" },
-    { name: "export切出し",     base: "export", person: 2, group: "Export",   code: "E4",  owner: "BE", deps: [],                    asis: 4,  tobe: 2.0, status: "予定", progress: 0, actual: 0, desc: "delivery同居の2メソッドをexport featureへ分離、include/行組立を共通ヘルパに。" },
-    { name: "単票データソース", base: "export", person: 2, group: "Export",   code: "E5",  owner: "BE", deps: [],                    asis: 8,  tobe: 3.0, status: "予定", progress: 0, actual: 0, desc: "IVR受電/WEB受信/対応履歴の専用クエリ実装、misc-reportsの'-'ダミー解消。" },
+    // ───────── ③ 外部連携（インポート＋SMS/IVRシステム連携）─────────
+    // 出典: .work/基盤設計_03_外部連携.md。インポートは既存エクスポート基盤と同じ「定義型」で新設。SMS/IVRは機能軸で抽象化しドライバー化（リアル層は繋がずモックドライバーで代替）。
+    { name: "仕様精査(連携)",   base: "export", person: 2, group: "仕様精査", code: "SP",  owner: "両", deps: [], nobuffer: true, asis: 10.8, tobe: 7.2, status: "予定", progress: 0, actual: 0, desc: "インポート新設・SMS/IVR連携の精査と実装前の論点整理（ファイル授受方式・バリデーション正本・文字コード・部分失敗ポリシー・連携I/F粒度・ドライバー化方針・再送/冪等）。" },
+    // ── インポート：現エクスポート同等の「定義型」基盤（新設）──
     { name: "授受方式選定",     base: "export", person: 2, group: "Import",   code: "I1",  owner: "BE", deps: [],                    asis: 3,  tobe: 1.5, status: "予定", progress: 0, actual: 0, desc: "Uploadスカラー/Base64/署名付きURLのいずれか決定＋PoC。" },
-    { name: "Importエンジン",   base: "export", person: 2, group: "Import",   code: "I2",  owner: "FE", deps: ["授受方式選定"],      asis: 9,  tobe: 3.5, status: "予定", progress: 0, actual: 0, desc: "ImportDefinition＋useCsvImport。パース→検証→プレビュー→反映→結果表示。" },
-    { name: "import feature",   base: "export", person: 2, group: "Import",   code: "I3",  owner: "BE", deps: ["授受方式選定"],      asis: 8,  tobe: 3.0, status: "予定", progress: 0, actual: 0, desc: "一括登録mutation・$transaction・部分失敗ポリシー・冪等upsert・取込ログ。" },
-    { name: "初回Import定義",   base: "export", person: 2, group: "Import",   code: "I4",  owner: "両", deps: ["Importエンジン", "import feature"], asis: 5, tobe: 2.0, status: "予定", progress: 0, actual: 0, desc: "業務優先度の高い1件（お客様情報変更依頼 取込等）で縦貫検証。" },
+    { name: "Importエンジン",   base: "export", person: 2, group: "Import",   code: "I2",  owner: "FE", deps: ["授受方式選定"],      asis: 9,  tobe: 3.5, status: "予定", progress: 0, actual: 0, desc: "ImportDefinition＋useCsvImport。パース→マッピング→検証→プレビュー→反映→結果表示。Validation正本が肝。" },
+    { name: "import feature",   base: "export", person: 2, group: "Import",   code: "I3",  owner: "BE", deps: ["授受方式選定"],      asis: 8,  tobe: 3.0, status: "予定", progress: 0, actual: 0, desc: "api-core import feature。一括登録mutation・$transaction・部分失敗ポリシー・冪等upsert・取込ログ。" },
+    { name: "初回Import定義",   base: "export", person: 2, group: "Import",   code: "I4",  owner: "両", deps: ["Importエンジン", "import feature"], asis: 5, tobe: 2.0, status: "予定", progress: 0, actual: 0, desc: "業務優先度の高い1件（お客様情報変更依頼 取込等）で縦貫検証。定義追加だけで2件目が載ることを確認。" },
+    // ── SMS/IVR連携：機能軸で抽象化＋ドライバー化（リアル層は繋がず、モックドライバーで代替。駆動UC＝再配達受付の希望日時取得）──
+    { name: "連携I/F定義",      base: "export", person: 2, group: "連携",       code: "L1",  owner: "BE", deps: [],                    asis: 4,  tobe: 2.0, status: "予定", progress: 0, actual: 0, desc: "使いたい機能を機能軸のサービスI/Fに契約化（再配達受付＝顧客/荷物/希望日時/チャネル）。実ベンダーアクセスはドライバーに閉じる。" },
+    { name: "連携モックドライバー", base: "export", person: 2, group: "連携",    code: "L2",  owner: "BE", deps: ["連携I/F定義"],        asis: 6,  tobe: 2.5, status: "予定", progress: 0, actual: 0, desc: "リアル層の代替。fixtureで受付データ・希望日時を返すモックドライバー（成功/失敗/遅延切替）。ベンダー確定後は実ドライバーに差替え。" },
+    { name: "連携サービス・API", base: "export", person: 2, group: "連携",      code: "L3",  owner: "BE", deps: ["連携I/F定義", "連携モックドライバー"], asis: 8, tobe: 3.0, status: "予定", progress: 0, actual: 0, desc: "クライアントを束ねるバックエンドサービス＋GraphQL query/mutationで取得・取込を公開。" },
+    { name: "再配達日時反映",   base: "export", person: 2, group: "連携",       code: "L4",  owner: "BE", deps: ["連携サービス・API", "遷移サービス"], asis: 5, tobe: 2.0, status: "予定", progress: 0, actual: 0, desc: "取得した再配達希望日時を配送へ反映。②遷移サービス/更新経路を再利用（重複回避）。" },
+    { name: "連携E2E",          base: "export", person: 2, group: "連携",       code: "L5",  owner: "両", deps: ["再配達日時反映", "連携モックドライバー"], asis: 4, tobe: 1.5, status: "予定", progress: 0, actual: 0, desc: "モックドライバー相手に『取得→反映』を1本通すE2E。失敗時の扱いも確認。" },
     // ───────── 予備工数（各人員の残キャパを 7/31 まで確保。nobuffer＝素の時間）─────────
-    { name: "予備工数1",        base: "reserve", person: 1, group: "予備工数", code: "R1",  owner: "両", deps: [], nobuffer: true, asis: 13.8, tobe: 13.8, status: "予定", progress: 0, actual: 0, desc: "人員1（①認証認可）の残キャパ。手戻り・追加調査・レビュー対応・仕様確認の往復などの予備枠（7/31 まで）。" },
+    { name: "予備工数1",        base: "reserve", person: 1, group: "予備工数", code: "R1",  owner: "両", deps: [], nobuffer: true, asis: 9.6, tobe: 9.6, status: "予定", progress: 0, actual: 0, desc: "人員1（①認証認可）の残キャパ。手戻り・追加調査・レビュー対応・仕様確認の往復などの予備枠（7/31 まで）。" },
     { name: "予備工数2",        base: "reserve", person: 2, group: "予備工数", code: "R2",  owner: "両", deps: [], nobuffer: true, asis: 19.9, tobe: 19.9, status: "予定", progress: 0, actual: 0, desc: "人員2（②③）の残キャパ。手戻り・追加調査・レビュー対応・仕様確認の往復などの予備枠（7/31 まで）。" },
   ],
 };
