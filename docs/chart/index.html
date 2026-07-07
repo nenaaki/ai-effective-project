@@ -11,16 +11,34 @@
   .col h2 { font-size: 16px; color:#2a6; border-bottom: 1px solid #cde3d6; padding-bottom: 5px; margin: 8px 0 4px; }
   ul.links { list-style: none; padding: 0; margin: 16px 0; }
   ul.links li { margin: 10px 0; }
-  ul.links a { display: block; border: 1px solid #ccc; border-left: 4px solid #2a6; border-radius: 4px; padding: 12px 16px; text-decoration: none; color: #1a5; background: #fafdfb; }
-  ul.links a:hover { background: #eef7f1; }
-  ul.links a.issue { border-left-color: #d97706; color: #92400e; background: #fffbf2; }
-  ul.links a.issue:hover { background: #fef3c7; }
-  ul.links a.consulted { border-left-color: #9ca3af; color: #4b5563; background: #f9fafb; }
-  ul.links a.consulted:hover { background: #f3f4f6; }
-  ul.links a.consulted .badge { display: inline-block; background: #9ca3af; color: #fff; font-size: 11px; font-weight: bold; padding: 0 7px; border-radius: 3px; margin-right: 6px; vertical-align: 1px; }
-  ul.links .title { font-weight: bold; font-size: 15px; }
-  ul.links .desc { font-size: 13px; color: #555; margin-top: 2px; }
-  ul.links .path { font-size: 12px; color: #999; margin-top: 2px; }
+  details.item { border: 1px solid #ccc; border-left: 4px solid #2a6; border-radius: 4px; background: #fafdfb; }
+  details.item > summary { cursor: pointer; list-style: none; user-select: none; padding: 10px 14px; font-weight: bold; font-size: 15px; color: #1a5; }
+  details.item > summary::-webkit-details-marker { display: none; }
+  details.item > summary .caret { display: inline-block; width: 1.2em; text-align: center; color: #2a6; user-select: none; border-radius: 3px; }
+  details.item > summary .caret::before { content: "▸"; }
+  details.item[open] > summary .caret::before { content: "▾"; }
+  details.item > summary .caret:hover { background: #d7ebdf; }
+  details.item > summary:hover { background: #eef7f1; }
+  details.item .body { padding: 0 14px 10px 30px; }
+  details.item .desc { font-size: 13px; color: #555; }
+  details.item .path { font-size: 12px; color: #999; margin-top: 3px; display: inline-block; text-decoration: none; }
+  details.item .path:hover { color: #1a5; text-decoration: underline; }
+  details.item.issue { border-left-color: #d97706; background: #fffbf2; }
+  details.item.issue > summary { color: #92400e; }
+  details.item.issue > summary .caret { color: #d97706; }
+  details.item.issue > summary .caret:hover { background: #fde3b3; }
+  details.item.consulted { border-left-color: #9ca3af; background: #f9fafb; }
+  details.item.consulted > summary { color: #4b5563; }
+  details.item.consulted > summary .caret { color: #9ca3af; }
+  details.item.consulted > summary .caret:hover { background: #e5e7eb; }
+  .badge { display: inline-block; background: #9ca3af; color: #fff; font-size: 11px; font-weight: bold; padding: 0 7px; border-radius: 3px; margin-right: 6px; vertical-align: 1px; }
+  details.grp { margin: 10px 0; }
+  details.grp > summary { cursor: pointer; font-weight: bold; font-size: 14px; color: #2a6; background: #eef7f1; border: 1px solid #cde3d6; border-radius: 4px; padding: 6px 12px; list-style: none; user-select: none; }
+  details.grp > summary::-webkit-details-marker { display: none; }
+  details.grp > summary::before { content: "▾"; display: inline-block; width: 1.1em; }
+  details.grp:not([open]) > summary::before { content: "▸"; }
+  details.grp > summary:hover { background: #e2f0e8; }
+  details.grp ul.links { margin: 8px 0 10px; }
 </style>
 </head>
 <body>
@@ -29,74 +47,117 @@
 <div class="cols">
   <div class="col">
     <h2>ドキュメント・課題事例</h2>
-    <ul class="links">
-      <li><a href="workitems.html">
-        <div class="title">プロジェクト管理</div>
-        <div class="desc">タスク管理・進捗管理・マイルストーン</div>
-        <div class="path">workitems.html</div>
-      </a></li>
-      <li><a href="aidd_report.html">
-        <div class="title">AI駆動開発実施レポート</div>
-        <div class="desc">AI駆動開発の試行結果・フロー上の問題点のまとめ　新規: デポマスタ、ユーザーマスタ、エリアマスタ</div>
-        <div class="path">aidd_report.html</div>
-      </a></li>
-      <li><a href="test_structure.html">
-        <div class="title">テスト設計の構造（Check観点の相談）</div>
-        <div class="desc">テスト設計を V字モデルで構造化し、各工程の Check 観点・クリア条件と、AI／人間の分担（Backend は Jest ユニット、画面の振る舞いは人間判定）を相談する資料。</div>
-        <div class="path">test_structure.html</div>
-      </a></li>
-      <li><a href="problem_ex_1.html" class="consulted">
-        <div class="title"><span class="badge">相談済み</span>課題事例①: 要件不明確時のフロー（PW-120 デポマスタ）</div>
-        <div class="desc">業務判断が不明・要件不足を planner が検知した際の確認導線が未整備。エスカレーション／管理チャネル統一の結論と PW での運用まで</div>
-        <div class="path">problem_ex_1.html</div>
-      </a></li>
-      <li><a href="problem_ex_2.html" class="consulted">
-        <div class="title"><span class="badge">相談済み</span>課題事例②: モックと同一の画面が作られないケース（PW-123 ユーザマスタ）</div>
-        <div class="desc">mock と実装でレイアウト（grid 横並び vs 縦リスト）が乖離する課題。UI における AI 活用方針（実用性優先）の結論と PW での運用まで</div>
-        <div class="path">problem_ex_2.html</div>
-      </a></li>
-      <li><a href="problem_ex_3.html" class="consulted">
-        <div class="title"><span class="badge">相談済み</span>課題事例①': 不明点の確認フロー運用で見えた課題と切り分け方針（PW-122 エリアマスタ等）</div>
-        <div class="desc">課題①で整備した谷さん・千葉さんへの確認フローを実運用。出た不明点が「即答困難（顧客確認）／AI駆動の対象外（業務ロジック・外部連携）／資料で網羅定義（Validation等）」と3種類混在し整理に時間。別チケットで切り分ける方針の確認まで</div>
-        <div class="path">problem_ex_3.html</div>
-      </a></li>
-    </ul>
+    <details class="grp" open>
+      <summary>スプリント1</summary>
+      <ul class="links">
+        <li><details class="item" open>
+          <summary>プロジェクト管理</summary>
+          <div class="body"><div class="desc">タスク管理・進捗管理・マイルストーン</div>
+          <a class="path" href="workitems.html">workitems.html →</a></div>
+        </details></li>
+        <li><details class="item" open>
+          <summary>AI駆動開発実施レポート</summary>
+          <div class="body"><div class="desc">AI駆動開発の試行結果・フロー上の問題点のまとめ　新規: デポマスタ、ユーザーマスタ、エリアマスタ</div>
+          <a class="path" href="aidd_report.html">aidd_report.html →</a></div>
+        </details></li>
+        <li><details class="item" open>
+          <summary>テスト設計の構造（Check観点の相談）</summary>
+          <div class="body"><div class="desc">テスト設計を V字モデルで構造化し、各工程の Check 観点・クリア条件と、AI／人間の分担（Backend は Jest ユニット、画面の振る舞いは人間判定）を相談する資料。</div>
+          <a class="path" href="test_structure.html">test_structure.html →</a></div>
+        </details></li>
+        <li><details class="item consulted">
+          <summary><span class="badge">相談済み</span>課題事例①: 要件不明確時のフロー（PW-120 デポマスタ）</summary>
+          <div class="body"><div class="desc">業務判断が不明・要件不足を planner が検知した際の確認導線が未整備。エスカレーション／管理チャネル統一の結論と PW での運用まで</div>
+          <a class="path" href="problem_ex_1.html">problem_ex_1.html →</a></div>
+        </details></li>
+        <li><details class="item consulted">
+          <summary><span class="badge">相談済み</span>課題事例②: モックと同一の画面が作られないケース（PW-123 ユーザマスタ）</summary>
+          <div class="body"><div class="desc">mock と実装でレイアウト（grid 横並び vs 縦リスト）が乖離する課題。UI における AI 活用方針（実用性優先）の結論と PW での運用まで</div>
+          <a class="path" href="problem_ex_2.html">problem_ex_2.html →</a></div>
+        </details></li>
+        <li><details class="item consulted">
+          <summary><span class="badge">相談済み</span>課題事例①': 不明点の確認フロー運用で見えた課題と切り分け方針（PW-122 エリアマスタ等）</summary>
+          <div class="body"><div class="desc">課題①で整備した谷さん・千葉さんへの確認フローを実運用。出た不明点が「即答困難（顧客確認）／AI駆動の対象外（業務ロジック・外部連携）／資料で網羅定義（Validation等）」と3種類混在し整理に時間。別チケットで切り分ける方針の確認まで</div>
+          <a class="path" href="problem_ex_3.html">problem_ex_3.html →</a></div>
+        </details></li>
+      </ul>
+    </details>
+    <details class="grp" open>
+      <summary>スプリント2</summary>
+      <ul class="links">
+        <li><details class="item" open>
+          <summary>スプリント2 タスク管理（基盤設計 ①②③）</summary>
+          <div class="body"><div class="desc">7/13開始のスプリント2。基盤設計（①認証認可 / ②配送ステータス遷移 / ③外部連携）のタスク一覧・ガント・バーンダウン。各タスクに短縮和名を付与。</div>
+          <a class="path" href="workitems2.html">workitems2.html →</a></div>
+        </details></li>
+        <li><details class="item" open>
+          <summary>スプリント2 開発工数比較（AsIs / ToBe）</summary>
+          <div class="body"><div class="desc">基盤設計 ①②③ のタスク単位 AsIs（人力想定）vs ToBe（AI駆動見込み・バッファ40%込み）比較。①②③＋合計タブ、削減率つき。</div>
+          <a class="path" href="aidd_report2.html">aidd_report2.html →</a></div>
+        </details></li>
+      </ul>
+    </details>
   </div>
   <div class="col">
     <h2>議事まとめ</h2>
     <ul class="links">
-      <li><a href="minutes_2026-07-02.html">
-        <div class="title">議題と議事録まとめ 2026-07-02（議題 / アクション・決定事項は後日追記）</div>
-        <div class="desc">本日の議題は、6/25 決定事項の「フロー」（着手前にPMと「I／P／O」枠組みを合意する工程を開発プロセス図の最前段に追加）と「権限」（フロー図に「誰が作業し、誰が承認するか」を明示）を1件に統合し、前回指摘を受けて修正した ai-08 スライドで結果を共有。アクションアイテム・決定事項まとめは欄のみ用意（後日追記）</div>
-        <div class="path">minutes_2026-07-02.html</div>
-      </a></li>
-      <li><a href="minutes_2026-06-25.html">
-        <div class="title">議題と議事録まとめ 2026-06-25（議題 / アクション・決定事項は後日追記）</div>
-        <div class="desc">本日の議題は、6/18 アクションアイテム①〜③（変更管理・仕様変更のプロセス定義・チェック基準検討・変更チェック具体化）の進捗共有と、④報告スライドの森→木→森構成の確認。今後のアクションアイテム・決定事項まとめは欄のみ用意（後日追記）</div>
-        <div class="path">minutes_2026-06-25.html</div>
-      </a></li>
-      <li><a href="minutes_2026-06-18.html">
-        <div class="title">議事まとめ 2026-06-18（変更管理 / チェック基準ファースト / 報告スライド構成）</div>
-        <div class="desc">社長MTGで合意したアクション（正常系の変更管理・仕様変更のプロセス定義・影響範囲のチェック基準検討・変更チェックの具体化試行・スライドの森→木→森構成への修正・全社会議での共有検討）と決定事項（AIに影響範囲/要テスト範囲を出力させ確認をもって品質OK・予実前倒し・チェック基準ファースト）。録音不可のため記憶から再構成</div>
-        <div class="path">minutes_2026-06-18.html</div>
-      </a></li>
-      <li><a href="minutes_2026-06-10.html">
-        <div class="title">議事まとめ 2026-06-10（今後のアクション / 決定事項 / 相談事項）</div>
-        <div class="desc">社長MTGで合意したアクション（As-Is/To-Be比較資料・テスト設計フレームワーク修正・WBS更新・他チームへの情報共有）と決定事項（EVM進捗・テスト観点の納品品質への再定義・粒度維持・情報共有ストーリーライン）、6/22の画面実装完了マイルストーン。他部署・他チームからの情報共有依頼への対応方針の相談事項・依頼メッセージ（例: TNOさん）も併載</div>
-        <div class="path">minutes_2026-06-10.html</div>
-      </a></li>
-      <li><a href="minutes_2026-06-03.html">
-        <div class="title">議事まとめ 2026-06-03（今後のアクション / 決定事項）</div>
-        <div class="desc">金子社長MTGで確定したアクション（試行錯誤の可視化・EVM / タスク運用・簿外排除 / 課題管理・プッシュ型）、決定事項、6/8の標準化フェーズ移行マイルストーン</div>
-        <div class="path">minutes_2026-06-03.html</div>
-      </a></li>
-      <li><a href="minutes_2026-05-28.html">
-        <div class="title">議事まとめ 2026-05-28（今後のアクション / 決定事項）</div>
-        <div class="desc">定例で確定したアクションアイテム（進捗管理・指標 / 効果測定・標準化）、決定事項、全体総括</div>
-        <div class="path">minutes_2026-05-28.html</div>
-      </a></li>
+      <li><details class="item" open>
+        <summary>議題と議事録まとめ 2026-07-02（議題 / アクション・決定事項は後日追記）</summary>
+        <div class="body"><div class="desc">本日の議題は、6/25 決定事項の「フロー」（着手前にPMと「I／P／O」枠組みを合意する工程を開発プロセス図の最前段に追加）と「権限」（フロー図に「誰が作業し、誰が承認するか」を明示）を1件に統合し、前回指摘を受けて修正した ai-08 スライドで結果を共有。アクションアイテム・決定事項まとめは欄のみ用意（後日追記）</div>
+        <a class="path" href="minutes_2026-07-02.html">minutes_2026-07-02.html →</a></div>
+      </details></li>
+      <li><details class="item">
+        <summary>議題と議事録まとめ 2026-06-25（議題 / アクション・決定事項は後日追記）</summary>
+        <div class="body"><div class="desc">本日の議題は、6/18 アクションアイテム①〜③（変更管理・仕様変更のプロセス定義・チェック基準検討・変更チェック具体化）の進捗共有と、④報告スライドの森→木→森構成の確認。今後のアクションアイテム・決定事項まとめは欄のみ用意（後日追記）</div>
+        <a class="path" href="minutes_2026-06-25.html">minutes_2026-06-25.html →</a></div>
+      </details></li>
+      <li><details class="item">
+        <summary>議事まとめ 2026-06-18（変更管理 / チェック基準ファースト / 報告スライド構成）</summary>
+        <div class="body"><div class="desc">社長MTGで合意したアクション（正常系の変更管理・仕様変更のプロセス定義・影響範囲のチェック基準検討・変更チェックの具体化試行・スライドの森→木→森構成への修正・全社会議での共有検討）と決定事項（AIに影響範囲/要テスト範囲を出力させ確認をもって品質OK・予実前倒し・チェック基準ファースト）。録音不可のため記憶から再構成</div>
+        <a class="path" href="minutes_2026-06-18.html">minutes_2026-06-18.html →</a></div>
+      </details></li>
+      <li><details class="item">
+        <summary>議事まとめ 2026-06-10（今後のアクション / 決定事項 / 相談事項）</summary>
+        <div class="body"><div class="desc">社長MTGで合意したアクション（As-Is/To-Be比較資料・テスト設計フレームワーク修正・WBS更新・他チームへの情報共有）と決定事項（EVM進捗・テスト観点の納品品質への再定義・粒度維持・情報共有ストーリーライン）、6/22の画面実装完了マイルストーン。他部署・他チームからの情報共有依頼への対応方針の相談事項・依頼メッセージ（例: TNOさん）も併載</div>
+        <a class="path" href="minutes_2026-06-10.html">minutes_2026-06-10.html →</a></div>
+      </details></li>
+      <li><details class="item">
+        <summary>議事まとめ 2026-06-03（今後のアクション / 決定事項）</summary>
+        <div class="body"><div class="desc">金子社長MTGで確定したアクション（試行錯誤の可視化・EVM / タスク運用・簿外排除 / 課題管理・プッシュ型）、決定事項、6/8の標準化フェーズ移行マイルストーン</div>
+        <a class="path" href="minutes_2026-06-03.html">minutes_2026-06-03.html →</a></div>
+      </details></li>
+      <li><details class="item">
+        <summary>議事まとめ 2026-05-28（今後のアクション / 決定事項）</summary>
+        <div class="body"><div class="desc">定例で確定したアクションアイテム（進捗管理・指標 / 効果測定・標準化）、決定事項、全体総括</div>
+        <a class="path" href="minutes_2026-05-28.html">minutes_2026-05-28.html →</a></div>
+      </details></li>
     </ul>
   </div>
 </div>
+<script>
+// 各項目: キャレット(折り畳みボタン)のみ開閉、それ以外はページへのリンクとして反応
+document.querySelectorAll('details.item').forEach(function(d){
+  var sum = d.querySelector(':scope > summary');
+  var link = d.querySelector('.path');
+  var href = link ? link.getAttribute('href') : null;
+  // キャレット(折り畳みボタン)を summary 先頭に注入
+  var caret = document.createElement('span');
+  caret.className = 'caret';
+  caret.setAttribute('title', '開閉');
+  sum.insertBefore(caret, sum.firstChild);
+  // summary: キャレット→開閉 / それ以外→遷移（ネイティブのトグルは抑止）
+  sum.addEventListener('click', function(e){
+    e.preventDefault();
+    if (e.target.closest('.caret')) { d.open = !d.open; }
+    else if (href) { location.href = href; }
+  });
+  // 本文(desc/path)クリックも遷移
+  var body = d.querySelector('.body');
+  if (body && href) {
+    body.style.cursor = 'pointer';
+    body.addEventListener('click', function(){ location.href = href; });
+  }
+});
+</script>
 </body>
 </html>

@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>スプリント2 タスク管理（基盤設計 ①②③）</title>
+<style>
+  body { font-family: "Yu Gothic UI", "Meiryo", sans-serif; margin: 24px; color:#222; line-height:1.5; max-width: 1880px; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  h2 { font-size: 15px; border-bottom: 1px solid #ccc; padding-bottom: 4px; margin-top: 30px; }
+  .sub { color:#6b7280; font-size: 12px; margin-bottom: 14px; }
+
+  /* タブ（workitems と同構成）*/
+  .tabs { display: flex; gap: 4px; margin: 16px 0 0; border-bottom: 2px solid #888; }
+  .tab-btn { padding: 8px 18px; border: 1px solid #ccc; border-bottom: none; background: #f0f0f0; cursor: pointer; font-size: 14px; border-radius: 4px 4px 0 0; font-family: inherit; }
+  .tab-btn.active { background: #fff; border-color: #888; border-bottom: 2px solid #fff; margin-bottom: -2px; font-weight: bold; color: #2a6; }
+  .tab-panel { display: none; padding-top: 16px; }
+  .tab-panel.active { display: block; }
+
+  /* サマリ */
+  .cards { display:flex; flex-wrap:wrap; gap:10px; margin:12px 0 4px; }
+  .card { border:1px solid #e5e7eb; border-radius:8px; padding:8px 14px; background:#fff; min-width:120px; }
+  .card .k { font-size:11px; color:#6b7280; }
+  .card .v { font-size:18px; font-weight:bold; }
+  .card .v small { font-size:11px; font-weight:normal; color:#6b7280; }
+  .card.b0 { border-left:4px solid #2563eb; }
+  .card.b1 { border-left:4px solid #0891b2; }
+  .card.b2 { border-left:4px solid #7c3aed; }
+  .card.tot { border-left:4px solid #10b981; }
+
+  /* テーブル */
+  table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size: 13px; }
+  th, td { border: 1px solid #bbb; padding: 4px 8px; vertical-align: top; }
+  th { background: #f1f5f9; text-align: left; white-space: nowrap; }
+  td.num, td.h { text-align: right; white-space: nowrap; }
+  td.c { text-align: center; white-space: nowrap; }
+  tbody tr.done td { background: #dcefdc; }
+  tbody tr.grp td { background:#eef2ff; font-weight:bold; }
+  tbody tr.sub td { background:#f8fafc; font-weight:bold; }
+  .name { font-weight:600; }
+  .code { color:#6b7280; font-size:11px; }
+  .badge { display:inline-block; color:#fff; font-size:10px; font-weight:700; padding:1px 6px; border-radius:3px; }
+  .deps { color:#6b7280; font-size:11px; }
+  .own { display:inline-block; font-size:11px; font-weight:700; padding:1px 6px; border-radius:3px; border:1px solid #cbd5e1; }
+  .own.BE { background:#eff6ff; color:#1d4ed8; border-color:#bfdbfe; }
+  .own.FE { background:#f0fdf4; color:#15803d; border-color:#bbf7d0; }
+  .own.DB { background:#fef3c7; color:#b45309; border-color:#fde68a; }
+  .own.両 { background:#f5f3ff; color:#7c3aed; border-color:#ddd6fe; }
+
+  /* ガント */
+  .gantt { position:relative; overflow-x:auto; }
+  /* 週別カレンダー（1行=1週・平日のみ・着手日チップを縦積み） */
+  .cal-wk { border:1px solid #e5e7eb; border-radius:6px; margin-bottom:10px; overflow:hidden; background:#fff; }
+  .cal-wk-head { display:flex; background:#f1f5f9; border-bottom:1px solid #e5e7eb; }
+  .cal-wk-title { flex:0 0 96px; padding:6px 8px; font-size:11px; font-weight:bold; color:#475569; border-right:1px solid #e5e7eb; display:flex; align-items:center; }
+  .cal-daygrid { flex:1 1 auto; display:grid; grid-template-columns:repeat(5, minmax(150px,1fr)); }
+  .cal-day { font-size:12px; color:#475569; padding:6px 4px; text-align:center; border-left:1px solid #e5e7eb; box-sizing:border-box; }
+  .cal-day.hol { background:#fdeff0; color:#b91c1c; }
+  .cal-lane { display:flex; border-top:1px solid #eef2f7; }
+  .cal-lname { flex:0 0 96px; padding:6px 8px; font-size:12px; font-weight:bold; color:#374151; border-right:1px solid #e5e7eb; }
+  .cal-lanebody { flex:1 1 auto; display:flex; flex-direction:column; gap:3px; padding:4px 0; min-height:34px; justify-content:center; }
+  .cal-subrow { display:grid; grid-template-columns:repeat(5, minmax(150px,1fr)); }
+  .cal-bar { margin:1px 3px; border-radius:4px; color:#fff; font-size:12px; line-height:1.35; padding:3px 7px; box-sizing:border-box; border:1px solid rgba(0,0,0,.12); overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+  /* カレンダー左 / バーンダウン右 の2カラム */
+  .cal-wrap { display:flex; gap:20px; align-items:flex-start; }
+  .cal-left { flex:1 1 auto; min-width:0; }
+  .cal-right { flex:0 0 620px; position:sticky; top:8px; }
+  .cal-left > h2:first-child, .cal-right > h2:first-child { margin-top:0; }
+  .g-row { display:flex; align-items:stretch; border-bottom:1px solid #f1f5f9; }
+  .g-label { flex:0 0 132px; padding:4px 8px; font-size:12px; white-space:normal; line-height:1.25; border-right:1px solid #e5e7eb; }
+  .g-track { position:relative; flex:1 1 auto; height:30px; }
+  .g-bar { position:absolute; top:4px; height:22px; border-radius:3px; font-size:10px; color:#fff; padding:0 5px; box-sizing:border-box; white-space:nowrap; overflow:hidden; line-height:22px; border:1px solid rgba(0,0,0,.15); }
+  .g-axis { display:flex; }
+  .g-axis .g-label { font-weight:bold; background:#f1f5f9; }
+  .g-ticks { position:relative; flex:1 1 auto; height:20px; }
+  .g-tick { position:absolute; top:0; height:100%; border-left:1px solid #eef2f7; font-size:9.5px; color:#94a3b8; padding-left:2px; box-sizing:border-box; }
+  .g-tick.wk { background:#fafbfc; }
+  .g-tick.hol { background:#fdeff0; }
+  .g-grp { background:#eef2ff; font-weight:bold; font-size:11px; padding:2px 8px; border-bottom:1px solid #e5e7eb; }
+  .g-body { position:relative; }
+  .g-bands { position:absolute; top:0; bottom:0; z-index:0; pointer-events:none; }
+  .g-band { position:absolute; top:0; bottom:0; }
+  .g-band.wk { background:#f6f7f9; }
+  .g-band.hol { background:#fdeff0; }
+  .g-body .g-row, .g-body .g-grp { position:relative; z-index:1; background-clip:padding-box; }
+  .g-body .g-grp { background:#eef2ff; }
+
+  /* EVM */
+  .evm-kpis { display:flex; flex-wrap:wrap; gap:10px; margin:8px 0; }
+  .evm-kpis .kpi { border:1px solid #e5e7eb; border-radius:8px; padding:6px 14px; background:#fff; min-width:84px; }
+  .evm-kpis .kpi .k { font-size:11px; color:#6b7280; }
+  .evm-kpis .kpi .v { font-size:17px; font-weight:bold; }
+  .evm-kpis .kpi.bac { border-left:4px solid #10b981; }
+  .evm-kpis .kpi.pv  { border-left:4px solid #94a3b8; }
+  .evm-kpis .kpi.ev  { border-left:4px solid #2563eb; }
+  .evm-kpis .kpi.ac  { border-left:4px solid #ef4444; }
+
+  /* バーンダウン */
+  .legend { font-size:11px; color:#475569; margin:6px 0; }
+  .legend span { margin-right:14px; }
+  .note { font-size:11px; color:#6b7280; margin-top:6px; }
+  .swatch { display:inline-block; width:12px; height:3px; vertical-align:middle; margin-right:4px; }
+</style>
+</head>
+<body>
+  <h1>スプリント2 タスク管理 ― 基盤設計 ①認証認可 / ②ステータス遷移 / ③外部連携</h1>
+  <div class="sub" id="sub"></div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="calendar">予実管理カレンダー</button>
+    <button class="tab-btn" data-tab="worklist">作業一覧</button>
+    <button class="tab-btn" data-tab="evm">EVM</button>
+  </div>
+
+  <div id="tab-calendar" class="tab-panel active">
+    <div class="cal-wrap">
+      <div class="cal-left">
+        <h2>予実管理カレンダー（1行=1週・平日のみ・着手日チップ）</h2>
+        <div class="gantt" id="gantt"></div>
+        <div class="note" id="gnote"></div>
+      </div>
+      <div class="cal-right">
+        <h2>バーンダウン（計画）</h2>
+        <div class="legend">
+          <span><span class="swatch" style="background:#94a3b8"></span>理想線（計画消化）</span>
+          <span><span class="swatch" style="background:#2563eb"></span>実績（着手後に記入）</span>
+        </div>
+        <div id="burn"></div>
+        <div class="note" id="bnote"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="tab-worklist" class="tab-panel">
+    <div class="cards" id="cards"></div>
+    <h2>タスク一覧</h2>
+    <table id="tbl"><thead><tr>
+      <th>No.</th><th>基盤</th><th>区分</th><th>タスク（短縮名）</th><th>担当</th><th>依存</th>
+      <th>見積(h)</th><th>状況</th><th>進捗</th><th>実(h)</th><th>概要</th>
+    </tr></thead><tbody id="tbody"></tbody></table>
+    <div class="note">見積(h) = ToBe（AI駆動見込み）にバッファ40%を上乗せした計画工数。AsIs／削減率は「工数比較（aidd_report2）」参照。</div>
+  </div>
+
+  <div id="tab-evm" class="tab-panel">
+    <h2>EVM (Earned Value Management)</h2>
+    <div class="note" style="margin:2px 0 10px">PV=計画値 / EV=出来高(進捗率×計画工数) / AC=実コスト(実工数h)　・　SV=EV−PV ・ CV=EV−AC ・ SPI=EV/PV ・ CPI=EV/AC ・ EAC=AC+(BAC−EV)/(CPI×SPI)</div>
+    <div id="evm"></div>
+    <div class="note" id="enote"></div>
+  </div>
+
+<script src="sprint2_data.js"></script>
+<script>
+const D = SPRINT2_DATA;
+const HPD = D.meta.hoursPerDay, BUF = 1 + D.meta.bufferPct;
+const baseOf = k => D.bases.find(b => b.key === k);
+const baseIdx = k => D.bases.findIndex(b => b.key === k);
+const buffered = t => t.tobe * (t.nobuffer ? 1 : BUF);   // 仕様精査等 nobuffer は素のまま
+const r1 = n => Math.round(n * 10) / 10;
+
+// ---- 日付ユーティリティ（土日＋祝日を営業日から除外）----
+const HOL = new Set(D.holidays);
+const iso = d => d.toISOString().slice(0, 10);
+function isBiz(d){ const w = d.getUTCDay(); return w !== 0 && w !== 6 && !HOL.has(iso(d)); }
+function parse(s){ const [y,m,dd] = s.split("-").map(Number); return new Date(Date.UTC(y, m-1, dd)); }
+// START から数えて i 番目(0始まり)の営業日の Date
+function bizDate(startStr, i){
+  let d = parse(startStr), c = 0;
+  while(true){ if(isBiz(d)){ if(c === i) return new Date(d); c++; } d.setUTCDate(d.getUTCDate()+1); }
+}
+// 営業日の総数（0..maxDays をカバー）
+function bizList(startStr, nDays){ const out=[]; for(let i=0;i<nDays;i++) out.push(bizDate(startStr,i)); return out; }
+const fmtMd = d => `${d.getUTCMonth()+1}/${d.getUTCDate()}`;
+
+// ---- 人員レーン別スケジューリング（担当は各タスクの person で設定。配列順＝依存順）----
+const personOf = t => t.person || (t.base === 'auth' ? 1 : 2);   // person 未設定時のフォールバック
+const laneCursor = { 1: 0, 2: 0 };            // 人員 -> 累積時間
+const sched = new Map();                       // task.name -> {startH, spanH, person}
+D.tasks.forEach(t => {
+  const p = personOf(t);
+  const s = laneCursor[p];
+  const span = buffered(t);
+  sched.set(t.name, { startH: s, spanH: span, person: p });
+  laneCursor[p] = s + span;
+});
+const totalBufH = D.tasks.reduce((a,t)=>a+buffered(t),0);
+const maxEndH = Math.max(laneCursor[1], laneCursor[2]);
+const totalDays = Math.ceil(maxEndH / HPD - 1e-9);   // 浮動小数の桁あふれで余分な日/週が出るのを防ぐ
+// 各人員が担当する基盤(①②③)（ラベル表示用・現データから算出）
+const personBases = { 1: [], 2: [] };
+D.bases.forEach(b => [1,2].forEach(p => { if (D.tasks.some(t=>personOf(t)===p && t.base===b.key)) personBases[p].push(b.id); }));
+
+// ---- サマリカード ----
+(function(){
+  const sumBase = D.bases.map(b => {
+    const ts = D.tasks.filter(t=>t.base===b.key);
+    return { b, n: ts.length,
+      asis: ts.reduce((a,t)=>a+t.asis,0),
+      tobe: ts.reduce((a,t)=>a+t.tobe,0),
+      buf:  ts.reduce((a,t)=>a+buffered(t),0) };
+  });
+  const totAsis = sumBase.reduce((a,s)=>a+s.asis,0);
+  const totTobe = sumBase.reduce((a,s)=>a+s.tobe,0);
+  const totBuf  = sumBase.reduce((a,s)=>a+s.buf,0);
+  document.getElementById("sub").textContent =
+    `スプリント2 / 開始 ${D.meta.start}（月）/ ${D.tasks.length}タスク / 計画 ${r1(totBuf)}h（≈ ${r1(totBuf/HPD)}人日）/ ToBe素 ${r1(totTobe)}h・バッファ${Math.round(D.meta.bufferPct*100)}% / AsIs想定 ${totAsis}h`;
+  let html = "";
+  sumBase.forEach((s,i)=>{
+    html += `<div class="card b${i}"><div class="k">${s.b.id} ${s.b.name}</div>`+
+            `<div class="v">${r1(s.buf)}<small>h 計画 / ${s.n}件</small></div></div>`;
+  });
+  html += `<div class="card tot"><div class="k">合計（計画・バッファ込み）</div>`+
+          `<div class="v">${r1(totBuf)}<small>h ≈ ${r1(totBuf/HPD)}人日</small></div></div>`;
+  document.getElementById("cards").innerHTML = html;
+})();
+
+// ---- タスク表 ----
+(function(){
+  const tb = document.getElementById("tbody");
+  let no = 0, html = "";
+  D.bases.forEach(b => {
+    const ts = D.tasks.filter(t=>t.base===b.key);
+    html += `<tr class="grp"><td></td><td colspan="10">${b.id} ${b.name}（${ts.length}件・計画 ${r1(ts.reduce((a,t)=>a+buffered(t),0))}h）</td></tr>`;
+    ts.forEach(t => {
+      no++;
+      const bd = `<span class="badge" style="background:${b.color}">${b.id}</span>`;
+      const deps = t.deps.length ? t.deps.join("、") : "—";
+      const prog = t.progress ? Math.round(t.progress*100)+"%" : "—";
+      html += `<tr${t.status==="完了"?' class="done"':''}>`+
+        `<td class="num">${no}</td>`+
+        `<td class="c">${bd}</td>`+
+        `<td class="c">${t.group}</td>`+
+        `<td><span class="name">${t.name}</span> <span class="code">${t.code}</span></td>`+
+        `<td class="c"><span class="own ${t.owner}">${t.owner}</span></td>`+
+        `<td class="deps">${deps}</td>`+
+        `<td class="h">${r1(buffered(t))}</td>`+
+        `<td class="c">${t.status}</td>`+
+        `<td class="c">${prog}</td>`+
+        `<td class="h">${t.actual||"—"}</td>`+
+        `<td style="font-size:11.5px;color:#4b5563">${t.desc}</td></tr>`;
+    });
+  });
+  tb.innerHTML = html;
+})();
+
+// ---- 予実管理カレンダー（全日表示・土日祝は網掛け）----
+const START = parse(D.meta.start);
+const bizDates = bizList(D.meta.start, totalDays);
+const calOffOf = d => Math.round((d - START) / 86400000);
+const bizCalOff = bizDates.map(calOffOf);            // 営業日index → カレンダー日offset
+function fidxToCal(f){                                // 営業日index(小数) → カレンダー日offset(小数)
+  const i0 = Math.min(Math.floor(f), totalDays-1), frac = f - i0;
+  const a = bizCalOff[i0];
+  const b = (i0+1 <= totalDays-1) ? bizCalOff[i0+1] : a+1;
+  return a + frac*(b-a);
+}
+// 各タスクの作業日レンジ（営業日index。端数切り上げ＝触れた日を1日分の幅とする）
+D.tasks.forEach(t=>{
+  const s = sched.get(t.name);
+  t._sd = Math.floor(s.startH / HPD);
+  t._ed = Math.max(t._sd, Math.floor((s.startH + s.spanH - 1e-9) / HPD));
+});
+// 営業日index → { week, col(0=月..4=金) }
+const wiMeta = {};
+for(let i=0;i<totalDays;i++){ const d = bizDate(D.meta.start, i); wiMeta[i] = { week: Math.floor(calOffOf(d)/7), col: (d.getUTCDay()+6)%7 }; }
+// 人員ごとにサブ行を割当（作業日レンジが重なるタスクは段組み＝workitems流）
+const laneRows = {1:1, 2:1};
+[1,2].forEach(p=>{
+  const pt = D.tasks.filter(t=>sched.get(t.name).person===p).sort((a,b)=>a._sd-b._sd || a._ed-b._ed);
+  const rowsEnd = [];
+  pt.forEach(t=>{
+    let r = rowsEnd.findIndex(e => e < t._sd);
+    if(r<0){ r = rowsEnd.length; rowsEnd.push(-Infinity); }
+    rowsEnd[r] = t._ed; t._row = r;
+  });
+  laneRows[p] = Math.max(1, rowsEnd.length);
+});
+
+(function(){
+  const dow = ['日','月','火','水','木','金','土'];
+  const addD = o => { const d = new Date(START); d.setUTCDate(d.getUTCDate()+o); return d; };
+  const numWeeks = Math.floor(calOffOf(bizDates[totalDays-1])/7) + 1;
+  let html = "";
+  for(let w=0; w<numWeeks; w++){
+    const wStart = w*7;
+    const ws = addD(wStart), wfe = addD(wStart+4);      // 月〜金
+    // ヘッダ（平日 月〜金の5列）
+    let dayHead = "";
+    for(let c=0;c<5;c++){
+      const d = addD(wStart+c), hol = HOL.has(iso(d));
+      dayHead += `<div class="cal-day ${hol?'hol':''}" title="${iso(d)}">${d.getUTCMonth()+1}/${d.getUTCDate()}（${dow[d.getUTCDay()]}）${hol?' 祝':''}</div>`;
+    }
+    // 人員1・2 レーン：作業日数分の幅のバーを日列にまたがせ、重なりは段組み
+    let lanes = "";
+    [1,2].forEach(p=>{
+      let subrows = "";
+      for(let r=0;r<laneRows[p];r++){
+        let bars = "";
+        D.tasks.filter(t=>sched.get(t.name).person===p && t._row===r).forEach(t=>{
+          let cmin=9, cmax=-1;
+          for(let i=t._sd;i<=t._ed;i++){ const m=wiMeta[i]; if(m && m.week===w){ if(m.col<cmin)cmin=m.col; if(m.col>cmax)cmax=m.col; } }
+          if(cmax<0) return;                             // この週にかからない
+          const b = baseOf(t.base);
+          const isHead = wiMeta[t._sd] && wiMeta[t._sd].week===w;   // 週またぎ継続は「…」
+          const spanDays = t._ed - t._sd + 1;
+          bars += `<div class="cal-bar" style="grid-column:${cmin+1}/${cmax+2}; background:${b.color}" title="${b.id} ${t.name}（${t.owner}） 計画${r1(buffered(t))}h・${spanDays}営業日 / ${t.status}">${isHead? t.name : '… '+t.name}</div>`;
+        });
+        subrows += `<div class="cal-subrow">${bars}</div>`;
+      }
+      lanes += `<div class="cal-lane"><div class="cal-lname">人員${p}<span class="code" style="font-weight:normal">（${personBases[p].join('') || '—'}・計${r1(laneCursor[p])}h）</span></div><div class="cal-lanebody">${subrows}</div></div>`;
+    });
+    html += `<div class="cal-wk"><div class="cal-wk-head">`+
+      `<div class="cal-wk-title">第${w+1}週<br>${ws.getUTCMonth()+1}/${ws.getUTCDate()}〜${wfe.getUTCMonth()+1}/${wfe.getUTCDate()}</div>`+
+      `<div class="cal-daygrid">${dayHead}</div></div>${lanes}</div>`;
+  }
+  document.getElementById("gantt").innerHTML = html;
+  document.getElementById("gnote").textContent =
+    `1行＝1週間（平日 月〜金のみ・土日非表示）。人員2名のレーン（担当は person で設定・現状 人員1=①、人員2=②③）。タスクは作業日数分の幅（1日単位・端数切り上げ）で複数日にまたがり、同時進行は段組み表示。週またぎは「…」で継続。祝日（例 7/20）は作業なし。色は基盤（①青/②シアン/③紫・予備=グレー）。全${numWeeks}週・最長 ${r1(maxEndH)}h ≈ ${totalDays}営業日。`;
+})();
+
+// ---- バーンダウン（計画・SVG）----
+(function(){
+  const W = 620, H = 340, padL = 50, padB = 30, padT = 14, padR = 14;
+  const axisDates = bizList(D.meta.start, totalDays);
+  const plotW = W - padL - padR, plotH = H - padT - padB;
+  const x = i => padL + (totalDays<=1?0:(i/(totalDays-1))*plotW);
+  const y = h => padT + (1 - h/totalBufH)*plotH;
+  // 理想線: START(全量) → 最終営業日(0)
+  const ideal = `${x(0)},${y(totalBufH)} ${x(totalDays-1)},${y(0)}`;
+  // 目盛（縦: 0..total）
+  let grid = "";
+  const steps = 4;
+  for(let s=0;s<=steps;s++){ const val = totalBufH*s/steps; const yy=y(val);
+    grid += `<line x1="${padL}" y1="${yy}" x2="${W-padR}" y2="${yy}" stroke="#eef2f7"/>`+
+            `<text x="${padL-4}" y="${yy+3}" text-anchor="end" font-size="9" fill="#94a3b8">${Math.round(val)}</text>`; }
+  // 横軸ラベル（間引き）
+  let xl = "";
+  axisDates.forEach((d,i)=>{ if(i%2===0 || i===totalDays-1){ xl += `<text x="${x(i)}" y="${H-padB+12}" text-anchor="middle" font-size="9" fill="#94a3b8">${fmtMd(d)}</text>`; }});
+  const svg = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" style="width:100%; height:auto; max-width:${W}px; border:1px solid #e5e7eb; border-radius:6px; background:#fff">`+
+    grid + xl +
+    `<polyline points="${ideal}" fill="none" stroke="#94a3b8" stroke-width="2" stroke-dasharray="4 3"/>`+
+    `<circle cx="${x(0)}" cy="${y(totalBufH)}" r="3" fill="#2563eb"/>`+
+    `<text x="${padL}" y="${padT+8}" font-size="10" fill="#475569">残工数(h)</text>`+
+    `</svg>`;
+  document.getElementById("burn").innerHTML = svg;
+  document.getElementById("bnote").textContent =
+    `理想線は計画総工数 ${r1(totalBufH)}h を ${totalDays}営業日で均等消化した線。実績（青）は 7/13 着手後、各タスクの実工数を記入すると描画されます（現時点は未着手＝全量）。`;
+})();
+
+// ---- EVM（workitems と同形：PV/EV/AC グラフ ＋ 指標表）----
+(function(){
+  const BAC = totalBufH;                                  // 計画総工数（バッファ込み）
+  // PV[d]: d営業日経過時点で計画上完了しているべき累積工数（各人員レーン並行）
+  const pvAt = d => { let v=0; D.tasks.forEach(t=>{ const s=sched.get(t.name); v += Math.min(Math.max(0, d*HPD - s.startH), s.spanH); }); return Math.min(BAC, v); };
+  const EV = D.tasks.reduce((a,t)=>a + buffered(t)*(t.progress||0), 0);   // 出来高
+  const AC = D.tasks.reduce((a,t)=>a + (t.actual||0), 0);                 // 実コスト
+  // 基準日（今日）＝ START から実時刻までの経過営業日（開始前は 0）
+  const todayISO = new Date().toISOString().slice(0,10);
+  let asOf = 0; bizDates.forEach(d=>{ if(iso(d) <= todayISO) asOf++; }); asOf = Math.min(asOf, totalDays);
+  const span = totalDays;                                 // 計画完了 営業日index
+  const pv = pvAt(asOf);
+  const sv = EV - pv, cv = EV - AC;
+  const spi = pv > 0 ? EV/pv : null;
+  const cpi = AC > 0 ? EV/AC : null;
+  let eac = null;
+  if (spi != null && cpi != null && spi > 0 && cpi > 0) eac = AC + (BAC - EV)/(cpi*spi);
+  else if (AC === 0 && spi != null && spi > 0) eac = BAC/spi;
+  const etc = eac != null ? Math.max(0, eac - AC) : null;
+  const vac = eac != null ? BAC - eac : null;
+  let forecastIdx = null;
+  if (EV >= BAC) forecastIdx = asOf;
+  else if (spi != null && spi > 0) forecastIdx = Math.ceil(span / spi);
+  const wd = i => bizDate(D.meta.start, Math.max(0, i));  // 営業日index → Date
+  const planEndDate = wd(span - 1);
+  const forecastDate = forecastIdx != null ? wd(forecastIdx - 1) : null;
+
+  // === SVG（workitems と同レイアウト）===
+  const xMax = Math.max(span, forecastIdx || 0) + 1;
+  const yMax = Math.max(BAC, eac || 0) * 1.05;
+  const W=660, H=360, mL=60, mR=20, mT=28, mB=56;
+  const plotW=W-mL-mR, plotH=H-mT-mB;
+  const X = d => mL + (d/xMax)*plotW;
+  const Y = v => mT + plotH - (v/yMax)*plotH;
+  let svg = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="font-family:inherit; max-width:100%;">`;
+  for(let i=0;i<=5;i++){ const val=yMax*i/5, py=Y(val);
+    svg += `<line x1="${mL}" y1="${py}" x2="${W-mR}" y2="${py}" stroke="#eee"/><text x="${mL-6}" y="${py+3}" text-anchor="end" font-size="10" fill="#888">${val.toFixed(0)}</text>`; }
+  const xStep = Math.max(1, Math.ceil(xMax/8));
+  for(let d=0; d<=xMax; d+=xStep){ const px=X(d), dt=wd(d);
+    svg += `<line x1="${px}" y1="${mT}" x2="${px}" y2="${H-mB}" stroke="#f4f4f4"/><text x="${px}" y="${H-mB+14}" text-anchor="middle" font-size="10" fill="#888">${dt.getUTCMonth()+1}/${dt.getUTCDate()}</text>`; }
+  svg += `<line x1="${mL}" y1="${mT}" x2="${mL}" y2="${H-mB}" stroke="#999"/><line x1="${mL}" y1="${H-mB}" x2="${W-mR}" y2="${H-mB}" stroke="#999"/>`;
+  svg += `<text x="14" y="${mT+plotH/2}" transform="rotate(-90 14 ${mT+plotH/2})" text-anchor="middle" font-size="10" fill="#666">累積工数 (h)</text>`;
+  if (span <= xMax){ const px=X(span); svg += `<line x1="${px}" y1="${mT}" x2="${px}" y2="${H-mB}" stroke="#aaa" stroke-dasharray="2 4"/><text x="${px}" y="${mT-4}" text-anchor="middle" font-size="9" fill="#888">計画完了</text>`; }
+  { const px=X(asOf); const p=todayISO.split("-").map(Number);
+    svg += `<line x1="${px}" y1="${mT}" x2="${px}" y2="${H-mB}" stroke="#e09b00" stroke-dasharray="3 3"/><text x="${px}" y="${mT-4}" text-anchor="middle" font-size="9" fill="#c80">${p[1]}/${p[2]}</text>`; }
+  // PV（青）
+  let pvLine=""; for(let d=0; d<=xMax; d++) pvLine += `${X(d)},${Y(pvAt(d))} `;
+  svg += `<polyline points="${pvLine.trim()}" fill="none" stroke="#3b78c6" stroke-width="2.5"/>`;
+  // EV（緑）
+  svg += `<polyline points="${X(0)},${Y(0)} ${X(asOf)},${Y(EV)}" fill="none" stroke="#1c9b6a" stroke-width="2.5"/>`;
+  if (forecastIdx != null && forecastIdx > asOf){ svg += `<polyline points="${X(asOf)},${Y(EV)} ${X(forecastIdx)},${Y(BAC)}" fill="none" stroke="#1c9b6a" stroke-width="2" stroke-dasharray="5 4"/><circle cx="${X(forecastIdx)}" cy="${Y(BAC)}" r="4" fill="#1c9b6a"/>`; }
+  svg += `<circle cx="${X(asOf)}" cy="${Y(EV)}" r="3" fill="#1c9b6a"/>`;
+  // AC（橙）
+  svg += `<polyline points="${X(0)},${Y(0)} ${X(asOf)},${Y(AC)}" fill="none" stroke="#d96b3a" stroke-width="2.5"/>`;
+  if (eac != null && forecastIdx != null && forecastIdx > asOf){ svg += `<polyline points="${X(asOf)},${Y(AC)} ${X(forecastIdx)},${Y(Math.min(eac,yMax))}" fill="none" stroke="#d96b3a" stroke-width="2" stroke-dasharray="5 4"/><circle cx="${X(forecastIdx)}" cy="${Y(Math.min(eac,yMax))}" r="4" fill="#d96b3a"/>`; }
+  svg += `<circle cx="${X(asOf)}" cy="${Y(AC)}" r="3" fill="#d96b3a"/>`;
+  svg += `</svg>`;
+
+  // === 指標表（workitems と同項目）===
+  const fmtH=v=>v==null?'—':v.toFixed(1)+' h';
+  const fmtSgn=v=>v==null?'—':((v>=0?'+':'')+v.toFixed(1)+' h');
+  const fmtIdx=v=>v==null?'—':v.toFixed(2);
+  const fmtDate=d=>d?`${d.getUTCFullYear()}/${d.getUTCMonth()+1}/${d.getUTCDate()}`:'—';
+  const colSV=v=>v==null?'#888':(v>=0?'#1c9b6a':'#d33');
+  const colIdx=v=>v==null?'#888':(v>=1?'#1c9b6a':'#d33');
+  const tdL='text-align:left; padding:5px 10px;', tdR='text-align:right; padding:5px 10px; font-family:monospace;', sect='background:#f0f4f8; font-weight:bold;';
+  const table = `<table style="font-size:13px; border-collapse:collapse; width:100%; border:1px solid #ccc;">
+    <tr><th style="${tdL}${sect}">BAC</th><td style="${tdR}${sect}">${fmtH(BAC)}</td></tr>
+    <tr><th style="${tdL}">PV (計画値@今日)</th><td style="${tdR}">${fmtH(pv)}</td></tr>
+    <tr><th style="${tdL}">EV (出来高@今日)</th><td style="${tdR}">${fmtH(EV)}</td></tr>
+    <tr><th style="${tdL}">AC (実コスト@今日)</th><td style="${tdR}">${fmtH(AC)}</td></tr>
+    <tr><th style="${tdL}${sect}">SV (EV−PV)</th><td style="${tdR}${sect} color:${colSV(sv)};">${fmtSgn(sv)}</td></tr>
+    <tr><th style="${tdL}">CV (EV−AC)</th><td style="${tdR} color:${colSV(cv)}; font-weight:bold;">${fmtSgn(cv)}</td></tr>
+    <tr><th style="${tdL}">SPI (EV/PV)</th><td style="${tdR} color:${colIdx(spi)}; font-weight:bold;">${fmtIdx(spi)}</td></tr>
+    <tr><th style="${tdL}">CPI (EV/AC)</th><td style="${tdR} color:${colIdx(cpi)}; font-weight:bold;">${fmtIdx(cpi)}</td></tr>
+    <tr><th style="${tdL}${sect}">EAC (予測総コスト)</th><td style="${tdR}${sect}">${fmtH(eac)}</td></tr>
+    <tr><th style="${tdL}">ETC (残見込み)</th><td style="${tdR}">${fmtH(etc)}</td></tr>
+    <tr><th style="${tdL}">VAC (BAC−EAC)</th><td style="${tdR} color:${colSV(vac)}; font-weight:bold;">${fmtSgn(vac)}</td></tr>
+    <tr><th style="${tdL}${sect}">計画完了日</th><td style="${tdR}${sect}">${fmtDate(planEndDate)}</td></tr>
+    <tr><th style="${tdL}${sect}">完了予測日</th><td style="${tdR}${sect} font-weight:bold;">${fmtDate(forecastDate)}</td></tr>
+  </table>`;
+  const legend = `<div style="font-size:12px; margin-top:8px; line-height:1.9;">
+    <span style="display:inline-block;width:20px;border-top:2.5px solid #3b78c6;vertical-align:middle;"></span> PV (計画値)
+    ／<span style="display:inline-block;width:20px;border-top:2.5px solid #1c9b6a;vertical-align:middle;"></span> EV (出来高)
+    ／<span style="display:inline-block;width:20px;border-top:2.5px solid #d96b3a;vertical-align:middle;"></span> AC (実コスト)
+    ／<span style="display:inline-block;width:20px;border-top:2px dashed #888;vertical-align:middle;"></span> 予測 (破線)</div>`;
+  document.getElementById("evm").innerHTML =
+    `<div style="display:flex; gap:24px; align-items:flex-start; flex-wrap:wrap;">`+
+    `<div style="flex:0 0 auto;">${svg}${legend}</div>`+
+    `<div style="flex:0 0 340px;">${table}</div></div>`;
+  document.getElementById("enote").textContent = (EV>0||AC>0)
+    ? `基準日 ${todayISO} 時点。SPI<1=遅れ / CPI<1=超過。EAC は現在効率(CPI×SPI)継続前提の完成時見込み。`
+    : `現時点は未着手（EV=AC=0）のため PV（計画値）＋計画完了マーカーのみ。7/13 着手後、各タスクの progress／actual を sprint2_data.js に記入すると EV・AC・SPI・CPI・EAC・完了予測日が算出されます。`;
+})();
+
+// ---- タブ切替（workitems と同挙動）----
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const name = btn.dataset.tab;
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-'+name).classList.add('active');
+  });
+});
+</script>
+</body>
+</html>
