@@ -8,21 +8,21 @@
   body { font-family: "Yu Gothic UI", "Meiryo", sans-serif; margin: 24px; color:#222; line-height:1.6; }
   h1 { border-bottom: 2px solid #2a6; padding-bottom: 6px; }
   .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; max-width: 1200px; align-items: start; }
-  .col h2 { font-size: 16px; color:#2a6; border-bottom: 1px solid #cde3d6; padding-bottom: 5px; margin: 8px 0 4px; }
+  .col h2 { font-size: 16px; color:#157347; border-bottom: 1px solid #cde3d6; padding-bottom: 5px; margin: 8px 0 4px; }
   ul.links { list-style: none; padding: 0; margin: 16px 0; }
   ul.links li { margin: 10px 0; }
   details.item { border: 1px solid #ccc; border-left: 4px solid #2a6; border-radius: 4px; background: #fafdfb; }
-  details.item > summary { cursor: pointer; list-style: none; user-select: none; padding: 10px 14px; font-weight: bold; font-size: 15px; color: #1a5; }
+  details.item > summary { cursor: pointer; list-style: none; user-select: none; padding: 10px 14px; font-weight: bold; font-size: 15px; color: #0f5132; }
   details.item > summary::-webkit-details-marker { display: none; }
-  details.item > summary .caret { display: inline-block; width: 1.2em; text-align: center; color: #2a6; user-select: none; border-radius: 3px; }
+  details.item > summary .caret { display: inline-block; width: 1.2em; text-align: center; color: #157347; user-select: none; border-radius: 3px; }
   details.item > summary .caret::before { content: "▸"; }
   details.item[open] > summary .caret::before { content: "▾"; }
   details.item > summary .caret:hover { background: #d7ebdf; }
   details.item > summary:hover { background: #eef7f1; }
   details.item .body { padding: 0 14px 10px 30px; }
-  details.item .desc { font-size: 13px; color: #555; }
-  details.item .path { font-size: 12px; color: #999; margin-top: 3px; display: inline-block; text-decoration: none; }
-  details.item .path:hover { color: #1a5; text-decoration: underline; }
+  details.item .desc { font-size: 13px; color: #333; }
+  details.item .path { font-size: 12px; color: #6b7280; margin-top: 3px; display: inline-block; text-decoration: none; }
+  details.item .path:hover { color: #0f5132; text-decoration: underline; }
   details.item.issue { border-left-color: #d97706; background: #fffbf2; }
   details.item.issue > summary { color: #92400e; }
   details.item.issue > summary .caret { color: #d97706; }
@@ -43,7 +43,7 @@
 </head>
 <body>
 <h1>AI駆動開発PJ</h1>
-<p style="color:#666; font-size:14px; margin-top:6px;">ドキュメント一覧</p>
+<p style="color:#444; font-size:14px; margin-top:6px;">ドキュメント一覧</p>
 <div class="cols">
   <div class="col">
     <h2>ドキュメント・課題事例</h2>
@@ -86,13 +86,13 @@
       <summary>スプリント2</summary>
       <ul class="links">
         <li><details class="item" open>
-          <summary>スプリント2 タスク管理（基盤設計 ①②③）</summary>
-          <div class="body"><div class="desc">7/13開始のスプリント2。基盤設計（①認証認可 / ②配送ステータス遷移 / ③外部連携）のタスク一覧・ガント・バーンダウン。各タスクに短縮和名を付与。</div>
+          <summary>スプリント2 タスク管理（基盤設計 ①②③④）</summary>
+          <div class="body"><div class="desc">7/13開始のスプリント2。基盤設計（①認証認可 / ②外部連携(SMS/IVR) / ③ファイル連携(取込/送信) / ④帳票出力(PDF生成)）のタスク一覧・ガント・バーンダウン。各タスクに短縮和名を付与。</div>
           <a class="path" href="workitems2.html">workitems2.html →</a></div>
         </details></li>
         <li><details class="item" open>
           <summary>スプリント2 開発工数比較（AsIs / ToBe）</summary>
-          <div class="body"><div class="desc">基盤設計 ①②③ のタスク単位 AsIs（人力想定）vs ToBe（AI駆動見込み・バッファ40%込み）比較。①②③＋合計タブ、削減率つき。</div>
+          <div class="body"><div class="desc">基盤設計 ①②③④ のタスク単位 AsIs（人力想定）vs ToBe（AI駆動見込み・バッファ40%込み）比較。①②③④＋合計タブ、削減率つき。</div>
           <a class="path" href="aidd_report2.html">aidd_report2.html →</a></div>
         </details></li>
       </ul>
