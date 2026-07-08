@@ -468,11 +468,11 @@
         "<strong>ToBe（AI駆動）は 4.0h</strong>: AI 2.5h（API実装 1.1 / FE実装 1.2 / UX 0.1 / FE設計 0.1）＋ APIレビュー 0.25h（エンジニア）＋ フロントレビュー 0.5h（エンジニア）＋ 動作確認 0.75h（エンジニア）。削減率 <strong>約91%</strong>。",
       ],
     },
-    // 対応履歴登録 (IF / PR12) - システム設定・CSVアップロード（取込）インターフェース。実績コード量: API 278 / フロントエンド 573 行（DB/テストなし）。
-    // AsIs: お知らせ登録(FE015) の行あたり工数を実績LOCに適用 (api-impl 8h/369行 → 6.0h・fe-impl 33.5h/1694行 → 11.3h)。UX/FE設計は按分過小のため実態値。合計 約21.3h。
-    // ToBe: 2h (AI 1.0h + APIレビュー 0.25h + フロントレビュー 0.25h + 動作確認 0.5h) (実績)。削減率 約91%。
+    // 対応履歴登録 (IF / PR12) - システム設定・CSVアップロード（取込）インターフェース。実績コード量: API 278 / ユニットテスト 100 / フロントエンド 573 行（DBなし）。
+    // AsIs: お知らせ登録(FE015) の行あたり工数を実績LOCに適用 (api-impl 8h/369行 → 6.0h・api-test 3.5h/256行 → 1.4h・fe-impl 33.5h/1694行 → 11.3h)。UX/FE設計は按分過小のため実態値。合計 約22.7h。
+    // ToBe: 2.1h (AI 1.0h + API単体テスト 0.1h + APIレビュー 0.25h + フロントレビュー 0.25h + 動作確認 0.5h) (実績)。削減率 約91%。
     'wi-if-PR12': {
-      lede: "<strong>対応履歴登録（IF / PR12）</strong>の開発工数比較。<strong>対応履歴の CSV アップロード（取込）インターフェース</strong>。実績コード量は API <strong>278 行</strong>・フロントエンド <strong>573 行</strong>（DB/テストなし）。<strong>AsIs は行数規模から推定</strong>（お知らせ登録(FE015) の行あたり工数を適用）。ただし UX設計 2.0h・フロント設計 1.0h は規模比按分では過小なため実態に合わせて設定。合計 約21.3h。<strong>ToBe は実績 2.0h</strong>（AI 1.0h ＋ APIレビュー 0.25h ＋ フロントレビュー 0.25h ＋ 動作確認 0.5h）。削減率 <strong>約91%</strong>。",
+      lede: "<strong>対応履歴登録（IF / PR12）</strong>の開発工数比較。<strong>対応履歴の CSV アップロード（取込）インターフェース</strong>。実績コード量は API <strong>278 行</strong>・ユニットテスト <strong>100 行</strong>・フロントエンド <strong>573 行</strong>（DBなし）。<strong>AsIs は行数規模から推定</strong>（お知らせ登録(FE015) の行あたり工数を適用）。ただし UX設計 2.0h・フロント設計 1.0h は規模比按分では過小なため実態に合わせて設定。合計 約22.7h。<strong>ToBe は実績 2.1h</strong>（AI 1.0h ＋ API単体テスト 0.1h ＋ APIレビュー 0.25h ＋ フロントレビュー 0.25h ＋ 動作確認 0.5h）。削減率 <strong>約91%</strong>。",
       bugCategories: [
         { key: "syntax", label: "構文/型エラー",                            color: "#ef4444", asis: 1, tobe: 0 },
         { key: "logic",  label: "ロジックバグ (取込・登録・検証)",          color: "#f59e0b", asis: 4, tobe: 2 },
@@ -483,6 +483,7 @@
       bugRateNote: "※ 対応履歴登録（IF）約 0.85 KLOC × 参考レート（人力 12/KLOC ≒ 10件 / AI 5/KLOC ≒ 4件）で推定。対応履歴の CSV 取込で、論点は <strong>取込仕様・項目マッピング・重複/文字コードの解釈</strong>。AI でも業務固有の取込ルールは仕様で明示しないと <strong>仕様解釈ミス</strong> が残りやすい。",
       tasks: {
         'api-impl':    { asis: 6.0,  loc: 278,  tobe: 0.4,  tobeEng: 0,   agents: ["バックエンドAI"] },
+        'api-test':    { asis: 1.4,  loc: 100,  tobe: 0.1,  tobeEng: 0,   agents: ["バックエンドAI"] },
         'ux':          { asis: 2.0,             tobe: 0.05, tobeEng: 0,   agents: ["プランナーAI", "エンジニア"] },
         'fe-design':   { asis: 1.0,             tobe: 0.05, tobeEng: 0,   agents: ["フロントエンドAI"] },
         'fe-impl':     { asis: 11.3, loc: 573,  tobe: 0.5,  tobeEng: 0,   agents: ["フロントエンドAI"] },
@@ -492,9 +493,9 @@
       },
       contextNotes: [
         "対象: 対応履歴登録（IF / PR12）。システム設定・対応履歴の CSV アップロード（取込）インターフェース。",
-        "<strong>実績コード量</strong>: API <strong>278 行</strong> / フロントエンド <strong>573 行</strong>（DB 0・ユニットテスト 0）。工程区分はお知らせ登録(FE015)のフォーマットを流用。",
-        "<strong>AsIs（人力想定）は行数規模から推定</strong>: お知らせ登録の『行あたり工数』を実績LOCに適用（api-impl 8h/369行 → 6.0h・fe-impl 33.5h/1694行 → 11.3h）。UX（2.0h）・フロント設計（1.0h）は規模比按分では過小なため実態に合わせて設定。APIレビュー・フロントレビュー・動作確認は人の確認工数として AsIs / ToBe をそろえる（各0.25h / 0.25h / 0.5h）。合計 約21.3h。",
-        "<strong>ToBe（AI駆動）は実績 2.0h</strong>: AI 1.0h（API実装 0.4 / FE実装 0.5 / UX 0.05 / FE設計 0.05）＋ APIレビュー 0.25h（エンジニア）＋ フロントレビュー 0.25h（エンジニア）＋ 動作確認 0.5h（エンジニア）。削減率 <strong>約91%</strong>。",
+        "<strong>実績コード量</strong>: API <strong>278 行</strong> / ユニットテスト <strong>100 行</strong> / フロントエンド <strong>573 行</strong>（DB 0）。工程区分はお知らせ登録(FE015)のフォーマットを流用。",
+        "<strong>AsIs（人力想定）は行数規模から推定</strong>: お知らせ登録の『行あたり工数』を実績LOCに適用（api-impl 8h/369行 → 6.0h・api-test 3.5h/256行 → 1.4h・fe-impl 33.5h/1694行 → 11.3h）。UX（2.0h）・フロント設計（1.0h）は規模比按分では過小なため実態に合わせて設定。APIレビュー・フロントレビュー・動作確認は人の確認工数として AsIs / ToBe をそろえる（各0.25h / 0.25h / 0.5h）。合計 約22.7h。",
+        "<strong>ToBe（AI駆動）は実績 2.1h</strong>: AI 1.0h（API実装 0.4 / FE実装 0.5 / UX 0.05 / FE設計 0.05）＋ API単体テスト 0.1h ＋ APIレビュー 0.25h（エンジニア）＋ フロントレビュー 0.25h（エンジニア）＋ 動作確認 0.5h（エンジニア）。削減率 <strong>約91%</strong>。",
       ],
     },
     // 訪問不在登録(FE032)・配車戻し登録(FE033)・その他未完了登録(FE034)・ドライバー持出登録(FE030) は
