@@ -19,7 +19,7 @@
 //   DM✅完成 + UI ready → ""
 //   DM✅完成 + UI not ready → バックエンドのみ
 //   DM作業中 (🔄) → 待機中 (タイムライン表示対象)
-//   それ以外 → 実装不可
+//   それ以外 → 着手可能 (旧「実装不可」は廃止し着手可能に統合)
 function scope(r){
   if (r.IFID) return "バックエンドのみ";
   const dm = r.データモデル || "";
@@ -30,7 +30,7 @@ function scope(r){
   if (beReady && feAnyReady) return "";
   if (beReady && !feAnyReady) return "バックエンドのみ";
   if (beWip) return "待機中";
-  return "実装不可";
+  return "着手可能";
 }
 
 // === メインパイプライン (純粋関数) ===
@@ -118,9 +118,9 @@ function postprocessWorkitems(rawData){
   SCREENS.forEach(r=>{
     if (r.画面名 in STATUS_MAP) r.状況 = STATUS_MAP[r.画面名];
   });
-  // IFは原則「実装不可」(進捗率 0)。ただしデータ側で 状況/進捗率 を明示した行は尊重する。
+  // IFは原則「着手可能」(進捗率 0)。ただしデータ側で 状況/進捗率 を明示した行は尊重する。
   IFS.forEach(r=>{
-    if (r.状況 == null)   r.状況 = "実装不可";
+    if (r.状況 == null)   r.状況 = "着手可能";
     if (r.進捗率 == null) r.進捗率 = 0;
   });
 
