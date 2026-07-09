@@ -70,7 +70,7 @@
   <details><summary style="cursor:pointer; font-weight:bold; padding:4px 0; color:#444;">列凡例</summary>
     <ul>
       <li>データモデル: ✅完了 / 🔄作業中 / ・未着手 (空欄=元資料に画面名の言及なし)</li>
-      <li>状況: 進捗ステータス(完了・業務確認待ち・着手中・保留中 など)を表示 / 空欄なら備考の内容(着手可能・実装不可・待機中・バックエンドのみ)を表示。2行目の進捗率(画面ごとに個別設定, 0-100%)がバーンダウン・EVMに加味される</li>
+      <li>状況: 進捗ステータス(完了・業務確認待ち・着手中・保留中 など)を表示 / 空欄なら備考の内容(着手可能・待機中・バックエンドのみ)を表示。2行目の進捗率(画面ごとに個別設定, 0-100%)がバーンダウン・EVMに加味される</li>
       <li>画面項目定義: ✅シートあり(画面項目定義書/管理画面項目定義書 にシート作成済) / 📐モックあり / 🔄作成予定 / ⏸Ph.2以降 / (空欄=画面一覧に該当なし) — 📐 と ✅ は併記しうる</li>
       <li>実工数(h): 人間が消費した工数を記録する。</li>
     </ul>
@@ -78,6 +78,7 @@
   <hr>
   <p>
     <label><input type="checkbox" id="group-tasks" checked> タスクをまとめる</label>
+    <label style="margin-left:16px;"><input type="checkbox" id="hide-done"> 未完了のタスクのみ表示</label>
     <span style="color:#666;font-size:12px;">(優先昇順で表示 → 同じ優先内は管理ID順。タスク優先度は 優先度・実施順 で管理)</span>
   </p>
   <p style="font-size:12px; color:#666;">工数(h) は各タスクに固定値で登録（旧:係数ベースの自動計算は廃止）。調整は workitems.js の各行 "工数(h)" を直接編集する　※1人日=8h</p>
@@ -202,6 +203,9 @@ function render(tid,hid,cols,data){
 }
 // ソート (sortDefault) / グルーピング (groupTasks) は task_logic.js に分離
 const cbGroup = document.getElementById("group-tasks");
+const cbHideDone = document.getElementById("hide-done");
+// 「未完了のタスクのみ表示」用フィルタ: 状況==="完了" の行を除外 (完了判定は状況に基づく)
+function filterDone(rows){ return cbHideDone.checked ? rows.filter(r => r.状況 !== "完了") : rows; }
 function ganttIsoDate(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
 function ganttIsWorkday(d){
   const dow = d.getDay();
@@ -983,17 +987,18 @@ function buildEvm(containerId){
 }
 function redraw(){
   const cmp = sortDefault;
-  const sortedScreens = [...SCREENS].sort(cmp);
+  const sortedScreens = filterDone([...SCREENS].sort(cmp));
   render("t-screens","th-screens",SCREEN_COLS, cbGroup.checked ? groupTasks(sortedScreens) : sortedScreens);
-  render("t-ifs","th-ifs",IF_COLS,[...IFS].sort(cmp));
-  render("t-change","th-change",CHANGE_COLS,[...CHANGE].sort(cmp));
-  render("t-backend","th-backend",BACKEND_COLS,[...BACKEND].sort(cmp));
+  render("t-ifs","th-ifs",IF_COLS,filterDone([...IFS].sort(cmp)));
+  render("t-change","th-change",CHANGE_COLS,filterDone([...CHANGE].sort(cmp)));
+  render("t-backend","th-backend",BACKEND_COLS,filterDone([...BACKEND].sort(cmp)));
   // ガント／テーブルともに 優先昇順(sortDefault) で順位付けする。
   buildGantt([...SCREENS, ...IFS, ...CHANGE, ...BACKEND].sort(sortDefault), "gantt-plan", "計画", { bg:'#9cd', bd:'#468' }, "plan");
   buildBurndown("burndown");
   buildEvm("evm-content");
 }
 cbGroup.addEventListener("change",redraw);
+cbHideDone.addEventListener("change",redraw);
 // タブ切替
 function activateTab(name){
   const btn = document.querySelector('.tab-btn[data-tab="'+name+'"]');
