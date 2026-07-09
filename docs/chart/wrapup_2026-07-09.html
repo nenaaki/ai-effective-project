@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>2026-07-09 定例 ラップアップ（チーム共有）</title>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body {
+    font-family: -apple-system, "Hiragino Kaku Gothic ProN", "Yu Gothic", system-ui, sans-serif;
+    color: #1f2937;
+    background: #fafafa;
+    padding: 22px 30px;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+  .page { max-width: 1240px; margin: 0 auto; height: 100%; display: flex; flex-direction: column; }
+  h1 { font-size: 19px; margin: 0; border-bottom: 3px solid #2563eb; padding-bottom: 6px; }
+  .sub { color: #6b7280; font-size: 12px; margin: 6px 0 12px; }
+
+  .tabs { display: flex; gap: 4px; margin-bottom: 12px; border-bottom: 1px solid #e5e7eb; }
+  .tab {
+    padding: 8px 16px; background: transparent; border: 1px solid transparent; border-bottom: none;
+    border-radius: 6px 6px 0 0; cursor: pointer; font-size: 13px; font-family: inherit; color: #6b7280; margin-bottom: -1px;
+  }
+  .tab.active { background: white; border-color: #e5e7eb; color: #2563eb; font-weight: 600; }
+  .tab:hover { color: #1f2937; }
+  .tab-content { display: none; flex: 1; min-height: 0; }
+  .tab-content.active { display: flex; }
+
+  .col-wrap { display: flex; flex-direction: column; width: 100%; min-height: 0; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; flex: 1; min-height: 0; width: 100%; }
+  .panel { background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 13px 16px; display: flex; flex-direction: column; min-height: 0; }
+  h2 { font-size: 13px; margin: 0 0 9px; padding-left: 8px; border-left: 3px solid #2563eb; }
+  .flow-cap { font-size: 11px; color: #6b7280; line-height: 1.5; margin: 0 0 6px; }
+  .flow-cap b { color: #374151; }
+
+  /* ===== タブ1: KPI ＋ 決定カード ===== */
+  .kpi-row { display: flex; gap: 14px; margin-bottom: 14px; }
+  .kpi { flex: 1; background: #f9fafb; border: 1px solid #e5e7eb; border-left: 4px solid #9ca3af; border-radius: 8px; padding: 12px 16px; }
+  .kpi .k { font-size: 11px; color: #6b7280; font-weight: 600; }
+  .kpi .v { font-size: 21px; font-weight: 700; color: #1f2937; margin: 4px 0 3px; }
+  .kpi .d { font-size: 10.5px; color: #6b7280; line-height: 1.45; }
+
+  .dec-head { font-size: 13px; font-weight: 700; color: #1f2937; margin: 2px 0 9px; padding-left: 8px; border-left: 3px solid #6366f1; }
+  .dec-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .dec-card {
+    border: 1px solid #e5e7eb; border-left: 4px solid #9ca3af; border-radius: 8px; padding: 11px 14px;
+    background: #fff; cursor: pointer; display: flex; flex-direction: column; gap: 5px; transition: box-shadow .12s, transform .12s;
+  }
+  .dec-card:hover { box-shadow: 0 3px 10px rgba(0,0,0,.09); transform: translateY(-1px); }
+  .dec-card.wide { grid-column: 1 / -1; }
+  .dec-card.green  { border-left-color: #10b981; }
+  .dec-card.blue   { border-left-color: #2563eb; }
+  .dec-card.amber  { border-left-color: #f59e0b; }
+  .dec-card.indigo { border-left-color: #6366f1; }
+  .dc-tag { align-self: flex-start; font-size: 9.5px; font-weight: 700; color: #fff; padding: 1px 8px; border-radius: 3px; background: #9ca3af; }
+  .dec-card.green  .dc-tag { background: #047857; }
+  .dec-card.blue   .dc-tag { background: #2563eb; }
+  .dec-card.amber  .dc-tag { background: #b45309; }
+  .dec-card.indigo .dc-tag { background: #4338ca; }
+  .dc-title { font-size: 13px; font-weight: 700; color: #1f2937; line-height: 1.45; }
+  .dc-title .em { color: #2563eb; }
+  .dc-title .emg { color: #047857; }
+  .dc-title .ema { color: #b45309; }
+  .dc-go { font-size: 10.5px; font-weight: 700; color: #6b7280; margin-top: 2px; }
+
+  /* ===== タブ2: 開発フロー全アーク（タイムライン） ===== */
+  .tl { position: relative; width: 1160px; max-width: 100%; height: 494px; margin: 2px auto 0; }
+  .tl svg.layer { position: absolute; inset: 0; width: 1160px; height: 494px; pointer-events: none; z-index: 0; }
+
+  .rowlab { position: absolute; font-size: 10.5px; font-weight: 700; color: #374151; padding-left: 8px; z-index: 2; }
+  .rowlab.pm  { border-left: 3px solid #6366f1; color: #4338ca; }
+  .rowlab.mid { border-left: 3px solid #2563eb; color: #1e40af; }
+  .rowlab.yn  { border-left: 3px solid #10b981; color: #047857; }
+  .rowlab .mut { font-weight: 500; color: #6b7280; }
+
+  .bookend-pill {
+    position: absolute; top: 2px; left: 50%; transform: translateX(-50%); z-index: 3;
+    background: #eef2ff; border: 1.5px solid #6366f1; color: #4338ca;
+    font-size: 11px; font-weight: 700; padding: 4px 14px; border-radius: 14px; white-space: nowrap;
+  }
+  .bookend-pill .em { color: #b45309; }
+
+  .box { position: absolute; box-sizing: border-box; border-radius: 8px; z-index: 1; }
+  .pmbox { padding: 8px 11px; background: #fffbeb; border: 1px solid #f59e0b; border-left: 4px solid #f59e0b; }
+  .pmbox .h { font-size: 11px; font-weight: 700; color: #92400e; margin-bottom: 3px; }
+  .pmbox .d { font-size: 9.8px; line-height: 1.4; color: #1f2937; }
+  .pmbox .d b { color: #92400e; }
+  .pmfaint { padding: 8px 11px; background: #f9fafb; border: 1.5px dashed #cbd5e1; display: flex; flex-direction: column; justify-content: center; }
+  .pmfaint .d { font-size: 10px; line-height: 1.4; color: #6b7280; text-align: center; }
+  .badge { position: absolute; top: -9px; right: 10px; font-size: 8.5px; font-weight: 700; color: #fff; padding: 1px 7px; border-radius: 3px; z-index: 4; }
+  .badge.amber { background: #b45309; }
+  .badge.green { background: #047857; }
+
+  .card { padding: 9px 12px; background: #fff; border: 1px solid #e5e7eb; border-left: 4px solid #94a3b8; border-radius: 8px; display: flex; flex-direction: column; }
+  .roles { display: flex; gap: 4px; margin-bottom: 5px; }
+  .chip { font-size: 8.5px; font-weight: 700; color: #fff; padding: 1px 6px; border-radius: 3px; }
+  .chip.pm { background: #4338ca; } .chip.dev { background: #2563eb; }
+  .chip.ai { background: #b45309; } .chip.done { background: #047857; }
+  .pnum { position: absolute; top: 5px; right: 11px; font-size: 17px; font-weight: 800; color: #334155; line-height: 1; }
+  .card .t { font-size: 12.5px; font-weight: 700; color: #1f2937; line-height: 1.3; margin-bottom: 5px; padding-right: 20px; }
+  .card ul { margin: 0; padding-left: 15px; }
+  .card li { font-size: 10px; line-height: 1.4; color: #1f2937; margin-bottom: 3px; }
+  .card li b { color: #1e40af; }
+  .card .tag { margin-top: auto; align-self: flex-start; font-size: 9.5px; font-weight: 700; padding: 2px 8px; border-radius: 3px; }
+  .card .tag.tf { background: #dbeafe; color: #1e40af; }
+  .card .tag.ok { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
+
+  .ynbox { padding: 8px 11px; background: #ecfdf5; border: 1px solid #10b981; border-left: 4px solid #10b981; }
+  .ynbox .h { font-size: 10.5px; font-weight: 700; color: #047857; margin-bottom: 3px; }
+  .ynbox .d { font-size: 9.8px; line-height: 1.4; color: #1f2937; }
+  .ynbox .d b { color: #047857; }
+  .ynnote { padding: 8px 11px; background: #f3f4f6; border: 1px dashed #cbd5e1; display: flex; align-items: center; }
+  .ynnote .d { font-size: 9.8px; line-height: 1.4; color: #6b7280; }
+  .ynnote .d b { color: #374151; }
+
+  .legend { position: absolute; left: 0; top: 464px; width: 1160px; display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; font-size: 10px; color: #4b5563; z-index: 2; margin: 0; }
+  .lg { display: inline-flex; align-items: center; gap: 5px; }
+  .lg .dot { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
+  .lg .pill { width: 17px; height: 10px; border-radius: 5px; display: inline-block; background: #ecfdf5; border: 1.5px solid #10b981; }
+  .lg .bdg { width: 15px; height: 10px; border-radius: 2px; display: inline-block; background: #fffbeb; border: 1.5px solid #f59e0b; }
+  .lg .dashln { width: 18px; height: 0; border-top: 1.6px dashed #6366f1; display: inline-block; }
+  .legend .sep { color: #d1d5db; }
+  .legend .note { color: #6b7280; font-size: 9px; }
+
+  /* ===== タブ3: なぜ出口を先に決めるのか ===== */
+  .rf-chain { display: flex; align-items: stretch; gap: 0; margin-bottom: 14px; }
+  .rf-node { flex: 1; border-radius: 8px; padding: 13px 14px; position: relative; display: flex; flex-direction: column; justify-content: center; }
+  .rf-node.amber { background: #fffbeb; border: 1px solid #f59e0b; border-left: 4px solid #f59e0b; }
+  .rf-node.red { background: #fef2f2; border: 1px solid #dc2626; border-left: 4px solid #dc2626; }
+  .rf-t { font-size: 12.5px; font-weight: 700; line-height: 1.4; }
+  .rf-node.amber .rf-t { color: #92400e; }
+  .rf-node.red .rf-t { color: #991b1b; }
+  .rf-d { font-size: 10.5px; color: #4b5563; line-height: 1.45; margin-top: 5px; }
+  .rf-tag { position: absolute; top: -8px; left: 12px; background: #4338ca; color: #fff; font-size: 9px; font-weight: 700; padding: 1px 7px; border-radius: 3px; }
+  .rf-arrow { flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #b45309; font-size: 20px; font-weight: 700; padding: 0 12px; }
+  .rf-arrow span { font-size: 9px; color: #6b7280; font-weight: 700; margin-top: 2px; white-space: nowrap; }
+
+  .pivot-banner {
+    background: #ecfdf5; border: 1px solid #10b981; border-left: 4px solid #10b981; border-radius: 8px;
+    padding: 11px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px;
+  }
+  .pv-txt { font-size: 13.5px; font-weight: 700; color: #065f46; line-height: 1.4; }
+  .pv-txt strong { color: #047857; }
+  .pv-link { font-size: 10.5px; font-weight: 700; color: #047857; cursor: pointer; white-space: nowrap; text-decoration: none; flex-shrink: 0; }
+  .pv-link:hover { text-decoration: underline; }
+
+  .why-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 14px; }
+  .act-card { background: #eff6ff; border: 1px solid #bfdbfe; border-left: 4px solid #2563eb; border-radius: 8px; padding: 12px 14px; }
+  .ac-h { font-size: 12.5px; font-weight: 700; color: #1e40af; margin-bottom: 9px; }
+  .step-chip { background: #fff; border: 1px solid #bfdbfe; border-radius: 6px; padding: 8px 11px; font-size: 11px; font-weight: 600; color: #1f2937; margin-bottom: 7px; }
+  .step-chip:last-child { margin-bottom: 0; }
+  .step-chip::before { content: "▸ "; color: #2563eb; font-weight: 700; }
+  .compare { display: flex; flex-direction: column; gap: 9px; justify-content: center; }
+  .tk { border-radius: 8px; padding: 11px 13px; font-size: 11px; line-height: 1.45; color: #1f2937; display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
+  .tk.old { background: #f3f4f6; border: 1px solid #d1d5db; border-left: 4px solid #9ca3af; }
+  .tk.tf { background: #ecfdf5; border: 1px solid #a7f3d0; border-left: 4px solid #10b981; }
+  .tk-tag { flex-shrink: 0; font-size: 9.5px; font-weight: 700; color: #fff; padding: 2px 8px; border-radius: 3px; }
+  .tk.old .tk-tag { background: #9ca3af; }
+  .tk.tf .tk-tag { background: #047857; }
+  .tk .bad { color: #991b1b; font-weight: 700; }
+  .tk .good { color: #047857; font-weight: 700; }
+
+  .aim-note {
+    background: #eef2ff; border: 1px solid #c7d2fe; border-left: 4px solid #6366f1; border-radius: 8px;
+    padding: 10px 14px; font-size: 11.5px; line-height: 1.55; color: #1f2937;
+  }
+  .aim-note strong { color: #4338ca; }
+
+  /* ===== タブ4: スプリント運用 ===== */
+  .df-step { border-radius: 7px; padding: 9px 12px; font-size: 11px; line-height: 1.5; color: #1f2937; }
+  .df-step.gray { background: #f3f4f6; border: 1px solid #d1d5db; border-left: 4px solid #6b7280; }
+  .df-step.indigo { background: #eef2ff; border: 1px solid #c7d2fe; border-left: 4px solid #6366f1; }
+  .df-step b { color: #1f2937; }
+  .df-tag { display: inline-block; color: #fff; font-size: 9px; font-weight: 700; padding: 1px 7px; border-radius: 3px; margin-right: 7px; vertical-align: 1px; }
+  .df-step.gray .df-tag { background: #6b7280; }
+  .df-step.indigo .df-tag { background: #4338ca; }
+  .df-ar { text-align: center; color: #9ca3af; font-size: 14px; line-height: 1; margin: 5px 0; }
+  .df-decide { background: #ecfdf5; border: 1px solid #10b981; border-left: 4px solid #10b981; border-radius: 7px; padding: 10px 12px; font-size: 11px; line-height: 1.5; color: #1f2937; }
+  .df-decide b { color: #047857; }
+  .df-dtag { display: inline-block; background: #047857; color: #fff; font-size: 9px; font-weight: 700; padding: 1px 7px; border-radius: 3px; margin-right: 7px; vertical-align: 1px; }
+
+  .criteria { display: flex; flex-direction: column; gap: 8px; margin-bottom: 11px; }
+  .crit { background: #f9fafb; border: 1px solid #e5e7eb; border-left: 4px solid #2563eb; border-radius: 6px; padding: 8px 11px; font-size: 11px; line-height: 1.45; color: #1f2937; }
+  .crit-n { font-weight: 700; color: #1e40af; margin-right: 6px; }
+  .crit b { color: #1e40af; }
+
+  .found-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 2px; }
+  .found-card { border: 1px solid #e5e7eb; border-radius: 7px; padding: 9px 11px; background: #fff; }
+  .found-card .fc-t { font-size: 12px; font-weight: 700; color: #1f2937; }
+  .found-card .fc-d { font-size: 10px; color: #475569; line-height: 1.45; margin-top: 3px; }
+  .found-card .fc-d .axis { color: #b45309; font-weight: 700; }
+  .found-card.f1 { border-left: 4px solid #2563eb; }
+  .found-card.f2 { border-left: 4px solid #7c3aed; }
+  .found-card.f3 { border-left: 4px solid #0891b2; }
+  .found-card.f4 { border-left: 4px solid #b45309; }
+  .found-card .fc-t .no { display: inline-block; color: #fff; font-size: 10px; font-weight: 700; width: 16px; height: 16px; line-height: 16px; text-align: center; border-radius: 50%; margin-right: 5px; vertical-align: 1px; }
+  .found-card.f1 .no { background: #2563eb; }
+  .found-card.f2 .no { background: #7c3aed; }
+  .found-card.f3 .no { background: #0891b2; }
+  .found-card.f4 .no { background: #b45309; }
+
+  .link-note { margin-top: 11px; background: #ecfdf5; border: 1px solid #a7f3d0; border-left: 4px solid #10b981; border-radius: 6px; padding: 8px 11px; font-size: 10.8px; line-height: 1.55; color: #1f2937; }
+  .link-note a { color: #047857; font-weight: 700; text-decoration: none; }
+  .link-note a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>2026-07-09 定例 ラップアップ（チーム共有）</h1>
+  <div class="sub">参加者: 金子・山本礼貴（れき）・水野 / 開発フローの全アークと今スプリントの方針整理</div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="points">今日の要点</button>
+    <button class="tab" data-tab="flow">開発フロー（入口で出口を決め・出口で検証）</button>
+    <button class="tab" data-tab="why">なぜ出口を先に決めるのか</button>
+    <button class="tab" data-tab="sprint">スプリント運用</button>
+  </div>
+
+  <!-- ====================== タブ1: 今日の要点 ====================== -->
+  <div class="tab-content active" id="tab-points">
+    <div class="col-wrap">
+
+      <div class="kpi-row">
+        <div class="kpi">
+          <div class="k">予実（2名合計）</div>
+          <div class="v">− 約10h</div>
+          <div class="d">約1日遅れ。先週いったん回復も再び遅延。</div>
+        </div>
+        <div class="kpi">
+          <div class="k">タスク進捗</div>
+          <div class="v">20タスク中 3完了間近</div>
+          <div class="d">残るうち 4タスクが未着手。</div>
+        </div>
+        <div class="kpi">
+          <div class="k">スプリント1 見通し</div>
+          <div class="v">週明け月曜へ</div>
+          <div class="d">完了が週明け月曜にずれ込む見込み。</div>
+        </div>
+      </div>
+
+      <div class="dec-head">今日の決定・方針（カードをクリックで詳細タブへ）</div>
+      <div class="dec-grid">
+        <div class="dec-card green" onclick="switchTab('sprint')">
+          <span class="dc-tag">決定 a</span>
+          <div class="dc-title">スプリント1 は <span class="emg">引き継がない（簿録化）</span></div>
+          <div class="dc-go">→ スプリント運用タブ</div>
+        </div>
+        <div class="dec-card blue" onclick="switchTab('sprint')">
+          <span class="dc-tag">決定 b</span>
+          <div class="dc-title">スプリント2 は <span class="em">4基盤を選定</span>（優先度高 × CRUDに新軸1つ）</div>
+          <div class="dc-go">→ スプリント運用タブ</div>
+        </div>
+        <div class="dec-card amber" onclick="switchTab('why')">
+          <span class="dc-tag">指摘 c</span>
+          <div class="dc-title">外部連携の本質リスクは「<span class="ema">相手方システムの仕様の正しさ</span>」</div>
+          <div class="dc-go">→ なぜ出口を先に決めるのか</div>
+        </div>
+        <div class="dec-card blue" onclick="switchTab('why')">
+          <span class="dc-tag">方針 d</span>
+          <div class="dc-title"><span class="em">総合テストファースト</span>（最後を最初に決める）</div>
+          <div class="dc-go">→ なぜ出口を先に決めるのか</div>
+        </div>
+        <div class="dec-card indigo wide" onclick="switchTab('flow')">
+          <span class="dc-tag">方針 e（中心）</span>
+          <div class="dc-title">品質は <span class="em">一本の開発フロー（PM→担当者→AI）</span> で担保：<span class="ema">入口＝出口先行合意 ＋ 出口＝ブラックボックス確認【今後整備】</span> と <span class="emg">Yes/No 認識合わせ 2箇所【整備済み】</span></div>
+          <div class="dc-go">→ 開発フロータブ（全アーク）</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ====================== タブ2: 開発フロー 全アーク ====================== -->
+  <div class="tab-content" id="tab-flow">
+    <div class="col-wrap">
+      <div class="flow-cap">
+        入口で <b>"出口（検収条件）"</b> を先に決め → 実装し → 出口で <b>"その同じ出口"</b> を検証する（ブックエンド）。&nbsp; 上帯＝PM関与 ／ 中帯＝開発フロー工程 ／ 下帯＝Yes/No 発火点（2箇所）。
+      </div>
+
+      <div class="tl">
+        <!-- ===== 背景レイヤー: ブックエンド線・工程間矢印・遷移ラベル ===== -->
+        <svg class="layer" viewBox="0 0 1160 494" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="ind" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#6366f1"/></marker>
+            <marker id="blk" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#374151"/></marker>
+          </defs>
+
+          <!-- ブックエンド: 入口PM(x=120) → 出口PM(x=980) を上でつなぐ -->
+          <line x1="120" y1="48" x2="120" y2="30" stroke="#6366f1" stroke-width="1.6" stroke-dasharray="4 3"/>
+          <line x1="120" y1="30" x2="980" y2="30" stroke="#6366f1" stroke-width="1.6" stroke-dasharray="4 3"/>
+          <line x1="980" y1="30" x2="980" y2="48" stroke="#6366f1" stroke-width="1.6" stroke-dasharray="4 3" marker-end="url(#ind)"/>
+          <circle cx="120" cy="48" r="3.5" fill="#6366f1"/>
+          <text x="120" y="24" text-anchor="middle" font-size="8" font-weight="bold" fill="#4338ca">決める</text>
+          <text x="980" y="24" text-anchor="middle" font-size="8" font-weight="bold" fill="#4338ca">検証する</text>
+
+          <!-- 工程間の左→右矢印（カード中央 y=277 のガター） -->
+          <line x1="409" y1="277" x2="455" y2="277" stroke="#374151" stroke-width="2" marker-end="url(#blk)"/>
+          <line x1="749" y1="277" x2="795" y2="277" stroke="#374151" stroke-width="2" marker-end="url(#blk)"/>
+          <text text-anchor="middle" font-size="8" font-weight="bold" fill="#6b7280"><tspan x="433" y="259">合意した</tspan><tspan x="433" y="268">完了条件で</tspan></text>
+          <text text-anchor="middle" font-size="8" font-weight="bold" fill="#6b7280"><tspan x="773" y="259">実装物＋</tspan><tspan x="773" y="268">テスト結果</tspan></text>
+        </svg>
+
+        <!-- 中央ブックエンドピル -->
+        <div class="bookend-pill">入口で決めた <span class="em">"出口"</span> を、出口で <span class="em">同じ検収条件</span> で検証する</div>
+
+        <!-- ===== 上帯: PM関与 ===== -->
+        <div class="rowlab pm" style="left:0; top:84px;">上帯 ／ PM関与 <span class="mut">（藍＝PMが品質責任を通貫・仕組みは今後整備＝アンバー）</span></div>
+
+        <div class="box pmbox" style="left:0; top:108px; width:406px; height:66px;">
+          <span class="badge amber">今後整備</span>
+          <div class="h">入口：出口先行合意 ＋ 進め方合意</div>
+          <div class="d">AI のドラフトを PM がレビュー → <b>検収シナリオ・データ</b>と<b>影響範囲・分割</b>を合意。</div>
+        </div>
+        <div class="box pmfaint" style="left:460px; top:108px; width:286px; height:66px;">
+          <div class="d">PM は中身を見ない<br>（担当者 × AI に委譲）</div>
+        </div>
+        <div class="box pmbox" style="left:800px; top:108px; width:360px; height:66px;">
+          <span class="badge amber">今後整備</span>
+          <div class="h">出口：ブラックボックス確認 → 完了承認</div>
+          <div class="d">エビデンスが期待出力か ＋ <b>お客様目線・他機能整合</b>で最終判断。</div>
+        </div>
+
+        <!-- ===== 中帯: 開発フロー（工程） ===== -->
+        <div class="rowlab mid" style="left:0; top:182px;">開発フロー（工程） ／ 入口 → 実装 → 出口 の一本</div>
+
+        <div class="box card" style="left:0; top:202px; width:406px; height:150px;">
+          <span class="pnum">①</span>
+          <div class="roles"><span class="chip pm">PM</span><span class="chip dev">担当者</span><span class="chip ai">AI</span></div>
+          <div class="t">入口：完了条件（出口）を先に合意</div>
+          <ul>
+            <li>AI が<b>作業チケット案（完了条件）／単機能テスト項目書</b>を作成</li>
+            <li>PM×担当者が「<b>どのシナリオ・データで合格＝検収か</b>」を合意</li>
+            <li>網羅でなく<b>リスク／インパクトでユースケース</b>に凝縮（誰が・どう使い・何が出力）</li>
+          </ul>
+          <span class="tag tf">＝ 総合テストファースト（最後を最初に決める）</span>
+        </div>
+
+        <div class="box card" style="left:460px; top:202px; width:286px; height:150px;">
+          <span class="pnum">②</span>
+          <div class="roles"><span class="chip dev">担当者</span><span class="chip ai">AI</span></div>
+          <div class="t">実装（担当者 × AI）</div>
+          <ul>
+            <li>合意した<b>完了条件を満たすよう</b>実装</li>
+            <li><b>外結（外部結合）視点</b>で作る</li>
+            <li>AI と作る成果物を <b>Yes/No②</b> で認識合わせ</li>
+          </ul>
+        </div>
+
+        <div class="box card" style="left:800px; top:202px; width:360px; height:150px;">
+          <span class="pnum">③</span>
+          <div class="roles"><span class="chip pm">PM</span><span class="chip done">完了</span></div>
+          <div class="t">出口：ブラックボックス・チェック</div>
+          <ul>
+            <li>PM は中身を見ず、<b>シナリオ × 結果（エビデンス）＝期待出力</b>かを確認</li>
+            <li>お客様目線・他機能整合の<b>広い視野</b>でリリース可否を判断</li>
+            <li><b>入口①で決めた出口を同じ条件でここで検証</b></li>
+          </ul>
+          <span class="tag ok">→ 完了承認</span>
+        </div>
+
+        <!-- ===== 下帯: Yes/No 認識合わせ ===== -->
+        <div class="rowlab yn" style="left:0; top:356px;">下帯 ／ Yes/No 認識合わせ <span class="mut">（緑＝整備済みの"下駄"・発火点は2箇所）</span></div>
+
+        <div class="box ynbox" style="left:0; top:380px; width:406px; height:66px;">
+          <span class="badge green">整備済み</span>
+          <div class="h">① 起票時 Yes/No</div>
+          <div class="d">AI が観点を<b>確定案付き（推奨／確信度）</b>で提示 → 担当者は <b>Yes/No で答えるだけ</b>。</div>
+        </div>
+        <div class="box ynbox" style="left:460px; top:380px; width:286px; height:66px;">
+          <span class="badge green">整備済み</span>
+          <div class="h">② 実装中 Yes/No</div>
+          <div class="d">担当者が <b>AI と作る成果物</b>（spec・方針）を認識合わせ。</div>
+        </div>
+        <div class="box ynnote" style="left:800px; top:380px; width:360px; height:66px;">
+          <div class="d">決めきれない項目は <b>不明点一覧（SME確認）</b> へ。<b>出口では新たな Yes/No は発火しない</b>。</div>
+        </div>
+
+        <!-- ===== 凡例 ===== -->
+        <div class="legend">
+          <span class="lg"><span class="dot" style="background:#4338ca"></span>PM</span>
+          <span class="lg"><span class="dot" style="background:#2563eb"></span>担当者</span>
+          <span class="lg"><span class="dot" style="background:#b45309"></span>AI</span>
+          <span class="lg"><span class="dot" style="background:#047857"></span>完了</span>
+          <span class="sep">|</span>
+          <span class="lg"><span class="pill"></span>緑ピル＝整備済み（Yes/No）</span>
+          <span class="lg"><span class="bdg"></span>アンバー箱＝今後整備（PM合意・PM確認）</span>
+          <span class="sep">|</span>
+          <span class="lg"><span class="dashln"></span>藍破線＝ブックエンド（入口で決めた出口を出口で検証）</span>
+          <span class="note">※ アンバーは "大きな塗り＝今後整備" ／ "小チップ＝AI役割"</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================== タブ3: なぜ出口を先に決めるのか ====================== -->
+  <div class="tab-content" id="tab-why">
+    <div class="col-wrap">
+      <div class="flow-cap">
+        外部連携ほど <b>"出口（検収条件）を先に決める"</b> 効果が大きい。金子指摘の本質リスクから逆算する。
+      </div>
+
+      <!-- 4-A 因果チェーン -->
+      <div class="rf-chain">
+        <div class="rf-node amber">
+          <span class="rf-tag">金子指摘</span>
+          <div class="rf-t">本質リスク＝「相手方システムの仕様の正しさ」</div>
+          <div class="rf-d">技術難易度ではない。</div>
+        </div>
+        <div class="rf-arrow">→<span>情報非対称</span></div>
+        <div class="rf-node amber">
+          <div class="rf-t">仕様書・ヒアリング ≠ 実環境</div>
+          <div class="rf-d">内部⇄外部の情報非対称性 ／ リードタイム <b>約4倍</b>。</div>
+        </div>
+        <div class="rf-arrow">→<span>前提崩壊</span></div>
+        <div class="rf-node red">
+          <div class="rf-t">「仕様が正しい」前提で組むと手戻り連鎖</div>
+        </div>
+      </div>
+
+      <!-- 4-B 転換バナー -->
+      <div class="pivot-banner">
+        <div class="pv-txt">∴ だから "出口（＝通す総合テスト）" を先に決める ＝ <strong>総合テストファースト</strong></div>
+        <a class="pv-link" onclick="switchTab('flow')">→ 開発フロー 入口① に対応</a>
+      </div>
+
+      <!-- 4-C 施策 ＋ 対比 -->
+      <div class="why-grid">
+        <div class="act-card">
+          <div class="ac-h">WBS 最前段に置くタスク</div>
+          <div class="step-chip">相手方仕様の裏取り（実環境と突合）</div>
+          <div class="step-chip">突合手順を相手方と事前に握る</div>
+        </div>
+        <div class="compare">
+          <div class="tk old"><span class="tk-tag">従来</span><div>実装 → 単体 → 結合で <span class="bad">ギャップ発覚 → 手戻り</span></div></div>
+          <div class="tk tf"><span class="tk-tag">テストファースト</span><div>テスト＝答えを <span class="good">先に定義</span> → 満たすよう実装</div></div>
+        </div>
+      </div>
+
+      <!-- 4-D 仮合意結論 -->
+      <div class="aim-note">
+        100点でなく「<strong>今回はこのテストを通す</strong>」基準を <strong>PM と仮合意</strong> → その前提で AI 駆動を回す（効率×品質）。見積り精度↑・赤字リスク回避。<strong>外部連携72箇所級ほど有効</strong>。
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================== タブ4: スプリント運用 ====================== -->
+  <div class="tab-content" id="tab-sprint">
+    <div class="grid2">
+
+      <!-- 左: スプリント1 の閉じ方 -->
+      <div class="panel">
+        <h2>スプリント1 の閉じ方（引き継がない）</h2>
+        <div class="df-step gray"><span class="df-tag">状況</span>仕様未確定の <b>暫定実装</b> タスクが残る。</div>
+        <div class="df-ar">↓</div>
+        <div class="df-step indigo"><span class="df-tag">提案</span>PM（谷・千葉）「<b>BP（協力会社）へ引き継いでは</b>」。</div>
+        <div class="df-ar">↓</div>
+        <div class="df-step indigo"><span class="df-tag">金子判断</span><b>引き継ぎコスト（オーバーヘッド）＞ メリット</b>。経緯を知らない他者への説明労力 ＞ 仕様確定後に最も理解する現チーム対応（<b>数学的に効率的</b>）。クリティカルパスでなければ無理にクローズしない。</div>
+        <div class="df-ar">↓</div>
+        <div class="df-decide"><span class="df-dtag">決定・簿録化</span>残作業は <b>ToDo として簿録化</b>。仕様確定後、現チーム（礼貴・水野）が S2 中／終了後に対応。</div>
+      </div>
+
+      <!-- 右: スプリント2 の選定 -->
+      <div class="panel">
+        <h2>スプリント2 の選定</h2>
+        <div class="criteria">
+          <div class="crit"><span class="crit-n">基準①</span>PW 内で優先度が高い。</div>
+          <div class="crit"><span class="crit-n">基準②</span>「データ型 × CRUD（S1要素）」に <b>新しい軸を1つ</b> 加えた基盤開発。</div>
+        </div>
+        <div class="found-grid">
+          <div class="found-card f1"><div class="fc-t"><span class="no">1</span>認証・認可</div><div class="fc-d">ルートガード・画面内権限<br><span class="axis">新軸: 横断ガード×範囲(scope)</span></div></div>
+          <div class="found-card f2"><div class="fc-t"><span class="no">2</span>SMS/IVR 連携</div><div class="fc-d">再配達ステータス切替等<br><span class="axis">新軸: 外部境界(機能I/F・差替)</span></div></div>
+          <div class="found-card f3"><div class="fc-t"><span class="no">3</span>ファイル連携</div><div class="fc-d">基幹・S3（取込／送信）<br><span class="axis">新軸: 授受×バッチ(SFTP/S3・時刻起動)</span></div></div>
+          <div class="found-card f4"><div class="fc-t"><span class="no">4</span>帳票出力</div><div class="fc-d">配送指示書PDF・非同期<br><span class="axis">新軸: 非同期生成×状態管理(通知・S3)</span></div></div>
+        </div>
+        <div class="link-note">
+          → 詳細は <a href="workitems2.html">workitems2.html</a>（タスク一覧・ガント）／ <a href="aidd_report2.html">aidd_report2.html</a>（工数比較）を参照。
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+  function switchTab(name) {
+    document.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === 'tab-' + name));
+  }
+  document.querySelectorAll('.tab').forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+  });
+</script>
+</body>
+</html>
