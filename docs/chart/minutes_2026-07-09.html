@@ -174,6 +174,9 @@
   .block { margin-bottom: 10px; }
   .block:last-child { margin-bottom: 0; }
   .panel .block h2 { margin-bottom: 7px; }
+  .summary { gap: 4px; }
+  .scard { padding: 4px 8px; }
+  .quote { padding: 5px 9px; }
 </style>
 </head>
 <body>
@@ -230,9 +233,39 @@
     <div class="panel">
       <div class="block" style="margin-bottom:0; flex:1; display:flex; flex-direction:column;">
         <h2>議論サマリ</h2>
-        <div class="placeholder">
-          会議後に追記<br>
-          （決定事項・アクションアイテム・社長総括）
+        <div class="summary">
+          <div class="scard amber">
+            <span class="label">進捗・遅延</span>
+            <p>先週は一旦遅れを取り戻したが、現時点で2名合計 約10時間（約1日分）の遅延。全20タスク中3件が完了間近・4件が未着手。スプリント1の全完了は週明け月曜にずれ込む見込み。</p>
+          </div>
+          <div class="scard">
+            <span class="label">スプリント1の閉め方（外部引き継ぎは否定）</span>
+            <p>暫定実装を協力会社へ引き継ぐ案は引き継ぎコストの観点から却下。経緯を最も理解する現チームが仕様確定後に対応する方が効率的。クリティカルパスでない限りToDoとして簿録化し、スプリント2中／後に対応。</p>
+          </div>
+          <div class="scard">
+            <span class="label">スプリント2のタスク選定</span>
+            <p>基準は①PW内で優先度が高い ②スプリント1の要素（データモデル・CRUD）に新しい軸を1つ加えた基盤開発。選定＝(1)認証・認可基盤 (2)SMS/IVR連携基盤 (3)ファイル連携基盤 (4)帳票出力基盤。</p>
+          </div>
+          <div class="scard amber">
+            <span class="label">外部連携の本質的リスク</span>
+            <p>最大の阻害要因は技術的難易度ではなく「対抗システム（相手方）の仕様の正しさ」。内部と外部の情報非対称性がリードタイムを4倍近く膨らませる。相手方の仕様を確実に裏取りするタスクを最優先に置くべき。</p>
+          </div>
+          <div class="scard red">
+            <span class="label">総合テストファースト（社長提唱）</span>
+            <p>ゴールは総合テストをパスすること。着手前にユースケースとテストデータを確定させることが「仕様の正解」を得ることに直結する。突合手順を相手方と事前に握るタスクをWBS最前段へ。100点でなく「通すべきテスト基準」をPMと合意し、その前提でAIDDを回す。</p>
+          </div>
+          <div class="scard">
+            <span class="label">品質管理・2段階の合意フロー</span>
+            <p>PMがシナリオ（親チケット）を用意→AIが作業チケットをドラフト。合意①実装の入口（進め方・影響範囲）、合意②検収の出口（テストシナリオ／データのブラックボックス・チェック）を事前に握りズレを最小化する。</p>
+          </div>
+          <div class="scard">
+            <span class="label">Yes/No 対話モデルと「暗黙の理解」の顕在化</span>
+            <p>AIは「どうしますか？」ではなく「この構造・手順を推奨。Yes/Noで」と提案する承認モデルへ。異常系や権限など"際の仕様"もAIから能動提案。AIが自らの前提（入出力・権限・プロセス）を表出させYes/Noで確認し、担当者の能力に依存しない透明な開発を実現する。</p>
+          </div>
+          <div class="quote">
+            <span class="who">社長 総括</span>
+            「最後（総合テスト）を最初に決める」。仕様が不透明でも、テストケースを答えとして先に確定させれば手戻りは最小化できる。AIに前提を表出させ、PM・エンジニア・AIが同じ線路に立つ透明な開発を徹底せよ。
+          </div>
         </div>
       </div>
     </div>
