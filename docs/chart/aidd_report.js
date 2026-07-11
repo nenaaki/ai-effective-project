@@ -554,6 +554,34 @@
         "<strong>要業務確認(中)</strong>: RP020の3群行(積込/取卸/パレット回収)はデータに区別が無く、暫定で画面表示22行を1:1 CSV化(PW-194_2)。水源列は画面と同じ出荷元マスタ値(PW-194_1)。",
       ],
     },
+    // サーバーシリアル-問番対応表 (IF / PR22) - サーバー地域配送・Excel 一括取込。実績コード量: API 462 / ユニットテスト 323 / フロントエンド 648 行 (DBなし)。
+    // AsIs: お知らせ登録(FE015) の行あたり工数を実績LOCに適用 (api-impl 8h/369行・api-test 3.5h/256行・fe-impl 33.5h/1694行)。UX/FE設計は按分過小のため実態値。動作確認は実測2h。合計 約32.2h。
+    // ToBe: 実装 1.5h + 動作確認 2.0h = 3.5h (実測)。
+    'wi-if-PR22': {
+      lede: "<strong>サーバーシリアル-問番対応表（IF / PR22）</strong>の開発工数比較。<strong>サーバー地域配送のサーバーシリアル-問番対応表 Excel 一括取込</strong>インターフェース。実績コード量は API <strong>462 行</strong>・ユニットテスト <strong>323 行</strong>・フロントエンド <strong>648 行</strong>（DBなし）。<strong>AsIs は行数規模から推定</strong>（お知らせ登録(FE015) の行あたり工数を適用）。ただし UX設計 2.0h・フロント設計 1.0h は規模比按分では過小なため実態に合わせて設定。合計 約32.2h。<strong>ToBe は実測 3.5h</strong>（実装 1.5h ＋ 動作確認 2.0h）。削減率 <strong>約89%</strong>。",
+      bugCategories: [
+        { key: "syntax", label: "構文/型エラー",                              color: "#ef4444", asis: 1, tobe: 0 },
+        { key: "logic",  label: "ロジックバグ (取込・upsert・対応表検証)",       color: "#f59e0b", asis: 6, tobe: 3 },
+        { key: "edge",   label: "エッジケース漏れ (空・重複・文字コード・大量件数)", color: "#8b5cf6", asis: 5, tobe: 2 },
+        { key: "spec",   label: "仕様解釈ミス (取込仕様・シリアル/問番マッピングの解釈)", color: "#ec4899", asis: 3, tobe: 1 },
+        { key: "ui",     label: "UI 細部の不整合 (アップロードUI・結果表示)",      color: "#06b6d4", asis: 2, tobe: 1 },
+      ],
+      bugRateNote: "※ サーバーシリアル-問番対応表（IF）約 1.4 KLOC × 参考レート（人力 12/KLOC ≒ 17件 / AI 5/KLOC ≒ 7件）で推定。サーバーシリアルと問番の対応表 Excel 取込で、論点は <strong>取込仕様・シリアル/問番のマッピング・重複/文字コードの解釈</strong>。AI でも業務固有の取込ルールは仕様で明示しないと <strong>仕様解釈ミス</strong> が残りやすい。",
+      tasks: {
+        'api-impl':    { asis: 10.0, loc: 462,  tobe: 0.5,  tobeEng: 0,   agents: ["バックエンドAI"] },
+        'api-test':    { asis: 4.4,  loc: 323,  tobe: 0.15, tobeEng: 0,   agents: ["バックエンドAI"] },
+        'ux':          { asis: 2.0,             tobe: 0.1,  tobeEng: 0,   agents: ["プランナーAI", "エンジニア"] },
+        'fe-design':   { asis: 1.0,             tobe: 0.05, tobeEng: 0,   agents: ["フロントエンドAI"] },
+        'fe-impl':     { asis: 12.8, loc: 648,  tobe: 0.7,  tobeEng: 0,   agents: ["フロントエンドAI"] },
+        'verify':      { asis: 2.0,             tobe: 2.0,  tobeEng: 2.0, agents: ["バックエンドテスターAI", "フロントエンドテスターAI", "エンジニア"] },
+      },
+      contextNotes: [
+        "対象: サーバーシリアル-問番対応表（IF / PR22 / サーバー地域配送・UL）。サーバーシリアルと問番の対応表を Excel で一括取込するインターフェース。",
+        "<strong>実績コード量</strong>: API <strong>462 行</strong> / ユニットテスト <strong>323 行</strong> / フロントエンド <strong>648 行</strong>（DB 0）。工程区分はお知らせ登録(FE015)のフォーマットを流用。",
+        "<strong>AsIs（人力想定）は行数規模から推定</strong>: お知らせ登録の『行あたり工数』を実績LOCに適用（api-impl 8h/369行 → 10.0h・api-test 3.5h/256行 → 4.4h・fe-impl 33.5h/1694行 → 12.8h）。UX（2.0h）・フロント設計（1.0h）は規模比按分では過小なため実態に合わせて設定。動作確認は実測2.0h。合計 約32.2h。",
+        "<strong>ToBe（AI駆動）は実測 3.5h</strong>: 実装 1.5h（API実装 0.5 / API単体テスト 0.15 / FE実装 0.7 / UX 0.1 / FE設計 0.05）＋ 動作確認 2.0h（エンジニア）。削減率 <strong>約89%</strong>。",
+      ],
+    },
     // 訪問不在登録(FE032)・配車戻し登録(FE033)・その他未完了登録(FE034)・ドライバー持出登録(FE030) は
     // 配送完了登録(FE031) と同一画面／同一コンポーネントの一機能として一括実装したため、単独の実装工数は発生しない。
     // タイトル下 (lede) にその旨だけを記載する。
