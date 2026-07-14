@@ -48,6 +48,26 @@
   <div class="col">
     <h2>ドキュメント・課題事例</h2>
     <details class="grp" open>
+      <summary>スプリント2</summary>
+      <ul class="links">
+        <li><details class="item" open>
+          <summary>スプリント2 タスク管理（基盤設計 ①②③④）</summary>
+          <div class="body"><div class="desc">7/13開始のスプリント2。基盤設計（①認証認可 / ②外部連携(SMS/IVR) / ③ファイル連携(取込/送信) / ④帳票出力(PDF生成)）のタスク一覧・ガント・バーンダウン。各タスクに短縮和名を付与。</div>
+          <a class="path" href="workitems2.html">workitems2.html →</a></div>
+        </details></li>
+        <li><details class="item" open>
+          <summary>スプリント2 開発工数比較（AsIs / ToBe）</summary>
+          <div class="body"><div class="desc">基盤設計 ①②③④ のタスク単位 AsIs（人力想定）vs ToBe（AI駆動見込み・バッファ40%込み）比較。①②③④＋合計タブ、削減率つき。</div>
+          <a class="path" href="aidd_report2.html">aidd_report2.html →</a></div>
+        </details></li>
+        <li><details class="item issue">
+          <summary>課題事例④: 品質管理プロセスと承認権限（シナリオ／作業チケットの進め方）</summary>
+          <div class="body"><div class="desc">議題③の整理。PMがシナリオ確認チケット（親）を先に起票→作業チケットのスコープとシナリオ上の作用を合意→実装→PMが完了承認→子が揃ったら親で通し確認。運送業シナリオ（持出・配送完了）を例に、承認は2階層・異常系の取捨はPM判断・チケット間の受け渡しを実装前に握る、を具体化</div>
+          <a class="path" href="problem_ex_4.html">problem_ex_4.html →</a></div>
+        </details></li>
+      </ul>
+    </details>
+    <details class="grp" open>
       <summary>スプリント1</summary>
       <ul class="links">
         <li><details class="item" open>
@@ -59,11 +79,6 @@
           <summary>AI駆動開発実施レポート</summary>
           <div class="body"><div class="desc">AI駆動開発の試行結果・フロー上の問題点のまとめ　新規: デポマスタ、ユーザーマスタ、エリアマスタ</div>
           <a class="path" href="aidd_report.html">aidd_report.html →</a></div>
-        </details></li>
-        <li><details class="item" open>
-          <summary>テスト設計の構造（Check観点の相談）</summary>
-          <div class="body"><div class="desc">テスト設計を V字モデルで構造化し、各工程の Check 観点・クリア条件と、AI／人間の分担（Backend は Jest ユニット、画面の振る舞いは人間判定）を相談する資料。</div>
-          <a class="path" href="test_structure.html">test_structure.html →</a></div>
         </details></li>
         <li><details class="item consulted">
           <summary><span class="badge">相談済み</span>課題事例①: 要件不明確時のフロー（PW-120 デポマスタ）</summary>
@@ -80,30 +95,10 @@
           <div class="body"><div class="desc">課題①で整備した谷さん・千葉さんへの確認フローを実運用。出た不明点が「即答困難（顧客確認）／AI駆動の対象外（業務ロジック・外部連携）／資料で網羅定義（Validation等）」と3種類混在し整理に時間。別チケットで切り分ける方針の確認まで</div>
           <a class="path" href="problem_ex_3.html">problem_ex_3.html →</a></div>
         </details></li>
-        <li><details class="item issue">
-          <summary>課題事例④: 品質管理プロセスと承認権限（シナリオ／作業チケットの進め方）</summary>
-          <div class="body"><div class="desc">議題③の整理。PMがシナリオ確認チケット（親）を先に起票→作業チケットのスコープとシナリオ上の作用を合意→実装→PMが完了承認→子が揃ったら親で通し確認。運送業シナリオ（持出・配送完了）を例に、承認は2階層・異常系の取捨はPM判断・チケット間の受け渡しを実装前に握る、を具体化</div>
-          <a class="path" href="problem_ex_4.html">problem_ex_4.html →</a></div>
-        </details></li>
         <li><details class="item consulted">
           <summary><span class="badge">継続改善</span>課題事例⑤: Yes/No で答えるだけの確認フロー（下駄）を整備（PW-190/191/194）</summary>
           <div class="body"><div class="desc">AIの問いかけが「どうしますか？」の曖昧な形だと実装者が指示を一から書く必要があり、複雑な権限仕様では新人が判断困難。従来フロー（起票→AIオーケストレーション→不明点一覧・レビュー）の起票時に、AIが確定案＋6要素付きでYes/No確認する「下駄」を追加ノードとして整備。工数削減・ガードレール化・自律化への準備が目的。実例（PW-190のAskUserQuestion実物1問）に提案6要素・7カテゴリを矢印とノードで対応づけて解説</div>
           <a class="path" href="problem_ex_5.html">problem_ex_5.html →</a></div>
-        </details></li>
-      </ul>
-    </details>
-    <details class="grp" open>
-      <summary>スプリント2</summary>
-      <ul class="links">
-        <li><details class="item" open>
-          <summary>スプリント2 タスク管理（基盤設計 ①②③④）</summary>
-          <div class="body"><div class="desc">7/13開始のスプリント2。基盤設計（①認証認可 / ②外部連携(SMS/IVR) / ③ファイル連携(取込/送信) / ④帳票出力(PDF生成)）のタスク一覧・ガント・バーンダウン。各タスクに短縮和名を付与。</div>
-          <a class="path" href="workitems2.html">workitems2.html →</a></div>
-        </details></li>
-        <li><details class="item" open>
-          <summary>スプリント2 開発工数比較（AsIs / ToBe）</summary>
-          <div class="body"><div class="desc">基盤設計 ①②③④ のタスク単位 AsIs（人力想定）vs ToBe（AI駆動見込み・バッファ40%込み）比較。①②③④＋合計タブ、削減率つき。</div>
-          <a class="path" href="aidd_report2.html">aidd_report2.html →</a></div>
         </details></li>
       </ul>
     </details>
