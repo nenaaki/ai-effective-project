@@ -22,7 +22,7 @@ const SPRINT2_DATA = {
   bases: [
     { key: "prep",   id: "事", name: "事前工数",              color: "#0d9488" },
     { key: "auth",   id: "①", name: "認証・認可",              color: "#2563eb" },
-    { key: "export", id: "②", name: "外部連携(SMS/IVR)", color: "#7c3aed" },
+    { key: "export", id: "②", name: "外部連携(SMS)", color: "#7c3aed" },
     { key: "file",   id: "③", name: "ファイル連携(取込/送信)", color: "#0891b2" },
     { key: "report", id: "④", name: "帳票出力(PDF生成)",       color: "#d97706" },
     { key: "reserve", id: "予", name: "予備工数",              color: "#64748b" },
@@ -58,33 +58,33 @@ const SPRINT2_DATA = {
     { name: "画面適用:admin各画面(後半)", base: "auth", person: 1, group: "適用", code: "IF2b", owner: "FE", deps: ["画面適用:admin各画面(前半)"], asis: 14, tobe: 3.0, status: "予定", progress: 0, actual: 0, desc: "admin 残りルートにURL＋要素ガード。SCREEN操作102の残りキー付け。" },
     { name: "画面適用:driver",   base: "auth", person: 1, group: "適用",       code: "IF3", owner: "FE", deps: ["driverガード"],     asis: 16, tobe: 3.5, status: "予定", progress: 0, actual: 0, desc: "app-driver 22ルートにURL＋要素ガード。KSL/配送員のロール差を反映。" },
 
-    // ───────── ② 外部連携（SMS/IVRシステム連携）─────────
-    // 出典: .work/基盤設計_03_外部連携.md。SMS/IVRは機能軸で抽象化しドライバー化（リアル層は繋がずモックドライバーで代替）。※ファイルインポートは別基盤として切り出し。
-    { name: "仕様精査(連携)",   base: "export", person: 2, group: "仕様精査", code: "SP",  owner: "両", deps: [], nobuffer: true, asis: 10.8, tobe: 7.2, status: "予定", progress: 0, actual: 0, desc: "SMS/IVR連携の精査と実装前の論点整理（連携I/F粒度・ドライバー化方針・再送/冪等）。" },
-    // ── SMS/IVR連携：機能軸で抽象化＋ドライバー化（リアル層は繋がず、モックドライバーで代替。駆動UC＝再配達受付の希望日時取得）──
-    { name: "連携I/F定義",      base: "export", person: 2, group: "連携",       code: "L1",  owner: "BE", deps: [],                    asis: 4,  tobe: 2.0, status: "予定", progress: 0, actual: 0, desc: "使いたい機能を機能軸のサービスI/Fに契約化（再配達受付＝顧客/荷物/希望日時/チャネル）。実ベンダーアクセスはドライバーに閉じる。" },
-    { name: "連携モックドライバー", base: "export", person: 2, group: "連携",    code: "L2",  owner: "BE", deps: ["連携I/F定義"],        asis: 6,  tobe: 2.5, status: "予定", progress: 0, actual: 0, desc: "リアル層の代替。fixtureで受付データ・希望日時を返すモックドライバー（成功/失敗/遅延切替）。ベンダー確定後は実ドライバーに差替え。" },
-    { name: "連携サービス・API", base: "export", person: 2, group: "連携",      code: "L3",  owner: "BE", deps: ["連携I/F定義", "連携モックドライバー"], asis: 8, tobe: 3.0, status: "予定", progress: 0, actual: 0, desc: "クライアントを束ねるバックエンドサービス＋GraphQL query/mutationで取得・取込を公開。" },
-    { name: "再配達日時反映",   base: "export", person: 2, group: "連携",       code: "L4",  owner: "BE", deps: ["連携サービス・API"], asis: 5, tobe: 2.0, status: "予定", progress: 0, actual: 0, desc: "取得した再配達希望日時を配送へ反映。既存の更新経路を再利用（重複回避）。" },
-    { name: "連携E2E",          base: "export", person: 2, group: "連携",       code: "L5",  owner: "両", deps: ["再配達日時反映", "連携モックドライバー"], asis: 4, tobe: 1.5, status: "予定", progress: 0, actual: 0, desc: "モックドライバー相手に『取得→反映』を1本通すE2E。失敗時の扱いも確認。" },
-
     // ───────── ③ ファイル連携（各基幹システムと双方向のファイル連携。前提: S3＋Transfer Family の SFTP）─────────
-    // 出荷指示取込（S3→検証/マッピング→DB→配送指示書作成）と 出荷実績送信（DB→実績ファイル生成→S3配置）。いずれも特定時刻にバッチ起動。取込/生成は「定義型」基盤で対称に。
+    // 出荷指示取込（S3→検証/マッピング→DB→配送指示書作成）と 出荷実績送信（DB→実績ファイル生成→S3配置）。いずれも特定時刻にバッチ起動。取込/生成は「定義型」基盤で対称に。※人員2の着手はこの③を先頭にする（配列順＝レーン着手順：③→②→④）。
     { name: "仕様精査(ファイル連携)", base: "file", person: 2, group: "仕様精査", code: "SP", owner: "両", deps: [], nobuffer: true, asis: 10.8, tobe: 7.2, status: "予定", progress: 0, actual: 0, desc: "出荷指示取込・出荷実績送信の精査と論点整理（ファイル定義・バリデーション正本・文字コード・部分失敗ポリシー・冪等・スケジュール起動・SFTP/S3授受の前提）。" },
     { name: "S3/SFTP基盤",     base: "file", person: 2, group: "基盤", code: "F0", owner: "BE", deps: [],                                     asis: 5, tobe: 3.0, status: "予定", progress: 0, actual: 0, desc: "S3バケット＋Transfer Family による SFTP アクセス整備（各基幹システム担当者がファイル送受信）。AWS側整備でAI駆動範囲外の手作業を含む。" },
     { name: "ファイル授受基盤", base: "file", person: 2, group: "基盤", code: "F1", owner: "BE", deps: ["S3/SFTP基盤"],                        asis: 6, tobe: 2.5, status: "予定", progress: 0, actual: 0, desc: "S3 get/put＋退避・リネームのファイル授受アダプタ。取込ファイル取得／実績ファイル配置の共通経路。" },
     { name: "ファイル定義基盤", base: "file", person: 2, group: "基盤", code: "F2", owner: "BE", deps: [],                                     asis: 9, tobe: 3.5, status: "予定", progress: 0, actual: 0, desc: "取込/生成の「定義型」基盤（列マッピング・型・バリデーション）。既存エクスポート定義基盤と対称。定義1個＝1帳票。" },
     { name: "バッチ起動基盤",   base: "file", person: 2, group: "基盤", code: "F3", owner: "BE", deps: [],                                     asis: 5, tobe: 2.0, status: "予定", progress: 0, actual: 0, desc: "特定時刻キックのスケジューラ＋ジョブ実行枠＋t_batch_logs記録。取込/送信の両処理を起動。" },
-    { name: "出荷指示取込",     base: "file", person: 2, group: "取込", code: "F4", owner: "BE", deps: ["ファイル授受基盤", "ファイル定義基盤", "バッチ起動基盤"], asis: 8, tobe: 3.0, status: "予定", progress: 0, actual: 0, desc: "起動→S3から取込ファイル取得→バリデーション＋マッピング→PW-DMS DB登録（$transaction・部分失敗ポリシー・冪等upsert・取込ログ）。" },
+    { name: "出荷指示取込",     base: "file", person: 2, group: "取込", code: "F4", owner: "BE", deps: ["ファイル授受基盤", "ファイル定義基盤", "バッチ起動基盤"], asis: 8, tobe: 3.0, status: "予定", progress: 0, actual: 0, desc: "起動→S3から取込ファイル取得→バリデーション＋マッピング（約53項目）→PW-DMS DB登録（$transaction・部分失敗ポリシー・冪等upsert・取込ログ）。" },
     { name: "配送指示書作成連携", base: "file", person: 2, group: "取込", code: "F5", owner: "BE", deps: ["出荷指示取込"],                       asis: 4, tobe: 1.5, status: "予定", progress: 0, actual: 0, desc: "取込完了後に配送指示書の作成処理をキック（既存処理の呼出配線）。" },
-    { name: "出荷実績生成",     base: "file", person: 2, group: "送信", code: "F6", owner: "BE", deps: ["ファイル定義基盤", "バッチ起動基盤"],   asis: 6, tobe: 2.5, status: "予定", progress: 0, actual: 0, desc: "起動→PW-DMS DBから対象データ取得→定義で出荷実績ファイルを生成。" },
+    { name: "サイサン指示受信(IF004)", base: "file", person: 2, group: "取込", code: "F9", owner: "BE", deps: ["ファイル定義基盤", "出荷指示取込"], asis: 4, tobe: 1.5, status: "予定", progress: 0, actual: 0, desc: "IF004。サイサン出荷指示の定義追加＋サイサン⇔PWフォーマット差分変換。取込本体は出荷指示取込を再利用。" },
+    { name: "出荷実績生成",     base: "file", person: 2, group: "送信", code: "F6", owner: "BE", deps: ["ファイル定義基盤", "バッチ起動基盤"],   asis: 6, tobe: 2.5, status: "予定", progress: 0, actual: 0, desc: "起動→PW-DMS DBから対象データ取得→定義で出荷実績ファイル（約32項目・forU/WS別）を生成。15時までにS3配置（担当者がSFTPで受領）。" },
     { name: "実績ファイル配置", base: "file", person: 2, group: "送信", code: "F7", owner: "BE", deps: ["出荷実績生成", "ファイル授受基盤"],     asis: 3, tobe: 1.5, status: "予定", progress: 0, actual: 0, desc: "生成した出荷実績ファイルをS3へ配置（担当者がSFTPで受領）。" },
+    { name: "サイサン実績送信(IF005)", base: "file", person: 2, group: "送信", code: "F10", owner: "BE", deps: ["ファイル定義基盤", "出荷実績生成"], asis: 3, tobe: 1.5, status: "予定", progress: 0, actual: 0, desc: "IF005。サイサン出荷実績の定義追加（別ファイル・サンプル無し→正解は基幹側読込検証）。生成本体は出荷実績生成を再利用。" },
     { name: "連携E2E(ファイル)", base: "file", person: 2, group: "E2E", code: "F8", owner: "両", deps: ["配送指示書作成連携", "実績ファイル配置"], asis: 4, tobe: 1.5, status: "予定", progress: 0, actual: 0, desc: "SFTPでファイル配置→取込→指示書作成／実績生成→S3配置 を1本通すE2E（成功・部分失敗・冪等再取込）。" },
 
+    // ───────── ② 外部連携（SMS）─────────
+    // SMS特化。アクリート実サービス⇔エミュレータをドライバーで差替。IVR・再配達受付UCは後発（要件FIX 7月中・スコープ外）。SMS E2Eも後発（開通申請待ち＝7月以降）。駆動UC=配送遅延/ご不在通知。
+    { name: "仕様精査(SMS連携)", base:"export", person:2, group:"仕様精査", code:"SP", owner:"両", deps:[], nobuffer:true, asis:10.8, tobe:7.2, status:"予定", progress:0, actual:0, desc:"SMS連携の精査と論点整理（機能I/F粒度・ドライバー化方針・再送/冪等・文面テンプレ・接続情報/環境変数の未確定欄）。IVRは後発（要件FIX後・今回スコープ外）。" },
+    { name:"SMS連携I/F定義", base:"export", person:2, group:"基盤", code:"L1", owner:"BE", deps:[], asis:4, tobe:2.0, status:"予定", progress:0, actual:0, desc:"使いたい機能を機能軸のサービスI/Fに契約化（配信/配信結果取得/結果通知）。実ベンダーアクセスはドライバーに閉じる。" },
+    { name:"SMSモックドライバー", base:"export", person:2, group:"基盤", code:"L2", owner:"BE", deps:["SMS連携I/F定義"], asis:6, tobe:2.5, status:"予定", progress:0, actual:0, desc:"アクリート実サービス⇔エミュレーターをドライバーで差替（環境変数切替・成功/失敗/遅延の応答パターン）。SoftBank番号は開通後。" },
+    { name:"SMSサービス・API(IF008)", base:"export", person:2, group:"基盤", code:"L3", owner:"BE", deps:["SMS連携I/F定義","SMSモックドライバー"], asis:8, tobe:3.0, status:"予定", progress:0, actual:0, desc:"IF008の利用機能（配信・配信結果取得・結果通知）を束ねるBEサービス＋GraphQL。103pから機能選定。" },
+    { name:"文面テンプレ適用", base:"export", person:2, group:"適用", code:"L4", owner:"BE", deps:["SMSサービス・API(IF008)"], asis:5, tobe:2.0, status:"予定", progress:0, actual:0, desc:"業務イベント（配送遅延・ご不在）に既存文面テンプレを適用してSMS送信。既存送信経路を再利用（重複回避）。" },
+    { name:"FE036 遅延SMS送信画面", base:"export", person:2, group:"適用", code:"L5", owner:"FE", deps:["SMSサービス・API(IF008)"], asis:6, tobe:2.5, status:"予定", progress:0, actual:0, desc:"遅延SMSの手動送信UI（対象選択→文面確認→送信→配信結果表示）。" },
     // ───────── ④ 帳票出力（PDF帳票＝配送指示書の生成基盤。非同期生成＋生成状況テーブル＋S3成果物）─────────
     // 画面出力: 生成リクエスト→生成状況テーブルに「生成中」追加→非同期生成→S3アップロード＋状況更新(完了/エラー)。クライアントはポーリングで状況確認し、完了はURLからDL・エラーは画面表示。
     // 取込出力: 出荷指示取込後、デポごとに生成→各デポ非同期→S3アップロード＋状況更新＋帳票作成通知テーブル更新。
-    { name: "仕様精査(帳票)",   base: "report", person: 2, group: "仕様精査", code: "SP", owner: "両", deps: [], nobuffer: true, asis: 10.8, tobe: 7.2, status: "予定", progress: 0, actual: 0, desc: "画面出力／取込出力の精査と論点整理（非同期生成方式・生成状況テーブル・S3成果物・ポーリング/通知テーブル・エラー扱い・デポ別並列）。" },
+    { name: "仕様精査(帳票)",   base: "report", person: 2, group: "仕様精査", code: "SP", owner: "両", deps: [], nobuffer: true, asis: 10.8, tobe: 7.2, status: "予定", progress: 0, actual: 0, desc: "画面出力／取込出力の精査と論点整理（非同期生成方式・生成状況テーブル・S3成果物・ポーリング/通知テーブル・エラー扱い・デポ別並列）。RP021/RP022は含否がG1論点＝今回除外・次スプリント。" },
     { name: "状況/通知テーブル", base: "report", person: 2, group: "基盤", code: "R0", owner: "DB", deps: [],                                    asis: 4,  tobe: 2.0, status: "予定", progress: 0, actual: 0, desc: "生成状況テーブル（生成中/完了/エラー＋成果物URL）と帳票作成通知テーブルのスキーマ／seed。" },
     { name: "帳票生成エンジン", base: "report", person: 2, group: "基盤", code: "R1", owner: "BE", deps: [],                                    asis: 10, tobe: 4.0, status: "予定", progress: 0, actual: 0, desc: "PDF帳票（配送指示書）生成コア。テンプレート→データ差込→PDF化。" },
     { name: "非同期ジョブ基盤", base: "report", person: 2, group: "基盤", code: "R2", owner: "BE", deps: ["帳票生成エンジン", "状況/通知テーブル"], asis: 8, tobe: 3.5, status: "予定", progress: 0, actual: 0, desc: "非同期生成ジョブの実行枠＋生成状況更新（生成中→完了/エラー）＋S3への成果物アップロード。" },
@@ -94,7 +94,7 @@ const SPRINT2_DATA = {
     { name: "帳票E2E",          base: "report", person: 2, group: "E2E", code: "R6", owner: "両", deps: ["画面出力連携(FE)", "デポ別一括生成"],   asis: 4,  tobe: 1.5, status: "予定", progress: 0, actual: 0, desc: "画面出力（生成→ポーリング→DL）とデポ別一括生成（取込→デポ別→通知）をそれぞれ1本通すE2E。" },
     // ───────── 予備工数（各人員の残キャパを 7/31 まで確保。nobuffer＝素の時間）─────────
     { name: "予備工数1",        base: "reserve", person: 1, group: "予備工数", code: "R1",  owner: "両", deps: [], nobuffer: true, asis: 9.6, tobe: 9.6, status: "予定", progress: 0, actual: 0, desc: "人員1（①認証認可）の残キャパ。手戻り・追加調査・レビュー対応・仕様確認の往復などの予備枠（7/31 まで）。" },
-    { name: "予備工数2",        base: "reserve", person: 2, group: "予備工数", code: "R2",  owner: "両", deps: [], nobuffer: true, asis: 6.4, tobe: 6.4, status: "予定", progress: 0, actual: 0, desc: "人員2（②外部連携／③ファイル連携／④帳票出力）の残キャパ。手戻り・追加調査・レビュー対応・仕様確認の往復などの予備枠（7/31 まで）。" },
+    { name: "予備工数2",        base: "reserve", person: 2, group: "予備工数", code: "R2",  owner: "両", deps: [], nobuffer: true, asis: 6.4, tobe: 6.4, status: "予定", progress: 0, actual: 0, desc: "人員2（②SMS／③ファイル連携／④帳票出力）の残キャパ。手戻り・追加調査・レビュー対応・仕様確認の往復、横断タスク（先出し確認フォロー・G1合意往復×3基盤・KSL/IVR追跡・workitems2反映）などの予備枠（7/31まで）。" },
   ],
 };
 

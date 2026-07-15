@@ -153,7 +153,7 @@
     <div style="margin:14px 0 4px;font-size:12px;color:#475569;">
       <b>選んだ基盤</b>：
       <span style="display:inline-block;padding:2px 10px;border-radius:12px;color:#fff;font-weight:700;font-size:11px;margin-right:6px;background:#2563eb">① 認証・認可</span>
-      <span style="display:inline-block;padding:2px 10px;border-radius:12px;color:#fff;font-weight:700;font-size:11px;margin-right:6px;background:#7c3aed">② 外部連携（SMS/IVR）</span>
+      <span style="display:inline-block;padding:2px 10px;border-radius:12px;color:#fff;font-weight:700;font-size:11px;margin-right:6px;background:#7c3aed">② 外部連携（SMS）</span>
       <span style="display:inline-block;padding:2px 10px;border-radius:12px;color:#fff;font-weight:700;font-size:11px;margin-right:6px;background:#0891b2">③ ファイル連携（取込/送信）</span>
       <span style="display:inline-block;padding:2px 10px;border-radius:12px;color:#fff;font-weight:700;font-size:11px;background:#d97706">④ 帳票出力（PDF生成）</span>
     </div>
@@ -253,59 +253,71 @@
     </div>
 
     <div style="margin-top:20px;">
-      <div style="font-size:13.5px;font-weight:bold;margin-bottom:2px;">② 外部連携 ― 機能I/F ＋ 差し替え可能なドライバー（SMS/IVR連携）</div>
-      <div style="display:inline-block;font-size:11px;font-weight:700;color:#6d28d9;background:#f5f3ff;border:1px solid #ddd6fe;border-radius:6px;padding:2px 8px;margin-bottom:7px;">データ型×CRUD ＋ 外部境界(機能I/F・ドライバー差替)</div>
-      <div style="font-size:11.5px;color:#6b7280;margin-bottom:8px;">サービスは<b>機能観点のインターフェース</b>を持ち、<b>実サービス</b>と<b>開発用エミュレーター</b>を<b>ドライバーとして切り替え</b>られる。</div>
+      <div style="font-size:13.5px;font-weight:bold;margin-bottom:2px;">② 外部連携 ― 機能I/F ＋ 差し替え可能なドライバー（SMS連携）</div>
+      <div style="display:inline-block;font-size:11px;font-weight:700;color:#6d28d9;background:#f5f3ff;border:1px solid #ddd6fe;border-radius:6px;padding:2px 8px;margin-bottom:7px;">データ型×CRUD ＋ 外部境界(SMS機能I/F・アクリート/エミュ差替)</div>
+      <div style="font-size:11.5px;color:#6b7280;margin-bottom:8px;">SMSサービスは<b>機能観点のインターフェース(IF008)</b>を持ち、<b>アクリート実サービス</b>と<b>開発用エミュレーター</b>を<b>ドライバーとして切り替え</b>られる。駆動UC=<b>配送遅延・ご不在通知</b>。</div>
       <svg width="980" height="270" viewBox="0 0 980 270" style="max-width:100%;height:auto;font-family:inherit">
         <defs>
           <marker id="exarr" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#94a3b8"/></marker>
           <marker id="expl" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#7c3aed"/></marker>
         </defs>
-        <!-- 呼び出し側（業務サービス） -->
-        <rect x="24" y="116" width="140" height="76" rx="8" fill="#faf5ff" stroke="#c4b5fd"/>
-        <text x="94" y="146" text-anchor="middle" font-size="12" font-weight="bold" fill="#6d28d9">連携サービス</text>
-        <text x="94" y="163" text-anchor="middle" font-size="10" fill="#7c3aed">（バックエンド）</text>
-        <text x="94" y="180" text-anchor="middle" font-size="9" fill="#94a3b8">例: 再配達受付</text>
-        <line x1="166" y1="154" x2="246" y2="154" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#exarr)"/>
-        <text x="206" y="146" text-anchor="middle" font-size="9.5" fill="#94a3b8">呼ぶ</text>
+        <!-- 駆動UC：業務イベント（自動） -->
+        <rect x="14" y="58" width="152" height="62" rx="8" fill="#faf5ff" stroke="#c4b5fd"/>
+        <text x="90" y="82" text-anchor="middle" font-size="12" font-weight="bold" fill="#6d28d9">業務イベント</text>
+        <text x="90" y="100" text-anchor="middle" font-size="10" fill="#7c3aed">配送遅延 / ご不在通知</text>
+        <text x="90" y="114" text-anchor="middle" font-size="8.5" fill="#94a3b8">→ 文面テンプレ適用</text>
 
-        <!-- 機能観点のインターフェース -->
-        <rect x="250" y="96" width="250" height="116" rx="10" fill="#fff" stroke="#7c3aed" stroke-width="1.6"/>
-        <text x="262" y="118" font-size="12.5" font-weight="bold" fill="#6d28d9">機能観点の I/F</text>
-        <text x="262" y="134" font-size="10" fill="#7c3aed">ベンダー非依存の契約</text>
-        <rect x="262" y="144" width="210" height="22" rx="5" fill="#f5f3ff" stroke="#ddd6fe"/>
-        <text x="272" y="159" font-size="10.5" fill="#5b21b6">希望日時を取得()</text>
-        <rect x="262" y="172" width="210" height="22" rx="5" fill="#f5f3ff" stroke="#ddd6fe"/>
-        <text x="272" y="187" font-size="10.5" fill="#5b21b6">通知を送信()</text>
+        <!-- FE036 手動送信画面 -->
+        <rect x="14" y="150" width="152" height="58" rx="8" fill="#f5f3ff" stroke="#a78bfa"/>
+        <text x="90" y="173" text-anchor="middle" font-size="11" font-weight="bold" fill="#6d28d9">FE036 手動送信画面</text>
+        <text x="90" y="191" text-anchor="middle" font-size="9.5" fill="#7c3aed">遅延SMSを手動送信</text>
+
+        <!-- 合流 → I/F -->
+        <line x1="166" y1="88" x2="248" y2="120" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#exarr)"/>
+        <line x1="166" y1="179" x2="248" y2="150" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#exarr)"/>
+        <text x="207" y="146" text-anchor="middle" font-size="9.5" fill="#94a3b8">呼ぶ</text>
+
+        <!-- 機能観点のインターフェース：SMSサービス I/F（IF008） -->
+        <rect x="250" y="76" width="250" height="128" rx="10" fill="#fff" stroke="#7c3aed" stroke-width="1.6"/>
+        <text x="262" y="98" font-size="12.5" font-weight="bold" fill="#6d28d9">SMSサービス I/F（IF008）</text>
+        <text x="262" y="114" font-size="10" fill="#7c3aed">ベンダー非依存の契約</text>
+        <rect x="262" y="122" width="210" height="20" rx="5" fill="#f5f3ff" stroke="#ddd6fe"/>
+        <text x="272" y="136" font-size="10.5" fill="#5b21b6">配信()</text>
+        <rect x="262" y="146" width="210" height="20" rx="5" fill="#f5f3ff" stroke="#ddd6fe"/>
+        <text x="272" y="160" font-size="10.5" fill="#5b21b6">配信結果取得()</text>
+        <rect x="262" y="170" width="210" height="20" rx="5" fill="#f5f3ff" stroke="#ddd6fe"/>
+        <text x="272" y="184" font-size="10.5" fill="#5b21b6">結果通知()</text>
         <!-- ソケット（ドライバー差込口） -->
-        <rect x="494" y="142" width="14" height="24" rx="2" fill="#ede9fe" stroke="#7c3aed"/>
-        <circle cx="501" cy="149" r="1.6" fill="#7c3aed"/><circle cx="501" cy="159" r="1.6" fill="#7c3aed"/>
+        <rect x="494" y="130" width="14" height="24" rx="2" fill="#ede9fe" stroke="#7c3aed"/>
+        <circle cx="501" cy="137" r="1.6" fill="#7c3aed"/><circle cx="501" cy="147" r="1.6" fill="#7c3aed"/>
 
         <!-- 切替スイッチ -->
-        <line x1="508" y1="154" x2="558" y2="154" stroke="#7c3aed" stroke-width="2"/>
-        <text x="574" y="119" text-anchor="middle" font-size="9.5" font-weight="700" fill="#7c3aed">環境変数で</text>
-        <text x="574" y="131" text-anchor="middle" font-size="9.5" font-weight="700" fill="#7c3aed">ドライバー切替</text>
-        <circle cx="574" cy="154" r="15" fill="#fff" stroke="#7c3aed" stroke-width="1.6"/>
-        <text x="574" y="159" text-anchor="middle" font-size="14" fill="#7c3aed">⇄</text>
-        <line x1="586" y1="147" x2="698" y2="116" stroke="#94a3b8" stroke-width="1.6" stroke-dasharray="5 3" marker-end="url(#exarr)"/>
-        <line x1="586" y1="161" x2="698" y2="220" stroke="#7c3aed" stroke-width="2" marker-end="url(#expl)"/>
+        <line x1="508" y1="142" x2="558" y2="142" stroke="#7c3aed" stroke-width="2"/>
+        <text x="574" y="107" text-anchor="middle" font-size="9.5" font-weight="700" fill="#7c3aed">環境変数で</text>
+        <text x="574" y="119" text-anchor="middle" font-size="9.5" font-weight="700" fill="#7c3aed">ドライバー切替</text>
+        <circle cx="574" cy="142" r="15" fill="#fff" stroke="#7c3aed" stroke-width="1.6"/>
+        <text x="574" y="147" text-anchor="middle" font-size="14" fill="#7c3aed">⇄</text>
+        <line x1="586" y1="135" x2="698" y2="104" stroke="#94a3b8" stroke-width="1.6" stroke-dasharray="5 3" marker-end="url(#exarr)"/>
+        <line x1="586" y1="149" x2="698" y2="196" stroke="#7c3aed" stroke-width="2" marker-end="url(#expl)"/>
 
-        <!-- ドライバーA：実サービス（切替可） -->
-        <rect x="700" y="84" width="212" height="64" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-dasharray="4 3"/>
-        <rect x="836" y="90" width="46" height="16" rx="8" fill="#eef2f7" stroke="#cbd5e1"/><text x="859" y="102" text-anchor="middle" font-size="9" fill="#64748b">切替可</text>
-        <g fill="#e2e8f0"><circle cx="720" cy="123" r="7"/><circle cx="730" cy="117" r="9"/><circle cx="740" cy="123" r="6"/><rect x="713" y="121" width="30" height="8" rx="2"/></g>
-        <text x="760" y="118" font-size="12" font-weight="bold" fill="#475569">実サービス</text>
-        <text x="760" y="134" font-size="9.5" fill="#94a3b8">本番ベンダー（SMS/IVR）</text>
+        <!-- ドライバーA：アクリート実サービス（切替可） -->
+        <rect x="700" y="72" width="212" height="64" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-dasharray="4 3"/>
+        <rect x="836" y="78" width="46" height="16" rx="8" fill="#eef2f7" stroke="#cbd5e1"/><text x="859" y="90" text-anchor="middle" font-size="9" fill="#64748b">切替可</text>
+        <g fill="#e2e8f0"><circle cx="720" cy="111" r="7"/><circle cx="730" cy="105" r="9"/><circle cx="740" cy="111" r="6"/><rect x="713" y="109" width="30" height="8" rx="2"/></g>
+        <text x="760" y="106" font-size="12" font-weight="bold" fill="#475569">アクリート実サービス</text>
+        <text x="760" y="122" font-size="9.5" fill="#94a3b8">本番SMS（SoftBank番号は開通後）</text>
 
         <!-- ドライバーB：開発用エミュレーター（使用中） -->
-        <rect x="700" y="188" width="212" height="64" rx="8" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.6"/>
-        <rect x="832" y="194" width="50" height="16" rx="8" fill="#7c3aed"/><text x="857" y="206" text-anchor="middle" font-size="9" font-weight="700" fill="#fff">使用中</text>
-        <rect x="712" y="210" width="28" height="19" rx="2" fill="#ede9fe" stroke="#7c3aed"/>
-        <path d="M708,231 L744,231 L740,235 L712,235 Z" fill="#ede9fe" stroke="#7c3aed"/>
-        <text x="760" y="216" font-size="12" font-weight="bold" fill="#6d28d9">開発用エミュレーター</text>
-        <text x="760" y="232" font-size="9.5" fill="#7c3aed">固定データ（成功 / 失敗 / 遅延）</text>
+        <rect x="700" y="164" width="212" height="64" rx="8" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.6"/>
+        <rect x="832" y="170" width="50" height="16" rx="8" fill="#7c3aed"/><text x="857" y="182" text-anchor="middle" font-size="9" font-weight="700" fill="#fff">使用中</text>
+        <rect x="712" y="186" width="28" height="19" rx="2" fill="#ede9fe" stroke="#7c3aed"/>
+        <path d="M708,207 L744,207 L740,211 L712,211 Z" fill="#ede9fe" stroke="#7c3aed"/>
+        <text x="760" y="192" font-size="12" font-weight="bold" fill="#6d28d9">開発用エミュレーター</text>
+        <text x="760" y="208" font-size="9.5" fill="#7c3aed">固定応答（成功 / 失敗 / 遅延）</text>
 
-        <text x="806" y="264" text-anchor="middle" font-size="10" font-weight="700" fill="#7c3aed">I/F はそのまま、環境変数でドライバーだけ差し替え</text>
+        <text x="806" y="244" text-anchor="middle" font-size="10" font-weight="700" fill="#7c3aed">I/F はそのまま、環境変数でドライバーだけ差し替え</text>
+        <!-- 後発注記（淡色・スコープ外）: IVR・SMS E2E -->
+        <text x="90" y="230" text-anchor="middle" font-size="9" fill="#b8bcc8">IVR・SMS E2Eは後発（今回スコープ外）</text>
       </svg>
     </div>
 
