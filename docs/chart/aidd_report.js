@@ -499,7 +499,7 @@
       ],
     },
     'wi-if-PR15': {
-      lede: "AIDD 試行「エリア-郵便番号対応表（IF / PR15 / PW-191）」の開発工数比較。<strong>住所マスタ画面＋エリア-郵便番号対応表の CSV 一括取込（更新のみ・全件棄却）＋マスタダウンロード（RP015 17項目・往復）</strong>。DB は m_address に <strong>複合一意制約（商品ID×郵便番号）を追加</strong>。<strong>git worktree による3件並行開発</strong>。<strong>ToBe は実測</strong>(time-log): 計 <strong>2.5h</strong>（実装系統A 1.5h＋動作確認 1.0h）。AsIs は実績コード量(概算)から推定。",
+      lede: "AIDD 試行「エリア-郵便番号対応表（IF / PR15 / PW-191）」の開発工数比較。<strong>住所マスタ画面＋エリア-郵便番号対応表の CSV 一括取込（更新のみ・全件棄却）＋マスタダウンロード（RP015 17項目・往復）</strong>。DB は m_address に <strong>複合一意制約（商品ID×郵便番号）を追加</strong>。<strong>git worktree による3件並行開発</strong>。<strong>ToBe は実測</strong>(time-log): 計 <strong>4.0h</strong>（当初 2.5h ＋ <span style=\"color:#9333ea\">追加対応 1.5h</span>）。AsIs は実績コード量(概算)から推定。",
       bugCategories: [
         { key: "syntax", label: "構文/型エラー",                              color: "#ef4444", asis: 2, tobe: 0 },
         { key: "logic",  label: "ロジックバグ (全件棄却トランザクション・upsert)", color: "#f59e0b", asis: 4, tobe: 1 },
@@ -519,17 +519,18 @@
         'api-review':  { asis: 0.25,            tobe: 0.2,  tobeEng: 0.1,  agents: ["バックエンドレビュワーAI", "バックエンドテスターAI"] },
         'fe-review':   { asis: 0.25,            tobe: 0.2,  tobeEng: 0.1,  agents: ["フロントエンドレビュワーAI", "エンジニア"] },
         'verify':      { asis: 2,               tobe: 1.0,  tobeEng: 1.0,  agents: ["フロントエンドテスターAI", "バックエンドテスターAI", "エンジニア"] },
+        'structure-improvement': { label: "[追加対応] mock是正(取込結果テーブル削除)・CI(cspell)/コンフリクト解消・動作確認/テスト準備", color: "#7e22ce", asis: 0, tobe: 1.5, tobeEng: 0.8, agents: ["フロントエンドAI", "フロントエンドレビュワーAI", "エンジニア"] },
       },
       contextNotes: [
         "対象: エリア-郵便番号対応表（IF / PR15 / PW-191 / システム設定・UL）。住所マスタ画面(15列・11検索・詳細ドロワー)＋CSV一括取込(更新のみ・全件棄却)＋マスタダウンロード(RP015 17項目・往復可能)。m_address に商品ID×郵便番号の複合一意制約を追加(実DBへ適用済)。",
-        "<strong>ToBe は実測</strong> (time-log.jsonl・2026-07-09): 実装 系統A <strong>1.5h</strong>(planner→db-architect→backend→frontend、reviewer/tester差し戻し修正を含む)＋動作確認 <strong>1.0h</strong> ＝ 計 <strong>2.5h</strong>。3件worktree並列のため按分値。",
+        "<strong>ToBe は実測</strong> (time-log.jsonl・2026-07-09): 実装 系統A <strong>1.5h</strong>(planner→db-architect→backend→frontend、reviewer/tester差し戻し修正を含む)＋動作確認 <strong>1.0h</strong> ＝ 計 <strong>2.5h</strong>。3件worktree並列のため按分値。<span style=\"color:#9333ea\">追加対応 1.5h(2026-07-13〜14)</span>: 取込結果テーブル削除(mock一致)・CI失敗(cspell FORU→foru辞書追加)/コンフリクト解消(main取込30コミット)・動作確認/特徴的テストCSV準備 → 計 <strong>4.0h</strong>。",
         "<strong>手戻り</strong>: backend-reviewerが稼働区分の基準日Major、frontend-reviewerが表示件数セレクタの死んだUI Major、frontend-testerがローディングちらつきMajorを検出→いずれも修正・再検証で解消。",
         "<strong>AsIs は実績コード量(概算)から推定</strong>: バックエンド 約700行→約9.5h、フロント 約1200行→24h、DB 一意制約 約1h。レビュー・動作確認は人間工数として計上。合計 約42h → ToBe 2.5h(<strong>削減 約94%</strong>)。LOCは概算。",
         "<strong>要業務確認(高)</strong>: RP015に町字/カナ/荷主が無く必須項目を補えないため一括取込は<strong>更新のみ</strong>に縮退（新規 商品ID×郵便番号 の追加手段が現状ない・PW-191_5）。",
       ],
     },
     'wi-if-PR19': {
-      lede: "AIDD 試行「幹線手配スケジュール 入出力（IF / PR19 / PW-194）」の開発工数比較。<strong>幹線スケジュール画面のエクスポート(帳票RP020)・インポート(帳票RP019)本実装</strong>。当初はエクスポートのみ(画面ピボットをCSV化)だったが、<strong>①CSVを帳票RP020レイアウト(水源→デポ→積込/取卸/パレット回収＋日付＋項目計)へ再集計する是正 ②RP019 Excel取込の本実装(BE Mutation追加) ③パレット色内訳の誤ラベルバグ修正</strong> を追加。<strong>git worktree による並行開発</strong>。<strong>ToBe は実測</strong>(time-log): 計 <strong>4.7h</strong>（当初エクスポート 1.7h ＋ <span style=\"color:#9333ea\">追加対応 3.0h</span>）。AsIs は実績コード量(概算)から推定。",
+      lede: "AIDD 試行「幹線手配スケジュール 入出力（IF / PR19 / PW-194）」の開発工数比較。<strong>幹線スケジュール画面のエクスポート(帳票RP020)・インポート(帳票RP019)本実装</strong>。当初はエクスポートのみ(画面ピボットをCSV化)だったが、<strong>①CSVを帳票RP020レイアウト(水源→デポ→積込/取卸/パレット回収＋日付＋項目計)へ再集計する是正 ②RP019 Excel取込の本実装(BE Mutation追加) ③パレット色内訳の誤ラベルバグ修正</strong> を追加。<strong>git worktree による並行開発</strong>。<strong>ToBe は実測</strong>(time-log): 計 <strong>5.0h</strong>（当初エクスポート 1.7h ＋ <span style=\"color:#9333ea\">追加対応 3.3h</span>）。AsIs は実績コード量(概算)から推定。",
       bugCategories: [
         { key: "syntax", label: "構文/型エラー",                              color: "#ef4444", asis: 2, tobe: 0 },
         { key: "logic",  label: "ロジックバグ (CSV空出力・取込合算・成功後refetch)", color: "#f59e0b", asis: 4, tobe: 3 },
@@ -547,10 +548,11 @@
         'fe-impl':     { asis: 10,   loc: 1000,  tobe: 1.5,  tobeEng: 0,   agents: ["フロントエンドAI"] },
         'fe-review':   { asis: 0.6,             tobe: 0.45, tobeEng: 0.1,  agents: ["フロントエンドレビュワーAI", "エンジニア"] },
         'verify':      { asis: 1.4,             tobe: 1.15, tobeEng: 1.0,  agents: ["フロントエンドテスターAI", "バックエンドテスターAI", "エンジニア"] },
+        'structure-improvement': { label: "[追加対応] mock是正(取込結果テーブル削除・import-display削除)", color: "#7e22ce", asis: 0, tobe: 0.3, tobeEng: 0.1, agents: ["フロントエンドAI", "フロントエンドレビュワーAI"] },
       },
       contextNotes: [
         "対象: 幹線手配スケジュールの入出力（IF / PR19 / PW-194 / 配送管理）。幹線スケジュール画面(FE025・稼働中)のエクスポート(RP020)とインポート(RP019)を本実装。取込はBEに Mutation importLineHauls を追加(既存 t_line_hauls へ upsert・スキーマ変更なし)。エクスポートは既存 lineHauls/ピボット/CSV基盤を流用。",
-        "<strong>ToBe は実測</strong> (time-log.jsonl): 当初エクスポート <strong>1.7h</strong>(2026-07-09・frontendのみ) ＋ <span style=\"color:#9333ea\">追加対応 <strong>3.0h</strong></span>(2026-07-13〜14・RP020再集計是正＋RP019取込本実装〈BE/FE〉＋パレット色バグ修正) ＝ 計 <strong>4.7h</strong>。追加分はセッションログのサブエージェント逐次計上＋main按分の簡易推定。",
+        "<strong>ToBe は実測</strong> (time-log.jsonl): 当初エクスポート <strong>1.7h</strong>(2026-07-09・frontendのみ) ＋ <span style=\"color:#9333ea\">追加対応 <strong>3.3h</strong></span>(2026-07-13〜14・RP020再集計是正＋RP019取込本実装〈BE/FE〉＋パレット色バグ修正＋取込結果テーブル削除〈mock一致〉) ＝ 計 <strong>5.0h</strong>。追加分はセッションログのサブエージェント逐次計上＋main按分の簡易推定。",
         "<strong>手戻り</strong>: RP020是正でreviewerがMajor(canExport空CSV)。取込でbackend-reviewer Major2(自然キー合算・スコープ)＋frontend-reviewer Major2(成功後refetch・件数行単位)。色修正でreviewer Major(マスタ取得失敗時サイレント消失→エラーバナー)。testerは実CSV round-trip・Playwright実機でDB実値一致を確認。",
         "<strong>AsIs は実績コード量(概算)から推定</strong>: BE 約520行→約6h＋FE 約1000行→約10h＋テスト/レビュー/動作確認。合計 約21h → ToBe 4.7h(<strong>削減 約78%</strong>)。フルスタックの取込機能追加で規模が拡大。LOCは概算。",
         "<strong>要業務確認(中)</strong>: RP020の3群行(積込/取卸/パレット回収)の値写像はデータに区別が無く暫定(PW-194_2)。取込の値写像=積込→水商品/取卸→非保存/パレット回収→黒代表色・小数棄却(PW-194_3)、自然キー重複=合算(PW-194_4)、取込の役割(洗い替え/マージ)は要SME。",
