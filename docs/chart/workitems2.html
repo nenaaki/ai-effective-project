@@ -60,6 +60,7 @@
   .cal-lanebody { flex:1 1 auto; display:flex; flex-direction:column; gap:3px; padding:4px 0; min-height:34px; justify-content:center; }
   .cal-subrow { display:grid; grid-template-columns:repeat(5, minmax(150px,1fr)); }
   .cal-bar { margin:1px 3px; border-radius:4px; color:#fff; font-size:12px; line-height:1.35; padding:3px 7px; box-sizing:border-box; border:1px solid rgba(0,0,0,.12); overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+  .cal-bar.leave { background:repeating-linear-gradient(45deg,#e5e7eb,#e5e7eb 4px,#f3f4f6 4px,#f3f4f6 8px); color:#6b7280; border:1px solid #cbd5e1; font-weight:700; text-align:center; padding:3px 0; }
   /* カレンダー左 / バーンダウン右 の2カラム */
   .cal-wrap { display:flex; gap:20px; align-items:flex-start; }
   .cal-left { flex:1 1 auto; min-width:0; }
@@ -588,9 +589,20 @@ D.tasks.forEach(t=>{
   t._sd = Math.floor(s.startH / HPD);
   t._ed = Math.max(t._sd, Math.floor((s.startH + s.spanH - 1e-9) / HPD));
 });
-// 営業日index → { week, col(0=月..4=金) }
-const wiMeta = {};
-for(let i=0;i<totalDays;i++){ const d = bizDate(D.meta.start, i); wiMeta[i] = { week: Math.floor(calOffMon(d)/7), col: (d.getUTCDay()+6)%7 }; }
+// 予定休（人員別）: その人員の営業日から個別に除外
+const LEAVE = { 1:new Set(), 2:new Set() };
+Object.entries(D.leaves||{}).forEach(([p,arr])=>{ const pp=+p; if(LEAVE[pp]) (arr||[]).forEach(dd=>LEAVE[pp].add(dd)); });
+const isBizP = (p,d) => isBiz(d) && !LEAVE[p].has(iso(d));
+function bizDateP(p, i){ let d=parse(D.meta.start), c=0; while(true){ if(isBizP(p,d)){ if(c===i) return new Date(d); c++; } d.setUTCDate(d.getUTCDate()+1); } }
+// 人員別の作業日数（レーン累積時間 → 営業日数）
+const laneDaysP = {1:Math.max(1,Math.ceil(laneCursor[1]/HPD)), 2:Math.max(1,Math.ceil(laneCursor[2]/HPD))};
+// 営業日index → { week, col(0=月..4=金) } を人員別に算出（予定休を飛ばした日付で）
+const wiMetaP = {1:{}, 2:{}};
+[1,2].forEach(p=>{ for(let i=0;i<laneDaysP[p];i++){ const d=bizDateP(p,i); wiMetaP[p][i]={ week:Math.floor(calOffMon(d)/7), col:(d.getUTCDay()+6)%7 }; } });
+// 予定休の週/列（人員別・開始日以降のもの）
+const leaveMeta = {1:[], 2:[]};
+[1,2].forEach(p=>{ [...LEAVE[p]].forEach(ds=>{ const d=parse(ds); if(d>=START) leaveMeta[p].push({ week:Math.floor(calOffMon(d)/7), col:(d.getUTCDay()+6)%7, iso:ds }); }); });
+const hasLeave = {1:leaveMeta[1].length>0, 2:leaveMeta[2].length>0};
 // 人員ごとにサブ行を割当（作業日レンジが重なるタスクは段組み＝workitems流）
 const laneRows = {1:1, 2:1};
 [1,2].forEach(p=>{
@@ -607,7 +619,10 @@ const laneRows = {1:1, 2:1};
 (function(){
   const dow = ['日','月','火','水','木','金','土'];
   const addD = o => { const d = new Date(MON); d.setUTCDate(d.getUTCDate()+o); return d; };
-  const numWeeks = Math.floor(calOffMon(bizDates[totalDays-1])/7) + 1;
+  // 最終週：各人員の最終作業日＋予定休の最大週
+  let maxWeek = 0;
+  [1,2].forEach(p=>{ maxWeek=Math.max(maxWeek, wiMetaP[p][laneDaysP[p]-1].week); leaveMeta[p].forEach(l=>maxWeek=Math.max(maxWeek,l.week)); });
+  const numWeeks = maxWeek + 1;
   let html = "";
   for(let w=0; w<numWeeks; w++){
     const wStart = w*7;
@@ -618,21 +633,29 @@ const laneRows = {1:1, 2:1};
       const d = addD(wStart+c), hol = HOL.has(iso(d));
       dayHead += `<div class="cal-day ${hol?'hol':''}" title="${iso(d)}">${d.getUTCMonth()+1}/${d.getUTCDate()}（${dow[d.getUTCDay()]}）${hol?' 祝':''}</div>`;
     }
-    // 人員1・2 レーン：作業日数分の幅のバーを日列にまたがせ、重なりは段組み
+    // 人員1・2 レーン：作業日数分の幅のバーを日列にまたがせ、重なりは段組み。予定休は専用行に「休」
     let lanes = "";
     [1,2].forEach(p=>{
+      const leaveRow = hasLeave[p] ? laneRows[p] : -1;
+      const nRows = laneRows[p] + (hasLeave[p]?1:0);
       let subrows = "";
-      for(let r=0;r<laneRows[p];r++){
+      for(let r=0;r<nRows;r++){
         let bars = "";
-        D.tasks.filter(t=>sched.get(t.name).person===p && t._row===r).forEach(t=>{
-          let cmin=9, cmax=-1;
-          for(let i=t._sd;i<=t._ed;i++){ const m=wiMeta[i]; if(m && m.week===w){ if(m.col<cmin)cmin=m.col; if(m.col>cmax)cmax=m.col; } }
-          if(cmax<0) return;                             // この週にかからない
-          const b = baseOf(t.base);
-          const isHead = wiMeta[t._sd] && wiMeta[t._sd].week===w;   // 週またぎ継続は「…」
-          const spanDays = t._ed - t._sd + 1;
-          bars += `<div class="cal-bar" style="grid-column:${cmin+1}/${cmax+2}; background:${b.color}" title="${b.id} ${t.name}（${t.owner}） 計画${r1(buffered(t))}h・${spanDays}営業日 / ${t.status}">${isHead? t.name : '… '+t.name}</div>`;
-        });
+        if(r===leaveRow){
+          leaveMeta[p].filter(l=>l.week===w).forEach(l=>{
+            bars += `<div class="cal-bar leave" style="grid-column:${l.col+1}/${l.col+2}" title="予定休 ${l.iso}（人員${p}）">休</div>`;
+          });
+        } else {
+          D.tasks.filter(t=>sched.get(t.name).person===p && t._row===r).forEach(t=>{
+            let cmin=9, cmax=-1;
+            for(let i=t._sd;i<=t._ed;i++){ const m=wiMetaP[p][i]; if(m && m.week===w){ if(m.col<cmin)cmin=m.col; if(m.col>cmax)cmax=m.col; } }
+            if(cmax<0) return;                             // この週にかからない
+            const b = baseOf(t.base);
+            const isHead = wiMetaP[p][t._sd] && wiMetaP[p][t._sd].week===w;   // 週またぎ継続は「…」
+            const spanDays = t._ed - t._sd + 1;
+            bars += `<div class="cal-bar" style="grid-column:${cmin+1}/${cmax+2}; background:${b.color}" title="${b.id} ${t.name}（${t.owner}） 計画${r1(buffered(t))}h・${spanDays}営業日 / ${t.status}">${isHead? t.name : '… '+t.name}</div>`;
+          });
+        }
         subrows += `<div class="cal-subrow">${bars}</div>`;
       }
       lanes += `<div class="cal-lane"><div class="cal-lname">人員${p}<span class="code" style="font-weight:normal">（${personBases[p].join('') || '—'}・計${r1(laneCursor[p])}h）</span></div><div class="cal-lanebody">${subrows}</div></div>`;
@@ -642,8 +665,9 @@ const laneRows = {1:1, 2:1};
       `<div class="cal-daygrid">${dayHead}</div></div>${lanes}</div>`;
   }
   document.getElementById("gantt").innerHTML = html;
+  const leaveSummary = [1,2].map(p=>{ const ls=[...LEAVE[p]].sort(); return ls.length ? `人員${p}: ${ls.map(s=>{const d=parse(s);return `${d.getUTCMonth()+1}/${d.getUTCDate()}`;}).join('・')}` : null; }).filter(Boolean).join(' ／ ');
   document.getElementById("gnote").textContent =
-    `1行＝1週間（平日 月〜金のみ・土日非表示）。人員2名のレーン（担当は person で設定・現状 人員1=①、人員2=②③④）。タスクは作業日数分の幅（1日単位・端数切り上げ）で複数日にまたがり、同時進行は段組み表示。週またぎは「…」で継続。祝日（例 7/20）は作業なし。色は基盤（①青/②紫/③シアン/④アンバー・予備=グレー）。全${numWeeks}週・最長 ${r1(maxEndH)}h ≈ ${totalDays}営業日。`;
+    `1行＝1週間（平日 月〜金のみ・土日非表示）。人員2名のレーン（担当は person で設定・現状 人員1=①、人員2=②③④）。タスクは作業日数分の幅（1日単位・端数切り上げ）で複数日にまたがり、同時進行は段組み表示。週またぎは「…」で継続。祝日（例 7/20）は作業なし。${leaveSummary?`予定休 → ${leaveSummary}（当該人員のタスクは翌営業日へ後ろ倒し）。`:''}色は基盤（①青/②紫/③シアン/④アンバー・予備=グレー）。全${numWeeks}週。`;
 })();
 
 // ---- バーンダウン（計画・SVG）----
@@ -675,35 +699,64 @@ const laneRows = {1:1, 2:1};
     `理想線は計画総工数 ${r1(totalBufH)}h を ${totalDays}営業日で均等消化した線。実績（青）は 7/14 着手後、各タスクの実工数を記入すると描画されます（現時点は未着手＝全量）。`;
 })();
 
-// ---- EVM（workitems と同形：PV/EV/AC グラフ ＋ 指標表）----
+// ---- EVM（workitems と同形：週次スナップショットを表示）----
+// 貼り付け用スナップショット行をクリップボードへコピー
+function copyEvmSnap(btn){
+  const el = document.getElementById('evmSnapLine'); if(!el) return;
+  const done = ()=>{ const o=btn.textContent; btn.textContent='✓ コピー済'; setTimeout(()=>btn.textContent=o,1200); };
+  const fb = ()=>{ const r=document.createRange(); r.selectNodeContents(el); const s=getSelection(); s.removeAllRanges(); s.addRange(r); try{document.execCommand('copy');done();}catch(e){} s.removeAllRanges(); };
+  if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(el.textContent).then(done).catch(fb);} else fb();
+}
 (function(){
   const BAC = totalBufH;                                  // 計画総工数（バッファ込み）
-  // PV[d]: d営業日経過時点で計画上完了しているべき累積工数（各人員レーン並行）
-  const pvAt = d => { let v=0; D.tasks.forEach(t=>{ const s=sched.get(t.name); v += Math.min(Math.max(0, d*HPD - s.startH), s.spanH); }); return Math.min(BAC, v); };
-  const EV = D.tasks.reduce((a,t)=>a + buffered(t)*(t.progress||0), 0);   // 出来高
-  const AC = D.tasks.reduce((a,t)=>a + (t.actual||0), 0);                 // 実コスト
-  // 基準日（今日）＝ START から実時刻までの経過営業日（開始前は 0）
+  // 横軸＝営業日（週末・祝日は除外＝グラフに出さない）。PV は人員別に予定休を差し引いて消化工数を積み上げるので、
+  // 休みの人員がいる営業日は PV の傾きが緩む（その人員の分だけ進まない）。
+  const wd = i => bizDate(D.meta.start, Math.max(0, i));   // 営業日index(0始まり) → Date（週末・祝日スキップ）
+  const isLeaveP = (p, d) => LEAVE[p].has(iso(d));
+  const wdaysP = (p, d) => { let n=0; for(let k=0;k<d;k++){ if(!isLeaveP(p, bizDate(D.meta.start, k))) n++; } return n; };  // 先頭 d 営業日のうち人員pが働く日数
+  const elapsedHP = (p, d) => Math.min(laneCursor[p], wdaysP(p, d)*HPD);
+  const pvBiz = d => elapsedHP(1, d) + elapsedHP(2, d);
+  const lastDP = p => { let d=0, g=0; while(elapsedHP(p, d) < laneCursor[p] - 1e-9 && g<9999){ d++; g++; } return d; };
+  const spanDays = Math.max(1, lastDP(1), lastDP(2));      // 計画完了までの営業日数（予定休で増える）
+  const bizIdxOf = isoStr => { let c=0, d=parse(D.meta.start), end=parse(isoStr); while(d<=end){ if(isBiz(d)) c++; d.setUTCDate(d.getUTCDate()+1); } return c; };
+  // ライブ再計算（progress/actual から。次のスナップショット記録用）
+  const evLive = D.tasks.reduce((a,t)=>a + buffered(t)*(t.progress||0), 0);
+  const acLive = D.tasks.reduce((a,t)=>a + (t.actual||0), 0);
+  // 週次スナップショット（記録日→{ev,ac}）
+  const SNAP = D.evmSnapshots || {};
+  const snapDates = Object.keys(SNAP).sort();
+  const hasSnap = snapDates.length > 0;
   const todayISO = new Date().toISOString().slice(0,10);
-  let asOf = 0; bizDates.forEach(d=>{ if(iso(d) <= todayISO) asOf++; }); asOf = Math.min(asOf, totalDays);
-  const span = totalDays;                                 // 計画完了 営業日index
-  const pv = pvAt(asOf);
-  const sv = EV - pv, cv = EV - AC;
-  const spi = pv > 0 ? EV/pv : null;
-  const cpi = AC > 0 ? EV/AC : null;
+  const baseISO = hasSnap ? snapDates[snapDates.length-1] : todayISO;   // 基準日＝最新スナップショット
+  const asOf = bizIdxOf(baseISO);                          // 基準日までの営業日数
+  const _snap = hasSnap ? SNAP[baseISO] : null;
+  const EV = hasSnap ? (_snap.ev != null ? _snap.ev : 0) : null;
+  const AC = hasSnap ? (_snap.ac != null ? _snap.ac : 0) : null;
+  const pv = pvBiz(asOf);
+  const sv = hasSnap ? EV - pv : null, cv = hasSnap ? EV - AC : null;
+  const spi = (hasSnap && pv > 0) ? EV/pv : null;
+  const cpi = (hasSnap && AC > 0) ? EV/AC : null;
   let eac = null;
-  if (spi != null && cpi != null && spi > 0 && cpi > 0) eac = AC + (BAC - EV)/(cpi*spi);
-  else if (AC === 0 && spi != null && spi > 0) eac = BAC/spi;
+  if (hasSnap) {
+    if (spi != null && cpi != null && spi > 0 && cpi > 0) eac = AC + (BAC - EV)/(cpi*spi);
+    else if (AC === 0 && spi != null && spi > 0) eac = BAC/spi;
+  }
   const etc = eac != null ? Math.max(0, eac - AC) : null;
   const vac = eac != null ? BAC - eac : null;
   let forecastIdx = null;
-  if (EV >= BAC) forecastIdx = asOf;
-  else if (spi != null && spi > 0) forecastIdx = Math.ceil(span / spi);
-  const wd = i => bizDate(D.meta.start, Math.max(0, i));  // 営業日index → Date
-  const planEndDate = wd(span - 1);
-  const forecastDate = forecastIdx != null ? wd(forecastIdx - 1) : null;
+  if (hasSnap) {
+    if (EV >= BAC && EV > 0) forecastIdx = asOf;
+    else if (spi != null && spi > 0) forecastIdx = Math.ceil(spanDays / spi);
+  }
+  const planEndDate = wd(spanDays - 1);
+  const forecastDate = forecastIdx != null ? wd(Math.max(0, forecastIdx - 1)) : null;
+  // スナップショット系列（原点＋各記録日・営業日index）
+  const evPts = [{x:0,y:0}], acPts = [{x:0,y:0}];
+  snapDates.forEach(dk=>{ const xi=bizIdxOf(dk); if(SNAP[dk].ev!=null) evPts.push({x:xi,y:SNAP[dk].ev}); if(SNAP[dk].ac!=null) acPts.push({x:xi,y:SNAP[dk].ac}); });
+  evPts.sort((a,b)=>a.x-b.x); acPts.sort((a,b)=>a.x-b.x);
 
-  // === SVG（workitems と同レイアウト）===
-  const xMax = Math.max(span, forecastIdx || 0) + 1;
+  // === SVG（横軸＝営業日・週末/祝日は除外）===
+  const xMax = Math.max(spanDays, forecastIdx || 0) + 1;
   const yMax = Math.max(BAC, eac || 0) * 1.05;
   const W=660, H=360, mL=60, mR=20, mT=28, mB=56;
   const plotW=W-mL-mR, plotH=H-mT-mB;
@@ -717,20 +770,21 @@ const laneRows = {1:1, 2:1};
     svg += `<line x1="${px}" y1="${mT}" x2="${px}" y2="${H-mB}" stroke="#f4f4f4"/><text x="${px}" y="${H-mB+14}" text-anchor="middle" font-size="10" fill="#888">${dt.getUTCMonth()+1}/${dt.getUTCDate()}</text>`; }
   svg += `<line x1="${mL}" y1="${mT}" x2="${mL}" y2="${H-mB}" stroke="#999"/><line x1="${mL}" y1="${H-mB}" x2="${W-mR}" y2="${H-mB}" stroke="#999"/>`;
   svg += `<text x="14" y="${mT+plotH/2}" transform="rotate(-90 14 ${mT+plotH/2})" text-anchor="middle" font-size="10" fill="#666">累積工数 (h)</text>`;
-  if (span <= xMax){ const px=X(span); svg += `<line x1="${px}" y1="${mT}" x2="${px}" y2="${H-mB}" stroke="#aaa" stroke-dasharray="2 4"/><text x="${px}" y="${mT-4}" text-anchor="middle" font-size="9" fill="#888">計画完了</text>`; }
-  { const px=X(asOf); const p=todayISO.split("-").map(Number);
+  if (spanDays <= xMax){ const px=X(spanDays); svg += `<line x1="${px}" y1="${mT}" x2="${px}" y2="${H-mB}" stroke="#aaa" stroke-dasharray="2 4"/><text x="${px}" y="${mT-4}" text-anchor="middle" font-size="9" fill="#888">計画完了</text>`; }
+  if (hasSnap){ const px=X(asOf); const p=baseISO.split("-").map(Number);
     svg += `<line x1="${px}" y1="${mT}" x2="${px}" y2="${H-mB}" stroke="#e09b00" stroke-dasharray="3 3"/><text x="${px}" y="${mT-4}" text-anchor="middle" font-size="9" fill="#c80">${p[1]}/${p[2]}</text>`; }
-  // PV（青）
-  let pvLine=""; for(let d=0; d<=xMax; d++) pvLine += `${X(d)},${Y(pvAt(d))} `;
+  // PV（青・営業日で消化＝予定休の人員分だけ傾きが緩む）
+  let pvLine=""; for(let d=0; d<=xMax; d++) pvLine += `${X(d)},${Y(pvBiz(d))} `;
   svg += `<polyline points="${pvLine.trim()}" fill="none" stroke="#3b78c6" stroke-width="2.5"/>`;
-  // EV（緑）
-  svg += `<polyline points="${X(0)},${Y(0)} ${X(asOf)},${Y(EV)}" fill="none" stroke="#1c9b6a" stroke-width="2.5"/>`;
-  if (forecastIdx != null && forecastIdx > asOf){ svg += `<polyline points="${X(asOf)},${Y(EV)} ${X(forecastIdx)},${Y(BAC)}" fill="none" stroke="#1c9b6a" stroke-width="2" stroke-dasharray="5 4"/><circle cx="${X(forecastIdx)}" cy="${Y(BAC)}" r="4" fill="#1c9b6a"/>`; }
-  svg += `<circle cx="${X(asOf)}" cy="${Y(EV)}" r="3" fill="#1c9b6a"/>`;
-  // AC（橙）
-  svg += `<polyline points="${X(0)},${Y(0)} ${X(asOf)},${Y(AC)}" fill="none" stroke="#d96b3a" stroke-width="2.5"/>`;
-  if (eac != null && forecastIdx != null && forecastIdx > asOf){ svg += `<polyline points="${X(asOf)},${Y(AC)} ${X(forecastIdx)},${Y(Math.min(eac,yMax))}" fill="none" stroke="#d96b3a" stroke-width="2" stroke-dasharray="5 4"/><circle cx="${X(forecastIdx)}" cy="${Y(Math.min(eac,yMax))}" r="4" fill="#d96b3a"/>`; }
-  svg += `<circle cx="${X(asOf)}" cy="${Y(AC)}" r="3" fill="#d96b3a"/>`;
+  // EV（緑）・AC（橙）＝スナップショット折れ線
+  if (hasSnap){
+    svg += `<polyline points="${evPts.map(p=>`${X(p.x)},${Y(p.y)}`).join(' ')}" fill="none" stroke="#1c9b6a" stroke-width="2.5"/>`;
+    if (forecastIdx != null && forecastIdx > asOf){ svg += `<polyline points="${X(asOf)},${Y(EV)} ${X(forecastIdx)},${Y(BAC)}" fill="none" stroke="#1c9b6a" stroke-width="2" stroke-dasharray="5 4"/><circle cx="${X(forecastIdx)}" cy="${Y(BAC)}" r="4" fill="#1c9b6a"/>`; }
+    evPts.forEach(p=>{ svg += `<circle cx="${X(p.x)}" cy="${Y(p.y)}" r="3" fill="#1c9b6a"/>`; });
+    svg += `<polyline points="${acPts.map(p=>`${X(p.x)},${Y(p.y)}`).join(' ')}" fill="none" stroke="#d96b3a" stroke-width="2.5"/>`;
+    if (eac != null && forecastIdx != null && forecastIdx > asOf){ svg += `<polyline points="${X(asOf)},${Y(AC)} ${X(forecastIdx)},${Y(Math.min(eac,yMax))}" fill="none" stroke="#d96b3a" stroke-width="2" stroke-dasharray="5 4"/><circle cx="${X(forecastIdx)}" cy="${Y(Math.min(eac,yMax))}" r="4" fill="#d96b3a"/>`; }
+    acPts.forEach(p=>{ svg += `<circle cx="${X(p.x)}" cy="${Y(p.y)}" r="3" fill="#d96b3a"/>`; });
+  }
   svg += `</svg>`;
 
   // === 指標表（workitems と同項目）===
@@ -743,9 +797,9 @@ const laneRows = {1:1, 2:1};
   const tdL='text-align:left; padding:5px 10px;', tdR='text-align:right; padding:5px 10px; font-family:monospace;', sect='background:#f0f4f8; font-weight:bold;';
   const table = `<table style="font-size:13px; border-collapse:collapse; width:100%; border:1px solid #ccc;">
     <tr><th style="${tdL}${sect}">BAC</th><td style="${tdR}${sect}">${fmtH(BAC)}</td></tr>
-    <tr><th style="${tdL}">PV (計画値@今日)</th><td style="${tdR}">${fmtH(pv)}</td></tr>
-    <tr><th style="${tdL}">EV (出来高@今日)</th><td style="${tdR}">${fmtH(EV)}</td></tr>
-    <tr><th style="${tdL}">AC (実コスト@今日)</th><td style="${tdR}">${fmtH(AC)}</td></tr>
+    <tr><th style="${tdL}">PV (計画値@基準日)</th><td style="${tdR}">${fmtH(pv)}</td></tr>
+    <tr><th style="${tdL}">EV (出来高@基準日)</th><td style="${tdR}">${fmtH(EV)}</td></tr>
+    <tr><th style="${tdL}">AC (実コスト@基準日)</th><td style="${tdR}">${fmtH(AC)}</td></tr>
     <tr><th style="${tdL}${sect}">SV (EV−PV)</th><td style="${tdR}${sect} color:${colSV(sv)};">${fmtSgn(sv)}</td></tr>
     <tr><th style="${tdL}">CV (EV−AC)</th><td style="${tdR} color:${colSV(cv)}; font-weight:bold;">${fmtSgn(cv)}</td></tr>
     <tr><th style="${tdL}">SPI (EV/PV)</th><td style="${tdR} color:${colIdx(spi)}; font-weight:bold;">${fmtIdx(spi)}</td></tr>
@@ -761,13 +815,24 @@ const laneRows = {1:1, 2:1};
     ／<span style="display:inline-block;width:20px;border-top:2.5px solid #1c9b6a;vertical-align:middle;"></span> EV (出来高)
     ／<span style="display:inline-block;width:20px;border-top:2.5px solid #d96b3a;vertical-align:middle;"></span> AC (実コスト)
     ／<span style="display:inline-block;width:20px;border-top:2px dashed #888;vertical-align:middle;"></span> 予測 (破線)</div>`;
+  // スナップショット算出：ライブ progress/actual から現時点の EV/AC を計算し、記録用の1行を生成
+  const _snapLine = `"${todayISO}": { "ev": ${evLive.toFixed(1)}, "ac": ${acLive.toFixed(1)} }`;
+  const devbox = `<div style="margin-top:12px; font-size:12px; border:1px solid #cbd5e1; background:#f8fafc; border-radius:6px; padding:9px 11px;">
+    <div style="font-weight:700; color:#334155; margin-bottom:5px;">スナップショットを算出（基準 ${todayISO}）</div>
+    <div style="margin-bottom:7px;">現時点のライブ値：<b style="color:#1c9b6a;">EV ${evLive.toFixed(1)} h</b>（Σ 計画×進捗率）／ <b style="color:#d96b3a;">AC ${acLive.toFixed(1)} h</b>（Σ 実工数）</div>
+    <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+      <button type="button" onclick="copyEvmSnap(this)" style="font-size:11px; padding:3px 10px; border:1px solid #64748b; border-radius:3px; background:#fff; cursor:pointer;">スナップショット行をコピー</button>
+      <code id="evmSnapLine" style="font-family:monospace; user-select:all; cursor:text; background:#fff; padding:2px 6px; border:1px solid #e2e8f0; border-radius:3px;">${_snapLine}</code>
+    </div>
+    <div style="color:#94a3b8; margin-top:6px;">この行を sprint2_data.js の <b>evmSnapshots</b> に貼り付けて週次スナップショットを記録（週1回）。progress／actual を最新化してから算出すること。</div>
+  </div>`;
   document.getElementById("evm").innerHTML =
     `<div style="display:flex; gap:24px; align-items:flex-start; flex-wrap:wrap;">`+
     `<div style="flex:0 0 auto;">${svg}${legend}</div>`+
-    `<div style="flex:0 0 340px;">${table}</div></div>`;
-  document.getElementById("enote").textContent = (EV>0||AC>0)
-    ? `基準日 ${todayISO} 時点。SPI<1=遅れ / CPI<1=超過。EAC は現在効率(CPI×SPI)継続前提の完成時見込み。`
-    : `現時点は未着手（EV=AC=0）のため PV（計画値）＋計画完了マーカーのみ。7/14 着手後、各タスクの progress／actual を sprint2_data.js に記入すると EV・AC・SPI・CPI・EAC・完了予測日が算出されます。`;
+    `<div style="flex:0 0 340px;">${table}${devbox}</div></div>`;
+  document.getElementById("enote").textContent = hasSnap
+    ? `基準日 ${baseISO}（最新の週次スナップショット・全${snapDates.length}件）。横軸＝営業日（週末・祝日は含めない）。PV=計画値（人員別に予定休を差し引いて消化＝休みの人員がいる営業日は傾きが緩む）／EV・AC=記録スナップショット。SPI<1=遅れ / CPI<1=超過。EAC は現在効率(CPI×SPI)継続前提。スナップショットは週1回 sprint2_data.js の evmSnapshots に追記する。`
+    : `スナップショット未記録のため PV（計画値）＋計画完了マーカーのみ表示。横軸＝営業日（週末・祝日は含めない）。PV は人員別に予定休を差し引いて消化するため、休みの人員がいる営業日は傾きが緩む。週1回、sprint2_data.js の evmSnapshots に "YYYY-MM-DD": { ev, ac } を追記すると EV・AC・SPI・CPI・EAC・完了予測日が描画されます（下の「算出」からライブ値をコピー可）。`;
 })();
 
 // ---- タブ切替（workitems と同挙動＋URLハッシュで直接オープン）----
