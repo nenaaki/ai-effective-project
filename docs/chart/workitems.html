@@ -26,6 +26,12 @@
   .purpose-title { font-weight:bold; color:#2a6; margin-bottom:4px; }
   .purpose ol { margin:4px 0 4px 20px; }
   .purpose li { margin:2px 0; }
+  .iter-done { background:#ecfdf5; border:1px solid #10b981; border-left:4px solid #10b981; border-radius:4px; padding:10px 16px; margin:16px 0; font-size:13px; line-height:1.55; }
+  .iter-done .idn-title { font-weight:bold; color:#047857; margin-bottom:5px; }
+  .iter-done .idn-title .tag { display:inline-block; background:#047857; color:#fff; font-size:10.5px; font-weight:700; padding:1px 8px; border-radius:3px; margin-right:8px; vertical-align:1px; }
+  .iter-done ul { margin:4px 0 0 20px; }
+  .iter-done li { margin:2px 0; }
+  .iter-done strong { color:#047857; }
   .pv-wrap { display:flex; gap:16px; align-items:flex-start; }
   .pv-gantt { flex:1 1 auto; min-width:0; overflow-x:auto; }
   .pv-burndown { flex:0 0 440px; position:sticky; top:8px; }
@@ -37,6 +43,14 @@
 </head>
 <body>
 <h1>AI駆動PJタスク管理</h1>
+<div class="iter-done">
+  <div class="idn-title"><span class="tag">完了</span>イテレーション1 完了</div>
+  <ul>
+    <li><strong>残課題</strong>は、チケットやExcelへの記載などの形で整理済み。引き継ぎは行っていないが、<strong>情報の所在はPMと共有済み</strong>。</li>
+    <li>当初の予定どおり「<strong>ビジネスロジックの組み込み</strong>」は <strong>BP（協力会社）へ依頼</strong>。</li>
+    <li>残課題のうち<strong>仕様が確定したもの</strong>は <strong>AI駆動開発チームが実施</strong>。</li>
+  </ul>
+</div>
 <div class="purpose">
   <div class="purpose-title">このシートの目的</div>
   <ol>
