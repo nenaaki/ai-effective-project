@@ -133,7 +133,7 @@
     <button class="tab-btn active" data-tab="calendar">予実管理カレンダー</button>
     <button class="tab-btn" data-tab="worklist">作業一覧</button>
     <button class="tab-btn" data-tab="evm">EVM</button>
-    <button class="tab-btn" data-tab="criteria">スコープ選定基準</button>
+    <button class="tab-btn" data-tab="criteria">スコープ</button>
   </div>
 
   <div id="tab-criteria" class="tab-panel">
@@ -517,7 +517,7 @@ D.bases.forEach(b => [1,2].forEach(p => { if (D.tasks.some(t=>personOf(t)===p &&
   const totTobe = sumBase.reduce((a,s)=>a+s.tobe,0);
   const totBuf  = sumBase.reduce((a,s)=>a+s.buf,0);
   document.getElementById("sub").textContent =
-    `スプリント2 / 開始 ${D.meta.start}（月）/ ${D.tasks.length}タスク / 計画 ${r1(totBuf)}h（≈ ${r1(totBuf/HPD)}人日）/ ToBe素 ${r1(totTobe)}h・バッファ${Math.round(D.meta.bufferPct*100)}% / AsIs想定 ${r1(totAsis)}h`;
+    `スプリント2 / 開始 ${D.meta.start}（火）/ ${D.tasks.length}タスク / 計画 ${r1(totBuf)}h（≈ ${r1(totBuf/HPD)}人日）/ ToBe素 ${r1(totTobe)}h・バッファ${Math.round(D.meta.bufferPct*100)}% / AsIs想定 ${r1(totAsis)}h`;
   let html = "";
   sumBase.forEach((s,i)=>{
     html += `<div class="card" style="border-left:4px solid ${s.b.color}"><div class="k">${s.b.id} ${s.b.name}</div>`+
@@ -559,6 +559,8 @@ D.bases.forEach(b => [1,2].forEach(p => { if (D.tasks.some(t=>personOf(t)===p &&
 
 // ---- 予実管理カレンダー（全日表示・土日祝は網掛け）----
 const START = parse(D.meta.start);
+const MON = new Date(START); MON.setUTCDate(MON.getUTCDate() - ((START.getUTCDay()+6)%7)); // その週の月曜（週グリッドの原点）
+const calOffMon = d => Math.round((d - MON) / 86400000);
 const bizDates = bizList(D.meta.start, totalDays);
 const calOffOf = d => Math.round((d - START) / 86400000);
 const bizCalOff = bizDates.map(calOffOf);            // 営業日index → カレンダー日offset
@@ -576,7 +578,7 @@ D.tasks.forEach(t=>{
 });
 // 営業日index → { week, col(0=月..4=金) }
 const wiMeta = {};
-for(let i=0;i<totalDays;i++){ const d = bizDate(D.meta.start, i); wiMeta[i] = { week: Math.floor(calOffOf(d)/7), col: (d.getUTCDay()+6)%7 }; }
+for(let i=0;i<totalDays;i++){ const d = bizDate(D.meta.start, i); wiMeta[i] = { week: Math.floor(calOffMon(d)/7), col: (d.getUTCDay()+6)%7 }; }
 // 人員ごとにサブ行を割当（作業日レンジが重なるタスクは段組み＝workitems流）
 const laneRows = {1:1, 2:1};
 [1,2].forEach(p=>{
@@ -592,8 +594,8 @@ const laneRows = {1:1, 2:1};
 
 (function(){
   const dow = ['日','月','火','水','木','金','土'];
-  const addD = o => { const d = new Date(START); d.setUTCDate(d.getUTCDate()+o); return d; };
-  const numWeeks = Math.floor(calOffOf(bizDates[totalDays-1])/7) + 1;
+  const addD = o => { const d = new Date(MON); d.setUTCDate(d.getUTCDate()+o); return d; };
+  const numWeeks = Math.floor(calOffMon(bizDates[totalDays-1])/7) + 1;
   let html = "";
   for(let w=0; w<numWeeks; w++){
     const wStart = w*7;
@@ -658,7 +660,7 @@ const laneRows = {1:1, 2:1};
     `</svg>`;
   document.getElementById("burn").innerHTML = svg;
   document.getElementById("bnote").textContent =
-    `理想線は計画総工数 ${r1(totalBufH)}h を ${totalDays}営業日で均等消化した線。実績（青）は 7/13 着手後、各タスクの実工数を記入すると描画されます（現時点は未着手＝全量）。`;
+    `理想線は計画総工数 ${r1(totalBufH)}h を ${totalDays}営業日で均等消化した線。実績（青）は 7/14 着手後、各タスクの実工数を記入すると描画されます（現時点は未着手＝全量）。`;
 })();
 
 // ---- EVM（workitems と同形：PV/EV/AC グラフ ＋ 指標表）----
@@ -753,7 +755,7 @@ const laneRows = {1:1, 2:1};
     `<div style="flex:0 0 340px;">${table}</div></div>`;
   document.getElementById("enote").textContent = (EV>0||AC>0)
     ? `基準日 ${todayISO} 時点。SPI<1=遅れ / CPI<1=超過。EAC は現在効率(CPI×SPI)継続前提の完成時見込み。`
-    : `現時点は未着手（EV=AC=0）のため PV（計画値）＋計画完了マーカーのみ。7/13 着手後、各タスクの progress／actual を sprint2_data.js に記入すると EV・AC・SPI・CPI・EAC・完了予測日が算出されます。`;
+    : `現時点は未着手（EV=AC=0）のため PV（計画値）＋計画完了マーカーのみ。7/14 着手後、各タスクの progress／actual を sprint2_data.js に記入すると EV・AC・SPI・CPI・EAC・完了予測日が算出されます。`;
 })();
 
 // ---- タブ切替（workitems と同挙動＋URLハッシュで直接オープン）----

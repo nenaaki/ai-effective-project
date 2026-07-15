@@ -1,4 +1,4 @@
-// スプリント2（2026-07-13〜）タスクデータ ── workitems2.html / aidd_report2.html 共通ソース
+// スプリント2（2026-07-14〜）タスクデータ ── workitems2.html / aidd_report2.html 共通ソース
 // 出典: .work/基盤設計_01_認証認可.md / _02_配送ステータスイベント.md / _03_外部連携.md のタスク分解
 //
 // 各タスク:
@@ -16,10 +16,11 @@
 //
 // バッファ込みToBe = tobe × (1 + BUFFER_PCT) は各ビューで算出（計画・ガント・バーンダウンに使用）。
 const SPRINT2_DATA = {
-  meta: { sprint: 2, start: "2026-07-13", hoursPerDay: 7.2, bufferPct: 0.4 },
+  meta: { sprint: 2, start: "2026-07-14", hoursPerDay: 7.2, bufferPct: 0.4 },
   // 2026年 祝日（スプリント期間にかかり得るもの）＋土日は自動除外
   holidays: ["2026-07-20", "2026-08-11", "2026-09-21", "2026-09-23"],
   bases: [
+    { key: "prep",   id: "事", name: "事前工数",              color: "#0d9488" },
     { key: "auth",   id: "①", name: "認証・認可",              color: "#2563eb" },
     { key: "export", id: "②", name: "外部連携(SMS/IVR)", color: "#7c3aed" },
     { key: "file",   id: "③", name: "ファイル連携(取込/送信)", color: "#0891b2" },
@@ -27,8 +28,11 @@ const SPRINT2_DATA = {
     { key: "reserve", id: "予", name: "予備工数",              color: "#64748b" },
   ],
   tasks: [
+    // ───────── 事前工数（①②③④より前・7/14）─────────
+    { name: "プランニング①・AI整備", base: "prep", person: 1, group: "事前工数", code: "P1", owner: "両", deps: [], nobuffer: true, asis: 7.2, tobe: 7.2, status: "予定", progress: 0, actual: 0, desc: "人員1：スプリント2初日の事前工数。プランニング（タスク分解・段取り・論点整理）＋AI環境整備（エージェント／worktree 等の準備）。" },
+    { name: "プランニング②・AI整備", base: "prep", person: 2, group: "事前工数", code: "P2", owner: "両", deps: [], nobuffer: true, asis: 7.2, tobe: 7.2, status: "予定", progress: 0, actual: 0, desc: "人員2：スプリント2初日の事前工数。プランニング（タスク分解・段取り・論点整理）＋AI環境整備（エージェント／worktree 等の準備）。" },
     // ───────── ① 認証・認可：仕様精査 ─────────
-    { name: "仕様精査(認可)",   base: "auth", person: 1, group: "仕様精査",   code: "SP",  owner: "両", deps: [], nobuffer: true, asis: 10.8, tobe: 7.2, status: "予定", progress: 0, actual: 0, desc: "認証・認可の要件・SEED権限データ・16bitモデルの精査と実装前の論点整理（scope複合・粒度・Cognito連携時期など）。" },
+    { name: "仕様精査(認可)～チケット合意",   base: "auth", person: 1, group: "仕様精査",   code: "SP",  owner: "両", deps: [], nobuffer: true, asis: 28.8, tobe: 28.8, status: "予定", progress: 0, actual: 0, desc: "認証・認可の要件・SEED権限データ・16bitモデルの精査と実装前の論点整理（scope複合・粒度・Cognito連携時期など）＋作業チケットのスコープ合意まで。" },
     // ───────── ① 認証・認可：基盤 ─────────
     { name: "Cognito整備",      base: "auth", person: 1, group: "基盤",       code: "A0",  owner: "BE", deps: [],                    asis: 5,  tobe: 3.0, status: "予定", progress: 0, actual: 0, desc: "Cognito ユーザープール／アプリクライアント／グループ（ロール）設定・トークンクレーム設計。AWS側整備でAI駆動範囲外の手作業を含む。JWT署名検証の前提。" },
     { name: "JWT実装",          base: "auth", person: 1, group: "基盤",       code: "A",   owner: "BE", deps: ["Cognito整備"],       asis: 8,  tobe: 3.0, status: "予定", progress: 0, actual: 0, desc: "JwtAuthGuard 本実装（Cognito署名検証・実ユーザー注入、dev-bypass温存）。最優先。" },
