@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>課題事例⑥: AIの「最後の2%」修正の属人性とコスト</title>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body {
+    font-family: -apple-system, "Hiragino Kaku Gothic ProN", "Yu Gothic", system-ui, sans-serif;
+    color: #1f2937;
+    background: #fafafa;
+    padding: 28px 32px;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+  .page { max-width: 1240px; margin: 0 auto; height: 100%; display: flex; flex-direction: column; }
+  h1 { font-size: 19px; margin: 0; border-bottom: 3px solid #2563eb; padding-bottom: 6px; }
+  .sub { color: #6b7280; font-size: 12px; margin: 6px 0 14px; }
+
+  .tabs { display: flex; gap: 4px; margin-bottom: 14px; border-bottom: 1px solid #e5e7eb; }
+  .tab {
+    padding: 8px 16px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-bottom: none;
+    border-radius: 6px 6px 0 0;
+    cursor: pointer;
+    font-size: 13px;
+    font-family: inherit;
+    color: #6b7280;
+    margin-bottom: -1px;
+  }
+  .tab.active { background: white; border-color: #e5e7eb; color: #2563eb; font-weight: 600; }
+  .tab:hover { color: #1f2937; }
+
+  .tab-content { display: none; flex: 1; min-height: 0; }
+  .tab-content.active { display: flex; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 18px;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+  }
+  .panel {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  h2 { font-size: 13px; margin: 0 0 10px; padding-left: 8px; border-left: 3px solid #2563eb; }
+  svg { display: block; width: 100%; height: auto; flex: 1; }
+
+  .issue-block {
+    background: #fef3c7;
+    border-left: 3px solid #f59e0b;
+    padding: 12px 14px;
+    border-radius: 4px;
+    margin-bottom: 12px;
+  }
+  .issue-block .label { font-size: 11px; color: #92400e; font-weight: 600; }
+  .issue-block .title { font-size: 14px; font-weight: 600; color: #1f2937; margin-top: 4px; line-height: 1.5; }
+
+  .points-label { font-size: 12px; font-weight: 600; color: #2563eb; margin: 6px 0; }
+  .points { display: flex; flex-direction: column; gap: 8px; }
+  .point {
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 9px 12px;
+    font-size: 12px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .point .num {
+    background: #2563eb; color: white;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-weight: bold; font-size: 11px;
+    flex-shrink: 0;
+  }
+
+  .conclusion-wrap {
+    margin-top: 10px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .conclusion {
+    border-radius: 4px;
+    padding: 8px 10px;
+    border-left: 3px solid #10b981;
+    background: #ecfdf5;
+  }
+  .conclusion.mgmt {
+    border-left-color: #6366f1;
+    background: #eef2ff;
+  }
+  .conclusion-label {
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #047857;
+    letter-spacing: 0.04em;
+    margin-bottom: 5px;
+  }
+  .conclusion.mgmt .conclusion-label { color: #4338ca; }
+  .conclusion-list { display: flex; flex-direction: column; gap: 4px; }
+  .conclusion-item {
+    font-size: 11px;
+    line-height: 1.5;
+    color: #1f2937;
+  }
+  .conclusion-item .tag {
+    display: inline-block;
+    background: #10b981;
+    color: white;
+    font-size: 9.5px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 3px;
+    margin-right: 5px;
+    vertical-align: 1px;
+  }
+  .conclusion.mgmt .conclusion-item .tag { background: #6366f1; }
+
+  .premise-banner {
+    margin-top: 10px;
+    background: white;
+    border: 1.5px solid #047857;
+    border-radius: 4px;
+    padding: 7px 10px;
+    font-size: 11px;
+    line-height: 1.55;
+    color: #1f2937;
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+  }
+  .premise-banner .tag {
+    background: #047857;
+    color: white;
+    font-size: 9.5px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 3px;
+    flex-shrink: 0;
+    margin-top: 1px;
+    letter-spacing: 0.03em;
+  }
+
+  /* タブ2: 実測カード */
+  .metric-row { display: flex; gap: 10px; margin-bottom: 12px; }
+  .metric {
+    flex: 1;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 10px 12px;
+    text-align: center;
+  }
+  .metric .big { font-size: 22px; font-weight: 700; color: #2563eb; line-height: 1.1; }
+  .metric .cap { font-size: 10.5px; color: #6b7280; margin-top: 4px; }
+  .cost-card {
+    border-radius: 6px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  .cost-card.fast { border: 1px solid #d1d5db; background: #f9fafb; }
+  .cost-card.slow { border-left: 3px solid #dc2626; background: #fee2e2; }
+  .cost-card .h { font-weight: 700; font-size: 12px; margin-bottom: 3px; }
+  .cost-card.slow .h { color: #991b1b; }
+  .cost-card .v { font-size: 18px; font-weight: 700; }
+  .cost-card.fast .v { color: #047857; }
+  .cost-card.slow .v { color: #dc2626; }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>課題事例⑥: AIの「最後の2%」修正の属人性とコスト</h1>
+  <div class="sub">AIDD 試行の構造的課題 / 実測（pw-dms コミット15件＋全54セッション）で原因を特定 / 2026-07-17</div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="issue">課題と論点</button>
+    <button class="tab" data-tab="cause">実測でわかった原因</button>
+    <button class="tab" data-tab="solution">対策の全体像（二軸）</button>
+  </div>
+
+  <!-- ====================== タブ1: 課題と論点 ====================== -->
+  <div class="tab-content active" id="tab-issue">
+    <div class="grid">
+
+      <!-- 左: 構造図 -->
+      <div class="panel">
+        <h2>「2%」がどこで生まれ、なぜ困るか</h2>
+        <svg viewBox="0 0 560 232" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#374151"/></marker>
+            <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#dc2626"/></marker>
+          </defs>
+
+          <!-- 上段: 生成の流れ -->
+          <rect x="8" y="24" width="120" height="46" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+          <text x="68" y="44" text-anchor="middle" font-size="10" font-weight="bold" fill="#1e40af">要件・正本</text>
+          <text x="68" y="60" text-anchor="middle" font-size="10" fill="#1f2937">を入力</text>
+
+          <line x1="128" y1="47" x2="152" y2="47" stroke="#374151" stroke-width="1.5" marker-end="url(#a)"/>
+
+          <rect x="152" y="24" width="150" height="46" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+          <text x="227" y="44" text-anchor="middle" font-size="11" font-weight="bold" fill="#1e40af">生成 98%AI（フル編成）</text>
+          <text x="227" y="60" text-anchor="middle" font-size="9.5" fill="#1f2937">planner→engineer→tester</text>
+
+          <line x1="302" y1="47" x2="326" y2="47" stroke="#374151" stroke-width="1.5" marker-end="url(#a)"/>
+
+          <rect x="326" y="24" width="120" height="46" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+          <text x="386" y="44" text-anchor="middle" font-size="12" font-weight="bold" fill="#1e40af">98% 完成</text>
+          <text x="386" y="60" text-anchor="middle" font-size="10" fill="#1f2937">ほぼ正しい</text>
+
+          <!-- 残り2% -->
+          <line x1="386" y1="70" x2="386" y2="94" stroke="#f59e0b" stroke-width="2" marker-end="url(#a)"/>
+          <rect x="326" y="94" width="120" height="40" rx="6" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+          <text x="386" y="112" text-anchor="middle" font-size="12" font-weight="bold" fill="#92400e">残り 2%</text>
+          <text x="386" y="127" text-anchor="middle" font-size="9.5" fill="#92400e">必ず修正が発生</text>
+
+          <!-- 2つの困りごと -->
+          <line x1="360" y1="134" x2="180" y2="168" stroke="#dc2626" stroke-width="1.5" marker-end="url(#ar)" stroke-dasharray="4 3"/>
+          <line x1="412" y1="134" x2="430" y2="168" stroke="#dc2626" stroke-width="1.5" marker-end="url(#ar)" stroke-dasharray="4 3"/>
+
+          <rect x="20" y="170" width="270" height="50" rx="6" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
+          <text x="35" y="190" font-size="10" font-weight="bold" fill="#dc2626">困りごと①</text>
+          <text x="155" y="192" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#991b1b">直す「判断」が属人的</text>
+          <text x="155" y="209" text-anchor="middle" font-size="9.5" fill="#991b1b">何が100%かを見抜く力に依存</text>
+
+          <rect x="300" y="170" width="252" height="50" rx="6" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
+          <text x="315" y="190" font-size="10" font-weight="bold" fill="#dc2626">困りごと②</text>
+          <text x="426" y="192" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#991b1b">修正コストが高い（体感30分）</text>
+          <text x="426" y="209" text-anchor="middle" font-size="9.5" fill="#991b1b">人が直接直すと壊れる→AIに再依頼</text>
+        </svg>
+      </div>
+
+      <!-- 右: 課題 + 論点 + 結論 -->
+      <div class="panel">
+        <h2>課題と論点</h2>
+        <div class="issue-block">
+          <div class="label">課題</div>
+          <div class="title">AIが98%正しく作っても、残り2%を100%にする工程は必ず発生する。<br>この工程の <strong>属人性</strong> と <strong>コスト</strong> をどう無くすか。</div>
+        </div>
+        <div class="points-label">論点</div>
+        <div class="points">
+          <div class="point"><span class="num">1</span><div>2%は<strong>なぜ生まれ、どこに集中</strong>するか（原因の特定）</div></div>
+          <div class="point"><span class="num">2</span><div>属人性は「修正作業」と<strong>「判断」のどちらに宿る</strong>か</div></div>
+          <div class="point"><span class="num">3</span><div>修正コスト（体感30分）の<strong>正体は何か</strong></div></div>
+        </div>
+
+        <div class="premise-banner">
+          <span class="tag">アプローチ</span>
+          <div>印象で語らず、<strong>実際の修正ログを測って</strong>原因を確定 → 対策を設計した（詳細は各タブ）</div>
+        </div>
+
+        <div class="conclusion-wrap">
+          <div class="conclusion">
+            <div class="conclusion-label">結論① 予防（軸①）</div>
+            <div class="conclusion-list">
+              <div class="conclusion-item"><span class="tag">発生を減らす</span>原因別の多層ゲート。最頻の<strong>「正本からの逸れ」を安く検出</strong></div>
+            </div>
+          </div>
+          <div class="conclusion mgmt">
+            <div class="conclusion-label">結論② 経路（軸②）</div>
+            <div class="conclusion-list">
+              <div class="conclusion-item"><span class="tag">1回を安く</span>2%修正を<strong>重い編成に通さない軽経路</strong>へ（98%/2%分離）</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ====================== タブ2: 実測でわかった原因 ====================== -->
+  <div class="tab-content" id="tab-cause">
+    <div class="grid">
+
+      <!-- 左: 原因の内訳 -->
+      <div class="panel">
+        <h2>2%の原因内訳（実測15件）</h2>
+        <svg viewBox="0 0 560 200" xmlns="http://www.w3.org/2000/svg">
+          <!-- 軸 -->
+          <text x="8" y="18" font-size="11" font-weight="bold" fill="#1f2937">主犯は「入力の未完成」＝ A（入力起因）が 87%</text>
+
+          <!-- A4 -->
+          <text x="8" y="52" font-size="11" font-weight="bold" fill="#1f2937">A4 正本不整合</text>
+          <rect x="150" y="40" width="282" height="20" rx="3" fill="#2563eb"/>
+          <text x="440" y="55" font-size="12" font-weight="bold" fill="#2563eb">47%</text>
+          <text x="150" y="74" font-size="9.5" fill="#6b7280">mock・帳票定義・スキーマから逸れる（既に正本があるのに）</text>
+
+          <!-- A2 -->
+          <text x="8" y="102" font-size="11" font-weight="bold" fill="#1f2937">A2 曖昧さ</text>
+          <rect x="150" y="90" width="120" height="20" rx="3" fill="#60a5fa"/>
+          <text x="278" y="105" font-size="12" font-weight="bold" fill="#2563eb">20%</text>
+
+          <!-- A1 -->
+          <text x="8" y="132" font-size="11" font-weight="bold" fill="#1f2937">A1 暗黙前提</text>
+          <rect x="150" y="120" width="120" height="20" rx="3" fill="#93c5fd"/>
+          <text x="278" y="135" font-size="12" font-weight="bold" fill="#2563eb">20%</text>
+
+          <!-- B2 -->
+          <text x="8" y="162" font-size="11" font-weight="bold" fill="#1f2937">B2 横断制約</text>
+          <rect x="150" y="150" width="78" height="20" rx="3" fill="#f59e0b"/>
+          <text x="236" y="165" font-size="12" font-weight="bold" fill="#d97706">13%</text>
+          <text x="150" y="184" font-size="9.5" fill="#6b7280">層をまたぐ・機能衝突（AI固有／唯一の正本が無い）</text>
+        </svg>
+        <div class="premise-banner" style="border-color:#2563eb;">
+          <span class="tag" style="background:#2563eb;">要点</span>
+          <div>最頻の A4 は <strong>「正本があるのに逸れた」＝適合チェックで安く潰せる</strong>。「見れば分かる」不満も mock という正本があるため検出可能側に化ける。</div>
+        </div>
+      </div>
+
+      <!-- 右: コスト（30分）の正体 -->
+      <div class="panel">
+        <h2>コスト（体感30分）の正体</h2>
+        <div class="cost-card fast">
+          <div class="h">対話的な単発修正（人が直接AIに指示）</div>
+          <div class="v">中央値 約1分</div>
+        </div>
+        <div class="cost-card slow">
+          <div class="h">エージェント編成を通した修正（planner→engineer→tester）</div>
+          <div class="v">20〜50分（planner単体で最大52分）</div>
+        </div>
+        <div class="issue-block" style="margin-top:2px;">
+          <div class="label">わかったこと</div>
+          <div class="title" style="font-size:12.5px;">「30分」の正体は修正の<strong>内容</strong>ではなく<strong>経路</strong>だった。<br>小さな2%修正でも重い編成に通すと数十分かかる。</div>
+        </div>
+        <div class="conclusion mgmt">
+          <div class="conclusion-label">社長コメントの裏付け</div>
+          <div class="conclusion-list">
+            <div class="conclusion-item"><span class="tag">一致</span>「コンテキスト肥大が原因、別AIに分けよ」＝<strong>重い経路を通さない</strong>ことと合致</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ====================== タブ3: 対策の全体像（二軸） ====================== -->
+  <div class="tab-content" id="tab-solution">
+    <div class="grid">
+
+      <!-- 左: 統合フロー -->
+      <div class="panel">
+        <h2>入力ゲート → 生成 → 出力ゲート → 経路振り分け</h2>
+        <svg viewBox="0 0 560 232" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="sa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#374151"/></marker>
+          </defs>
+
+          <!-- 上段 -->
+          <rect x="8" y="18" width="150" height="46" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+          <text x="83" y="38" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#1e40af">入力ゲート（軸①予防）</text>
+          <text x="83" y="54" text-anchor="middle" font-size="9" fill="#1f2937">正本束縛・前提注入</text>
+
+          <line x1="158" y1="41" x2="180" y2="41" stroke="#374151" stroke-width="1.5" marker-end="url(#sa)"/>
+
+          <rect x="180" y="18" width="130" height="46" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+          <text x="245" y="38" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#1e40af">生成 98%AI</text>
+          <text x="245" y="54" text-anchor="middle" font-size="9" fill="#1f2937">フル編成（重い）</text>
+
+          <line x1="310" y1="41" x2="332" y2="41" stroke="#374151" stroke-width="1.5" marker-end="url(#sa)"/>
+
+          <rect x="332" y="18" width="220" height="46" rx="6" fill="#ecfdf5" stroke="#047857" stroke-width="2"/>
+          <text x="442" y="37" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#047857">出力ゲート（二役）</text>
+          <text x="442" y="53" text-anchor="middle" font-size="9" fill="#1f2937">2%を検出＋性質で振り分け</text>
+
+          <!-- 下へ -->
+          <line x1="442" y1="64" x2="442" y2="88" stroke="#374151" stroke-width="1.5" marker-end="url(#sa)"/>
+          <text x="452" y="80" font-size="9" font-weight="bold" fill="#047857">2%検出時</text>
+
+          <!-- 分岐 -->
+          <rect x="300" y="88" width="130" height="46" rx="6" fill="#ecfdf5" stroke="#10b981" stroke-width="1.5"/>
+          <text x="365" y="107" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#047857">軽経路（軸② 2%AI）</text>
+          <text x="365" y="123" text-anchor="middle" font-size="9" fill="#1f2937">局所・葉／極小コンテキスト</text>
+
+          <rect x="446" y="88" width="106" height="46" rx="6" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5"/>
+          <text x="499" y="107" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#92400e">重経路</text>
+          <text x="499" y="123" text-anchor="middle" font-size="9" fill="#1f2937">全体依存(B2)は差戻し</text>
+
+          <line x1="410" y1="64" x2="365" y2="88" stroke="#374151" stroke-width="1.2" marker-end="url(#sa)"/>
+          <line x1="474" y1="64" x2="499" y2="88" stroke="#374151" stroke-width="1.2" marker-end="url(#sa)"/>
+
+          <!-- 同期 -->
+          <line x1="365" y1="134" x2="365" y2="158" stroke="#374151" stroke-width="1.5" marker-end="url(#sa)"/>
+          <line x1="499" y1="134" x2="430" y2="158" stroke="#374151" stroke-width="1.2" marker-end="url(#sa)"/>
+
+          <rect x="255" y="158" width="220" height="42" rx="6" fill="#eef2ff" stroke="#6366f1" stroke-width="1.5"/>
+          <text x="365" y="177" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#4338ca">正本へ同期（二重化を防ぐ）</text>
+          <text x="365" y="193" text-anchor="middle" font-size="9" fill="#1f2937">既存の questions/PW-*.tsv を活用</text>
+
+          <line x1="365" y1="200" x2="365" y2="216" stroke="#374151" stroke-width="1.5" marker-end="url(#sa)"/>
+          <text x="365" y="228" text-anchor="middle" font-size="11" font-weight="bold" fill="#047857">完了 100%</text>
+        </svg>
+      </div>
+
+      <!-- 右: 二軸の要点と導入順 -->
+      <div class="panel">
+        <h2>二軸の要点と導入順</h2>
+        <div class="premise-banner">
+          <span class="tag">統合の要</span>
+          <div>1つの<strong>出力ゲートが「検出（軸①）」と「経路振り分け（軸②）」を兼ねる</strong>。逸れ＝局所→軽経路 / 横断＝全体→重経路。</div>
+        </div>
+
+        <div class="conclusion-wrap" style="margin-top:12px;">
+          <div class="conclusion">
+            <div class="conclusion-label">軸① 予防（発生を減らす）</div>
+            <div class="conclusion-list">
+              <div class="conclusion-item"><span class="tag">最頻</span>A4 <strong>正本コンフォーマンス</strong>（生成物↔mock/スキーマ突合）</div>
+              <div class="conclusion-item"><span class="tag">補完</span>曖昧さ検出・前提カタログ・横断チェック</div>
+            </div>
+          </div>
+          <div class="conclusion mgmt">
+            <div class="conclusion-label">軸② 経路（1回を安く）</div>
+            <div class="conclusion-list">
+              <div class="conclusion-item"><span class="tag">分離</span>賢さでなく<strong>コンテキストの重さ</strong>で分ける</div>
+              <div class="conclusion-item"><span class="tag">軽経路</span>plannerを通さず<strong>指摘＋対象＋正本断片だけ</strong>渡す</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="points-label" style="margin-top:12px;">導入順（データ駆動）</div>
+        <div class="points">
+          <div class="point"><span class="num">1</span><div><strong>A4 正本コンフォーマンス ＋ 軽経路</strong>（最頻47%×最安×即効）</div></div>
+          <div class="point"><span class="num">2</span><div>A2 仕様ペア分析 → A1 前提カタログ → B2 横断チェック</div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+  document.querySelectorAll('.tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>
