@@ -9,13 +9,13 @@
     font-family: -apple-system, "Hiragino Kaku Gothic ProN", "Yu Gothic", system-ui, sans-serif;
     color: #1f2937;
     background: #fafafa;
-    padding: 28px 32px;
+    padding: 20px 32px;
     box-sizing: border-box;
     overflow: hidden;
   }
   .page { max-width: 1240px; margin: 0 auto; height: 100%; display: flex; flex-direction: column; }
   h1 { font-size: 19px; margin: 0; border-bottom: 3px solid #2563eb; padding-bottom: 6px; }
-  .sub { color: #6b7280; font-size: 12px; margin: 6px 0 14px; }
+  .sub { color: #6b7280; font-size: 12px; margin: 6px 0 10px; }
 
   .grid {
     display: grid;
@@ -173,9 +173,12 @@
   }
   .quote .who { display: block; font-style: normal; font-weight: 700; font-size: 10px; color: #b45309; margin-bottom: 2px; letter-spacing: 0.04em; }
 
-  .block { margin-bottom: 10px; }
+  .block { margin-bottom: 7px; }
   .block:last-child { margin-bottom: 0; }
-  .panel .block h2 { margin-bottom: 7px; }
+  .panel .block h2 { margin-bottom: 5px; }
+  .summary { gap: 4px; }
+  .decisions { gap: 4px; }
+  .decision { padding: 5px 10px; }
 </style>
 </head>
 <body>
@@ -228,13 +231,45 @@
       <div class="ref-line">前回議事: <a href="minutes_2026-07-09.html">minutes_2026-07-09.html</a></div>
     </div>
 
-    <!-- 右: 議事録まとめ（会議後に追記） -->
+    <!-- 右: 議事録まとめ -->
     <div class="panel">
-      <h2>議事録まとめ（議論サマリ・決定事項）</h2>
-      <div class="placeholder">
-        <div>
-          <div class="big">7/15 会議後に追記</div>
-          議論サマリ・決定事項・アクションアイテムは<br>会議終了後にこの欄へまとめます。
+      <div class="block">
+        <h2>議論サマリ</h2>
+        <div class="summary">
+          <div class="scard">
+            <span class="label">① スプリント1 完了・振り返り</span>
+            <p>1日半の遅れは出たが全タスク完了・クローズ。残課題はチケット／Excelで整理・共有済み。ビジネスロジックは予定どおり外部ベンダーへ依頼し、仕様確定でAI駆動チームの出番となれば引き取る。</p>
+          </div>
+          <div class="scard">
+            <span class="label">② スプリント2 のスコープ</span>
+            <p>ファイル連携5本のうち仕様が明確な4つを優先着手。ファイル連携基盤＋認証・認可基盤（各部反映まで）を進め、PMとのタスク合意時間を確保した上で8月上旬エンドに完了見込み。</p>
+          </div>
+          <div class="scard amber">
+            <span class="label">③ 合意プロセスの高度化と意識改革</span>
+            <p>PMエージェントが仕様書＋PM指示から「作り方の握り」「テスト観点」入りのチケット案を生成。認識を <strong>How（どう作るか）→ 入口（何を・なぜ）と出口（どう確認するか）へ</strong>更新。実装依頼前に入口・出口を100%理解していることをPMのQ&Aで確認し暗黙理解を排除する。</p>
+          </div>
+          <div class="scard red">
+            <span class="label">④ 内部統制としての標準化</span>
+            <p>個人裁量でなく会社の公式な仕組みとして定着。受注判定会議と同様の<strong>強制力を持つプロセス</strong>とし、全機能でなくサンプリング（例：10機能中2機能）でPMが説明させ記録を証跡化。作成＝エンジニア／承認＝PMで責任の所在を明確化。名前を付けてPW案件で試行し他PJ・全社へ展開。</p>
+          </div>
+          <div class="scard">
+            <span class="label">⑤ 評価・目標設定への反映</span>
+            <p>本日の議論を踏まえ、各担当は目標シートを書き換えて再提出する。</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2>決定事項・アクションアイテム</h2>
+        <div class="decisions">
+          <div class="decision"><span class="tag">決定</span>スプリント2 を開始。ファイル連携および認証・認可基盤の開発に着手する。</div>
+          <div class="decision"><span class="tag">AI</span>「入口・出口」を押さえる公式レビュープロセスのフォーマットと運用ルールを詰める。</div>
+          <div class="decision"><span class="tag">AI</span>PW案件でサンプリングレビューを試行し、負荷と効果を検証する。</div>
+          <div class="decision"><span class="tag">AI</span>本日のフィードバックを反映した最新の目標シートを提出する。</div>
+        </div>
+        <div class="quote" style="margin-top:6px;">
+          <span class="who">クロージングメッセージ（社長）</span>
+          AIが作る時代、作る生産性では差がつかない。作る内容とゴールの深い理解こそが仕事の質を左右する。このプロセスで、エンジニアを「最適かつ高品質な仕事を遂行できる人」へ引き上げたい。
         </div>
       </div>
     </div>
