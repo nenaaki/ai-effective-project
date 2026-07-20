@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>課題事例⑥: AIの「最後の2%」修正の属人性とコスト</title>
+<title>課題事例⑥: AIの「最後の2%」修正の属人性</title>
 <style>
   html, body { margin: 0; padding: 0; height: 100%; }
   body {
@@ -102,6 +102,10 @@
     border-left-color: #6366f1;
     background: #eef2ff;
   }
+  .conclusion.problem {
+    border-left-color: #dc2626;
+    background: #fee2e2;
+  }
   .conclusion-label {
     font-size: 10.5px;
     font-weight: 700;
@@ -110,6 +114,7 @@
     margin-bottom: 5px;
   }
   .conclusion.mgmt .conclusion-label { color: #4338ca; }
+  .conclusion.problem .conclusion-label { color: #991b1b; }
   .conclusion-list { display: flex; flex-direction: column; gap: 4px; }
   .conclusion-item {
     font-size: 11px;
@@ -128,6 +133,7 @@
     vertical-align: 1px;
   }
   .conclusion.mgmt .conclusion-item .tag { background: #6366f1; }
+  .conclusion.problem .conclusion-item .tag { background: #dc2626; }
 
   .premise-banner {
     margin-top: 10px;
@@ -154,42 +160,33 @@
     letter-spacing: 0.03em;
   }
 
-  /* タブ2: 実測カード */
-  .metric-row { display: flex; gap: 10px; margin-bottom: 12px; }
-  .metric {
-    flex: 1;
-    border: 1px solid #e5e7eb;
-    border-radius: 6px;
-    padding: 10px 12px;
-    text-align: center;
-  }
-  .metric .big { font-size: 22px; font-weight: 700; color: #2563eb; line-height: 1.1; }
-  .metric .cap { font-size: 10.5px; color: #6b7280; margin-top: 4px; }
-  .cost-card {
+  /* 手・役割カード */
+  .move-card {
     border-radius: 6px;
     padding: 10px 12px;
     margin-bottom: 10px;
     font-size: 12px;
     line-height: 1.5;
   }
-  .cost-card.fast { border: 1px solid #d1d5db; background: #f9fafb; }
-  .cost-card.slow { border-left: 3px solid #dc2626; background: #fee2e2; }
-  .cost-card .h { font-weight: 700; font-size: 12px; margin-bottom: 3px; }
-  .cost-card.slow .h { color: #991b1b; }
-  .cost-card .v { font-size: 18px; font-weight: 700; }
-  .cost-card.fast .v { color: #047857; }
-  .cost-card.slow .v { color: #dc2626; }
+  .move-card.instruct { border-left: 3px solid #10b981; background: #ecfdf5; }
+  .move-card.probe { border-left: 3px solid #6366f1; background: #eef2ff; }
+  .move-card .h { font-weight: 700; font-size: 12.5px; margin-bottom: 4px; }
+  .move-card.instruct .h { color: #047857; }
+  .move-card.probe .h { color: #4338ca; }
+  .move-card .triad { font-size: 11px; color: #1f2937; }
+  .move-card .triad b { color: #047857; }
+  .move-card.probe .triad b { color: #4338ca; }
 </style>
 </head>
 <body>
 <div class="page">
-  <h1>課題事例⑥: AIの「最後の2%」修正の属人性とコスト</h1>
-  <div class="sub">AIDD 試行の構造的課題 / 実測（pw-dms コミット15件＋全54セッション）で原因を特定 / 2026-07-17</div>
+  <h1>課題事例⑥: AIの「最後の2%」修正の属人性</h1>
+  <div class="sub">AIDD 試行の構造的課題 / 2026-07-16 社長との会話 ＋ 熟練者の暗黙知を抽出 / 2026-07-20</div>
 
   <div class="tabs">
     <button class="tab active" data-tab="issue">課題と論点</button>
-    <button class="tab" data-tab="cause">実測でわかった原因</button>
-    <button class="tab" data-tab="solution">対策の全体像（二軸）</button>
+    <button class="tab" data-tab="skill">熟練者の「型」</button>
+    <button class="tab" data-tab="solution">対策：経路報告 × 敵対的検証</button>
   </div>
 
   <!-- ====================== タブ1: 課題と論点 ====================== -->
@@ -198,49 +195,38 @@
 
       <!-- 左: 構造図 -->
       <div class="panel">
-        <h2>「2%」がどこで生まれ、なぜ困るか</h2>
+        <h2>同じ2%・同じAI、違いは「指示」だけ</h2>
         <svg viewBox="0 0 560 232" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#374151"/></marker>
-            <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#dc2626"/></marker>
           </defs>
 
-          <!-- 上段: 生成の流れ -->
-          <rect x="8" y="24" width="120" height="46" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
-          <text x="68" y="44" text-anchor="middle" font-size="10" font-weight="bold" fill="#1e40af">要件・正本</text>
-          <text x="68" y="60" text-anchor="middle" font-size="10" fill="#1f2937">を入力</text>
+          <rect x="210" y="10" width="140" height="40" rx="6" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+          <text x="280" y="28" text-anchor="middle" font-size="12" font-weight="bold" fill="#92400e">AI が 98% 完成 → 残り 2%</text>
+          <text x="280" y="43" text-anchor="middle" font-size="9.5" fill="#92400e">必ず修正が発生する</text>
 
-          <line x1="128" y1="47" x2="152" y2="47" stroke="#374151" stroke-width="1.5" marker-end="url(#a)"/>
+          <line x1="250" y1="50" x2="150" y2="92" stroke="#374151" stroke-width="1.5" marker-end="url(#a)"/>
+          <line x1="310" y1="50" x2="420" y2="92" stroke="#374151" stroke-width="1.5" marker-end="url(#a)"/>
 
-          <rect x="152" y="24" width="150" height="46" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
-          <text x="227" y="44" text-anchor="middle" font-size="11" font-weight="bold" fill="#1e40af">生成 98%AI（フル編成）</text>
-          <text x="227" y="60" text-anchor="middle" font-size="9.5" fill="#1f2937">planner→engineer→tester</text>
+          <rect x="20" y="94" width="250" height="46" rx="6" fill="#ecfdf5" stroke="#10b981" stroke-width="1.5"/>
+          <text x="145" y="114" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#047857">熟練者の指示：3点セット</text>
+          <text x="145" y="131" text-anchor="middle" font-size="9.5" fill="#1f2937">場所・あるべき姿・証拠 を添える</text>
 
-          <line x1="302" y1="47" x2="326" y2="47" stroke="#374151" stroke-width="1.5" marker-end="url(#a)"/>
+          <rect x="290" y="94" width="250" height="46" rx="6" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
+          <text x="415" y="114" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#991b1b">初心者の指示：症状だけ</text>
+          <text x="415" y="131" text-anchor="middle" font-size="9.5" fill="#991b1b">「ここが変、直して」</text>
 
-          <rect x="326" y="24" width="120" height="46" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
-          <text x="386" y="44" text-anchor="middle" font-size="12" font-weight="bold" fill="#1e40af">98% 完成</text>
-          <text x="386" y="60" text-anchor="middle" font-size="10" fill="#1f2937">ほぼ正しい</text>
+          <line x1="145" y1="140" x2="145" y2="168" stroke="#374151" stroke-width="1.5" marker-end="url(#a)"/>
+          <line x1="415" y1="140" x2="415" y2="168" stroke="#374151" stroke-width="1.5" marker-end="url(#a)"/>
 
-          <!-- 残り2% -->
-          <line x1="386" y1="70" x2="386" y2="94" stroke="#f59e0b" stroke-width="2" marker-end="url(#a)"/>
-          <rect x="326" y="94" width="120" height="40" rx="6" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
-          <text x="386" y="112" text-anchor="middle" font-size="12" font-weight="bold" fill="#92400e">残り 2%</text>
-          <text x="386" y="127" text-anchor="middle" font-size="9.5" fill="#92400e">必ず修正が発生</text>
+          <rect x="20" y="170" width="250" height="52" rx="6" fill="#ecfdf5" stroke="#047857" stroke-width="2"/>
+          <text x="145" y="190" text-anchor="middle" font-size="12" font-weight="bold" fill="#047857">短時間で 100%</text>
+          <text x="145" y="207" text-anchor="middle" font-size="9.5" fill="#1f2937">契約ごと更新 → 周辺と噛み合う</text>
 
-          <!-- 2つの困りごと -->
-          <line x1="360" y1="134" x2="180" y2="168" stroke="#dc2626" stroke-width="1.5" marker-end="url(#ar)" stroke-dasharray="4 3"/>
-          <line x1="412" y1="134" x2="430" y2="168" stroke="#dc2626" stroke-width="1.5" marker-end="url(#ar)" stroke-dasharray="4 3"/>
-
-          <rect x="20" y="170" width="270" height="50" rx="6" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
-          <text x="35" y="190" font-size="10" font-weight="bold" fill="#dc2626">困りごと①</text>
-          <text x="155" y="192" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#991b1b">直す「判断」が属人的</text>
-          <text x="155" y="209" text-anchor="middle" font-size="9.5" fill="#991b1b">何が100%かを見抜く力に依存</text>
-
-          <rect x="300" y="170" width="252" height="50" rx="6" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
-          <text x="315" y="190" font-size="10" font-weight="bold" fill="#dc2626">困りごと②</text>
-          <text x="426" y="192" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#991b1b">修正コストが高い（体感30分）</text>
-          <text x="426" y="209" text-anchor="middle" font-size="9.5" fill="#991b1b">人が直接直すと壊れる→AIに再依頼</text>
+          <rect x="290" y="170" width="250" height="52" rx="6" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>
+          <text x="415" y="188" text-anchor="middle" font-size="12" font-weight="bold" fill="#991b1b">30分 ＋ 破綻</text>
+          <text x="415" y="204" text-anchor="middle" font-size="9" fill="#991b1b">全体を探索(=30分) ＋ 契約を誤解して</text>
+          <text x="415" y="216" text-anchor="middle" font-size="9" fill="#991b1b">実装をいじり周辺が壊れる</text>
         </svg>
       </div>
 
@@ -249,31 +235,31 @@
         <h2>課題と論点</h2>
         <div class="issue-block">
           <div class="label">課題</div>
-          <div class="title">AIが98%正しく作っても、残り2%を100%にする工程は必ず発生する。<br>この工程の <strong>属人性</strong> と <strong>コスト</strong> をどう無くすか。</div>
+          <div class="title">AIが98%正しく作っても、残り2%を100%にする工程は必ず発生する。<br>この工程の <strong>属人性</strong> をどう無くすか。</div>
         </div>
         <div class="points-label">論点</div>
         <div class="points">
-          <div class="point"><span class="num">1</span><div>2%は<strong>なぜ生まれ、どこに集中</strong>するか（原因の特定）</div></div>
-          <div class="point"><span class="num">2</span><div>属人性は「修正作業」と<strong>「判断」のどちらに宿る</strong>か</div></div>
-          <div class="point"><span class="num">3</span><div>修正コスト（体感30分）の<strong>正体は何か</strong></div></div>
+          <div class="point"><span class="num">1</span><div>「30分かかる」と「人が直すと壊れる」は<strong>別問題か</strong></div></div>
+          <div class="point"><span class="num">2</span><div>属人性は<strong>どこに宿る</strong>か（AI側か・人間側か）</div></div>
+          <div class="point"><span class="num">3</span><div>社長案「98%AI / 2%AI 分離」で<strong>解決するか</strong></div></div>
         </div>
 
         <div class="premise-banner">
-          <span class="tag">アプローチ</span>
-          <div>印象で語らず、<strong>実際の修正ログを測って</strong>原因を確定 → 対策を設計した（詳細は各タブ）</div>
+          <span class="tag">発見</span>
+          <div>「30分」と「壊れる」は<strong>同じ現象の裏表</strong>。指示の3点セットが欠けると、AIは全体を探索し(=30分)、契約を誤解して実装をいじる(=壊れる)。</div>
         </div>
 
         <div class="conclusion-wrap">
           <div class="conclusion">
-            <div class="conclusion-label">結論① 予防（軸①）</div>
+            <div class="conclusion-label">結論① 属人性の正体</div>
             <div class="conclusion-list">
-              <div class="conclusion-item"><span class="tag">発生を減らす</span>原因別の多層ゲート。最頻の<strong>「正本からの逸れ」を安く検出</strong></div>
+              <div class="conclusion-item"><span class="tag">人間側</span>正体は<strong>AIへの指示スキル（暗黙知）</strong>。熟練者は同じ作業で30分かからない</div>
             </div>
           </div>
           <div class="conclusion mgmt">
-            <div class="conclusion-label">結論② 経路（軸②）</div>
+            <div class="conclusion-label">結論② 打ち手の方向</div>
             <div class="conclusion-list">
-              <div class="conclusion-item"><span class="tag">1回を安く</span>2%修正を<strong>重い編成に通さない軽経路</strong>へ（98%/2%分離）</div>
+              <div class="conclusion-item"><span class="tag">肩代わり</span>暗黙知を<strong>「型」に言語化し、一部はAIに肩代わりさせる</strong>（→対策タブ）</div>
             </div>
           </div>
         </div>
@@ -282,158 +268,180 @@
     </div>
   </div>
 
-  <!-- ====================== タブ2: 実測でわかった原因 ====================== -->
-  <div class="tab-content" id="tab-cause">
+  <!-- ====================== タブ2: 熟練者の「型」 ====================== -->
+  <div class="tab-content" id="tab-skill">
     <div class="grid">
 
-      <!-- 左: 原因の内訳 -->
+      <!-- 左: 型のフロー -->
       <div class="panel">
-        <h2>2%の原因内訳（実測15件）</h2>
-        <svg viewBox="0 0 560 200" xmlns="http://www.w3.org/2000/svg">
-          <!-- 軸 -->
-          <text x="8" y="18" font-size="11" font-weight="bold" fill="#1f2937">主犯は「入力の未完成」＝ A（入力起因）が 87%</text>
-
-          <!-- A4 -->
-          <text x="8" y="52" font-size="11" font-weight="bold" fill="#1f2937">A4 正本不整合</text>
-          <rect x="150" y="40" width="282" height="20" rx="3" fill="#2563eb"/>
-          <text x="440" y="55" font-size="12" font-weight="bold" fill="#2563eb">47%</text>
-          <text x="150" y="74" font-size="9.5" fill="#6b7280">mock・帳票定義・スキーマから逸れる（既に正本があるのに）</text>
-
-          <!-- A2 -->
-          <text x="8" y="102" font-size="11" font-weight="bold" fill="#1f2937">A2 曖昧さ</text>
-          <rect x="150" y="90" width="120" height="20" rx="3" fill="#60a5fa"/>
-          <text x="278" y="105" font-size="12" font-weight="bold" fill="#2563eb">20%</text>
-
-          <!-- A1 -->
-          <text x="8" y="132" font-size="11" font-weight="bold" fill="#1f2937">A1 暗黙前提</text>
-          <rect x="150" y="120" width="120" height="20" rx="3" fill="#93c5fd"/>
-          <text x="278" y="135" font-size="12" font-weight="bold" fill="#2563eb">20%</text>
-
-          <!-- B2 -->
-          <text x="8" y="162" font-size="11" font-weight="bold" fill="#1f2937">B2 横断制約</text>
-          <rect x="150" y="150" width="78" height="20" rx="3" fill="#f59e0b"/>
-          <text x="236" y="165" font-size="12" font-weight="bold" fill="#d97706">13%</text>
-          <text x="150" y="184" font-size="9.5" fill="#6b7280">層をまたぐ・機能衝突（AI固有／唯一の正本が無い）</text>
-        </svg>
-        <div class="premise-banner" style="border-color:#2563eb;">
-          <span class="tag" style="background:#2563eb;">要点</span>
-          <div>最頻の A4 は <strong>「正本があるのに逸れた」＝適合チェックで安く潰せる</strong>。「見れば分かる」不満も mock という正本があるため検出可能側に化ける。</div>
-        </div>
-      </div>
-
-      <!-- 右: コスト（30分）の正体 -->
-      <div class="panel">
-        <h2>コスト（体感30分）の正体</h2>
-        <div class="cost-card fast">
-          <div class="h">対話的な単発修正（人が直接AIに指示）</div>
-          <div class="v">中央値 約1分</div>
-        </div>
-        <div class="cost-card slow">
-          <div class="h">エージェント編成を通した修正（planner→engineer→tester）</div>
-          <div class="v">20〜50分（planner単体で最大52分）</div>
-        </div>
-        <div class="issue-block" style="margin-top:2px;">
-          <div class="label">わかったこと</div>
-          <div class="title" style="font-size:12.5px;">「30分」の正体は修正の<strong>内容</strong>ではなく<strong>経路</strong>だった。<br>小さな2%修正でも重い編成に通すと数十分かかる。</div>
-        </div>
-        <div class="conclusion mgmt">
-          <div class="conclusion-label">社長コメントの裏付け</div>
-          <div class="conclusion-list">
-            <div class="conclusion-item"><span class="tag">一致</span>「コンテキスト肥大が原因、別AIに分けよ」＝<strong>重い経路を通さない</strong>ことと合致</div>
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- ====================== タブ3: 対策の全体像（二軸） ====================== -->
-  <div class="tab-content" id="tab-solution">
-    <div class="grid">
-
-      <!-- 左: 統合フロー -->
-      <div class="panel">
-        <h2>入力ゲート → 生成 → 出力ゲート → 経路振り分け</h2>
+        <h2>残差2%を仕上げる「型」（暗黙知の抽出結果）</h2>
         <svg viewBox="0 0 560 232" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <marker id="sa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#374151"/></marker>
           </defs>
 
-          <!-- 上段 -->
-          <rect x="8" y="18" width="150" height="46" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
-          <text x="83" y="38" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#1e40af">入力ゲート（軸①予防）</text>
-          <text x="83" y="54" text-anchor="middle" font-size="9" fill="#1f2937">正本束縛・前提注入</text>
+          <rect x="150" y="8" width="260" height="34" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+          <text x="280" y="30" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#1e40af">① 動かして気づく（読まず実行）</text>
+          <line x1="280" y1="42" x2="280" y2="56" stroke="#374151" stroke-width="1.5" marker-end="url(#sa)"/>
 
-          <line x1="158" y1="41" x2="180" y2="41" stroke="#374151" stroke-width="1.5" marker-end="url(#sa)"/>
+          <text x="8" y="66" font-size="10" font-weight="bold" fill="#2563eb">② 通り道を遡る（画面から上流へ、どこで壊れたか）</text>
+          <rect x="8" y="72" width="128" height="34" rx="5" fill="#eff6ff" stroke="#2563eb" stroke-width="1.2"/>
+          <text x="72" y="93" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#1e40af">画面 / 見た目</text>
+          <line x1="136" y1="89" x2="152" y2="89" stroke="#374151" stroke-width="1.2" marker-end="url(#sa)"/>
+          <rect x="152" y="72" width="122" height="34" rx="5" fill="#eff6ff" stroke="#2563eb" stroke-width="1.2"/>
+          <text x="213" y="93" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#1e40af">API 接続</text>
+          <line x1="274" y1="89" x2="290" y2="89" stroke="#374151" stroke-width="1.2" marker-end="url(#sa)"/>
+          <rect x="290" y="72" width="122" height="34" rx="5" fill="#eff6ff" stroke="#2563eb" stroke-width="1.2"/>
+          <text x="351" y="93" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#1e40af">DB 構造</text>
+          <line x1="412" y1="89" x2="428" y2="89" stroke="#374151" stroke-width="1.2" marker-end="url(#sa)"/>
+          <rect x="428" y="72" width="124" height="34" rx="5" fill="#eff6ff" stroke="#2563eb" stroke-width="1.2"/>
+          <text x="490" y="93" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#1e40af">実データ</text>
 
-          <rect x="180" y="18" width="130" height="46" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
-          <text x="245" y="38" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#1e40af">生成 98%AI</text>
-          <text x="245" y="54" text-anchor="middle" font-size="9" fill="#1f2937">フル編成（重い）</text>
+          <line x1="280" y1="106" x2="280" y2="120" stroke="#374151" stroke-width="1.5" marker-end="url(#sa)"/>
 
-          <line x1="310" y1="41" x2="332" y2="41" stroke="#374151" stroke-width="1.5" marker-end="url(#sa)"/>
+          <rect x="40" y="122" width="222" height="46" rx="6" fill="#ecfdf5" stroke="#10b981" stroke-width="1.5"/>
+          <text x="151" y="141" text-anchor="middle" font-size="11" font-weight="bold" fill="#047857">③ 指示する</text>
+          <text x="151" y="158" text-anchor="middle" font-size="9" fill="#1f2937">場所・あるべき姿・証拠</text>
 
-          <rect x="332" y="18" width="220" height="46" rx="6" fill="#ecfdf5" stroke="#047857" stroke-width="2"/>
-          <text x="442" y="37" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#047857">出力ゲート（二役）</text>
-          <text x="442" y="53" text-anchor="middle" font-size="9" fill="#1f2937">2%を検出＋性質で振り分け</text>
+          <rect x="298" y="122" width="222" height="46" rx="6" fill="#eef2ff" stroke="#6366f1" stroke-width="1.5"/>
+          <text x="409" y="141" text-anchor="middle" font-size="11" font-weight="bold" fill="#4338ca">③ 詰問する</text>
+          <text x="409" y="158" text-anchor="middle" font-size="9" fill="#1f2937">「なぜそうした？」で前提を吐かせる</text>
 
-          <!-- 下へ -->
-          <line x1="442" y1="64" x2="442" y2="88" stroke="#374151" stroke-width="1.5" marker-end="url(#sa)"/>
-          <text x="452" y="80" font-size="9" font-weight="bold" fill="#047857">2%検出時</text>
+          <line x1="151" y1="168" x2="230" y2="188" stroke="#374151" stroke-width="1.2" marker-end="url(#sa)"/>
+          <line x1="409" y1="168" x2="330" y2="188" stroke="#374151" stroke-width="1.2" marker-end="url(#sa)"/>
 
-          <!-- 分岐 -->
-          <rect x="300" y="88" width="130" height="46" rx="6" fill="#ecfdf5" stroke="#10b981" stroke-width="1.5"/>
-          <text x="365" y="107" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#047857">軽経路（軸② 2%AI）</text>
-          <text x="365" y="123" text-anchor="middle" font-size="9" fill="#1f2937">局所・葉／極小コンテキスト</text>
-
-          <rect x="446" y="88" width="106" height="46" rx="6" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5"/>
-          <text x="499" y="107" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#92400e">重経路</text>
-          <text x="499" y="123" text-anchor="middle" font-size="9" fill="#1f2937">全体依存(B2)は差戻し</text>
-
-          <line x1="410" y1="64" x2="365" y2="88" stroke="#374151" stroke-width="1.2" marker-end="url(#sa)"/>
-          <line x1="474" y1="64" x2="499" y2="88" stroke="#374151" stroke-width="1.2" marker-end="url(#sa)"/>
-
-          <!-- 同期 -->
-          <line x1="365" y1="134" x2="365" y2="158" stroke="#374151" stroke-width="1.5" marker-end="url(#sa)"/>
-          <line x1="499" y1="134" x2="430" y2="158" stroke="#374151" stroke-width="1.2" marker-end="url(#sa)"/>
-
-          <rect x="255" y="158" width="220" height="42" rx="6" fill="#eef2ff" stroke="#6366f1" stroke-width="1.5"/>
-          <text x="365" y="177" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#4338ca">正本へ同期（二重化を防ぐ）</text>
-          <text x="365" y="193" text-anchor="middle" font-size="9" fill="#1f2937">既存の questions/PW-*.tsv を活用</text>
-
-          <line x1="365" y1="200" x2="365" y2="216" stroke="#374151" stroke-width="1.5" marker-end="url(#sa)"/>
-          <text x="365" y="228" text-anchor="middle" font-size="11" font-weight="bold" fill="#047857">完了 100%</text>
+          <rect x="150" y="190" width="260" height="36" rx="6" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5"/>
+          <text x="280" y="209" text-anchor="middle" font-size="11" font-weight="bold" fill="#92400e">④ どれでもなければ違和感を言語化</text>
+          <text x="280" y="221" text-anchor="middle" font-size="8.5" fill="#92400e">（最後の砦）</text>
         </svg>
       </div>
 
-      <!-- 右: 二軸の要点と導入順 -->
+      <!-- 右: 手の使い分けと要点 -->
       <div class="panel">
-        <h2>二軸の要点と導入順</h2>
+        <h2>2つの「手」の使い分け</h2>
         <div class="premise-banner">
-          <span class="tag">統合の要</span>
-          <div>1つの<strong>出力ゲートが「検出（軸①）」と「経路振り分け（軸②）」を兼ねる</strong>。逸れ＝局所→軽経路 / 横断＝全体→重経路。</div>
+          <span class="tag">鍵</span>
+          <div>熟練者は毎回<strong>「場所・あるべき姿・証拠」の3点セット</strong>を渡している。これが揃うとAIは契約ごと理解を更新し、周辺を壊さない。</div>
+        </div>
+
+        <div class="move-card instruct" style="margin-top:12px;">
+          <div class="h">指示する ── あるべき姿が分かるとき</div>
+          <div class="triad"><b>場所</b>（どの層か）＋ <b>あるべき姿</b>（＝契約）＋ <b>証拠</b>（スクショ・正本・期待値）</div>
+        </div>
+        <div class="move-card probe">
+          <div class="h">詰問する ── 実装が怪しいとき</div>
+          <div class="triad">仮値実装などに「なぜそうした？」と問い、AIに<b>誤った前提を吐かせてから</b>直す。破綻の根本原因を先に潰す。</div>
+        </div>
+
+        <div class="points-label" style="margin-top:2px;">層ごとの指示の例</div>
+        <div class="points">
+          <div class="point"><span class="num">見</span><div>正本/モックのスクショを添付し「〇〇は××であるべき」</div></div>
+          <div class="point"><span class="num">API</span><div>「仮値に見える。APIから正しく取得しているか確認・修正せよ」</div></div>
+          <div class="point"><span class="num">DB</span><div>「どのテーブル/カラムが画面に出ているか確認させる」</div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ====================== タブ3: 対策：経路報告 × 敵対的検証 ====================== -->
+  <div class="tab-content" id="tab-solution">
+    <div class="grid">
+
+      <!-- 左: エージェント運用フロー -->
+      <div class="panel">
+        <h2>型の②③をAIに肩代わりさせる（レイアウト以外＝全部データ経路）</h2>
+        <svg viewBox="0 0 560 232" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="ga" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#374151"/></marker>
+            <marker id="gr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#dc2626"/></marker>
+          </defs>
+
+          <!-- 実装AI -->
+          <rect x="8" y="16" width="230" height="52" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+          <text x="123" y="37" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#1e40af">実装AI ── 自己申告</text>
+          <text x="123" y="53" text-anchor="middle" font-size="9" fill="#1f2937">画面項目→table.column→実データ?</text>
+
+          <line x1="238" y1="42" x2="262" y2="42" stroke="#374151" stroke-width="1.5" marker-end="url(#ga)"/>
+
+          <!-- レビューAI -->
+          <rect x="262" y="16" width="290" height="52" rx="6" fill="#eef2ff" stroke="#6366f1" stroke-width="1.5"/>
+          <text x="407" y="37" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#4338ca">レビューAI ── 敵対的検証</text>
+          <text x="407" y="53" text-anchor="middle" font-size="9" fill="#1f2937">Prismaスキーマ(SSOT)・実APIと突合（申告を疑う）</text>
+
+          <!-- 分岐ハブ -->
+          <line x1="407" y1="68" x2="407" y2="84" stroke="#374151" stroke-width="1.5"/>
+          <line x1="120" y1="84" x2="490" y2="84" stroke="#374151" stroke-width="1.2"/>
+          <line x1="120" y1="84" x2="120" y2="108" stroke="#374151" stroke-width="1.5" marker-end="url(#ga)"/>
+          <line x1="300" y1="84" x2="300" y2="108" stroke="#f59e0b" stroke-width="1.5" marker-end="url(#ga)"/>
+          <line x1="490" y1="84" x2="490" y2="108" stroke="#dc2626" stroke-width="1.5" marker-end="url(#gr)"/>
+
+          <!-- 完了 -->
+          <rect x="20" y="110" width="180" height="52" rx="6" fill="#ecfdf5" stroke="#047857" stroke-width="2"/>
+          <text x="110" y="131" text-anchor="middle" font-size="11" font-weight="bold" fill="#047857">経路OK → 完了 100%</text>
+          <text x="110" y="147" text-anchor="middle" font-size="9" fill="#1f2937">実データが正しく通っている</text>
+
+          <!-- 修正 -->
+          <rect x="212" y="110" width="176" height="52" rx="6" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5"/>
+          <text x="300" y="131" text-anchor="middle" font-size="11" font-weight="bold" fill="#92400e">仮値・不整合</text>
+          <text x="300" y="147" text-anchor="middle" font-size="9" fill="#92400e">→ 実装AIへ修正指示</text>
+
+          <!-- 停止・報告 -->
+          <rect x="400" y="110" width="152" height="52" rx="6" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
+          <text x="476" y="131" text-anchor="middle" font-size="11" font-weight="bold" fill="#991b1b">出所不明 → 停止</text>
+          <text x="476" y="147" text-anchor="middle" font-size="9" fill="#991b1b">率直に報告</text>
+
+          <!-- 修正ループバック -->
+          <path d="M 300 162 V 180 H 123 V 68" fill="none" stroke="#f59e0b" stroke-width="1.2" stroke-dasharray="4 3" marker-end="url(#ga)"/>
+
+          <!-- 停止報告の注記 -->
+          <rect x="330" y="192" width="222" height="34" rx="5" fill="white" stroke="#dc2626" stroke-width="1.2" stroke-dasharray="4 3"/>
+          <text x="441" y="206" text-anchor="middle" font-size="9" font-weight="bold" fill="#991b1b">「何が足りないか」をエンジニアへ</text>
+          <text x="441" y="219" text-anchor="middle" font-size="8.5" fill="#991b1b">カラム対応／API／仕様の確認</text>
+        </svg>
+      </div>
+
+      <!-- 右: 役割・仮値ルール・結論 -->
+      <div class="panel">
+        <h2>採用する仕組み</h2>
+        <div class="premise-banner">
+          <span class="tag">切り分け</span>
+          <div>レイアウト問題（→事例②のスクショ突合）を除けば、2%は<strong>すべてデータ経路の問題</strong>。人がやっていた②③をAIに肩代わりさせる。</div>
         </div>
 
         <div class="conclusion-wrap" style="margin-top:12px;">
           <div class="conclusion">
-            <div class="conclusion-label">軸① 予防（発生を減らす）</div>
+            <div class="conclusion-label">実装AI＝自己申告</div>
             <div class="conclusion-list">
-              <div class="conclusion-item"><span class="tag">最頻</span>A4 <strong>正本コンフォーマンス</strong>（生成物↔mock/スキーマ突合）</div>
-              <div class="conclusion-item"><span class="tag">補完</span>曖昧さ検出・前提カタログ・横断チェック</div>
+              <div class="conclusion-item"><span class="tag">安い</span>作った本人が<strong>経路を表で申告</strong>（画面項目→出所→table.column→実データ?）</div>
             </div>
           </div>
           <div class="conclusion mgmt">
-            <div class="conclusion-label">軸② 経路（1回を安く）</div>
+            <div class="conclusion-label">レビューAI＝敵対的検証</div>
             <div class="conclusion-list">
-              <div class="conclusion-item"><span class="tag">分離</span>賢さでなく<strong>コンテキストの重さ</strong>で分ける</div>
-              <div class="conclusion-item"><span class="tag">軽経路</span>plannerを通さず<strong>指摘＋対象＋正本断片だけ</strong>渡す</div>
+              <div class="conclusion-item"><span class="tag">疑う</span>申告を鵜呑みにせず<strong>スキーマ(SSOT)・実APIと突合</strong>。幻覚・モック由来の固定値を弾く</div>
             </div>
           </div>
         </div>
 
-        <div class="points-label" style="margin-top:12px;">導入順（データ駆動）</div>
-        <div class="points">
-          <div class="point"><span class="num">1</span><div><strong>A4 正本コンフォーマンス ＋ 軽経路</strong>（最頻47%×最安×即効）</div></div>
-          <div class="point"><span class="num">2</span><div>A2 仕様ペア分析 → A1 前提カタログ → B2 横断チェック</div></div>
+        <div class="issue-block" style="margin-top:12px;">
+          <div class="label">仮値ルール（DB非依拠は有罪推定）</div>
+          <div class="title" style="font-size:11.5px;"><strong>DBに基づかない値は原則NG</strong>。table.column まで辿れない値は理由を問わず却下（無罪推定でなく有罪推定）。特に<strong>モック由来の固定値</strong>に注意（モックは<u>レイアウトの正本だが値は偽物</u>）。出所不明なら停止し「何が足りないか」を率直に報告。</div>
+        </div>
+
+        <div class="conclusion-wrap">
+          <div class="conclusion">
+            <div class="conclusion-label">人に残るもの</div>
+            <div class="conclusion-list">
+              <div class="conclusion-item"><span class="tag">①④のみ</span>②③はAIが肩代わり。残るは<strong>①習慣と④違和感</strong>だけ</div>
+            </div>
+          </div>
+          <div class="conclusion mgmt">
+            <div class="conclusion-label">社長案の位置づけ／限界</div>
+            <div class="conclusion-list">
+              <div class="conclusion-item"><span class="tag">吸収</span>「別AIに分けよ」は<strong>軽経路として活かす</strong>。ただし④が残り<strong>完璧にはならない</strong></div>
+            </div>
+          </div>
         </div>
       </div>
 
