@@ -446,6 +446,7 @@
           <defs>
             <marker id="ra" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#374151"/></marker>
             <marker id="rd" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#6366f1"/></marker>
+            <marker id="rb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#2563eb"/></marker>
           </defs>
 
           <!-- すり抜けた2% -->
@@ -460,23 +461,31 @@
           <text x="280" y="83" text-anchor="middle" font-size="8.5" fill="#92400e">抑止ゲートの外側を捕まえる網</text>
           <line x1="280" y1="88" x2="280" y2="100" stroke="#374151" stroke-width="1.5" marker-end="url(#ra)"/>
 
-          <!-- 修正 -->
-          <rect x="110" y="100" width="340" height="38" rx="6" fill="#ecfdf5" stroke="#10b981" stroke-width="1.5"/>
-          <text x="280" y="118" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#047857">修正：3点セットで指示（場所・あるべき姿・証拠）</text>
-          <text x="280" y="131" text-anchor="middle" font-size="8.5" fill="#1f2937">人はカプセル化メソッドの中を直接触らない</text>
-          <line x1="280" y1="138" x2="280" y2="150" stroke="#374151" stroke-width="1.5" marker-end="url(#ra)"/>
+          <!-- 事例ナレッジ（入力・案） -->
+          <rect x="6" y="98" width="88" height="46" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="1.3" stroke-dasharray="4 2"/>
+          <text x="50" y="113" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#1e40af">事例ナレッジ</text>
+          <text x="50" y="125" text-anchor="middle" font-size="7.5" fill="#1f2937">既知2%×直し方</text>
+          <text x="50" y="137" text-anchor="middle" font-size="7.5" fill="#6b7280">＋対応を追記(蓄積)</text>
+          <line x1="94" y1="120" x2="110" y2="120" stroke="#2563eb" stroke-width="1.3" marker-end="url(#rb)"/>
+
+          <!-- 修正: AI要求駆動（案） -->
+          <rect x="110" y="98" width="340" height="46" rx="6" fill="#ecfdf5" stroke="#10b981" stroke-width="1.5"/>
+          <text x="280" y="112" text-anchor="middle" font-size="10" font-weight="bold" fill="#047857">修正：AIが事例ナレッジを照合し「必要物」を人に要求</text>
+          <text x="280" y="125" text-anchor="middle" font-size="8" fill="#991b1b">人は材料を提出するだけ・直接コードは触らない（触ると壊れる）</text>
+          <text x="280" y="138" text-anchor="middle" font-size="8.5" fill="#1f2937">→ 3点セット（場所・あるべき姿・証拠）が揃い、AIが直す</text>
+          <line x1="280" y1="144" x2="280" y2="152" stroke="#374151" stroke-width="1.5" marker-end="url(#ra)"/>
 
           <!-- 再検証 -->
-          <rect x="110" y="150" width="340" height="44" rx="6" fill="#eef2ff" stroke="#6366f1" stroke-width="1.5"/>
-          <text x="280" y="169" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#4338ca">経路報告を再実行 → レビューAIが再検証</text>
+          <rect x="110" y="152" width="340" height="42" rx="6" fill="#eef2ff" stroke="#6366f1" stroke-width="1.5"/>
+          <text x="280" y="170" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#4338ca">経路報告を再実行 → レビューAIが再検証</text>
           <text x="280" y="185" text-anchor="middle" font-size="8.5" fill="#1f2937">＝抑止ゲートを「各修正にも巻く」ループ</text>
 
-          <!-- ループバック -->
-          <path d="M 110 172 H 90 V 119 H 110" fill="none" stroke="#6366f1" stroke-width="1.2" stroke-dasharray="4 3" marker-end="url(#rd)"/>
+          <!-- ループバック（右側） -->
+          <path d="M 450 173 H 468 V 121 H 450" fill="none" stroke="#6366f1" stroke-width="1.2" stroke-dasharray="4 3" marker-end="url(#rd)"/>
 
-          <!-- 脱出弁 -->
-          <rect x="140" y="202" width="280" height="26" rx="5" fill="white" stroke="#dc2626" stroke-width="1.2" stroke-dasharray="4 3"/>
-          <text x="280" y="219" text-anchor="middle" font-size="8.5" font-weight="bold" fill="#991b1b">30分続く＝文脈肥大 → 別AIへ（クリーン文脈＋該当ファイルだけ）</text>
+          <!-- 根治：クリーンな文脈で直す（社長案の本質） -->
+          <rect x="120" y="202" width="320" height="26" rx="5" fill="white" stroke="#6366f1" stroke-width="1.2" stroke-dasharray="4 3"/>
+          <text x="280" y="219" text-anchor="middle" font-size="8.5" font-weight="bold" fill="#4338ca">根治：修正はクリーンな文脈＋該当ファイルで（社長案＝文脈を切る）</text>
         </svg>
       </div>
 
@@ -497,17 +506,18 @@
 
         <div class="conclusion-wrap">
           <div class="conclusion">
-            <div class="conclusion-label">結論③ 速く・壊さず直す</div>
+            <div class="conclusion-label">結論③ 出た後を"型"にする仕組み【案】</div>
             <div class="conclusion-list">
-              <div class="conclusion-item"><span class="tag">検知</span><strong>出口検収</strong>で捕まえ、<strong>3点セット</strong>で指示（＝発見1の裏返し）</div>
-              <div class="conclusion-item"><span class="tag">ループ</span>修正後に<strong>経路報告を再実行</strong>。抑止を初回だけにせず各修正にも巻く</div>
+              <div class="conclusion-item"><span class="tag">ナレッジ</span>既知2%の<strong>対応の暗黙知（症状→必要物→直し方）を事例化</strong>しAIに与える</div>
+              <div class="conclusion-item"><span class="tag">要求駆動</span>AIが必要物を人に要求→<strong>人は出すだけ</strong>。「何を出すか」がAI側へ移る</div>
+              <div class="conclusion-item"><span class="tag">ループ</span>修正後に<strong>経路報告を再実行</strong>して再検証／対応も事例に追記し蓄積</div>
             </div>
           </div>
           <div class="conclusion mgmt">
-            <div class="conclusion-label">結論④ 社長案の活かし所／限界</div>
+            <div class="conclusion-label">結論④ 社長案の読み替え</div>
             <div class="conclusion-list">
-              <div class="conclusion-item"><span class="tag">脱出弁</span>「別AIに分けよ」は<strong>30分が続いた時の仕切り直し</strong>として吸収</div>
-              <div class="conclusion-item"><span class="tag">①④のみ</span>人に残るは<strong>習慣と違和感</strong>だけ。ただし<strong>完璧にはならない</strong></div>
+              <div class="conclusion-item"><span class="tag">診断○</span>「主因＝文脈肥大」は的確。<strong>修正は都度クリーンな文脈＋3点セット＋該当ファイル</strong>で直すのが根治</div>
+              <div class="conclusion-item"><span class="tag">常設×</span>ただし"2%専任AIを常設"では効かない（2%は散在→結局全体を探索、問題が移動するだけ）</div>
             </div>
           </div>
         </div>
