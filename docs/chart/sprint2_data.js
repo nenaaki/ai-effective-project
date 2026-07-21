@@ -23,7 +23,8 @@ const SPRINT2_DATA = {
   // EVM 週次スナップショット（記録日→その時点の累積 EV/AC・h）。週1回くらい追記する。
   // 例: "2026-07-18": { ev: 20.0, ac: 18.5 } ／ 空なら EVM は PV（計画値）のみ表示。
   evmSnapshots: {
-    "2026-07-21": { "ev": 30.0, "ac": 29.6 }
+    "2026-07-21": { "ev": 30.0, "ac": 29.6 },
+    "2026-07-22": { "ev": 43.2, "ac": 42.85 }
   },
   // 予定休（人員別・YYYY-MM-DD）。その人員の営業日から個別に除外し、当該人員のタスクは翌営業日へ後ろ倒し。
   leaves: {
@@ -42,11 +43,14 @@ const SPRINT2_DATA = {
     // ───────── 事前工数（①②③④より前・7/14）─────────
     { name: "プランニング①・AI整備", base: "prep", person: 1, group: "事前工数", code: "P1", owner: "両", deps: [], asis: 7.2, plan: 7.2, tobe: 7.2, status: "完了", progress: 1, desc: "人員1：スプリント2初日の事前工数。プランニング（タスク分解・段取り・論点整理）＋AI環境整備（エージェント／worktree 等の準備）。" },
     { name: "プランニング②・AI整備", base: "prep", person: 2, group: "事前工数", code: "P2", owner: "両", deps: [], asis: 7.2, plan: 7.2, tobe: 7.2, status: "完了", progress: 1, desc: "人員2：スプリント2初日の事前工数。プランニング（タスク分解・段取り・論点整理）＋AI環境整備（エージェント／worktree 等の準備）。" },
-    // ───────── ① 認証・認可：仕様精査 ─────────
-    { name: "仕様精査(認可)～チケット合意",   base: "auth", person: 1, group: "仕様精査",   code: "SP",  owner: "両", deps: [], asis: 28.8, plan: 28.8, tobe: 7.2, status: "着手中", progress: 0.25, desc: "認証・認可の要件・SEED権限データ・16bitモデルの精査と実装前の論点整理（scope複合・粒度・Cognito連携時期など）＋作業チケットのスコープ合意まで。" },
-    // ───────── ① 認証・認可：基盤 ─────────
+    { name: "方法論・管理の事前整備", base: "prep", person: 2, group: "事前工数", code: "P3", owner: "両", deps: [], asis: 5.0, plan: 5.0, tobe: 5.0, status: "完了", progress: 1, desc: "人員2：イテレーション2の事前整備（方法論・管理）。ミッションたたき台作成／レビュープロセス検討（壁打ち・資料化）／2%修正課題の整理。" },
+    { name: "AIインプット整備(正本/設計集約)", base: "prep", person: 2, group: "事前工数", code: "P4", owner: "両", deps: [], asis: 3.0, plan: 3.0, tobe: 3.0, status: "完了", progress: 1, desc: "人員2：イテレーション2着手の前段階。古くなっていたAI向けインプット資料を整備（正本データ抽出・SMS/帳票向け設計情報の集約）。仕様の不明点解消の精度を上げるための調整。予備工数2から3.0hを項目化。" },
+    // ───────── ① 認証・認可：基盤（Cognito/JWT は実施済み＝完了作業として過去に配置）─────────
     { name: "Cognito整備",      base: "auth", person: 1, group: "基盤",       code: "A0",  owner: "BE", deps: [],                    asis: 20.7, plan: 4.2, tobe: 4, status: "完了", progress: 1, desc: "Cognito ユーザープール／アプリクライアント／グループ（ロール）設定・トークンクレーム設計。AWS側整備でAI駆動範囲外の手作業を含む。JWT署名検証の前提。" },
     { name: "JWT実装",          base: "auth", person: 1, group: "基盤",       code: "A",   owner: "BE", deps: ["Cognito整備"],       asis: 25.0, plan: 4.2, tobe: 4, status: "完了", progress: 1, desc: "JwtAuthGuard 本実装（Cognito署名検証・実ユーザー注入、dev-bypass温存）。最優先。" },
+    // ───────── ① 認証・認可：仕様精査（着手中・現在進行中。完了作業の後ろに配置し、今日を含む区間まで延伸。実際まだ未完了）─────────
+    { name: "仕様精査(認可)～チケット合意",   base: "auth", person: 1, group: "仕様精査",   code: "SP",  owner: "両", deps: [], asis: 28.8, plan: 28.8, tobe: 7.2, status: "着手中", progress: 0.25, desc: "認証・認可の要件・SEED権限データ・16bitモデルの精査と実装前の論点整理（scope複合・粒度・Cognito連携時期など）＋作業チケットのスコープ合意まで。" },
+    // ───────── ① 認証・認可：基盤（続き）─────────
     { name: "判定コア",         base: "auth", person: 1, group: "基盤",       code: "B",   owner: "BE", deps: ["JWT実装"],           asis: 12, plan: 5.6, tobe: 0, status: "予定", progress: 0, desc: "resolveAccess/can/allowedScope＋accessBits DataLoader＋scope→where変換＋16bit単体テスト。" },
     { name: "Guard・デコレータ", base: "auth", person: 1, group: "基盤",       code: "C",   owner: "BE", deps: ["判定コア"],          asis: 6,  plan: 3.5, tobe: 0, status: "予定", progress: 0, desc: "PermissionGuard＋@RequirePermission。高リスクMutationから付与、scopeをbuildPrismaWhere統合。" },
     { name: "権限配布API",       base: "auth", person: 1, group: "基盤",       code: "D",   owner: "BE", deps: ["判定コア"],          asis: 6,  plan: 3.5, tobe: 0, status: "予定", progress: 0, desc: "getUserPermission本実装。menu/operation/scope可否マップを返す、schema.gql更新。" },
@@ -71,9 +75,12 @@ const SPRINT2_DATA = {
 
     // ───────── ③ ファイル連携（各基幹システムと双方向のファイル連携。前提: S3＋Transfer Family の SFTP）─────────
     // 出荷指示取込（S3→検証/マッピング→DB→配送指示書作成）と 出荷実績送信（DB→実績ファイル生成→S3配置）。いずれも特定時刻にバッチ起動。取込/生成は「定義型」基盤で対称に。※人員2の着手はこの③を先頭にする（配列順＝レーン着手順：③→②→④）。
-    { name: "仕様精査(ファイル連携)", base: "file", person: 2, group: "仕様精査", code: "SP", owner: "両", deps: [], asis: 10.8, plan: 7.2, tobe: 0, status: "予定", progress: 0, desc: "出荷指示取込・出荷実績送信の精査と論点整理（ファイル定義・バリデーション正本・文字コード・部分失敗ポリシー・冪等・スケジュール起動・SFTP/S3授受の前提）。" },
+    { name: "仕様精査(ファイル連携)", base: "file", person: 2, group: "仕様精査", code: "SP", owner: "両", deps: [], asis: 10.8, plan: 7.2, tobe: 1.5, status: "着手中", progress: 0.21, desc: "出荷指示取込・出荷実績送信の精査と論点整理（ファイル定義・バリデーション正本・文字コード・部分失敗ポリシー・冪等・スケジュール起動・SFTP/S3授受の前提）。ファイル連携チケット修正〜PR〜PM案内を含む。" },
+    // ②SMS・④帳票の仕様精査は前倒し着手（現在進行中）のため、③仕様精査の直後にまとめて配置し「今日」まで走らせる。実装ブロック（F/L/R）はこの後ろ。
+    { name: "仕様精査(SMS連携)", base:"export", person:2, group:"仕様精査", code:"SP", owner:"両", deps:[], asis:10.8, plan:14.4, tobe:0.75, status:"着手中", progress:0.05, desc:"SMS連携の精査と論点整理（機能I/F粒度・ドライバー化方針・再送/冪等・文面テンプレ・接続情報/環境変数の未確定欄）。SMS設計情報確認・親チケット起票着手を含む。実装より仕様精査に時間を投下し今日まで継続中（高品質インプットで実装を圧縮）。IVRは後発（要件FIX後・今回スコープ外）。" },
+    { name: "仕様精査(帳票)",   base: "report", person: 2, group: "仕様精査", code: "SP", owner: "両", deps: [], asis: 10.8, plan: 7.2, tobe: 0.75, status: "着手中", progress: 0.10, desc: "画面出力／取込出力の精査と論点整理（非同期生成方式・生成状況テーブル・S3成果物・ポーリング/通知テーブル・エラー扱い・デポ別並列）。帳票設計情報確認・親チケット起票着手を含む。RP021/RP022は含否がG1論点＝今回除外・次スプリント。" },
     { name: "S3/SFTP基盤",     base: "file", person: 2, group: "基盤", code: "F0", owner: "BE", deps: [],                                     asis: 5, plan: 4.2, tobe: 0, status: "予定", progress: 0, desc: "S3バケット＋Transfer Family による SFTP アクセス整備（各基幹システム担当者がファイル送受信）。AWS側整備でAI駆動範囲外の手作業を含む。" },
-    { name: "ファイル授受基盤", base: "file", person: 2, group: "基盤", code: "F1", owner: "BE", deps: ["S3/SFTP基盤"],                        asis: 6, plan: 3.5, tobe: 0, status: "予定", progress: 0, desc: "S3 get/put＋退避・リネームのファイル授受アダプタ。取込ファイル取得／実績ファイル配置の共通経路。" },
+    { name: "ファイル授受基盤", base: "file", person: 2, group: "基盤", code: "F1", owner: "BE", deps: ["S3/SFTP基盤"],                        asis: 6, plan: 3.5, tobe: 0.5, status: "着手中", progress: 0.14, desc: "S3 get/put＋退避・リネームのファイル授受アダプタ。取込ファイル取得／実績ファイル配置の共通経路。" },
     { name: "ファイル定義基盤", base: "file", person: 2, group: "基盤", code: "F2", owner: "BE", deps: [],                                     asis: 9, plan: 4.9, tobe: 0, status: "予定", progress: 0, desc: "取込/生成の「定義型」基盤（列マッピング・型・バリデーション）。既存エクスポート定義基盤と対称。定義1個＝1帳票。" },
     { name: "バッチ起動基盤",   base: "file", person: 2, group: "基盤", code: "F3", owner: "BE", deps: [],                                     asis: 5, plan: 2.8, tobe: 0, status: "予定", progress: 0, desc: "特定時刻キックのスケジューラ＋ジョブ実行枠＋t_batch_logs記録。取込/送信の両処理を起動。" },
     { name: "出荷指示取込",     base: "file", person: 2, group: "取込", code: "F4", owner: "BE", deps: ["ファイル授受基盤", "ファイル定義基盤", "バッチ起動基盤"], asis: 8, plan: 4.2, tobe: 0, status: "予定", progress: 0, desc: "起動→S3から取込ファイル取得→バリデーション＋マッピング（約53項目）→PW-DMS DB登録（$transaction・部分失敗ポリシー・冪等upsert・取込ログ）。" },
@@ -85,17 +92,16 @@ const SPRINT2_DATA = {
     { name: "連携E2E(ファイル)", base: "file", person: 2, group: "E2E", code: "F8", owner: "両", deps: ["配送指示書作成連携", "実績ファイル配置"], asis: 4, plan: 2.1, tobe: 0, status: "予定", progress: 0, desc: "SFTPでファイル配置→取込→指示書作成／実績生成→S3配置 を1本通すE2E（成功・部分失敗・冪等再取込）。" },
 
     // ───────── ② 外部連携（SMS）─────────
-    // SMS特化。アクリート実サービス⇔エミュレータをドライバーで差替。IVR・再配達受付UCは後発（要件FIX 7月中・スコープ外）。SMS E2Eも後発（開通申請待ち＝7月以降）。駆動UC=配送遅延/ご不在通知。
-    { name: "仕様精査(SMS連携)", base:"export", person:2, group:"仕様精査", code:"SP", owner:"両", deps:[], asis:10.8, plan:7.2, tobe:0, status:"予定", progress:0, desc:"SMS連携の精査と論点整理（機能I/F粒度・ドライバー化方針・再送/冪等・文面テンプレ・接続情報/環境変数の未確定欄）。IVRは後発（要件FIX後・今回スコープ外）。" },
-    { name:"SMS連携I/F定義", base:"export", person:2, group:"基盤", code:"L1", owner:"BE", deps:[], asis:4, plan:2.8, tobe:0, status:"予定", progress:0, desc:"使いたい機能を機能軸のサービスI/Fに契約化（配信/配信結果取得/結果通知）。実ベンダーアクセスはドライバーに閉じる。" },
-    { name:"SMSモックドライバー", base:"export", person:2, group:"基盤", code:"L2", owner:"BE", deps:["SMS連携I/F定義"], asis:6, plan:3.5, tobe:0, status:"予定", progress:0, desc:"アクリート実サービス⇔エミュレーターをドライバーで差替（環境変数切替・成功/失敗/遅延の応答パターン）。SoftBank番号は開通後。" },
-    { name:"SMSサービス・API(IF008)", base:"export", person:2, group:"基盤", code:"L3", owner:"BE", deps:["SMS連携I/F定義","SMSモックドライバー"], asis:8, plan:4.2, tobe:0, status:"予定", progress:0, desc:"IF008の利用機能（配信・配信結果取得・結果通知）を束ねるBEサービス＋GraphQL。103pから機能選定。" },
-    { name:"文面テンプレ適用", base:"export", person:2, group:"適用", code:"L4", owner:"BE", deps:["SMSサービス・API(IF008)"], asis:5, plan:2.8, tobe:0, status:"予定", progress:0, desc:"業務イベント（配送遅延・ご不在）に既存文面テンプレを適用してSMS送信。既存送信経路を再利用（重複回避）。" },
-    { name:"FE036 遅延SMS送信画面", base:"export", person:2, group:"適用", code:"L5", owner:"FE", deps:["SMSサービス・API(IF008)"], asis:6, plan:3.5, tobe:0, status:"予定", progress:0, desc:"遅延SMSの手動送信UI（対象選択→文面確認→送信→配信結果表示）。" },
+    // SMS特化。アクリート実サービス⇔エミュレータをドライバーで差替。IVR・再配達受付UCは後発（要件FIX 7月中・スコープ外）。SMS E2Eも後発（開通申請待ち＝7月以降）。駆動UC=配送遅延/ご不在通知。※仕様精査(SMS連携)は前倒し着手のため③仕様精査群の直後に配置済み。実装(L1-L5)は仕様精査への時間投下により工数圧縮（16.8→9.6h）。
+    { name:"SMS連携I/F定義", base:"export", person:2, group:"基盤", code:"L1", owner:"BE", deps:[], asis:4, plan:1.6, tobe:0, status:"予定", progress:0, desc:"使いたい機能を機能軸のサービスI/Fに契約化（配信/配信結果取得/結果通知）。実ベンダーアクセスはドライバーに閉じる。仕様精査を厚くした分、実装は圧縮。" },
+    { name:"SMSモックドライバー", base:"export", person:2, group:"基盤", code:"L2", owner:"BE", deps:["SMS連携I/F定義"], asis:6, plan:2.0, tobe:0, status:"予定", progress:0, desc:"アクリート実サービス⇔エミュレーターをドライバーで差替（環境変数切替・成功/失敗/遅延の応答パターン）。SoftBank番号は開通後。" },
+    { name:"SMSサービス・API(IF008)", base:"export", person:2, group:"基盤", code:"L3", owner:"BE", deps:["SMS連携I/F定義","SMSモックドライバー"], asis:8, plan:2.4, tobe:0, status:"予定", progress:0, desc:"IF008の利用機能（配信・配信結果取得・結果通知）を束ねるBEサービス＋GraphQL。103pから機能選定。" },
+    { name:"文面テンプレ適用", base:"export", person:2, group:"適用", code:"L4", owner:"BE", deps:["SMSサービス・API(IF008)"], asis:5, plan:1.6, tobe:0, status:"予定", progress:0, desc:"業務イベント（配送遅延・ご不在）に既存文面テンプレを適用してSMS送信。既存送信経路を再利用（重複回避）。" },
+    { name:"FE036 遅延SMS送信画面", base:"export", person:2, group:"適用", code:"L5", owner:"FE", deps:["SMSサービス・API(IF008)"], asis:6, plan:2.0, tobe:0, status:"予定", progress:0, desc:"遅延SMSの手動送信UI（対象選択→文面確認→送信→配信結果表示）。" },
     // ───────── ④ 帳票出力（PDF帳票＝配送指示書の生成基盤。非同期生成＋生成状況テーブル＋S3成果物）─────────
     // 画面出力: 生成リクエスト→生成状況テーブルに「生成中」追加→非同期生成→S3アップロード＋状況更新(完了/エラー)。クライアントはポーリングで状況確認し、完了はURLからDL・エラーは画面表示。
     // 取込出力: 出荷指示取込後、デポごとに生成→各デポ非同期→S3アップロード＋状況更新＋帳票作成通知テーブル更新。
-    { name: "仕様精査(帳票)",   base: "report", person: 2, group: "仕様精査", code: "SP", owner: "両", deps: [], asis: 10.8, plan: 7.2, tobe: 0, status: "予定", progress: 0, desc: "画面出力／取込出力の精査と論点整理（非同期生成方式・生成状況テーブル・S3成果物・ポーリング/通知テーブル・エラー扱い・デポ別並列）。RP021/RP022は含否がG1論点＝今回除外・次スプリント。" },
+    // ※仕様精査(帳票)は前倒し着手のため③仕様精査群の直後に配置済み。
     { name: "状況/通知テーブル", base: "report", person: 2, group: "基盤", code: "R0", owner: "DB", deps: [],                                    asis: 4,  plan: 2.8, tobe: 0, status: "予定", progress: 0, desc: "生成状況テーブル（生成中/完了/エラー＋成果物URL）と帳票作成通知テーブルのスキーマ／seed。" },
     { name: "帳票生成エンジン", base: "report", person: 2, group: "基盤", code: "R1", owner: "BE", deps: [],                                    asis: 10, plan: 5.6, tobe: 0, status: "予定", progress: 0, desc: "PDF帳票（配送指示書）生成コア。テンプレート→データ差込→PDF化。" },
     { name: "非同期ジョブ基盤", base: "report", person: 2, group: "基盤", code: "R2", owner: "BE", deps: ["帳票生成エンジン", "状況/通知テーブル"], asis: 8, plan: 4.9, tobe: 0, status: "予定", progress: 0, desc: "非同期生成ジョブの実行枠＋生成状況更新（生成中→完了/エラー）＋S3への成果物アップロード。" },
@@ -105,7 +111,7 @@ const SPRINT2_DATA = {
     { name: "帳票E2E",          base: "report", person: 2, group: "E2E", code: "R6", owner: "両", deps: ["画面出力連携(FE)", "デポ別一括生成"],   asis: 4,  plan: 2.1, tobe: 0, status: "予定", progress: 0, desc: "画面出力（生成→ポーリング→DL）とデポ別一括生成（取込→デポ別→通知）をそれぞれ1本通すE2E。" },
     // ───────── 予備工数（各人員の残キャパを 7/31 まで確保。素の時間）─────────
     { name: "予備工数1",        base: "reserve", person: 1, group: "予備工数", code: "R1",  owner: "両", deps: [], asis: 9.6, plan: 9.6, tobe: 0, status: "予定", progress: 0, desc: "人員1（①認証認可）の残キャパ。手戻り・追加調査・レビュー対応・仕様確認の往復などの予備枠（7/31 まで）。" },
-    { name: "予備工数2",        base: "reserve", person: 2, group: "予備工数", code: "R2",  owner: "両", deps: [], asis: 6.4, plan: 6.4, tobe: 0, status: "予定", progress: 0, desc: "人員2（②SMS／③ファイル連携／④帳票出力）の残キャパ。手戻り・追加調査・レビュー対応・仕様確認の往復、横断タスク（先出し確認フォロー・G1合意往復×3基盤・KSL/IVR追跡・workitems2反映）などの予備枠（7/31まで）。" },
+    { name: "予備工数2",        base: "reserve", person: 2, group: "予備工数", code: "R2",  owner: "両", deps: [], asis: 3.4, plan: 3.4, tobe: 1.75, status: "着手中", progress: 0.51, desc: "人員2（②SMS／③ファイル連携／④帳票出力）の残キャパ。手戻り・追加調査・レビュー対応・仕様確認の往復、横断タスク（先出し確認フォロー・G1合意往復×3基盤・KSL/IVR追跡・workitems2反映）などの予備枠（7/31まで）。※うち3.0hはAIインプット整備として項目化。実消化=礼貴さんPR/チケット確認・レビュー対応・チケット修正手順書作成。" },
   ],
 };
 
