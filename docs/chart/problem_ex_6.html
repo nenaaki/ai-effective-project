@@ -85,6 +85,7 @@
     font-weight: bold; font-size: 11px;
     flex-shrink: 0;
   }
+  .point.amber .num { background: #f59e0b; }
 
   .conclusion-wrap {
     margin-top: 10px;
@@ -181,52 +182,48 @@
 <body>
 <div class="page">
   <h1>課題事例⑥: AIの「最後の2%」修正の属人性</h1>
-  <div class="sub">AIDD 試行の構造的課題 / 2026-07-16 社長との会話 ＋ 熟練者の暗黙知を抽出 / 2026-07-20</div>
+  <div class="sub">AIDD 試行の構造的課題 / 2026-07-16 社長との会話 ＋ 熟練者の暗黙知を抽出 / 2026-07-20 更新：抑止＋対応の「両輪」に整理</div>
 
   <div class="tabs">
     <button class="tab active" data-tab="issue">課題と論点</button>
     <button class="tab" data-tab="skill">熟練者の「型」</button>
-    <button class="tab" data-tab="solution">対策：経路報告 × 敵対的検証</button>
+    <button class="tab" data-tab="prevent">抑止：2%を出さない</button>
+    <button class="tab" data-tab="respond">対応：出た2%を直す</button>
   </div>
 
   <!-- ====================== タブ1: 課題と論点 ====================== -->
   <div class="tab-content active" id="tab-issue">
     <div class="grid">
 
-      <!-- 左: 構造図 -->
+      <!-- 左: 両輪の構造図 -->
       <div class="panel">
-        <h2>同じ2%・同じAI、違いは「指示」だけ</h2>
+        <h2>2%はゼロにできない → 抑止と対応の「両輪」</h2>
         <svg viewBox="0 0 560 232" xmlns="http://www.w3.org/2000/svg">
           <defs>
-            <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#374151"/></marker>
+            <marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#374151"/></marker>
           </defs>
 
-          <rect x="210" y="10" width="140" height="40" rx="6" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
-          <text x="280" y="28" text-anchor="middle" font-size="12" font-weight="bold" fill="#92400e">AI が 98% 完成 → 残り 2%</text>
-          <text x="280" y="43" text-anchor="middle" font-size="9.5" fill="#92400e">必ず修正が発生する</text>
+          <rect x="160" y="8" width="240" height="42" rx="6" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+          <text x="280" y="27" text-anchor="middle" font-size="12" font-weight="bold" fill="#92400e">AI が 98% 完成 → 残り 2%</text>
+          <text x="280" y="42" text-anchor="middle" font-size="9.5" fill="#92400e">どれだけ気を付けても必ず出る（ゼロにはできない）</text>
 
-          <line x1="250" y1="50" x2="150" y2="92" stroke="#374151" stroke-width="1.5" marker-end="url(#a)"/>
-          <line x1="310" y1="50" x2="420" y2="92" stroke="#374151" stroke-width="1.5" marker-end="url(#a)"/>
+          <line x1="255" y1="50" x2="150" y2="82" stroke="#374151" stroke-width="1.5" marker-end="url(#a1)"/>
+          <line x1="305" y1="50" x2="410" y2="82" stroke="#374151" stroke-width="1.5" marker-end="url(#a1)"/>
 
-          <rect x="20" y="94" width="250" height="46" rx="6" fill="#ecfdf5" stroke="#10b981" stroke-width="1.5"/>
-          <text x="145" y="114" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#047857">熟練者の指示：3点セット</text>
-          <text x="145" y="131" text-anchor="middle" font-size="9.5" fill="#1f2937">場所・あるべき姿・証拠 を添える</text>
+          <rect x="28" y="84" width="232" height="54" rx="6" fill="#ecfdf5" stroke="#10b981" stroke-width="1.5"/>
+          <text x="144" y="105" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#047857">抑止 ── 出す量を減らす</text>
+          <text x="144" y="123" text-anchor="middle" font-size="9.5" fill="#1f2937">経路報告 × 敵対的検証（→ タブ3）</text>
 
-          <rect x="290" y="94" width="250" height="46" rx="6" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
-          <text x="415" y="114" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#991b1b">初心者の指示：症状だけ</text>
-          <text x="415" y="131" text-anchor="middle" font-size="9.5" fill="#991b1b">「ここが変、直して」</text>
+          <rect x="300" y="84" width="232" height="54" rx="6" fill="#eef2ff" stroke="#6366f1" stroke-width="1.5"/>
+          <text x="416" y="105" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#4338ca">対応 ── 出た後のコストを減らす</text>
+          <text x="416" y="123" text-anchor="middle" font-size="9.5" fill="#1f2937">3点セット修正 ＋ 再検証ループ（→ タブ4）</text>
 
-          <line x1="145" y1="140" x2="145" y2="168" stroke="#374151" stroke-width="1.5" marker-end="url(#a)"/>
-          <line x1="415" y1="140" x2="415" y2="168" stroke="#374151" stroke-width="1.5" marker-end="url(#a)"/>
+          <line x1="144" y1="138" x2="235" y2="164" stroke="#374151" stroke-width="1.5" marker-end="url(#a1)"/>
+          <line x1="416" y1="138" x2="325" y2="164" stroke="#374151" stroke-width="1.5" marker-end="url(#a1)"/>
 
-          <rect x="20" y="170" width="250" height="52" rx="6" fill="#ecfdf5" stroke="#047857" stroke-width="2"/>
-          <text x="145" y="190" text-anchor="middle" font-size="12" font-weight="bold" fill="#047857">短時間で 100%</text>
-          <text x="145" y="207" text-anchor="middle" font-size="9.5" fill="#1f2937">契約ごと更新 → 周辺と噛み合う</text>
-
-          <rect x="290" y="170" width="250" height="52" rx="6" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>
-          <text x="415" y="188" text-anchor="middle" font-size="12" font-weight="bold" fill="#991b1b">30分 ＋ 破綻</text>
-          <text x="415" y="204" text-anchor="middle" font-size="9" fill="#991b1b">全体を探索(=30分) ＋ 契約を誤解して</text>
-          <text x="415" y="216" text-anchor="middle" font-size="9" fill="#991b1b">実装をいじり周辺が壊れる</text>
+          <rect x="110" y="166" width="340" height="52" rx="6" fill="white" stroke="#047857" stroke-width="2"/>
+          <text x="280" y="186" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#047857">共通の核：指示の3点セット</text>
+          <text x="280" y="203" text-anchor="middle" font-size="9.5" fill="#1f2937">場所・あるべき姿・証拠（＝発見1：欠けると 30分 ＋ 壊れる）</text>
         </svg>
       </div>
 
@@ -235,13 +232,13 @@
         <h2>課題と論点</h2>
         <div class="issue-block">
           <div class="label">課題</div>
-          <div class="title">AIが98%正しく作っても、残り2%を100%にする工程は必ず発生する。<br>この工程の <strong>属人性</strong> をどう無くすか。</div>
+          <div class="title">AIが98%正しく作っても、残り2%を100%にする工程は必ず発生する。<br>この工程の <strong>属人性</strong>（＝30分かかる・人が直すと壊れる）をどう無くすか。</div>
         </div>
         <div class="points-label">論点</div>
         <div class="points">
           <div class="point"><span class="num">1</span><div>「30分かかる」と「人が直すと壊れる」は<strong>別問題か</strong></div></div>
           <div class="point"><span class="num">2</span><div>属人性は<strong>どこに宿る</strong>か（AI側か・人間側か）</div></div>
-          <div class="point"><span class="num">3</span><div>社長案「98%AI / 2%AI 分離」で<strong>解決するか</strong></div></div>
+          <div class="point"><span class="num">3</span><div>抑止（出さない工夫）<strong>だけで足りるか</strong></div></div>
         </div>
 
         <div class="premise-banner">
@@ -253,13 +250,13 @@
           <div class="conclusion">
             <div class="conclusion-label">結論① 属人性の正体</div>
             <div class="conclusion-list">
-              <div class="conclusion-item"><span class="tag">人間側</span>正体は<strong>AIへの指示スキル（暗黙知）</strong>。熟練者は同じ作業で30分かからない</div>
+              <div class="conclusion-item"><span class="tag">人間側</span>正体は<strong>AIへの指示スキル（暗黙知）</strong>。同じ2%でも熟練者は30分かからない</div>
             </div>
           </div>
           <div class="conclusion mgmt">
-            <div class="conclusion-label">結論② 打ち手の方向</div>
+            <div class="conclusion-label">結論② 打ち手は「両輪」</div>
             <div class="conclusion-list">
-              <div class="conclusion-item"><span class="tag">肩代わり</span>暗黙知を<strong>「型」に言語化し、一部はAIに肩代わりさせる</strong>（→対策タブ）</div>
+              <div class="conclusion-item"><span class="tag">両輪</span><strong>抑止で出す量を、対応で出た後のコストを</strong>下げる。2%はゼロにできない前提</div>
             </div>
           </div>
         </div>
@@ -321,7 +318,7 @@
         <h2>2つの「手」の使い分け</h2>
         <div class="premise-banner">
           <span class="tag">鍵</span>
-          <div>熟練者は毎回<strong>「場所・あるべき姿・証拠」の3点セット</strong>を渡している。これが揃うとAIは契約ごと理解を更新し、周辺を壊さない。</div>
+          <div>熟練者は毎回<strong>「場所・あるべき姿・証拠」の3点セット</strong>を渡している。これが揃うとAIは契約ごと理解を更新し、周辺を壊さない。<strong>抑止・対応どちらの土台</strong>にもなる。</div>
         </div>
 
         <div class="move-card instruct" style="margin-top:12px;">
@@ -344,8 +341,8 @@
     </div>
   </div>
 
-  <!-- ====================== タブ3: 対策：経路報告 × 敵対的検証 ====================== -->
-  <div class="tab-content" id="tab-solution">
+  <!-- ====================== タブ3: 抑止：2%を出さない ====================== -->
+  <div class="tab-content" id="tab-prevent">
     <div class="grid">
 
       <!-- 左: エージェント運用フロー -->
@@ -401,9 +398,9 @@
         </svg>
       </div>
 
-      <!-- 右: 役割・仮値ルール・結論 -->
+      <!-- 右: 役割・仮値ルール -->
       <div class="panel">
-        <h2>採用する仕組み</h2>
+        <h2>採用する仕組み（初回実装のゲート）</h2>
         <div class="premise-banner">
           <span class="tag">切り分け</span>
           <div>レイアウト問題（→事例②のスクショ突合）を除けば、2%は<strong>すべてデータ経路の問題</strong>。人がやっていた②③をAIに肩代わりさせる。</div>
@@ -429,17 +426,88 @@
           <div class="title" style="font-size:11.5px;"><strong>DBに基づかない値は原則NG</strong>。table.column まで辿れない値は理由を問わず却下（無罪推定でなく有罪推定）。特に<strong>モック由来の固定値</strong>に注意（モックは<u>レイアウトの正本だが値は偽物</u>）。出所不明なら停止し「何が足りないか」を率直に報告。</div>
         </div>
 
+        <div class="premise-banner">
+          <span class="tag">限界</span>
+          <div>このゲートが見るのは「<strong>DBに辿れるか</strong>」だけ。値が業務的に正しいか・振る舞い・違和感は<strong>すり抜ける</strong> → タブ4「対応」へ。</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ====================== タブ4: 対応：出た2%を直す ====================== -->
+  <div class="tab-content" id="tab-respond">
+    <div class="grid">
+
+      <!-- 左: 発生時の対応フロー -->
+      <div class="panel">
+        <h2>出た2%を「速く・壊さず」直すループ</h2>
+        <svg viewBox="0 0 560 232" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="ra" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#374151"/></marker>
+            <marker id="rd" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#6366f1"/></marker>
+          </defs>
+
+          <!-- すり抜けた2% -->
+          <rect x="150" y="6" width="260" height="36" rx="6" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
+          <text x="280" y="24" text-anchor="middle" font-size="11" font-weight="bold" fill="#991b1b">抑止をすり抜けた2%（ゲートの外側）</text>
+          <text x="280" y="37" text-anchor="middle" font-size="8.5" fill="#991b1b">契約誤り・振る舞い/異常系・違和感</text>
+          <line x1="280" y1="42" x2="280" y2="52" stroke="#374151" stroke-width="1.5" marker-end="url(#ra)"/>
+
+          <!-- 検知 -->
+          <rect x="110" y="52" width="340" height="36" rx="6" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5"/>
+          <text x="280" y="70" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#92400e">検知：出口検収（シナリオ×テストデータ）＋ 動かして気づく</text>
+          <text x="280" y="83" text-anchor="middle" font-size="8.5" fill="#92400e">抑止ゲートの外側を捕まえる網</text>
+          <line x1="280" y1="88" x2="280" y2="100" stroke="#374151" stroke-width="1.5" marker-end="url(#ra)"/>
+
+          <!-- 修正 -->
+          <rect x="110" y="100" width="340" height="38" rx="6" fill="#ecfdf5" stroke="#10b981" stroke-width="1.5"/>
+          <text x="280" y="118" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#047857">修正：3点セットで指示（場所・あるべき姿・証拠）</text>
+          <text x="280" y="131" text-anchor="middle" font-size="8.5" fill="#1f2937">人はカプセル化メソッドの中を直接触らない</text>
+          <line x1="280" y1="138" x2="280" y2="150" stroke="#374151" stroke-width="1.5" marker-end="url(#ra)"/>
+
+          <!-- 再検証 -->
+          <rect x="110" y="150" width="340" height="44" rx="6" fill="#eef2ff" stroke="#6366f1" stroke-width="1.5"/>
+          <text x="280" y="169" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#4338ca">経路報告を再実行 → レビューAIが再検証</text>
+          <text x="280" y="185" text-anchor="middle" font-size="8.5" fill="#1f2937">＝抑止ゲートを「各修正にも巻く」ループ</text>
+
+          <!-- ループバック -->
+          <path d="M 110 172 H 90 V 119 H 110" fill="none" stroke="#6366f1" stroke-width="1.2" stroke-dasharray="4 3" marker-end="url(#rd)"/>
+
+          <!-- 脱出弁 -->
+          <rect x="140" y="202" width="280" height="26" rx="5" fill="white" stroke="#dc2626" stroke-width="1.2" stroke-dasharray="4 3"/>
+          <text x="280" y="219" text-anchor="middle" font-size="8.5" font-weight="bold" fill="#991b1b">30分続く＝文脈肥大 → 別AIへ（クリーン文脈＋該当ファイルだけ）</text>
+        </svg>
+      </div>
+
+      <!-- 右: すり抜ける2% + 修正の型 + 結論 -->
+      <div class="panel">
+        <h2>出た後を型にする</h2>
+        <div class="premise-banner">
+          <span class="tag">前提</span>
+          <div><strong>どれだけ気を付けても2%は出る</strong>。抑止だけに振らず、「出た後」も型にする。抑止で量を、対応でコスト（30分・壊れ）を下げる<strong>両輪</strong>。</div>
+        </div>
+
+        <div class="points-label" style="margin-top:10px;">抑止をすり抜ける2%</div>
+        <div class="points">
+          <div class="point amber"><span class="num">A</span><div><strong>契約自体の誤り</strong>（要件誤解）— 経路は正しいが「あるべき姿」が違う</div></div>
+          <div class="point amber"><span class="num">B</span><div><strong>振る舞い・異常系・状態遷移</strong>— 単項目は正しいが組み合わせで崩れる</div></div>
+          <div class="point amber"><span class="num">C</span><div><strong>レイアウト崩れ</strong>（→事例②）／ <strong>④違和感</strong>（言語化前でゲートにかからない）</div></div>
+        </div>
+
         <div class="conclusion-wrap">
           <div class="conclusion">
-            <div class="conclusion-label">人に残るもの</div>
+            <div class="conclusion-label">結論③ 速く・壊さず直す</div>
             <div class="conclusion-list">
-              <div class="conclusion-item"><span class="tag">①④のみ</span>②③はAIが肩代わり。残るは<strong>①習慣と④違和感</strong>だけ</div>
+              <div class="conclusion-item"><span class="tag">検知</span><strong>出口検収</strong>で捕まえ、<strong>3点セット</strong>で指示（＝発見1の裏返し）</div>
+              <div class="conclusion-item"><span class="tag">ループ</span>修正後に<strong>経路報告を再実行</strong>。抑止を初回だけにせず各修正にも巻く</div>
             </div>
           </div>
           <div class="conclusion mgmt">
-            <div class="conclusion-label">社長案の位置づけ／限界</div>
+            <div class="conclusion-label">結論④ 社長案の活かし所／限界</div>
             <div class="conclusion-list">
-              <div class="conclusion-item"><span class="tag">吸収</span>「別AIに分けよ」は<strong>軽経路として活かす</strong>。ただし④が残り<strong>完璧にはならない</strong></div>
+              <div class="conclusion-item"><span class="tag">脱出弁</span>「別AIに分けよ」は<strong>30分が続いた時の仕切り直し</strong>として吸収</div>
+              <div class="conclusion-item"><span class="tag">①④のみ</span>人に残るは<strong>習慣と違和感</strong>だけ。ただし<strong>完璧にはならない</strong></div>
             </div>
           </div>
         </div>

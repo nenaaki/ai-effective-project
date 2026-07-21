@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>会話メモ 2026-07-16</title>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body {
+    font-family: -apple-system, "Hiragino Kaku Gothic ProN", "Yu Gothic", system-ui, sans-serif;
+    color: #1f2937;
+    background: #fafafa;
+    padding: 20px 32px;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+  .page { max-width: 1240px; margin: 0 auto; height: 100%; display: flex; flex-direction: column; }
+  h1 { font-size: 19px; margin: 0; border-bottom: 3px solid #2563eb; padding-bottom: 6px; }
+  .sub { color: #6b7280; font-size: 12px; margin: 6px 0 10px; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 18px;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+  }
+  .panel {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: auto;
+  }
+  h2 { font-size: 13px; margin: 0 0 10px; padding-left: 8px; border-left: 3px solid #2563eb; }
+
+  .items { display: flex; flex-direction: column; gap: 6px; }
+  .item {
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 7px 11px;
+    font-size: 12px;
+    line-height: 1.5;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .item .num {
+    background: #2563eb;
+    color: white;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 11px;
+    flex-shrink: 0;
+  }
+  .item.amber .num { background: #f59e0b; }
+  .item .title { font-weight: 600; color: #1f2937; }
+  .item .desc { color: #4b5563; margin-top: 2px; font-size: 11.5px; }
+  .item .desc a, .ref-line a { color: #2563eb; text-decoration: none; }
+  .item .desc a:hover, .ref-line a:hover { text-decoration: underline; }
+
+  .item-detail {
+    margin-top: 5px;
+    background: #f9fafb;
+    border-left: 2px solid #2563eb;
+    border-radius: 3px;
+    padding: 5px 9px;
+    font-size: 11px;
+    line-height: 1.5;
+    color: #374151;
+  }
+  .item-detail .head {
+    font-size: 10px;
+    font-weight: 700;
+    color: #1e40af;
+    letter-spacing: 0.04em;
+    margin-bottom: 4px;
+  }
+  .item-detail ul { margin: 0; padding-left: 16px; }
+  .item-detail li { margin: 2px 0; }
+  .item-detail.amber { border-left-color: #f59e0b; }
+  .item-detail.amber .head { color: #b45309; }
+
+  .ref-line { margin-top: 6px; font-size: 11px; color: #6b7280; padding-left: 4px; }
+
+  /* 決定事項・ネクストアクション */
+  .decisions { display: flex; flex-direction: column; gap: 6px; }
+  .decision {
+    background: #ecfdf5;
+    border-left: 3px solid #10b981;
+    border-radius: 4px;
+    padding: 8px 10px;
+    font-size: 11.5px;
+    line-height: 1.55;
+  }
+  .decision .tag {
+    display: inline-block;
+    background: #10b981;
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 3px;
+    margin-right: 6px;
+    vertical-align: 1px;
+  }
+  .decision .tag.action { background: #2563eb; }
+
+  /* 議論サマリ */
+  .summary { display: flex; flex-direction: column; gap: 5px; }
+  .scard {
+    border: 1px solid #e5e7eb;
+    border-left: 3px solid #2563eb;
+    border-radius: 4px;
+    padding: 5px 9px;
+    font-size: 10.5px;
+    line-height: 1.5;
+    background: #f9fafb;
+  }
+  .scard .label { font-weight: 700; color: #1e40af; font-size: 10.5px; }
+  .scard.amber { border-left-color: #f59e0b; }
+  .scard.amber .label { color: #b45309; }
+  .scard p { margin: 2px 0 0; color: #374151; }
+
+  /* 最終メッセージ */
+  .quote {
+    background: #fef3c7;
+    border-left: 3px solid #f59e0b;
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 10.5px;
+    line-height: 1.55;
+    color: #78350f;
+    font-style: italic;
+  }
+  .quote .who { display: block; font-style: normal; font-weight: 700; font-size: 10px; color: #b45309; margin-bottom: 2px; letter-spacing: 0.04em; }
+
+  .block { margin-bottom: 7px; }
+  .block:last-child { margin-bottom: 0; }
+  .panel .block h2 { margin-bottom: 5px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>会話メモ 2026-07-16 ― AIの「最後の2%」修正の属人性</h1>
+  <div class="sub">AIDD ／ 社長との会話メモ。インプット品質の話から発展した「最後の2%」課題 → 成果は <a href="problem_ex_6.html">課題事例⑥</a> へ展開</div>
+
+  <div class="grid">
+
+    <!-- 左: 課題の中身 -->
+    <div class="panel">
+      <h2>課題の中身</h2>
+      <div class="items">
+        <div class="item">
+          <span class="num">1</span>
+          <div>
+            <div class="title">会話のきっかけ：インプット品質の話</div>
+            <div class="desc">担当者より「インプットの品質がアウトプットの品質に直結するため、インプットに時間をかけるようになった」と共有。社長は<strong>「インプット側の品質を高める＝要件を理解しようとするところが大事。そこが最初に分かるのはいい」</strong>とコメント。そこから<strong>「では、完璧なものは出ないのか」</strong>へ発展。</div>
+          </div>
+        </div>
+        <div class="item">
+          <span class="num">2</span>
+          <div>
+            <div class="title">元の課題：最後の2%修正の属人性</div>
+            <div class="desc">AIが98%正しく作ってきても、残り2%を100%にするプロセスは<strong>必ず発生する</strong>。ここに<strong>属人性を持たせたくない</strong>——というのが担当者の困りごと。</div>
+          </div>
+        </div>
+        <div class="item amber">
+          <span class="num">3</span>
+          <div>
+            <div class="title">なぜ2%の修正が難しいか</div>
+            <div class="desc">人間が手を加えると、AIが認識するシステム構造とズレが生じる。特に<strong>カプセル化されたメソッドの中身を人が書き換える</strong>と、AIがそれを認識できずシステムが壊れる。</div>
+            <div class="item-detail amber">
+              <div class="head">結果として起きていること</div>
+              <ul>
+                <li>人が直接直せない → <strong>AIに指示して修正させる</strong>ことになる。</li>
+                <li>その修正に<strong>AIが30分程度かかる</strong>。ここが困っている点。</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="ref-line">元メモ: <a href="../../.work/課題_AI修正2%問題_20260716.md">.work/課題_AI修正2%問題_20260716.md</a></div>
+    </div>
+
+    <!-- 右: 社長とのやり取り・決定 -->
+    <div class="panel">
+      <div class="block">
+        <h2>社長とのやり取り</h2>
+        <div class="summary">
+          <div class="scard">
+            <span class="label">課題として認定</span>
+            <p>「30分かかって困っている」と伝えたところ、<strong>「誰もが困ることだから大事だと思う。課題にせよ」</strong>となった。</p>
+          </div>
+          <div class="scard">
+            <span class="label">提案：AIの役割分担</span>
+            <p>98%→100%の属人性排除のため、<strong>「98%担当のAI」と「2%担当のAI」を分ける</strong>方針が提案された。</p>
+          </div>
+          <div class="scard amber">
+            <span class="label">補足アドバイス：別AIへ依頼</span>
+            <p>2%修正で時間がかかる背景として<strong>過学習の傾向</strong>がある（実際には<strong>コンテキストの増大</strong>が原因の可能性）ため、別のAIに依頼した方が良いのではないか。</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2>決定・ネクストアクション</h2>
+        <div class="decisions">
+          <div class="decision"><span class="tag">決定</span>「最後の2%」修正の属人性排除を<strong>正式な課題</strong>として取り上げる。</div>
+          <div class="decision"><span class="tag action">アクション</span>この仕上げ領域（98%→100%）が得意と思われる<strong>メンバーに相談</strong>し、課題として取り組んでみる。</div>
+        </div>
+        <div class="quote" style="margin-top:6px;">
+          <span class="who">展開先</span>
+          本課題の掘り下げ・対策は <a href="problem_ex_6.html" style="color:#b45309;font-style:normal;">課題事例⑥（AIの「最後の2%」修正の属人性）</a> にまとめている。
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+</body>
+</html>
