@@ -225,6 +225,12 @@
           <text x="280" y="186" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#047857">共通の核：指示の3点セット</text>
           <text x="280" y="203" text-anchor="middle" font-size="9.5" fill="#1f2937">場所・あるべき姿・証拠（＝発見1：欠けると 30分 ＋ 壊れる）</text>
         </svg>
+        <div style="flex-shrink:0; margin-top:8px; font-size:11.5px; line-height:1.65; color:#1f2937;">
+          <div style="font-weight:700; color:#047857; font-size:11px; margin-bottom:3px;">指示の3点セットとは</div>
+          <div><b style="color:#047857;">場所</b> … どこを（探索を消す＝<b>速い</b>）</div>
+          <div><b style="color:#047857;">あるべき姿</b>（＝契約） … 正しくはどうか（契約誤解を消す＝<b>壊さない</b>）</div>
+          <div><b style="color:#047857;">証拠</b> … その根拠（スクショ・正本・期待値）</div>
+        </div>
       </div>
 
       <!-- 右: 課題 + 論点 + 結論 -->
@@ -477,11 +483,18 @@
 
           <!-- 再検証 -->
           <rect x="110" y="152" width="340" height="42" rx="6" fill="#eef2ff" stroke="#6366f1" stroke-width="1.5"/>
-          <text x="280" y="170" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#4338ca">経路報告を再実行 → レビューAIが再検証</text>
-          <text x="280" y="185" text-anchor="middle" font-size="8.5" fill="#1f2937">＝抑止ゲートを「各修正にも巻く」ループ</text>
+          <text x="280" y="169" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#4338ca">経路報告を再実行 → レビューAIが再検証</text>
+          <text x="280" y="184" text-anchor="middle" font-size="8.5" fill="#1f2937">＝抑止ゲートを「各修正にも巻く」ループ／原因も判定</text>
 
           <!-- ループバック（右側） -->
           <path d="M 450 173 H 468 V 121 H 450" fill="none" stroke="#6366f1" stroke-width="1.2" stroke-dasharray="4 3" marker-end="url(#rd)"/>
+
+          <!-- SSOT正本（再発防止：不備なら直す＝根絶） -->
+          <rect x="4" y="150" width="92" height="46" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="1.3"/>
+          <text x="50" y="165" text-anchor="middle" font-size="8.5" font-weight="bold" fill="#1e40af">SSOT（正本）</text>
+          <text x="50" y="176" text-anchor="middle" font-size="7" fill="#1f2937">スキーマ/仕様</text>
+          <text x="50" y="188" text-anchor="middle" font-size="7" font-weight="bold" fill="#991b1b">不備なら直す＝根絶</text>
+          <path d="M 110 173 H 98" fill="none" stroke="#374151" stroke-width="1.2" stroke-dasharray="3 2" marker-end="url(#ra)"/>
 
           <!-- 根治：クリーンな文脈で直す（社長案の本質） -->
           <rect x="120" y="202" width="320" height="26" rx="5" fill="white" stroke="#6366f1" stroke-width="1.2" stroke-dasharray="4 3"/>
@@ -506,11 +519,11 @@
 
         <div class="conclusion-wrap">
           <div class="conclusion">
-            <div class="conclusion-label">結論③ 出た後を"型"にする仕組み【案】</div>
+            <div class="conclusion-label">結論③ 再発防止の仕組み【案】</div>
             <div class="conclusion-list">
-              <div class="conclusion-item"><span class="tag">ナレッジ</span>既知2%の<strong>対応の暗黙知（症状→必要物→直し方）を事例化</strong>しAIに与える</div>
-              <div class="conclusion-item"><span class="tag">要求駆動</span>AIが必要物を人に要求→<strong>人は出すだけ</strong>。「何を出すか」がAI側へ移る</div>
-              <div class="conclusion-item"><span class="tag">ループ</span>修正後に<strong>経路報告を再実行</strong>して再検証／対応も事例に追記し蓄積</div>
+              <div class="conclusion-item"><span class="tag">ナレッジ</span>対応の暗黙知を<strong>事例化</strong>しAIに与え、AIが必要物を人に要求（人は出すだけ）</div>
+              <div class="conclusion-item"><span class="tag">SSOT判定</span>3点セット提示時に原因を判定。<strong>SSOT（スキーマ・正本・仕様）の不備ならSSOTを直す＝同種2%を根絶</strong></div>
+              <div class="conclusion-item"><span class="tag">ループ</span>修正後に<strong>経路報告を再実行</strong>して再検証／一過性は事例に追記</div>
             </div>
           </div>
           <div class="conclusion mgmt">
