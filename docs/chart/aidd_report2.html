@@ -63,8 +63,8 @@
 <script src="sprint2_data.js"></script>
 <script>
 const D = SPRINT2_DATA;
-const BUF = 1 + D.meta.bufferPct, HPD = D.meta.hoursPerDay;
-const buffered = t => t.tobe * (t.nobuffer ? 1 : BUF);   // 仕様精査等 nobuffer は素のまま
+const HPD = D.meta.hoursPerDay;
+// ToBe（実績）は tobe を直接使用（バッファなし）。計画値は workitems2 側の plan を参照。
 const r1 = n => Math.round(n*10)/10;
 const cut = (a,b) => a>0 ? Math.round((a-b)/a*100) : 0;
 const RBASES = D.bases.filter(b => b.key !== "reserve");   // 予備工数は実開発比較の対象外
@@ -95,7 +95,7 @@ function basePanel(b){
   const max = Math.max(...ts.map(t=>t.asis));
   const tAsis = ts.reduce((a,t)=>a+t.asis,0);
   const done = ts.filter(isDone);
-  const tTobe = done.reduce((a,t)=>a+buffered(t),0);          // 完了分のみ
+  const tTobe = done.reduce((a,t)=>a+t.tobe,0);               // 完了分の実績のみ
   const tAsisDone = done.reduce((a,t)=>a+t.asis,0);
   const redTotal = tAsisDone>0 ? cut(tAsisDone, tTobe) : null; // 削減率は完了分で算出
   const toBeCell = done.length ? r1(tTobe)+'h' : '—';
@@ -106,7 +106,7 @@ function basePanel(b){
     const gts = ts.filter(t=>t.group===g);
     rows += `<tr class="grp"><td colspan="6">${g}（${gts.length}件）</td></tr>`;
     gts.forEach(t=>{
-      const bt = isDone(t) ? buffered(t) : null;               // 未完了は ToBe なし
+      const bt = isDone(t) ? t.tobe : null;                    // 未完了は ToBe（実績）なし
       rows += `<tr>`+
         `<td><span class="name">${t.name}</span> <span class="code">${t.code}</span></td>`+
         `<td><span class="own ${t.owner}">${t.owner}</span></td>`+
@@ -117,7 +117,7 @@ function basePanel(b){
     });
   });
   return `<div class="panel" data-key="${b.key}" style="--ac:${b.color}">`+
-    `<div class="lede">${b.id} <b>${b.name}</b> の開発工数比較。<b>ToBe は完了タスクの実績のみ表示</b>（未完了は空欄・集計対象外。バッファ ${Math.round(D.meta.bufferPct*100)}% 適用、仕様精査は素）。AsIs は人力で通常開発した場合の想定（概算）。`+
+    `<div class="lede">${b.id} <b>${b.name}</b> の開発工数比較。<b>ToBe は完了タスクの実績のみ表示</b>（未完了は空欄・集計対象外。ToBe は実測の素値）。AsIs は人力で通常開発した場合の想定（概算）。`+
       `${b.key==="auth"?"適用（横展開）タスクは 189オペレーション・43ルートへの付与＋17ロール検証を含むため AsIs が大きく、AI レバレッジが効きやすい。":""}`+
       `${b.key==="status"?"宣言的な遷移マトリクス＋唯一の遷移入口サービスに集約する構成。設計判断は確定済みで実装が中心。":""}`+
       `${b.key==="export"?"SMS配信を機能観点のI/F（IF008: 配信/結果取得/結果通知）に抽象化し、アクリート実サービスと開発用エミュレーターを環境変数でドライバー切替。駆動UCは配送遅延・ご不在通知（IVR・SMS E2Eは後発）。":""}`+
@@ -140,7 +140,7 @@ function totalPanel(){
     const ts = D.tasks.filter(t=>t.base===b.key);
     const done = ts.filter(isDone);
     return { b, a: ts.reduce((x,t)=>x+t.asis,0),
-             bt: done.reduce((x,t)=>x+buffered(t),0),
+             bt: done.reduce((x,t)=>x+t.tobe,0),
              aDone: done.reduce((x,t)=>x+t.asis,0),
              n: ts.length, dn: done.length };
   });
@@ -190,7 +190,7 @@ tabsEl.addEventListener("click", e=>{
   panelsEl.querySelector(`.panel[data-key="${btn.dataset.key}"]`).classList.add("active");
 });
 document.getElementById("note").innerHTML =
-  "※ ToBe は完了タスク（status=完了）の実績のみ表示・集計し、未完了タスクは空欄（削減率も完了分のみで算出）。バッファ40%込み（仕様精査は素）。AsIs は人力想定の概算。着手が進むと ToBe・削減率が埋まる。短縮名・依存・進捗・完了は「タスク管理（workitems2）」と同一ソース（sprint2_data.js）。";
+  "※ ToBe は完了タスク（status=完了）の実績のみ表示・集計し、未完了タスクは空欄（削減率も完了分のみで算出）。ToBe は実測の素値。AsIs は人力想定の概算。着手が進むと ToBe・削減率が埋まる。短縮名・依存・進捗・完了は「タスク管理（workitems2）」と同一ソース（sprint2_data.js）。";
 </script>
 </body>
 </html>
