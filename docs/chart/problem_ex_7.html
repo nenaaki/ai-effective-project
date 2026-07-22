@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>サンプリングレビューの内部統制化検討</title>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body {
+    font-family: -apple-system, "Hiragino Kaku Gothic ProN", "Yu Gothic", system-ui, sans-serif;
+    color: #1f2937;
+    background: #fafafa;
+    padding: 28px 32px;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+  .page { max-width: 1240px; margin: 0 auto; height: 100%; display: flex; flex-direction: column; }
+  h1 { font-size: 19px; margin: 0; border-bottom: 3px solid #2563eb; padding-bottom: 6px; }
+  .sub { color: #6b7280; font-size: 12px; margin: 6px 0 14px; }
+
+  .tabs { display: flex; gap: 4px; margin-bottom: 14px; border-bottom: 1px solid #e5e7eb; }
+  .tab {
+    padding: 8px 16px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-bottom: none;
+    border-radius: 6px 6px 0 0;
+    cursor: pointer;
+    font-size: 13px;
+    font-family: inherit;
+    color: #6b7280;
+    margin-bottom: -1px;
+  }
+  .tab.active { background: white; border-color: #e5e7eb; color: #2563eb; font-weight: 600; }
+  .tab:hover { color: #1f2937; }
+
+  .tab-content { display: none; flex: 1; min-height: 0; }
+  .tab-content.active { display: flex; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+  }
+  .single-wrap { max-width: 880px; margin: 0 auto; flex: 1; min-height: 0; display: flex; width: 100%; }
+  .panel {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    flex: 1;
+    overflow: hidden;
+  }
+  h2 { font-size: 13px; margin: 0 0 10px; padding-left: 8px; border-left: 3px solid #2563eb; }
+  .lead { font-size: 12px; color: #4b5563; margin: 0 0 10px; line-height: 1.5; }
+
+  /* ===== タブ1 (A) 確認する観点カード ===== */
+  .obs-list { display: flex; flex-direction: column; gap: 8px; }
+  .obs-card { border: 1px solid #e5e7eb; border-radius: 6px; overflow: hidden; }
+  .obs-card__title {
+    padding: 5px 10px; font-size: 11.5px; font-weight: 700; color: #fff;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .obs-card__title .hint { font-size: 9.5px; font-weight: 600; opacity: 0.92; }
+  .obs-card__title--in { background: #4338ca; }
+  .obs-card__title--out { background: #047857; }
+  .obs-card__title--proc { background: #2563eb; }
+  .obs-card__title--why { background: #b45309; }
+  .obs-card p { margin: 0; padding: 6px 10px; font-size: 10.8px; line-height: 1.5; color: #374151; }
+  .obs-card p strong { color: #1f2937; }
+
+  /* ===== タブ1 レイアウト（目的 / 中段 / 下部） ===== */
+  .dir-layout { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 12px; width: 100%; }
+
+  /* 上部: 目的（元の分離バンド） */
+  .purpose-band { flex-shrink: 0; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 8px 14px; }
+  .pb-head { font-size: 11px; font-weight: 700; color: #1e40af; margin-bottom: 6px; }
+  .pb-items { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .pb-item { display: flex; gap: 8px; align-items: flex-start; font-size: 11.5px; line-height: 1.5; color: #1f2937; }
+  .pb-item strong { color: #1e40af; }
+  .pb-num { background: #2563eb; color: #fff; width: 18px; height: 18px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 10.5px; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+
+  /* 各列の頭: 目的↔パネルの1:1対応（①②バッジ＋色帯） */
+  .goal-head { display: flex; align-items: center; gap: 8px; padding: 7px 11px; border-radius: 7px; margin-bottom: 10px; color: #fff; }
+  .goal-head--a { background: #2563eb; }
+  .goal-head--b { background: #4338ca; }
+  .goal-badge { background: #fff; width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; flex-shrink: 0; }
+  .goal-head--a .goal-badge { color: #1e40af; }
+  .goal-head--b .goal-badge { color: #4338ca; }
+  .goal-main { font-size: 12.5px; font-weight: 700; line-height: 1.3; }
+  .goal-sub { font-size: 9.5px; font-weight: 600; opacity: .92; margin-left: auto; text-align: right; flex-shrink: 0; }
+
+  /* 右: 3層のチェック体制 */
+  .flow3 { display: flex; flex-direction: column; }
+  .flow-box { display: flex; align-items: center; gap: 10px; border: 1.5px solid; border-radius: 8px; padding: 8px 12px; }
+  .fb-main { flex: 1; }
+  .fb-role { font-size: 12.5px; font-weight: 700; }
+  .fb-act { font-size: 10px; color: #6b7280; margin-top: 2px; }
+  .fb-eng { border-color: #2563eb; background: #eff6ff; }
+  .fb-eng .fb-role { color: #1e40af; }
+  .fb-lead { border-color: #6366f1; background: #f5f6ff; }
+  .fb-lead .fb-role { color: #4338ca; }
+  .fb-sup { border-color: #4338ca; background: #eef2ff; }
+  .fb-sup .fb-role { color: #4338ca; }
+  .flow-arrow { text-align: center; color: #6b7280; font-size: 15px; line-height: 1; margin: 2px 0; }
+  .stamps { display: flex; gap: 5px; flex-shrink: 0; }
+  .hanko { width: 34px; height: 34px; border-radius: 50%; border: 1.5px solid #c2410c; color: #c2410c; background: #fff6f3; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 8px; font-weight: 700; line-height: 1.15; text-align: center; transform: rotate(-6deg); }
+  .hk-name { font-size: 6.5px; font-weight: 600; opacity: 0.85; border-top: 0.5px solid #c2410c; margin-top: 1px; padding-top: 1px; }
+  .flow-caption { margin-top: 10px; font-size: 10.5px; line-height: 1.5; color: #374151; background: #eef2ff; border-radius: 6px; padding: 7px 10px; }
+  .flow-caption strong { color: #4338ca; }
+
+  /* 下部: 確認事項・補足 */
+  .bottom-band { flex-shrink: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .bb-check, .bb-note { border-radius: 6px; padding: 7px 11px; }
+  .bb-check { background: #fffbeb; border: 1px solid #fcd34d; border-left: 4px solid #f59e0b; }
+  .bb-note { background: #f3f4f6; border: 1px solid #d1d5db; border-left: 4px solid #9ca3af; }
+  .bb-check .bt, .bb-note .bt { display: inline-block; color: #fff; font-size: 9px; font-weight: 700; padding: 1px 6px; border-radius: 3px; margin-right: 6px; vertical-align: 1px; }
+  .bb-check .bt { background: #f59e0b; }
+  .bb-note .bt.gray { background: #9ca3af; }
+  .bb-lead { font-size: 11px; font-weight: 700; color: #92400e; }
+  .bb-lead.gray { color: #4b5563; }
+  .bb-body { font-size: 10.5px; line-height: 1.5; color: #1f2937; margin-top: 4px; }
+
+  /* ===== タブ2 実例（現物カード・参照資料準拠） ===== */
+  .artifact {
+    margin: 0 0 12px; background: #fff; border: 2px solid #10b981;
+    border-radius: 8px; padding: 10px 14px; font-size: 13px; line-height: 2.0;
+  }
+  .artifact--before {
+    border: 1px dashed #d1d5db; background: #f3f4f6; color: #6b7280;
+    font-size: 11.5px; line-height: 1.9;
+  }
+  .before-tag {
+    display: inline-block; font-size: 9.5px; font-weight: 700; color: #6b7280;
+    border: 1px solid #d1d5db; border-radius: 3px; padding: 0 5px; margin-right: 6px; background: #fff;
+  }
+  .mk { border-radius: 3px; padding: .05em .15em; }
+  .mk-in { background: #eef2ff; box-shadow: inset 0 -2px 0 #4338ca; }
+  .mk-out { background: #ecfdf5; box-shadow: inset 0 -2px 0 #047857; }
+  .nb {
+    display: inline-block; min-width: 1.3em; height: 1.3em; line-height: 1.3em; text-align: center;
+    border-radius: 50%; color: #fff; font-size: .68rem; font-weight: 700; vertical-align: super; margin-left: .1em;
+  }
+  .nb--in { background: #4338ca; }
+  .nb--out { background: #047857; }
+  .nb--note { background: #6b7280; }
+
+  .legend { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
+  .legend li {
+    display: grid; grid-template-columns: auto 1fr; gap: 8px; align-items: baseline;
+    background: #fff; border: 1px solid #eef0f3; border-radius: 6px; padding: 6px 10px; font-size: 10.8px; line-height: 1.5;
+  }
+  .legend .nb { vertical-align: middle; margin-left: 0; width: 16px; min-width: 16px; height: 16px; line-height: 16px; font-size: 10px; color: #fff; }
+  .legend b { color: #1f2937; }
+  .legend span { color: #4b5563; }
+
+  /* ===== タブ「具体的な設問」= I/P/O × 設問→回答 ===== */
+  .ipo-layout { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 10px; width: 100%; }
+
+  /* 冒頭の切り口メモ（1帯） */
+  .ipo-memo { flex-shrink: 0; background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 6px; padding: 7px 11px; font-size: 10.8px; line-height: 1.5; color: #1f2937; }
+  .ii-tag { display: inline-block; background: #2563eb; color: #fff; font-size: 9px; font-weight: 700; padding: 1px 6px; border-radius: 3px; margin-right: 6px; vertical-align: 1px; }
+  .ipo-memo b { color: #1f2937; }
+
+  /* 3カラム × 上下2段（上=設問 / 下=回答） */
+  .qa-grid { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .qa-col { display: flex; flex-direction: column; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; background: #fff; min-height: 0; }
+  .qa-head { padding: 5px 11px; color: #fff; font-size: 11.5px; font-weight: 700; }
+  .qa-col--in .qa-head { background: #4338ca; }
+  .qa-col--proc .qa-head { background: #2563eb; }
+  .qa-col--out .qa-head { background: #047857; }
+  .qa-head-sub { font-weight: 600; font-size: 9.5px; opacity: 0.9; margin-left: 6px; }
+
+  /* ===== タブ「名称案」 ===== */
+  .names-tbl { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .names-tbl th, .names-tbl td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #eef0f3; vertical-align: top; }
+  .names-tbl th { background: #f3f4f6; color: #374151; font-weight: 700; font-size: 11px; }
+  .names-tbl td.nm { font-weight: 700; color: #1f2937; white-space: nowrap; }
+  .names-tbl td.ax { color: #4338ca; font-weight: 600; white-space: nowrap; }
+  .names-tbl td.nt { color: #4b5563; }
+  .prop-tag { display: inline-block; font-size: 9px; font-weight: 700; color: #fff; background: #10b981; border-radius: 3px; padding: 0 5px; margin-left: 6px; vertical-align: 1px; }
+
+  /* 設問フォーマット: 埋める項目を破線チップで列挙 */
+  .fmt-slots { display: inline-flex; flex-wrap: wrap; gap: 5px; vertical-align: middle; }
+  .fmt-slot { background: #fff; border: 1px dashed #94a3b8; border-radius: 4px; padding: 1px 9px; font-size: 10.5px; color: #334155; font-weight: 600; }
+  .qa-ask { padding: 8px 11px; }
+  .qa-ans { padding: 8px 11px; background: #f9fafb; border-top: 1px dashed #d1d5db; flex: 1; }
+  .qa-tag { display: inline-block; font-size: 8.5px; font-weight: 700; padding: 1px 6px; border-radius: 3px; margin-bottom: 5px; }
+  .qa-tag.ask { background: #f3f4f6; color: #4b5563; border: 1px solid #e5e7eb; }
+  .qa-col--in .qa-tag.ans { background: #eef2ff; color: #4338ca; border: 1px solid #c7d2fe; }
+  .qa-col--proc .qa-tag.ans { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; }
+  .qa-col--out .qa-tag.ans { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
+  .qa-text { font-size: 10.5px; line-height: 1.55; color: #374151; }
+  .qa-text b { color: #1f2937; }
+  .qa-fmt { margin-top: 6px; font-size: 10px; line-height: 1.5; color: #4b5563; background: #f3f4f6; border-left: 3px solid #9ca3af; border-radius: 4px; padding: 5px 8px; }
+  .fmt-label { display: inline-block; background: #6b7280; color: #fff; font-size: 8.5px; font-weight: 700; padding: 0 5px; border-radius: 3px; margin-right: 6px; }
+  .qa-arrow { text-align: center; color: #9ca3af; font-size: 13px; line-height: 1; padding: 1px 0; }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>サンプリングレビューの内部統制化検討</h1>
+  <div class="sub">レビュープロセスの内部統制化検討 / 決定事項② / 2026-07-16 金子社長壁打ち　—　リスクの高い機能を着手前にサンプリングし、エンジニアが「入口・出口を業務の言葉で理解しているか」を権限者が確認して証跡を残す工程統制</div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="direction">方向性</button>
+    <button class="tab" data-tab="question">具体的な設問</button>
+    <button class="tab" data-tab="names">名称案</button>
+  </div>
+
+  <!-- ====================== タブ1: 方向性 ====================== -->
+  <div class="tab-content active" id="tab-direction">
+    <div class="dir-layout">
+
+      <!-- 上部: プロセスの目的（分離バンド。①②が下の左右パネルに対応） -->
+      <div class="purpose-band">
+        <div class="pb-head">このプロセスの目的</div>
+        <div class="pb-items">
+          <div class="pb-item"><span class="pb-num">①</span><div>エンジニアの<strong>視点を How（実装手段）から 入口・出口（業務の意味）へ</strong>変える</div></div>
+          <div class="pb-item"><span class="pb-num">②</span><div>それを<strong>証跡として残し、強制力を持った品質担保の仕組み</strong>にする</div></div>
+        </div>
+      </div>
+
+      <div class="grid">
+
+      <!-- 左: 目的① ＝ 確認する観点 -->
+      <div class="panel">
+        <h2>① エンジニアの視点変更</h2>
+        <div class="obs-list">
+          <div class="obs-card">
+            <div class="obs-card__title obs-card__title--in"><span>入口（Input）</span><span class="hint">使われ方</span></div>
+            <p><strong>何を・なぜ・誰が・いつ・どのように</strong>使うかを<strong>業務の言葉</strong>で説明できる。「バッチが叩く」で終わる回答は How 止まり＝不合格。</p>
+          </div>
+          <div class="obs-card">
+            <div class="obs-card__title obs-card__title--proc"><span>過程（Process）</span><span class="hint">判断分岐</span></div>
+            <p>処理の中の<strong>業務判断が乗る分岐</strong>（1行欠損の扱い・二重取込・未着・順序＝正常/異常の岐路）を、<strong>動作と理由</strong>で説明できる。<strong>異常系は主にここ</strong>。</p>
+          </div>
+          <div class="obs-card">
+            <div class="obs-card__title obs-card__title--out"><span>出口（Output）</span><span class="hint">完了条件</span></div>
+            <p>「何が満たされれば開発できたと言えるか」を〈<strong>前提＋観測できる結果＋どこで観測</strong>〉のワンセットで、<strong>コードを読まず動作で決着</strong>する形で言える。</p>
+          </div>
+          <div class="obs-card">
+            <div class="obs-card__title obs-card__title--why"><span>理由（各段に付随）</span><span class="hint">リスク根拠</span></div>
+            <p>各段で<strong>業務判断が乗る箇所</strong>は「なぜそう決めたか」を<strong>業務リスクを根拠に</strong>説明できる（判断が乗る/乗らないで切り分け）。</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 右: 目的② ＝ 3層のチェック体制 -->
+      <div class="panel">
+        <h2>② 証跡を残す仕組み</h2>
+        <div class="flow3">
+          <div class="flow-box fb-eng">
+            <div class="fb-main">
+              <div class="fb-role">エンジニア</div>
+              <div class="fb-act">入口・出口を業務の言葉で回答</div>
+            </div>
+            <div class="stamps">
+              <span class="hanko">回答<span class="hk-name">氏名</span></span>
+            </div>
+          </div>
+          <div class="flow-arrow">↓</div>
+          <div class="flow-box fb-lead">
+            <div class="fb-main">
+              <div class="fb-role">チームリーダー / PM</div>
+              <div class="fb-act">業務の言葉で握れているかチェック</div>
+            </div>
+            <div class="stamps">
+              <span class="hanko">回答<span class="hk-name">氏名</span></span>
+              <span class="hanko">確認<span class="hk-name">氏名</span></span>
+            </div>
+          </div>
+          <div class="flow-arrow">↓</div>
+          <div class="flow-box fb-sup">
+            <div class="fb-main">
+              <div class="fb-role">PM監督者</div>
+              <div class="fb-act">サンプリング状況を監督</div>
+            </div>
+            <div class="stamps">
+              <span class="hanko">回答<span class="hk-name">氏名</span></span>
+              <span class="hanko">確認<span class="hk-name">氏名</span></span>
+              <span class="hanko">監督<span class="hk-name">氏名</span></span>
+            </div>
+          </div>
+        </div>
+        <div class="flow-caption">各朱印に<strong>氏名が一意に乗る</strong>＝「誰が回答し・誰がチェックしたか」を後から答えられる証跡が、回答→チェック→監督と積み上がる</div>
+      </div>
+
+      </div><!-- /grid -->
+
+      <!-- 下部: 確認事項・補足 -->
+      <div class="bottom-band">
+        <div class="bb-check">
+          <span class="bt">確認事項</span><span class="bb-lead">サンプリング方針</span>
+          <div class="bb-body">ランダムなサンプリングではなく、<strong>PMがリスクに応じて恣意的に選定する</strong>、を仕様案として想定（要確認）。</div>
+        </div>
+        <div class="bb-note">
+          <span class="bt gray">補足</span><span class="bb-lead gray">最初の対象</span>
+          <div class="bb-body"><strong>外部連携</strong>（連携ファイルのフロー）。崩れれば下流の画面と業務が止まる。</div>
+        </div>
+      </div>
+
+    </div><!-- /dir-layout -->
+  </div>
+
+  <!-- ====================== タブ2: 具体的な回答 ====================== -->
+  <div class="tab-content" id="tab-names">
+    <div class="single-wrap">
+      <div class="panel">
+        <h2>プロセス名称案 — 何に軸を置くか</h2>
+        <p class="lead">名前は「このプロセスの何を強調するか（軸）」で決まる。候補と着目点を並べる（暫定・要決定）。</p>
+        <table class="names-tbl">
+          <thead><tr><th>候補</th><th>軸（着目点）</th><th>補足</th></tr></thead>
+          <tbody>
+            <tr><td class="nm">開発者業務理解ゲート</td><td class="ax">理解の主体・対象</td><td class="nt">開発者が業務を理解できているかに着目</td></tr>
+            <tr><td class="nm">着手判定会議</td><td class="ax">意思決定ゲート（会議体）</td><td class="nt">受注判定会議（経営×営業）に対し、着手判定会議（PM×Dev）という対比</td></tr>
+            <tr><td class="nm">入口出口レビュー</td><td class="ax">工程（レビュー）</td><td class="nt">名前をそのまま表現。レビューという工程に着目</td></tr>
+            <tr><td class="nm">テックコンセンサス</td><td class="ax">合意形成</td><td class="nt">技術・業務の認識合わせ（コンセンサス）に着目</td></tr>
+            <tr><td class="nm">IPOゲート</td><td class="ax">問いの構造</td><td class="nt">入力／過程／出力で漏れなく問う（MECE）構造に着目</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================== タブ2: 具体的な設問（I/P/O × 設問→回答） ====================== -->
+  <div class="tab-content" id="tab-question">
+    <div class="ipo-layout">
+
+      <!-- 冒頭の切り口メモ（1帯） -->
+      <div class="ipo-memo"><span class="ii-tag">切り口</span><b>IPO</b>＝入力／過程／出力で機能を尽くす（<b>MECE</b>／重複なし・漏れなし）。理由（業務判断）は各段に付随し、<b>異常系は主に"過程"</b>に現れる。各段は「上＝設問（型）／下＝ファイル連携で埋めた回答」で対応させる。</div>
+
+      <!-- 3カラム × 上下2段 -->
+      <div class="qa-grid">
+
+        <!-- 入口 -->
+        <div class="qa-col qa-col--in">
+          <div class="qa-head">入口 / Input<span class="qa-head-sub">（何が理解できていれば始められるか）</span></div>
+          <div class="qa-ask">
+            <div class="qa-tag ask">設問</div>
+            <div class="qa-text">この機能を <b>誰が・いつ・なぜ・どのように</b> 使うか、業務の言葉で<b>すべて挙げよ</b>。</div>
+            <div class="qa-fmt"><span class="fmt-label">記載項目</span><span class="fmt-slots"><span class="fmt-slot">誰が</span><span class="fmt-slot">いつ</span><span class="fmt-slot">なぜ</span><span class="fmt-slot">どのように</span></span></div>
+            <div class="qa-fmt"><span class="fmt-label">フォーマット</span>「__（誰）が、__（いつ）のとき、__（なぜ）のために、__（どのように）する」</div>
+          </div>
+          <div class="qa-arrow">↓</div>
+          <div class="qa-ans">
+            <div class="qa-tag ans">回答（埋めた例・ファイル連携）</div>
+            <div class="qa-text">「<b>基幹システムの担当者</b>が、<b>毎日の出荷締め後</b>に、<b>当日の配送指示書を現場へ配る</b>ために、<b>出荷指示ファイルを置き場に置いて自動取込させる</b>」</div>
+          </div>
+        </div>
+
+        <!-- 過程 -->
+        <div class="qa-col qa-col--proc">
+          <div class="qa-head">過程 / Process<span class="qa-head-sub">（何が理解できていれば仕様判断ができるか）</span></div>
+          <div class="qa-ask">
+            <div class="qa-tag ask">設問</div>
+            <div class="qa-text">処理の中の <b>業務判断が乗る分岐</b> を業務の言葉で<b>すべて挙げよ</b>。動作と理由も。</div>
+            <div class="qa-fmt"><span class="fmt-label">記載項目</span><span class="fmt-slots"><span class="fmt-slot">入力・状態</span><span class="fmt-slot">動作</span><span class="fmt-slot">理由</span></span></div>
+            <div class="qa-fmt"><span class="fmt-label">フォーマット</span>「__（入力・状態）のとき、__（どう扱う）となる」<br><b>理由:</b> __（業務上の理由）</div>
+          </div>
+          <div class="qa-arrow">↓</div>
+          <div class="qa-ans">
+            <div class="qa-tag ans">回答（埋めた例・ファイル連携）</div>
+            <div class="qa-text">「<b>取込ファイルに1行でも不正があった</b>とき、<b>その日の取込を全て止めて担当者へ通知</b>となる」<br><b>理由:</b> <b>1件でも配送指示が狂うと現場が誤配するため</b></div>
+          </div>
+        </div>
+
+        <!-- 出口 -->
+        <div class="qa-col qa-col--out">
+          <div class="qa-head">出口 / Output<span class="qa-head-sub">（何が理解できていれば完了したと判断できるか）</span></div>
+          <div class="qa-ask">
+            <div class="qa-tag ask">設問</div>
+            <div class="qa-text"><b>完了条件</b> を〈前提 ＋ 観測できる結果 ＋ どこで観測〉のワンセットで<b>すべて挙げよ</b>。</div>
+            <div class="qa-fmt"><span class="fmt-label">記載項目</span><span class="fmt-slots"><span class="fmt-slot">前提</span><span class="fmt-slot">画面</span><span class="fmt-slot">表示</span></span></div>
+            <div class="qa-fmt"><span class="fmt-label">フォーマット</span>「__（前提）していれば、__（画面）で__（表示）が観測できる」</div>
+          </div>
+          <div class="qa-arrow">↓</div>
+          <div class="qa-ans">
+            <div class="qa-tag ans">回答（埋めた例・ファイル連携）</div>
+            <div class="qa-text">「<b>出荷指示データが置き場に届いて</b>いれば、<b>配送指示書画面</b>で<b>当日分の指示書がDLできる</b>（○時の処理後）」</div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+  document.querySelectorAll('.tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>
