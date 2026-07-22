@@ -186,7 +186,6 @@
 
   <div class="tabs">
     <button class="tab active" data-tab="issue">課題と論点</button>
-    <button class="tab" data-tab="skill">うまくいく指示の「型」</button>
     <button class="tab" data-tab="respond">対応：出た2%を直す</button>
     <button class="tab" data-tab="prevent">抑止：2%を出さない</button>
   </div>
@@ -217,18 +216,18 @@
 
           <rect x="28" y="84" width="232" height="54" rx="6" fill="#ecfdf5" stroke="#10b981" stroke-width="1.5"/>
           <text x="144" y="105" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#047857">抑止 ── 出す量を減らす</text>
-          <text x="144" y="123" text-anchor="middle" font-size="9.5" fill="#1f2937">経路報告 × 敵対的検証（→ タブ4）</text>
+          <text x="144" y="123" text-anchor="middle" font-size="9.5" fill="#1f2937">経路報告 × 敵対的検証（→「抑止」タブ）</text>
 
           <rect x="300" y="84" width="232" height="54" rx="6" fill="#eef2ff" stroke="#6366f1" stroke-width="1.5"/>
           <text x="416" y="105" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#4338ca">対応 ── 出た後のコストを減らす</text>
-          <text x="416" y="123" text-anchor="middle" font-size="9.5" fill="#1f2937">3点セット修正 ＋ 再検証ループ（→ タブ3）</text>
+          <text x="416" y="123" text-anchor="middle" font-size="9.5" fill="#1f2937">3点セット修正 ＋ 再検証ループ（→「対応」タブ）</text>
 
           <line x1="144" y1="138" x2="235" y2="164" stroke="#374151" stroke-width="1.5" marker-end="url(#a1)"/>
           <line x1="416" y1="138" x2="325" y2="164" stroke="#374151" stroke-width="1.5" marker-end="url(#a1)"/>
 
           <rect x="110" y="166" width="340" height="52" rx="6" fill="white" stroke="#047857" stroke-width="2"/>
           <text x="280" y="186" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#047857">共通の核：指示の3点セット</text>
-          <text x="280" y="203" text-anchor="middle" font-size="9.5" fill="#1f2937">場所・あるべき姿・証拠（＝発見1：欠けると 30分 ＋ 壊れる）</text>
+          <text x="280" y="203" text-anchor="middle" font-size="9.5" fill="#1f2937">場所・あるべき姿・証拠（欠けると 30分 ＋ 壊れる）</text>
         </svg>
         <div style="flex-shrink:0; margin-top:8px; font-size:11.5px; line-height:1.65; color:#1f2937;">
           <div style="font-weight:700; color:#047857; font-size:11px; margin-bottom:3px;">指示の3点セットとは</div>
@@ -259,13 +258,13 @@
 
         <div class="conclusion-wrap">
           <div class="conclusion">
-            <div class="conclusion-label">結論① 属人性の正体</div>
+            <div class="conclusion-label">結論：属人性の正体</div>
             <div class="conclusion-list">
               <div class="conclusion-item"><span class="tag">人間側</span>正体は<strong>AIへの指示スキル（暗黙知）</strong>。同じ2%でもうまくいく指示なら30分かからない</div>
             </div>
           </div>
           <div class="conclusion mgmt">
-            <div class="conclusion-label">結論② 打ち手は「両輪」</div>
+            <div class="conclusion-label">結論：打ち手は「両輪」</div>
             <div class="conclusion-list">
               <div class="conclusion-item"><span class="tag">既存改善</span><strong>既存プロセスの継続的改善</strong>で抑止（出す量を減らす）＝現に回している部分</div>
               <div class="conclusion-item"><span class="tag">新規</span>それだけでは2%はゼロにならない→<strong>出た後の「対応」を型として新たに整備</strong>する必要</div>
@@ -277,89 +276,13 @@
     </div>
   </div>
 
-  <!-- ====================== タブ2: うまくいく指示の「型」 ====================== -->
-  <div class="tab-content" id="tab-skill">
-    <div class="grid">
-
-      <!-- 左: 型のフロー -->
-      <div class="panel">
-        <h2>残差2%を仕上げる「型」（暗黙知の抽出結果）</h2>
-        <svg viewBox="0 0 560 232" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <marker id="sa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#374151"/></marker>
-          </defs>
-
-          <rect x="150" y="8" width="260" height="34" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
-          <text x="280" y="30" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#1e40af">① 動かして気づく（読まず実行）</text>
-          <line x1="280" y1="42" x2="280" y2="56" stroke="#374151" stroke-width="1.5" marker-end="url(#sa)"/>
-
-          <text x="8" y="66" font-size="10" font-weight="bold" fill="#2563eb">② 通り道を遡る（画面から上流へ、どこで壊れたか）</text>
-          <rect x="8" y="72" width="128" height="34" rx="5" fill="#eff6ff" stroke="#2563eb" stroke-width="1.2"/>
-          <text x="72" y="93" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#1e40af">画面 / 見た目</text>
-          <line x1="136" y1="89" x2="152" y2="89" stroke="#374151" stroke-width="1.2" marker-end="url(#sa)"/>
-          <rect x="152" y="72" width="122" height="34" rx="5" fill="#eff6ff" stroke="#2563eb" stroke-width="1.2"/>
-          <text x="213" y="93" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#1e40af">API 接続</text>
-          <line x1="274" y1="89" x2="290" y2="89" stroke="#374151" stroke-width="1.2" marker-end="url(#sa)"/>
-          <rect x="290" y="72" width="122" height="34" rx="5" fill="#eff6ff" stroke="#2563eb" stroke-width="1.2"/>
-          <text x="351" y="93" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#1e40af">DB 構造</text>
-          <line x1="412" y1="89" x2="428" y2="89" stroke="#374151" stroke-width="1.2" marker-end="url(#sa)"/>
-          <rect x="428" y="72" width="124" height="34" rx="5" fill="#eff6ff" stroke="#2563eb" stroke-width="1.2"/>
-          <text x="490" y="93" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#1e40af">実データ</text>
-
-          <line x1="280" y1="106" x2="280" y2="120" stroke="#374151" stroke-width="1.5" marker-end="url(#sa)"/>
-
-          <rect x="40" y="122" width="222" height="46" rx="6" fill="#ecfdf5" stroke="#10b981" stroke-width="1.5"/>
-          <text x="151" y="141" text-anchor="middle" font-size="11" font-weight="bold" fill="#047857">③ 指示する</text>
-          <text x="151" y="158" text-anchor="middle" font-size="9" fill="#1f2937">場所・あるべき姿・証拠</text>
-
-          <rect x="298" y="122" width="222" height="46" rx="6" fill="#eef2ff" stroke="#6366f1" stroke-width="1.5"/>
-          <text x="409" y="141" text-anchor="middle" font-size="11" font-weight="bold" fill="#4338ca">③ 詰問する</text>
-          <text x="409" y="158" text-anchor="middle" font-size="9" fill="#1f2937">「なぜそうした？」で前提を吐かせる</text>
-
-          <line x1="151" y1="168" x2="230" y2="188" stroke="#374151" stroke-width="1.2" marker-end="url(#sa)"/>
-          <line x1="409" y1="168" x2="330" y2="188" stroke="#374151" stroke-width="1.2" marker-end="url(#sa)"/>
-
-          <rect x="150" y="190" width="260" height="36" rx="6" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5"/>
-          <text x="280" y="209" text-anchor="middle" font-size="11" font-weight="bold" fill="#92400e">④ どれでもなければ違和感を言語化</text>
-          <text x="280" y="221" text-anchor="middle" font-size="8.5" fill="#92400e">（最後の砦）</text>
-        </svg>
-      </div>
-
-      <!-- 右: 手の使い分けと要点 -->
-      <div class="panel">
-        <h2>2つの「手」の使い分け</h2>
-        <div class="premise-banner">
-          <span class="tag">鍵</span>
-          <div>うまくいく指示は毎回<strong>「場所・あるべき姿・証拠」の3点セット</strong>が揃っている。これが揃うとAIは契約ごと理解を更新し、周辺を壊さない。<strong>抑止・対応どちらの土台</strong>にもなる。</div>
-        </div>
-
-        <div class="move-card instruct" style="margin-top:12px;">
-          <div class="h">指示する ── あるべき姿が分かるとき</div>
-          <div class="triad"><b>場所</b>（どの層か）＋ <b>あるべき姿</b>（＝契約）＋ <b>証拠</b>（スクショ・正本・期待値）</div>
-        </div>
-        <div class="move-card probe">
-          <div class="h">詰問する ── 実装が怪しいとき</div>
-          <div class="triad">仮値実装などに「なぜそうした？」と問い、AIに<b>誤った前提を吐かせてから</b>直す。破綻の根本原因を先に潰す。</div>
-        </div>
-
-        <div class="points-label" style="margin-top:2px;">層ごとの指示の例</div>
-        <div class="points">
-          <div class="point"><span class="num">見</span><div>正本/モックのスクショを添付し「〇〇は××であるべき」</div></div>
-          <div class="point"><span class="num">API</span><div>「仮値に見える。APIから正しく取得しているか確認・修正せよ」</div></div>
-          <div class="point"><span class="num">DB</span><div>「どのテーブル/カラムが画面に出ているか確認させる」</div></div>
-        </div>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- ====================== タブ4: 抑止：2%を出さない ====================== -->
+  <!-- ====================== タブ3: 抑止：2%を出さない ====================== -->
   <div class="tab-content" id="tab-prevent">
     <div class="grid">
 
       <!-- 左: エージェント運用フロー -->
       <div class="panel">
-        <h2>型の②③をAIに肩代わりさせる（レイアウト以外＝全部データ経路）</h2>
+        <h2>生成時にデータ経路をAI自身に検証させて出さない（レイアウト以外＝全部データ経路）</h2>
         <svg viewBox="0 0 560 232" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <marker id="ga" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#374151"/></marker>
@@ -415,7 +338,7 @@
         <h2>採用する仕組み（初回実装のゲート）</h2>
         <div class="premise-banner">
           <span class="tag">切り分け</span>
-          <div>レイアウト問題（→事例②のスクショ突合）を除けば、2%は<strong>すべてデータ経路の問題</strong>。人がやっていた②③をAIに肩代わりさせる。</div>
+          <div>レイアウト問題（モックのスクショ突合で対応）を除けば、2%は<strong>すべてデータ経路の問題</strong>。これまで人が手で追っていた<strong>経路の確認をAI自身に肩代わりさせる</strong>。</div>
         </div>
 
         <div class="conclusion-wrap" style="margin-top:12px;">
@@ -440,14 +363,14 @@
 
         <div class="premise-banner">
           <span class="tag">限界</span>
-          <div>このゲートが見るのは「<strong>DBに辿れるか</strong>」だけ。値が業務的に正しいか・振る舞い・違和感は<strong>すり抜ける</strong> → タブ3「対応」へ。</div>
+          <div>このゲートが見るのは「<strong>DBに辿れるか</strong>」だけ。値が業務的に正しいか・振る舞い・違和感は<strong>すり抜ける</strong> →「対応」タブへ。</div>
         </div>
       </div>
 
     </div>
   </div>
 
-  <!-- ====================== タブ3: 対応：出た2%を直す ====================== -->
+  <!-- ====================== タブ2: 対応：出た2%を直す ====================== -->
   <div class="tab-content" id="tab-respond">
     <div class="grid">
 
@@ -540,12 +463,12 @@
         <div class="points">
           <div class="point amber"><span class="num">A</span><div><strong>契約自体の誤り</strong>（要件誤解）— 経路は正しいが「あるべき姿」が違う</div></div>
           <div class="point amber"><span class="num">B</span><div><strong>振る舞い・異常系・状態遷移</strong>— 単項目は正しいが組み合わせで崩れる</div></div>
-          <div class="point amber"><span class="num">C</span><div><strong>レイアウト崩れ</strong>（→事例②）／ <strong>④違和感</strong>（言語化前でゲートにかからない）</div></div>
+          <div class="point amber"><span class="num">C</span><div><strong>レイアウト崩れ</strong>（モックのスクショ突合で対応）／ <strong>違和感</strong>（言語化前でゲートにかからない）</div></div>
         </div>
 
         <div class="conclusion-wrap">
           <div class="conclusion">
-            <div class="conclusion-label">結論③ 再発防止の仕組み【案】</div>
+            <div class="conclusion-label">結論：再発防止の仕組み【案】</div>
             <div class="conclusion-list">
               <div class="conclusion-item"><span class="tag">ナレッジ</span>対応の暗黙知を<strong>事例化</strong>しAIに与え、AIが必要物を人に要求（人は出すだけ）</div>
               <div class="conclusion-item"><span class="tag">SSOT判定</span>3点セット提示時に原因を判定。<strong>SSOT（スキーマ・正本・仕様）の不備ならSSOTを直す＝同種2%を根絶</strong></div>
@@ -553,7 +476,7 @@
             </div>
           </div>
           <div class="conclusion mgmt">
-            <div class="conclusion-label">結論④ 社長案の読み替え</div>
+            <div class="conclusion-label">結論：社長案の読み替え</div>
             <div class="conclusion-list">
               <div class="conclusion-item"><span class="tag">診断○</span>「主因＝文脈肥大」は的確。<strong>修正は都度クリーンな文脈＋3点セット＋該当ファイル</strong>で直すのが根治</div>
               <div class="conclusion-item"><span class="tag">常設×</span>ただし"2%専任AIを常設"では効かない（2%は散在→結局全体を探索、問題が移動するだけ）</div>
