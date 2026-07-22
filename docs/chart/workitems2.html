@@ -828,9 +828,17 @@ function copyEvmSnap(btn){
     </div>
     <div style="color:#94a3b8; margin-top:6px;">この行を sprint2_data.js の <b>evmSnapshots</b> に貼り付けて週次スナップショットを記録（週1回）。progress／tobe（実績）を最新化してから算出すること。</div>
   </div>`;
+  const memo = `<div style="margin-top:12px; font-size:12px; border:1px solid #fcd34d; background:#fffbeb; border-radius:6px; padding:9px 11px; max-width:660px;">
+    <div style="font-weight:700; color:#92400e; margin-bottom:5px;">7/22 メモ</div>
+    <ul style="margin:0; padding-left:18px; line-height:1.7; color:#334155;">
+      <li>必要なタスクについてPMと相談中に気づいたものがあった。</li>
+      <li>イテレーション2のチケット作成（PM承認のためのもの、人力の部分）に時間がかかっている。</li>
+      <li>PM承認を事前プロセスに組み込む際のタスクの切り方を調整中（予実に現実的な値が出るようにするため）</li>
+    </ul>
+  </div>`;
   document.getElementById("evm").innerHTML =
     `<div style="display:flex; gap:24px; align-items:flex-start; flex-wrap:wrap;">`+
-    `<div style="flex:0 0 auto;">${svg}${legend}</div>`+
+    `<div style="flex:0 0 auto;">${svg}${legend}${memo}</div>`+
     `<div style="flex:0 0 340px;">${table}${devbox}</div></div>`;
   document.getElementById("enote").textContent = hasSnap
     ? `基準日 ${baseISO}（最新の週次スナップショット・全${snapDates.length}件）。横軸＝営業日（週末・祝日は含めない）。PV=計画値（人員別に予定休を差し引いて消化＝休みの人員がいる営業日は傾きが緩む）／EV・AC=記録スナップショット。SPI<1=遅れ / CPI<1=超過。EAC は現在効率(CPI×SPI)継続前提。スナップショットは週1回 sprint2_data.js の evmSnapshots に追記する。`
