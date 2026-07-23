@@ -60,10 +60,10 @@
   .lead { font-size: 12px; color: #4b5563; margin: 0 0 10px; line-height: 1.5; }
 
   /* ===== タブ1 (A) 確認する観点カード ===== */
-  .obs-list { display: flex; flex-direction: column; gap: 8px; }
+  .obs-list { display: flex; flex-direction: column; gap: 6px; }
   .obs-card { border: 1px solid #e5e7eb; border-radius: 6px; overflow: hidden; }
   .obs-card__title {
-    padding: 5px 10px; font-size: 11.5px; font-weight: 700; color: #fff;
+    padding: 4px 10px; font-size: 11.5px; font-weight: 700; color: #fff;
     display: flex; justify-content: space-between; align-items: center;
   }
   .obs-card__title .hint { font-size: 9.5px; font-weight: 600; opacity: 0.92; }
@@ -71,14 +71,14 @@
   .obs-card__title--out { background: #047857; }
   .obs-card__title--proc { background: #2563eb; }
   .obs-card__title--why { background: #b45309; }
-  .obs-card p { margin: 0; padding: 6px 10px; font-size: 10.8px; line-height: 1.5; color: #374151; }
+  .obs-card p { margin: 0; padding: 5px 10px; font-size: 10.4px; line-height: 1.45; color: #374151; }
   .obs-card p strong { color: #1f2937; }
 
   /* ===== タブ1 レイアウト（目的 / 中段 / 下部） ===== */
-  .dir-layout { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 12px; width: 100%; }
+  .dir-layout { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 10px; width: 100%; }
 
   /* 上部: 目的（元の分離バンド） */
-  .purpose-band { flex-shrink: 0; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 8px 14px; }
+  .purpose-band { flex-shrink: 0; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 6px 14px; }
   .pb-head { font-size: 11px; font-weight: 700; color: #1e40af; margin-bottom: 6px; }
   .pb-items { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .pb-item { display: flex; gap: 8px; align-items: flex-start; font-size: 11.5px; line-height: 1.5; color: #1f2937; }
@@ -166,6 +166,10 @@
   .ipo-memo { flex-shrink: 0; background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 6px; padding: 7px 11px; font-size: 10.8px; line-height: 1.5; color: #1f2937; }
   .ii-tag { display: inline-block; background: #2563eb; color: #fff; font-size: 9px; font-weight: 700; padding: 1px 6px; border-radius: 3px; margin-right: 6px; vertical-align: 1px; }
   .ipo-memo b { color: #1f2937; }
+  .ipo-flow { flex-shrink: 0; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .ipo-flow .fchip { background: #fff; border: 1px solid #cbd5e1; border-radius: 999px; padding: 3px 14px; font-weight: 700; color: #1f2937; font-size: 11px; }
+  .ipo-flow .fchip small { font-weight: 600; color: #2563eb; margin-left: 5px; font-size: 10px; }
+  .ipo-flow .farrow { color: #2563eb; font-weight: 700; font-size: 13px; }
 
   /* 3カラム × 上下2段（上=設問 / 下=回答） */
   .qa-grid { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
@@ -200,6 +204,15 @@
   .qa-fmt { margin-top: 6px; font-size: 10px; line-height: 1.5; color: #4b5563; background: #f3f4f6; border-left: 3px solid #9ca3af; border-radius: 4px; padding: 5px 8px; }
   .fmt-label { display: inline-block; background: #6b7280; color: #fff; font-size: 8.5px; font-weight: 700; padding: 0 5px; border-radius: 3px; margin-right: 6px; }
   .qa-arrow { text-align: center; color: #9ca3af; font-size: 13px; line-height: 1; padding: 1px 0; }
+
+  /* 往復（過程⇄出口） */
+  .rt-band { flex-shrink: 0; display: flex; align-items: center; gap: 10px; background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 6px; padding: 7px 12px; font-size: 10.5px; line-height: 1.5; color: #1f2937; }
+  .rt-arrow2 { font-size: 20px; font-weight: 800; color: #4338ca; flex-shrink: 0; line-height: 1; }
+  .rt-band b { color: #4338ca; }
+  /* 方向性①パネル内の小型往復マーカー */
+  .rt-mini { display: flex; align-items: center; gap: 6px; font-size: 9.5px; line-height: 1.4; color: #4338ca; background: #eef2ff; border: 1px dashed #c7d2fe; border-radius: 5px; padding: 2px 8px; }
+  .rt-mini strong { color: #4338ca; }
+  .rt-icon { font-weight: 800; font-size: 13px; color: #4338ca; line-height: 1; flex-shrink: 0; }
 </style>
 </head>
 <body>
@@ -234,15 +247,16 @@
         <div class="obs-list">
           <div class="obs-card">
             <div class="obs-card__title obs-card__title--in"><span>入口（Input）</span><span class="hint">何が理解できていれば始められるか</span></div>
-            <p><strong>何を・なぜ・誰が・いつ・どのように</strong>使うかを<strong>業務の言葉</strong>で説明できる。「バッチが叩く」で終わる回答は How 止まり＝不合格。</p>
+            <p>なぜ作るのか＝<strong>現状（AsIs）の業務と課題</strong>を自分の言葉で語れる（ユースケースや借り物の言葉に留めない）。あえて型にはめず、即答しにくい問いで「まだ理解できていない」に気づかせる。</p>
           </div>
           <div class="obs-card">
-            <div class="obs-card__title obs-card__title--proc"><span>過程（Process）</span><span class="hint">何が理解できていれば仕様判断ができるか</span></div>
-            <p>処理の中の<strong>業務判断が乗る分岐</strong>（1行欠損の扱い・二重取込・未着・順序＝正常/異常の岐路）を、<strong>動作と理由</strong>で説明できる。<strong>異常系は主にここ</strong>。</p>
+            <div class="obs-card__title obs-card__title--proc"><span>過程（Process）</span><span class="hint">思考を深める＝出力の土台</span></div>
+            <p>入口の気づきから<strong>ユースケースを国語的に辿り</strong>、文脈⇄結果を往復して思考を深める工程。漏れに気づき、<strong>出口（＝ユースケースに即した結果）を逆算</strong>する土台。</p>
           </div>
+          <div class="rt-mini"><span class="rt-icon">⇅</span>文脈⇄結果を<strong>往復</strong>し、漏れ（別パターン・異常系）を自己検知・PM/TLと視点同期</div>
           <div class="obs-card">
             <div class="obs-card__title obs-card__title--out"><span>出口（Output）</span><span class="hint">何が理解できていれば完了したと判断できるか</span></div>
-            <p>「何が満たされれば開発できたと言えるか」を〈<strong>前提＋観測できる結果＋どこで観測</strong>〉のワンセットで、<strong>コードを読まず動作で決着</strong>する形で言える。</p>
+            <p>「<strong>結局どうなるか</strong>」を、<strong>ユースケースに即した条件ごとの結果（正常・異常・分岐）</strong>で網羅・要約できる。網羅すると過程では気づかない<strong>漏れ（別パターン・異常系）</strong>が顕在化する。</p>
           </div>
           <div class="obs-card">
             <div class="obs-card__title obs-card__title--why"><span>理由（各段に付随）</span><span class="hint">リスク根拠</span></div>
@@ -333,7 +347,8 @@
     <div class="ipo-layout">
 
       <!-- 冒頭の切り口メモ（1帯） -->
-      <div class="ipo-memo"><span class="ii-tag">切り口</span><b>IPO</b>＝入力／過程／出力で機能を尽くす（<b>MECE</b>／重複なし・漏れなし）。理由（業務判断）は各段に付随し、<b>異常系は主に"過程"</b>に現れる。各段は「上＝設問（型）／下＝ファイル連携で埋めた回答」で対応させる。</div>
+      <div class="ipo-memo"><span class="ii-tag">切り口</span><b>入力→過程→出力（IPO）</b>の流れ。過程は"成果物"でなく<b>出力のための思考整理の工程</b>（文脈⇄結果を往復し、入口の気づきを深める）。<b>出力してPMと同期するのは入口と出口</b>。理由（業務判断）は各段に付随。</div>
+      <div class="ipo-flow"><span class="fchip">入口<small>気づき</small></span><span class="farrow">→</span><span class="fchip">過程<small>思考を深める</small></span><span class="farrow">→</span><span class="fchip">出口<small>出力</small></span></div>
 
       <!-- 3カラム × 上下2段 -->
       <div class="qa-grid">
@@ -342,31 +357,31 @@
         <div class="qa-col qa-col--in">
           <div class="qa-head">入口 / Input<span class="qa-head-sub">（何が理解できていれば始められるか）</span></div>
           <div class="qa-ask">
-            <div class="qa-tag ask">設問</div>
-            <div class="qa-text">この機能を <b>誰が・いつ・なぜ・どのように</b> 使うか、業務の言葉で<b>すべて挙げよ</b>。</div>
-            <div class="qa-fmt"><span class="fmt-label">記載項目</span><span class="fmt-slots"><span class="fmt-slot">誰が</span><span class="fmt-slot">いつ</span><span class="fmt-slot">なぜ</span><span class="fmt-slot">どのように</span></span></div>
-            <div class="qa-fmt"><span class="fmt-label">フォーマット</span>「__（誰）が、__（いつ）のとき、__（なぜ）のために、__（どのように）する」</div>
+            <div class="qa-tag ask">設問（問い）</div>
+            <div class="qa-text"><b>現状（AsIs）の業務課題</b>と、<b>誰が・いつ・なぜ・どう使うか</b>を、業務の言葉で<b>すべて挙げよ</b>。</div>
+            <div class="qa-fmt"><span class="fmt-label">目的</span>現状の業務・課題を自分の言葉で語れるか。あえて型にはめず、即答しにくい問いでハッとさせる（借り物の言葉・ユースケース止まりは NG）。</div>
+            <div class="qa-fmt"><span class="fmt-label">記載項目</span><span class="fmt-slots"><span class="fmt-slot">現状業務・課題(AsIs)</span><span class="fmt-slot">誰が</span><span class="fmt-slot">いつ</span><span class="fmt-slot">どう使う</span></span></div>
           </div>
           <div class="qa-arrow">↓</div>
           <div class="qa-ans">
             <div class="qa-tag ans">回答（埋めた例・ファイル連携）</div>
-            <div class="qa-text">「<b>基幹システムの担当者</b>が、<b>毎日の出荷締め後</b>に、<b>当日の配送指示書を現場へ配る</b>ために、<b>出荷指示ファイルを置き場に置いて自動取込させる</b>」</div>
+            <div class="qa-text"><b>AsIs:</b> <b>現状は締め後に手作業で指示書を起こしており、○時に間に合わず配車が遅れる</b><br>「<b>基幹の担当者</b>が、<b>締め後</b>に、<b>当日の配送指示書を現場へ配る</b>ために、<b>ファイルを置き場に置いて自動取込させる</b>」</div>
           </div>
         </div>
 
         <!-- 過程 -->
         <div class="qa-col qa-col--proc">
-          <div class="qa-head">過程 / Process<span class="qa-head-sub">（何が理解できていれば仕様判断ができるか）</span></div>
+          <div class="qa-head">過程 / Process<span class="qa-head-sub">（思考を深める＝出力の土台）</span></div>
           <div class="qa-ask">
-            <div class="qa-tag ask">設問</div>
-            <div class="qa-text">処理の中で <b>業務判断が乗る分岐</b> を、動作と理由まで業務の言葉で<b>すべて挙げよ</b>。</div>
-            <div class="qa-fmt"><span class="fmt-label">記載項目</span><span class="fmt-slots"><span class="fmt-slot">入力・状態</span><span class="fmt-slot">動作</span><span class="fmt-slot">理由</span></span></div>
-            <div class="qa-fmt"><span class="fmt-label">フォーマット</span>「__（入力・状態）のとき、__（どう扱う）となる」<br><b>理由:</b> __（業務上の理由）</div>
+            <div class="qa-tag ask">設問（問い）</div>
+            <div class="qa-text">このユースケースの<b>流れ・手続き</b>を、順を追って（文字で）<b>すべて挙げよ</b>。</div>
+            <div class="qa-fmt"><span class="fmt-label">目的</span>ユースケースを国語的・文字面で辿り、<b>出口（結果パターン）を逆算する土台</b>にする（文脈⇄結果を往復し思考を深める）。＝成果物でなく思考整理の工程。</div>
+            <div class="qa-fmt"><span class="fmt-label">フォーマット</span>「__（きっかけ）を受けて、__（手続きの流れ）を行い、__（次工程・成果）へ」</div>
           </div>
           <div class="qa-arrow">↓</div>
           <div class="qa-ans">
-            <div class="qa-tag ans">回答（埋めた例・ファイル連携）</div>
-            <div class="qa-text">「<b>取込ファイルに1行でも不正があった</b>とき、<b>その日の取込を全て止めて担当者へ通知</b>となる」<br><b>理由:</b> <b>1件でも誤りがある場合、ファイル生成の過程に異常が起きている可能性があり、誤配送を防止するために他のレコードについても確認する必要があるから</b></div>
+            <div class="qa-tag ans">思考整理の例（ファイル連携）</div>
+            <div class="qa-text">「<b>出荷指示ファイルの到着</b>を受けて、<b>検証→項目マッピング→DB登録→配送指示書の作成</b>を順に行い、<b>実績は別途生成してS3へ返す</b>」</div>
           </div>
         </div>
 
@@ -374,19 +389,22 @@
         <div class="qa-col qa-col--out">
           <div class="qa-head">出口 / Output<span class="qa-head-sub">（何が理解できていれば完了したと判断できるか）</span></div>
           <div class="qa-ask">
-            <div class="qa-tag ask">設問</div>
-            <div class="qa-text"><b>完了条件</b> を〈前提 ＋ 観測できる結果 ＋ どこで観測〉のワンセットで<b>すべて挙げよ</b>。</div>
-            <div class="qa-fmt"><span class="fmt-label">記載項目</span><span class="fmt-slots"><span class="fmt-slot">前提</span><span class="fmt-slot">画面</span><span class="fmt-slot">表示</span></span></div>
-            <div class="qa-fmt"><span class="fmt-label">フォーマット</span>「__（前提）していれば、__（画面）で__（表示）が観測できる」</div>
+            <div class="qa-tag ask">設問（問い）</div>
+            <div class="qa-text">このユースケースの<b>結果</b>を、<b>条件ごと（正常・異常・分岐）にすべて挙げよ</b>。</div>
+            <div class="qa-fmt"><span class="fmt-label">目的</span><b>ユースケースに即した</b>完了条件・結果パターンを、PMと同じ視座で網羅できるか。網羅すると漏れ（別パターン・異常系）が顕在化する。</div>
+            <div class="qa-fmt"><span class="fmt-label">フォーマット</span>「__（条件）なら __（結果）→ __（画面/成果物）で観測」×パターン分</div>
           </div>
           <div class="qa-arrow">↓</div>
           <div class="qa-ans">
             <div class="qa-tag ans">回答（埋めた例・ファイル連携）</div>
-            <div class="qa-text">「<b>出荷指示データが置き場に届いて</b>いれば、<b>配送指示書画面</b>で<b>当日分の指示書がDLできる</b>（○時の処理後）」</div>
+            <div class="qa-text"><b>正常:</b> データ到着 → ○時後に配送指示書画面でDL可<br><b>異常(欠損):</b> 全体棄却し担当者へ通知（誤配防止）<br><b>未着:</b> 時刻超過でエラー通知</div>
           </div>
         </div>
 
       </div>
+
+      <!-- 往復（過程⇄出口）キャプション帯 -->
+      <div class="rt-band"><span class="rt-arrow2">⇄</span><div><b>過程＝文脈⇄結果を往復する"思考の深化エンジン"</b>。入口の気づきをここで深め、①漏れ（異常系・別パターン）を自己検知　②<b>出口（出力）へ繋ぐ</b>　③レビューア(PM/TL)と同じ視点の高さへ。実装前に頭の中で1回シミュレーションする。</div></div>
 
     </div>
   </div>
