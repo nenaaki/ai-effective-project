@@ -14,7 +14,7 @@ const SPRINT2_DATA = {
   // 記録日→その時点の累積 EV/AC（h）。週1回くらい追記する。
   evmSnapshots: {
     "2026-07-21": { "ev": 43.2, "ac": 42.9 },
-    "2026-07-29": { "ev": 104.6, "ac": 94.1 }
+    "2026-07-29": { "ev": 110.6, "ac": 100.1 }
   },
   // 予定休（人員別）。その人員の営業日から除外し、当該人員のタスクを後ろ倒しする。
   leaves: {
@@ -55,9 +55,9 @@ const SPRINT2_DATA = {
     { name: "画面適用:admin各画面(前半)", base: "auth", person: 1, group: "適用", code: "IF2a", owner: "FE", deps: ["画面適用:admin共通"], asis: 22.9, plan: 4.2, tobe: 4.2, status: "完了", progress: 1, desc: "admin 21ルート前半に要素ガード。主要/個人情報系ルートのSCREEN操作キー付けを先行。計画どおり4.2hで完了。" },
     { name: "画面適用:admin各画面(後半)", base: "auth", person: 1, group: "適用", code: "IF2b", owner: "FE", deps: ["画面適用:admin各画面(前半)"], asis: 22.9, plan: 4.2, tobe: 4.2, status: "完了", progress: 1, desc: "admin 残りルートに要素ガード。SCREEN操作102の残りキー付け。計画どおり4.2hで完了。" },
     { name: "画面適用:driver",   base: "auth", person: 1, group: "適用",       code: "IF3", owner: "FE", deps: ["driverアクセス判定"], asis: 26.7, plan: 4.9, tobe: 0, status: "予定", progress: 0, desc: "app-driver 22ルートの要素ガード（KSL/配送員のロール差を反映）。URL単位判定はU4で完了。planはURL＋要素で積んだ4.9hを据え置いており、着手時に実測して見直す。" },
-    { name: "ロール切替",       base: "auth", person: 1, group: "テスト基盤", code: "IT2", owner: "BE", deps: ["JWT実装", "Edge middlewareアクセス判定(admin)"], asis: 19.1, plan: 3.5, tobe: 0, status: "予定", progress: 0, desc: "dev-bypassにprincipal載せGuardが実注入。本番はサーバ側で厳格無効化。" },
-    { name: "ロールピッカー",   base: "auth", person: 1, group: "テスト基盤", code: "IT3", owner: "FE", deps: ["URL↔権限対象 対応表・権限カタログ", "ロール切替"], asis: 15.3, plan: 2.8, tobe: 0, status: "予定", progress: 0, desc: "開発ツールバーのロール選択→入り直し→permission再取得→再ゲート。" },
-    { name: "認可テスト基盤",   base: "auth", person: 1, group: "テスト基盤", code: "IT4", owner: "BE", deps: ["URL↔権限対象 対応表・権限カタログ", "ロールSEED"], asis: 30.5, plan: 5.6, tobe: 0, status: "予定", progress: 0, desc: "actingAs()／Playwrightロール注入／SEED由来ゴールデン権限マトリクス突合。" },
+    { name: "ロール切替",       base: "auth", person: 1, group: "テスト基盤", code: "IT2", owner: "BE", deps: ["JWT実装", "Edge middlewareアクセス判定(admin)"], asis: 19.1, plan: 3.5, tobe: 2.0, status: "着手中", progress: 0.5, desc: "dev-bypassにprincipal載せGuardが実注入。本番はサーバ側で厳格無効化。" },
+    { name: "ロールピッカー",   base: "auth", person: 1, group: "テスト基盤", code: "IT3", owner: "FE", deps: ["URL↔権限対象 対応表・権限カタログ", "ロール切替"], asis: 15.3, plan: 2.8, tobe: 2.0, status: "着手中", progress: 0.5, desc: "開発ツールバーのロール選択→入り直し→permission再取得→再ゲート。" },
+    { name: "認可テスト基盤",   base: "auth", person: 1, group: "テスト基盤", code: "IT4", owner: "BE", deps: ["URL↔権限対象 対応表・権限カタログ", "ロールSEED"], asis: 30.5, plan: 5.6, tobe: 2.0, status: "着手中", progress: 0.5, desc: "actingAs()／Playwrightロール注入／SEED由来ゴールデン権限マトリクス突合。" },
     { name: "仕様精査(API適用)",   base: "auth", person: 1, group: "仕様精査",   code: "SP4",  owner: "両", deps: ["仕様精査(画面適用)"], asis: 15.1, plan: 15.1, tobe: 12, status: "着手中", progress: 0.75, desc: "API適用（master 23res/105ops・tms 8res/54ops・driver 1res/30ops）に向けた仕様精査。計画15.1hに対し12.0h消費・75%完了（残 3.8h）。scope複合の扱い・自デポ/自荷主のwhere適用範囲・actor制約と認可の責務分担・Cognito連携時期などの残論点とチケット合意。PW-229では上流が全体の64%を占めており、適用フェーズでも上流が効く見込み。" },
     { name: "API適用:master(個人情報系)", base: "auth", person: 1, group: "適用", code: "IA1a", owner: "BE", deps: ["URL↔権限対象 対応表・権限カタログ", "仕様精査(API適用)"], asis: 22.9, plan: 4.2, tobe: 0, status: "予定", progress: 0, desc: "master 実適用の先頭。個人情報系resolverに@RequirePermission＋scopeを先行付与（≒23res/105opsのうち高リスク優先）。※テスト実施係数の実測ポイント（.work/sprint2_actuals.md §7）。" },
     { name: "API適用:master(残り)", base: "auth", person: 1, group: "適用",     code: "IA1b", owner: "BE", deps: ["API適用:master(個人情報系)"], asis: 22.9, plan: 4.2, tobe: 0, status: "予定", progress: 0, desc: "master 残りresolver/opsへ横展開＋RF15。前半と同型で@RequirePermission＋scopeを付与。" },
