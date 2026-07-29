@@ -14,7 +14,7 @@ const SPRINT2_DATA = {
   // 記録日→その時点の累積 EV/AC（h）。週1回くらい追記する。
   evmSnapshots: {
     "2026-07-21": { "ev": 43.2, "ac": 42.9 },
-    "2026-07-29": { "ev": 110.6, "ac": 100.1 }
+    "2026-07-29": { "ev": 148.1, "ac": 111.1 }
   },
   // 予定休（人員別）。その人員の営業日から除外し、当該人員のタスクを後ろ倒しする。
   leaves: {
@@ -41,6 +41,7 @@ const SPRINT2_DATA = {
     { name: "Cognito整備",      base: "auth", person: 1, group: "基盤",       code: "A0",  owner: "BE", deps: [],                    asis: 20.7, plan: 4.2, tobe: 4, status: "完了", progress: 1, desc: "Cognito ユーザープール／アプリクライアント／グループ（ロール）設定・トークンクレーム設計。AWS側整備でAI駆動範囲外の手作業を含む。JWT署名検証の前提。" },
     { name: "JWT実装",          base: "auth", person: 1, group: "基盤",       code: "A",   owner: "BE", deps: ["Cognito整備"],       asis: 25.0, plan: 4.2, tobe: 4, status: "完了", progress: 1, desc: "JwtAuthGuard 本実装（Cognito署名検証・実ユーザー注入、dev-bypass温存）。最優先。" },
     { name: "ロールSEED",       base: "auth", person: 1, group: "テスト基盤", code: "IT1", owner: "DB", deps: ["JWT実装"], asis: 15.3, plan: 2.8, tobe: 1, status: "完了", progress: 1, desc: "17ロール代表デモユーザー＋scope差（デポ/荷主違い）。ロールピッカーの選択肢。計画2.8hに対し実績1.0h。認可の実装より先に整備したため、テスト基盤ブロックから前出しして JWT実装 の直後に配置。" },
+    { name: "テスト設計・実施(認可1)", base: "auth", person: 1, group: "テスト", code: "QA1", owner: "両", deps: ["認可テスト基盤"], asis: 20.0, plan: 6.0, tobe: 6.0, status: "完了", progress: 1, desc: "AIが実施したテスト" },
     // URL判定(U1-U4)＝PW-229。旧設計の7行（権限配布API/URLガード/driverガード/判定コア/Guard・デコレータ/権限ゲート(FE)/レガシー整理）を置換・内包して完了。
     { name: "仕様精査(認可)②権限モデル整理～PM合意", base: "auth", person: 1, group: "仕様精査", code: "SP2", owner: "両", deps: ["仕様精査(認可)①要件・SEED権限精査"], asis: 5.35, plan: 5.35, tobe: 5.35, status: "完了", progress: 1, desc: "権限マトリクス精査・URL↔権限対象 対応表の作成・driver側の権限モデル決定・spec作成＋作業チケットのスコープ合意（PM承認）。URL判定ブロック(U1-U4)の実装直前。PW-229 の上流実測10.7hの後半分。" },
     { name: "認可ビット基盤(authz-bits)", base: "auth", person: 1, group: "URL判定", code: "U1", owner: "BE", deps: ["JWT実装", "仕様精査(認可)②権限モデル整理～PM合意"], asis: 18.5, plan: 3.4, tobe: 0.4, status: "完了", progress: 1, desc: "16bit のパック/アンパック共有実装（libs/shared-utils/src/authz-bits.ts・35行）。DBは既存 m_role_targets / m_role_group_targets を流用しスキーマ変更ゼロ。" },
@@ -58,12 +59,13 @@ const SPRINT2_DATA = {
     { name: "ロール切替",       base: "auth", person: 1, group: "テスト基盤", code: "IT2", owner: "BE", deps: ["JWT実装", "Edge middlewareアクセス判定(admin)"], asis: 19.1, plan: 3.5, tobe: 2.0, status: "着手中", progress: 0.5, desc: "dev-bypassにprincipal載せGuardが実注入。本番はサーバ側で厳格無効化。" },
     { name: "ロールピッカー",   base: "auth", person: 1, group: "テスト基盤", code: "IT3", owner: "FE", deps: ["URL↔権限対象 対応表・権限カタログ", "ロール切替"], asis: 15.3, plan: 2.8, tobe: 2.0, status: "着手中", progress: 0.5, desc: "開発ツールバーのロール選択→入り直し→permission再取得→再ゲート。" },
     { name: "認可テスト基盤",   base: "auth", person: 1, group: "テスト基盤", code: "IT4", owner: "BE", deps: ["URL↔権限対象 対応表・権限カタログ", "ロールSEED"], asis: 30.5, plan: 5.6, tobe: 2.0, status: "着手中", progress: 0.5, desc: "actingAs()／Playwrightロール注入／SEED由来ゴールデン権限マトリクス突合。" },
+    { name: "テスト設計・実施(認可2)", base: "auth", person: 1, group: "テスト", code: "QA1", owner: "両", deps: ["認可テスト基盤"], asis: 20.0, plan: 5.0, tobe: 5.0, status: "完了", progress: 1, desc: "AIが実施したテスト" },
     { name: "仕様精査(API適用)",   base: "auth", person: 1, group: "仕様精査",   code: "SP4",  owner: "両", deps: ["仕様精査(画面適用)"], asis: 15.1, plan: 15.1, tobe: 12, status: "着手中", progress: 0.75, desc: "API適用（master 23res/105ops・tms 8res/54ops・driver 1res/30ops）に向けた仕様精査。計画15.1hに対し12.0h消費・75%完了（残 3.8h）。scope複合の扱い・自デポ/自荷主のwhere適用範囲・actor制約と認可の責務分担・Cognito連携時期などの残論点とチケット合意。PW-229では上流が全体の64%を占めており、適用フェーズでも上流が効く見込み。" },
     { name: "API適用:master(個人情報系)", base: "auth", person: 1, group: "適用", code: "IA1a", owner: "BE", deps: ["URL↔権限対象 対応表・権限カタログ", "仕様精査(API適用)"], asis: 22.9, plan: 4.2, tobe: 0, status: "予定", progress: 0, desc: "master 実適用の先頭。個人情報系resolverに@RequirePermission＋scopeを先行付与（≒23res/105opsのうち高リスク優先）。※テスト実施係数の実測ポイント（.work/sprint2_actuals.md §7）。" },
     { name: "API適用:master(残り)", base: "auth", person: 1, group: "適用",     code: "IA1b", owner: "BE", deps: ["API適用:master(個人情報系)"], asis: 22.9, plan: 4.2, tobe: 0, status: "予定", progress: 0, desc: "master 残りresolver/opsへ横展開＋RF15。前半と同型で@RequirePermission＋scopeを付与。" },
     { name: "API適用:tms",      base: "auth", person: 1, group: "適用",       code: "IA2", owner: "BE", deps: ["URL↔権限対象 対応表・権限カタログ"], asis: 38.2, plan: 7.0, tobe: 0, status: "予定", progress: 0, desc: "tms 8res/54ops＋RF15。自デポ/自荷主 scopeのwhere適用が主戦場。" },
     { name: "API適用:driver",   base: "auth", person: 1, group: "適用",       code: "IA3", owner: "BE", deps: ["URL↔権限対象 対応表・権限カタログ"], asis: 19.1, plan: 3.5, tobe: 0, status: "予定", progress: 0, desc: "driver 1res/30ops。別紙02のactor制約と認可の責務分担を整理して付与。" },
-    { name: "テスト設計・実施(認可)", base: "auth", person: 1, group: "テスト", code: "QA1", owner: "両", deps: ["認可テスト基盤"], asis: 43.6, plan: 8.0, tobe: 0, status: "予定", progress: 0, desc: "①のうち【テスト/PR未実施】の実装系47.6h（画面適用admin完了分11.9＋画面適用driver4.9＋テスト基盤11.9＋API適用18.9）に対するテスト仕様設計＋テスト実施＋デグレチェック範囲確認。暫定係数0.168＝PW-229実測（下流残差1.3h÷実装4.9h）。⚠️既存への横展開が主体だったPW-236の実測は1.88で約10倍高い。適用8タスク着手後に実測へ差替が必要。" },
+    { name: "テスト設計・実施(認可)", base: "auth", person: 1, group: "テスト", code: "QA1", owner: "両", deps: ["認可テスト基盤"], asis: 20.0, plan: 11.0, tobe: 0, status: "予定", progress: 0, desc: "①のうち【テスト/PR未実施】の実装系47.6h（画面適用admin完了分11.9＋画面適用driver4.9＋テスト基盤11.9＋API適用18.9）に対するテスト仕様設計＋テスト実施＋デグレチェック範囲確認。暫定係数0.168＝PW-229実測（下流残差1.3h÷実装4.9h）。⚠️既存への横展開が主体だったPW-236の実測は1.88で約10倍高い。適用8タスク着手後に実測へ差替が必要。" },
     { name: "PR・レビュー対応(認可)", base: "auth", person: 1, group: "PR", code: "PR1", owner: "両", deps: [], asis: 26.7, plan: 4.9, tobe: 0, status: "予定", progress: 0, desc: "①のうち【テスト/PR未実施】の実装系47.6hに対するPR本文作成＋レビュー指摘対応。暫定係数0.102＝PW-229実測（pr-writer 5.7分＋reviewer 24.9分）。" },
 
     // ───────── ③ ファイル連携（S3＋Transfer Family の SFTP 前提。人員2はこの③から着手＝③→②→④）─────────
@@ -81,7 +83,7 @@ const SPRINT2_DATA = {
     { name: "実績ファイル配置", base: "file", person: 2, group: "送信", code: "F7", owner: "BE", deps: ["出荷実績生成", "ファイル授受基盤"],     asis: 11.4, plan: 2.1, tobe: 0, status: "予定", progress: 0, desc: "生成した出荷実績ファイルをS3へ配置（担当者がSFTPで受領）。" },
     { name: "サイサン実績送信(IF005)", base: "file", person: 2, group: "送信", code: "F10", owner: "BE", deps: ["ファイル定義基盤", "出荷実績生成"], asis: 11.4, plan: 2.1, tobe: 0, status: "予定", progress: 0, desc: "IF005。サイサン出荷実績の定義追加（別ファイル・サンプル無し→正解は基幹側読込検証）。生成本体は出荷実績生成を再利用。" },
     { name: "連携E2E(ファイル)", base: "file", person: 2, group: "E2E", code: "F8", owner: "両", deps: ["配送指示書作成連携", "実績ファイル配置"], asis: 11.4, plan: 2.1, tobe: 0, status: "予定", progress: 0, desc: "SFTPでファイル配置→取込→指示書作成／実績生成→S3配置 を1本通すE2E（成功・部分失敗・冪等再取込）。" },
-    { name: "テスト設計・実施(ファイル連携)", base: "file", person: 2, group: "テスト", code: "QA3", owner: "両", deps: ["連携E2E(ファイル)"], asis: 28.9, plan: 5.3, tobe: 0, status: "予定", progress: 0, desc: "③実装系31.5hに対するテスト仕様設計＋テスト実施＋デグレチェック範囲確認。暫定係数0.168＝PW-229実測。新規追加型のため低係数で置いているが、既存の取込/出力処理に触る範囲が出たら見直す。" },
+    { name: "テスト設計・実施(ファイル連携)", base: "file", person: 2, group: "テスト", code: "QA3", owner: "両", deps: ["連携E2E(ファイル)"], asis: 28.9, plan: 5.3, tobe: 0, status: "予定", progress: 5, desc: "③実装系31.5hに対するテスト仕様設計＋テスト実施＋デグレチェック範囲確認。暫定係数0.168＝PW-229実測。新規追加型のため低係数で置いているが、既存の取込/出力処理に触る範囲が出たら見直す。" },
     { name: "PR・レビュー対応(ファイル連携)", base: "file", person: 2, group: "PR", code: "PR3", owner: "両", deps: [], asis: 17.4, plan: 3.2, tobe: 0, status: "予定", progress: 0, desc: "③実装系31.5hに対するPR本文作成＋レビュー指摘対応。暫定係数0.102＝PW-229実測。" },
 
     // ───────── ② 外部連携（SMS）※実装以降(L1-L5/QA2/PR2)はレーン均衡のため人員1が担当。仕様精査は人員2が継続し spec を渡す ─────────
