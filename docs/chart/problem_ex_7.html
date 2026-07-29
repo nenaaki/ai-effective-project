@@ -213,6 +213,39 @@
   .rt-mini { display: flex; align-items: center; gap: 6px; font-size: 9.5px; line-height: 1.4; color: #4338ca; background: #eef2ff; border: 1px dashed #c7d2fe; border-radius: 5px; padding: 2px 8px; }
   .rt-mini strong { color: #4338ca; }
   .rt-icon { font-weight: 800; font-size: 13px; color: #4338ca; line-height: 1; flex-shrink: 0; }
+
+  /* ===== タブ「実施:入口/過程/出口」= スライド画像 + 吹き出し ===== */
+  .rec-layout { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 8px; width: 100%; }
+  .rec-meta { flex-shrink: 0; display: flex; align-items: center; flex-wrap: wrap; gap: 8px; background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 6px; padding: 5px 12px; font-size: 11px; color: #4b5563; }
+  .rec-meta .rm-tag { background: #4338ca; color: #fff; font-size: 9px; font-weight: 700; padding: 1px 7px; border-radius: 3px; }
+  .rec-meta b { color: #1f2937; }
+  .rec-meta .rm-sep { color: #cbd5e1; }
+
+  .rec-main { flex: 1; min-height: 0; display: flex; gap: 14px; align-items: stretch; }
+  .rec-img { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; justify-content: center; background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 8px; overflow: hidden; }
+  .rec-img img { max-width: 100%; max-height: 100%; object-fit: contain; border: 1px solid #eef0f3; border-radius: 4px; }
+
+  .rec-callouts { flex: 0 0 384px; display: flex; flex-direction: column; gap: 9px; justify-content: center; min-height: 0; }
+  .rc-title { font-size: 10px; font-weight: 700; color: #6b7280; }
+
+  .callout { position: relative; margin-left: 10px; border-radius: 8px; padding: 6px 11px 7px; border: 1px solid; }
+  .callout::before { content: ''; position: absolute; left: -8px; top: 12px; width: 0; height: 0; border-top: 7px solid transparent; border-bottom: 7px solid transparent; border-right: 8px solid; }
+  .co-tag { display: inline-block; color: #fff; font-size: 9px; font-weight: 700; padding: 1px 7px; border-radius: 3px; margin-bottom: 4px; }
+  .co-body { font-size: 10.6px; line-height: 1.5; color: #374151; }
+  .co-body b { color: #1f2937; }
+
+  .callout--amber { background: #fffbeb; border-color: #fcd34d; }
+  .callout--amber::before { border-right-color: #fcd34d; }
+  .callout--amber .co-tag { background: #f59e0b; }
+  .callout--gray { background: #f3f4f6; border-color: #d1d5db; }
+  .callout--gray::before { border-right-color: #d1d5db; }
+  .callout--gray .co-tag { background: #9ca3af; }
+  .callout--blue { background: #eff6ff; border-color: #bfdbfe; }
+  .callout--blue::before { border-right-color: #bfdbfe; }
+  .callout--blue .co-tag { background: #2563eb; }
+  .callout--red { background: #fee2e2; border-color: #fecaca; }
+  .callout--red::before { border-right-color: #fecaca; }
+  .callout--red .co-tag { background: #dc2626; }
 </style>
 </head>
 <body>
@@ -224,6 +257,9 @@
     <button class="tab active" data-tab="direction">方向性</button>
     <button class="tab" data-tab="question">具体的な設問</button>
     <button class="tab" data-tab="names">名称案</button>
+    <button class="tab" data-tab="rec-in">実施:入口</button>
+    <button class="tab" data-tab="rec-proc">実施:過程</button>
+    <button class="tab" data-tab="rec-out">実施:出口</button>
   </div>
 
   <!-- ====================== タブ1: 方向性 ====================== -->
@@ -398,6 +434,96 @@
       <!-- 往復（過程⇄出口）キャプション帯 -->
       <div class="rt-band"><span class="rt-arrow2">⇄</span><div><b>過程＝文脈⇄結果を往復する"思考の深化エンジン"</b>。入口の気づきをここで深め、①漏れ（異常系・別パターン）を自己検知　②<b>出口（出力）へ繋ぐ</b>　③レビューア(PM/TL)と同じ視点の高さへ。実装前に頭の中で1回シミュレーションする。</div></div>
 
+    </div>
+  </div>
+
+  <!-- ====================== タブ: 実施:入口（レビュー資料スライド + 谷PM指摘） ====================== -->
+  <div class="tab-content" id="tab-rec-in">
+    <div class="rec-layout">
+      <div class="rec-meta">
+        <span class="rm-tag">実施記録</span><span><b>2026-07-28</b></span>
+        <span class="rm-sep">|</span><span>題材：<b>外部基幹システム連携基盤</b></span>
+        <span class="rm-sep">|</span><span>参加：谷PM・水野エンジニア</span>
+        <span class="rm-sep">|</span><span>設問① 入口 / Input（現状AsIs業務）</span>
+      </div>
+      <div class="rec-main">
+        <div class="rec-img"><img src="pe7-rec-in.png" alt="入口 / Input のレビュー資料スライド"></div>
+        <div class="rec-callouts">
+          <div class="rc-title">谷PM から入った指摘・補足</div>
+          <div class="callout callout--gray">
+            <span class="co-tag">認識の補足</span>
+            <div class="co-body">PW基幹は2系統「<b>4U／WS</b>」（同一形式・保管場所のみ別）。再散・東京ガスも同形式で届く。KSLも同じ置き場だが、<b>SFTP受信口へ置く経路が要件定義完了時と変化</b>している点が課題。</div>
+          </div>
+          <div class="callout callout--blue">
+            <span class="co-tag">業務背景</span>
+            <div class="co-body"><b>12時台の取込が肝</b>。デポで午後便に間に合わせるため、<b>配送指示書は14時までに出来ている</b>必要がある（谷PM現地確認済み）。</div>
+          </div>
+          <div class="callout callout--amber">
+            <span class="co-tag">認識の訂正</span>
+            <div class="co-body">作る指示書は「<b>翌日分</b>」（当日分は前日14時まで）。受信は<b>最大3日先</b>まで、長期休暇は<b>休み明けまでの分が一括</b>で届く。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================== タブ: 実施:過程（レビュー資料スライド + 谷PM指摘） ====================== -->
+  <div class="tab-content" id="tab-rec-proc">
+    <div class="rec-layout">
+      <div class="rec-meta">
+        <span class="rm-tag">実施記録</span><span><b>2026-07-28</b></span>
+        <span class="rm-sep">|</span><span>題材：<b>外部基幹システム連携基盤</b></span>
+        <span class="rm-sep">|</span><span>参加：谷PM・水野エンジニア</span>
+        <span class="rm-sep">|</span><span>設問② 過程 / Process（手続きフロー）</span>
+      </div>
+      <div class="rec-main">
+        <div class="rec-img"><img src="pe7-rec-proc.png" alt="過程 / Process のレビュー資料スライド"></div>
+        <div class="rec-callouts">
+          <div class="rc-title">谷PM から入った指摘・補足</div>
+          <div class="callout callout--blue">
+            <span class="co-tag">責務の確認</span>
+            <div class="co-body">責務境界を確認。<b>A＝受信・取込まで</b>／<b>B＝実績を作成しS3へ配置まで</b>（KSL以外は配送指示書を出す）。</div>
+          </div>
+          <div class="callout callout--amber">
+            <span class="co-tag">資料の訂正</span>
+            <div class="co-body">実績の送信先から<b>KSLを除外</b>。現行でKSLへ実績は送っていない（KSL以外はAと同じ送信先）。</div>
+          </div>
+          <div class="callout callout--gray">
+            <span class="co-tag">業務情報の補足</span>
+            <div class="co-body">KSLは配送指示書でなく「<b>送り状＋納品書</b>」を独自出力。実績の用途は<b>運賃計算・水源地別の集計</b>→在庫補充/需要予測。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================== タブ: 実施:出口（レビュー資料スライド + 谷PM指摘） ====================== -->
+  <div class="tab-content" id="tab-rec-out">
+    <div class="rec-layout">
+      <div class="rec-meta">
+        <span class="rm-tag">実施記録</span><span><b>2026-07-28</b></span>
+        <span class="rm-sep">|</span><span>題材：<b>外部基幹システム連携基盤</b></span>
+        <span class="rm-sep">|</span><span>参加：谷PM・水野エンジニア</span>
+        <span class="rm-sep">|</span><span>設問③ 出口 / Output（正常・異常・分岐）</span>
+      </div>
+      <div class="rec-main">
+        <div class="rec-img"><img src="pe7-rec-out.png" alt="出口 / Output のレビュー資料スライド"></div>
+        <div class="rec-callouts">
+          <div class="rc-title">谷PM から入った指摘・補足</div>
+          <div class="callout callout--amber">
+            <span class="co-tag">未決・論点</span>
+            <div class="co-body">不備時の「<b>再配置</b>」ルートが未定義。現行は松尾さんが属人的に手動で取込み直し。本案件で自動化＋手動再実行にしたいが手順は未定義。</div>
+          </div>
+          <div class="callout callout--amber">
+            <span class="co-tag">設計論点</span>
+            <div class="co-body"><b>レコード単位の保留(L3)は管理が難しい</b>。谷「95件OK/5件NGなら、100件全部直して再取込が早いのでは」。</div>
+          </div>
+          <div class="callout callout--red">
+            <span class="co-tag">重要</span>
+            <div class="co-body"><b>重複取込の防止</b>。再送時はキー項目で既取込をスキップし、既取込95件＋修正5件が重複エラーにならないように。結論＝「<b>正しいものが入る</b>」。</div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
