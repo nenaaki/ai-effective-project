@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>議事まとめ 2026-07-22</title>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body {
+    font-family: -apple-system, "Hiragino Kaku Gothic ProN", "Yu Gothic", system-ui, sans-serif;
+    color: #1f2937;
+    background: #fafafa;
+    padding: 12px 28px 8px;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+  .page { max-width: 1240px; margin: 0 auto; height: 100%; display: flex; flex-direction: column; }
+  h1 { font-size: 18px; margin: 0; border-bottom: 3px solid #2563eb; padding-bottom: 5px; }
+  .sub { color: #6b7280; font-size: 11.5px; margin: 5px 0 8px; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1.05fr 1fr;
+    gap: 14px;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+  }
+  .panel {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 11px 13px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: auto;
+  }
+  h2 { font-size: 12.5px; margin: 0 0 7px; padding-left: 8px; border-left: 3px solid #2563eb; }
+  h2.amber { border-left-color: #f59e0b; }
+
+  .items { display: flex; flex-direction: column; gap: 5px; }
+  .item {
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 11.5px;
+    line-height: 1.45;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .item .num {
+    background: #2563eb;
+    color: white;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 11px;
+    flex-shrink: 0;
+  }
+  .item.amber .num { background: #f59e0b; }
+  .item .title { font-weight: 600; color: #1f2937; }
+  .item .desc { color: #4b5563; margin-top: 2px; font-size: 11px; }
+  .item .desc a, .ref-line a { color: #2563eb; text-decoration: none; }
+  .item .desc a:hover, .ref-line a:hover { text-decoration: underline; }
+
+  .item-detail {
+    margin-top: 4px;
+    background: #f9fafb;
+    border-left: 2px solid #2563eb;
+    border-radius: 3px;
+    padding: 4px 8px;
+    font-size: 10.5px;
+    line-height: 1.45;
+    color: #374151;
+  }
+  .item-detail .head {
+    font-size: 10px;
+    font-weight: 700;
+    color: #1e40af;
+    letter-spacing: 0.04em;
+    margin-bottom: 4px;
+  }
+  .item-detail ul { margin: 0; padding-left: 16px; }
+  .item-detail li { margin: 2px 0; }
+  .item-detail.amber { border-left-color: #f59e0b; }
+  .item-detail.amber .head { color: #b45309; }
+
+  .ref-line { margin-top: 5px; font-size: 10.5px; color: #6b7280; padding-left: 4px; }
+
+  /* 下段: 決定事項（全幅・3カラム） */
+  .panel.bottom { margin-top: 11px; flex: none; overflow: visible; padding: 9px 13px 10px; }
+  .panel.bottom .decisions { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .panel.bottom .decision { padding: 7px 9px; font-size: 11px; line-height: 1.5; }
+  .panel.bottom .quote { margin-top: 7px; padding: 5px 9px; font-size: 10px; line-height: 1.5; }
+
+  /* 決定事項・ネクストアクション */
+  .decisions { display: flex; flex-direction: column; gap: 6px; }
+  .decision {
+    background: #ecfdf5;
+    border-left: 3px solid #10b981;
+    border-radius: 4px;
+    padding: 8px 10px;
+    font-size: 11.5px;
+    line-height: 1.55;
+  }
+  .decision .tag {
+    display: inline-block;
+    background: #10b981;
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 3px;
+    margin-right: 6px;
+    vertical-align: 1px;
+  }
+  .decision .tag.action { background: #2563eb; }
+  .decision .tag.hold { background: #9ca3af; }
+
+  /* 最終メッセージ・補足 */
+  .quote {
+    background: #fef3c7;
+    border-left: 3px solid #f59e0b;
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 10.5px;
+    line-height: 1.55;
+    color: #78350f;
+    font-style: italic;
+  }
+  .quote .who { display: block; font-style: normal; font-weight: 700; font-size: 10px; color: #b45309; margin-bottom: 2px; letter-spacing: 0.04em; }
+  .quote a { color: #b45309; font-style: normal; }
+
+  .block { margin-bottom: 9px; }
+  .block:last-child { margin-bottom: 0; }
+  .panel .block h2 { margin-bottom: 6px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>議事まとめ 2026-07-22 ― 「入口・出口」の視座向上と デバッグ（残り2%）の標準化</h1>
+  <div class="sub">参加者: 金子・山本礼貴・水野 ／ AI駆動開発PJ 戦略的プロセス刷新会議。関連: <a href="problem_ex_7.html">課題事例⑦（サンプリングレビューの内部統制化）</a>・<a href="problem_ex_6.html">課題事例⑥（最後の2%の属人性）</a></div>
+
+  <div class="grid">
+
+    <!-- 左: 議題① 入口・出口 -->
+    <div class="panel">
+      <h2>① 「入口・出口」チェックのプロセス化とエンジニアの視座向上</h2>
+      <div class="items">
+        <div class="item">
+          <span class="num">1</span>
+          <div>
+            <div class="title">目的：作業代行者にしない／業務視点を組織で担保する</div>
+            <div class="desc">AI駆動開発で「作る」工程が効率化される中、人間が注力すべきは<strong>「なぜこれを作るのか」という業務背景の深い理解</strong>。「業務視点で考えて提案できる」という<strong>CCTの伝統的な強みをAI時代でも組織的に担保する仕組み</strong>として位置づける。</div>
+          </div>
+        </div>
+        <div class="item amber">
+          <span class="num">2</span>
+          <div>
+            <div class="title">「入口」の再定義：業務課題を自分の言葉で答えさせる</div>
+            <div class="desc">従来の「ユースケースの理解」に留まらず、<strong>「その機能が必要とされる背景（業務課題）」</strong>を答えさせることを必須とする。「借り物の言葉」ではなく、設計思想・企画思想を受け止め、機能の存在意義を自分事として捉える姿勢を求める。</div>
+            <div class="item-detail amber">
+              <div class="head">教育的意図（あえて答えにくくする）</div>
+              <ul>
+                <li>即答しにくい設問を投げ、<strong>「まだ業務を理解できていない」と本人に気づかせる（ハッとさせる）</strong>。</li>
+                <li>そのため<strong>あえてフォーマットを整えない</strong>。</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="item">
+          <span class="num">3</span>
+          <div>
+            <div class="title">「出口」：実装前に品質と認識を同期させる</div>
+            <div class="desc">実装前に<strong>「どのようなパターン（正常系・異常系・条件分岐）を考慮すべきか」</strong>を具体化させ、チームリーダー／PMと視点を合わせる。実装中の認識漏れを未然に防ぎ、<strong>レビューアと同じ視点レベルまで引き上げた状態で開発をスタート</strong>させる。</div>
+          </div>
+        </div>
+        <div class="item">
+          <span class="num">4</span>
+          <div>
+            <div class="title">運用：2階層 × サンプリング</div>
+            <div class="desc">チームリーダー／PM の<strong>2階層のチェック体制</strong>で運用し、<strong>PMがリスクに応じて重要な箇所をサンプリング</strong>して実施する。</div>
+          </div>
+        </div>
+      </div>
+      <div class="ref-line">元メモ: <a href="../../.work/2026-07-22_議事録.md">.work/2026-07-22_議事録.md</a></div>
+    </div>
+
+    <!-- 右: 議題② デバッグ標準化 + 決定 -->
+    <div class="panel">
+      <div class="block">
+        <h2 class="amber">② デバッグ（残り2%）の標準化と明文化</h2>
+        <div class="items">
+          <div class="item amber">
+            <span class="num">1</span>
+            <div>
+              <div class="title">課題：「30分の壁」と属人性</div>
+              <div class="desc">AIが情報を誤解・推測で突き進み、画面が壊れる／テストが通らなくなる。最後の微調整とエラー解消（<strong>残り約2%</strong>）で時間が溶ける。属人的だったこの工程を、<strong>誰でも100点（完成）に持っていけるよう標準化</strong>する。</div>
+            </div>
+          </div>
+          <div class="item">
+            <span class="num">2</span>
+            <div>
+              <div class="title">デバッグ工程の定義：テストケース先行</div>
+              <div class="desc">「機能開発は一応終わっているが、<strong>テストケースが全部は通っていない状態</strong>」をデバッグが必要な状態と定義。まず<strong>テストケースを明文化（先行定義）</strong>し、<strong>それが全て通るまで</strong>をデバッグの範囲とする。</div>
+            </div>
+          </div>
+          <div class="item">
+            <span class="num">3</span>
+            <div>
+              <div class="title">2段階のデバッグ・メソドロジー</div>
+              <div class="desc">作業を2ステップに分解し、両方が<strong>「丸（適正）」になるまで繰り返す</strong>ことで、理論値（期待値）に物理的な実装を追いつかせる。</div>
+              <div class="item-detail">
+                <div class="head">2ステップ</div>
+                <ul>
+                  <li><strong>① 原因の特定</strong> — なぜ期待値と違う結果が出ているのか、メカニズムを解明する。</li>
+                  <li><strong>② 原因の除去</strong> — 解明された原因に基づき、再設計およびインプリ（実装）を行う。</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="item">
+            <span class="num">4</span>
+            <div>
+              <div class="title">試行：分析エージェント／敵対的レビューエージェント</div>
+              <div class="desc"><strong>分析エージェント</strong>＝過去のトラブル事例（ボタン重複でテスト不可 等）を分析し、人間と相談しながら解決策を提示。<strong>敵対的レビューエージェント</strong>＝コードがDBから正しく値を取っているか等をより厳格に検証。<strong>オーバーヘッドと効果のバランスを検証</strong>する。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- 下段: 決定事項・アクションアイテム（両議題共通） -->
+  <div class="panel bottom">
+    <h2>決定事項・アクションアイテム</h2>
+    <div class="decisions">
+      <div class="decision"><span class="tag action">アクション</span><strong>「入口・出口」チェックの具体化</strong> — 業務背景を問う設問設計を行い、<strong>直近のファイル連携タスク等で実践を開始</strong>する。</div>
+      <div class="decision"><span class="tag action">アクション</span><strong>デバッグ標準プロセスの策定</strong> — 「テストケース策定」→「原因特定」→「原因除去」のフローを明文化し、<strong>AI活用のガイドラインに組み込む</strong>。</div>
+      <div class="decision"><span class="tag hold">持ち越し</span><strong>プロセス名称の再検討</strong> — 内容の具体化に合わせ、社内で浸透しやすい呼称を検討する（<strong>名称案は今回持ち越し</strong>）。</div>
+    </div>
+    <div class="quote">
+      <span class="who">補足（不確実な点）</span>
+      名称案は複数出たが、設問内容の固まり具合を見て再検討となり<strong>現時点では未確定</strong>。一部の専門用語（BPさんへの展開・特定システム略称等）は音声が重なり聞き取りづらい箇所があったが、「業務理解のプロセス化」「デバッグの構造化」という合意内容には影響なし。
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
