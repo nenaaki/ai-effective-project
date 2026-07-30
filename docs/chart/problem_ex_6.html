@@ -2,503 +2,575 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>課題事例⑥: AIの「最後の2%」修正の属人性</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>課題事例⑥: 開発サイクル I/O フロー — 現行エージェント構成</title>
 <style>
-  html, body { margin: 0; padding: 0; height: 100%; }
-  body {
-    font-family: -apple-system, "Hiragino Kaku Gothic ProN", "Yu Gothic", system-ui, sans-serif;
-    color: #1f2937;
-    background: #fafafa;
-    padding: 28px 32px;
-    box-sizing: border-box;
-    overflow: hidden;
-  }
-  .page { max-width: 1240px; margin: 0 auto; height: 100%; display: flex; flex-direction: column; }
-  h1 { font-size: 19px; margin: 0; border-bottom: 3px solid #2563eb; padding-bottom: 6px; }
-  .sub { color: #6b7280; font-size: 12px; margin: 6px 0 14px; }
-
-  .tabs { display: flex; gap: 4px; margin-bottom: 14px; border-bottom: 1px solid #e5e7eb; }
-  .tab {
-    padding: 8px 16px;
-    background: transparent;
-    border: 1px solid transparent;
-    border-bottom: none;
-    border-radius: 6px 6px 0 0;
-    cursor: pointer;
-    font-size: 13px;
-    font-family: inherit;
-    color: #6b7280;
-    margin-bottom: -1px;
-  }
-  .tab.active { background: white; border-color: #e5e7eb; color: #2563eb; font-weight: 600; }
-  .tab:hover { color: #1f2937; }
-
-  .tab-content { display: none; flex: 1; min-height: 0; }
-  .tab-content.active { display: flex; }
-
-  .grid {
-    display: grid;
-    grid-template-columns: 1.1fr 1fr;
-    gap: 18px;
-    flex: 1;
-    min-height: 0;
-    width: 100%;
-  }
-  .panel {
-    background: white;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    padding: 14px 16px;
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-  }
-  h2 { font-size: 13px; margin: 0 0 10px; padding-left: 8px; border-left: 3px solid #2563eb; }
-  svg { display: block; width: 100%; height: auto; flex: 1; }
-
-  .issue-block {
-    background: #fef3c7;
-    border-left: 3px solid #f59e0b;
-    padding: 12px 14px;
-    border-radius: 4px;
-    margin-bottom: 12px;
-  }
-  .issue-block .label { font-size: 11px; color: #92400e; font-weight: 600; }
-  .issue-block .title { font-size: 14px; font-weight: 600; color: #1f2937; margin-top: 4px; line-height: 1.5; }
-
-  .points-label { font-size: 12px; font-weight: 600; color: #2563eb; margin: 6px 0; }
-  .points { display: flex; flex-direction: column; gap: 8px; }
-  .point {
-    border: 1px solid #e5e7eb;
-    border-radius: 6px;
-    padding: 9px 12px;
-    font-size: 12px;
-    display: flex;
-    gap: 10px;
-    align-items: flex-start;
-  }
-  .point .num {
-    background: #2563eb; color: white;
-    width: 20px; height: 20px;
-    border-radius: 50%;
-    display: inline-flex; align-items: center; justify-content: center;
-    font-weight: bold; font-size: 11px;
-    flex-shrink: 0;
-  }
-  .point.amber .num { background: #f59e0b; }
-
-  .conclusion-wrap {
-    margin-top: 10px;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-  }
-  .conclusion {
-    border-radius: 4px;
-    padding: 8px 10px;
-    border-left: 3px solid #10b981;
-    background: #ecfdf5;
-  }
-  .conclusion.mgmt {
-    border-left-color: #6366f1;
-    background: #eef2ff;
-  }
-  .conclusion.problem {
-    border-left-color: #dc2626;
-    background: #fee2e2;
-  }
-  .conclusion-label {
-    font-size: 10.5px;
-    font-weight: 700;
-    color: #047857;
-    letter-spacing: 0.04em;
-    margin-bottom: 5px;
-  }
-  .conclusion.mgmt .conclusion-label { color: #4338ca; }
-  .conclusion.problem .conclusion-label { color: #991b1b; }
-  .conclusion-list { display: flex; flex-direction: column; gap: 4px; }
-  .conclusion-item {
-    font-size: 11px;
-    line-height: 1.5;
-    color: #1f2937;
-  }
-  .conclusion-item .tag {
-    display: inline-block;
-    background: #10b981;
-    color: white;
-    font-size: 9.5px;
-    font-weight: 700;
-    padding: 1px 5px;
-    border-radius: 3px;
-    margin-right: 5px;
-    vertical-align: 1px;
-  }
-  .conclusion.mgmt .conclusion-item .tag { background: #6366f1; }
-  .conclusion.problem .conclusion-item .tag { background: #dc2626; }
-
-  .premise-banner {
-    margin-top: 10px;
-    background: white;
-    border: 1.5px solid #047857;
-    border-radius: 4px;
-    padding: 7px 10px;
-    font-size: 11px;
-    line-height: 1.55;
-    color: #1f2937;
-    display: flex;
-    align-items: flex-start;
-    gap: 6px;
-  }
-  .premise-banner .tag {
-    background: #047857;
-    color: white;
-    font-size: 9.5px;
-    font-weight: 700;
-    padding: 1px 6px;
-    border-radius: 3px;
-    flex-shrink: 0;
-    margin-top: 1px;
-    letter-spacing: 0.03em;
-  }
-
-  /* 手・役割カード */
-  .move-card {
-    border-radius: 6px;
-    padding: 10px 12px;
-    margin-bottom: 10px;
-    font-size: 12px;
-    line-height: 1.5;
-  }
-  .move-card.instruct { border-left: 3px solid #10b981; background: #ecfdf5; }
-  .move-card.probe { border-left: 3px solid #6366f1; background: #eef2ff; }
-  .move-card .h { font-weight: 700; font-size: 12.5px; margin-bottom: 4px; }
-  .move-card.instruct .h { color: #047857; }
-  .move-card.probe .h { color: #4338ca; }
-  .move-card .triad { font-size: 11px; color: #1f2937; }
-  .move-card .triad b { color: #047857; }
-  .move-card.probe .triad b { color: #4338ca; }
+  :root { color-scheme: light; }
+  body { margin: 0; padding: 0; font: 14px -apple-system, BlinkMacSystemFont, sans-serif; background: #faf9f5; color: #141413; }
+  img { max-width: 100%; }
 </style>
 </head>
 <body>
-<div class="page">
-  <h1>課題事例⑥: AIの「最後の2%」修正の属人性</h1>
-  <div class="sub">AIDD 試行の構造的課題 / 2026-07-16 社長との会話 ＋ 現場の暗黙知を抽出 / 2026-07-20 更新：抑止＋対応の「両輪」に整理</div>
+<style>
+  :root {
+    --bg: #f3f5f8; --surface: #ffffff; --surface-2: #eaeef3; --ink: #1a2030;
+    --muted: #5f6a7d; --line: #d9dfe8;
+    --accent: #4550c4; --accent-soft: #e9ebfb;
+    --gate: #a86a15; --gate-soft: #f8eed6;
+    --new: #0c8f81; --new-soft: #d6f0ec;
+    --old: #6b7382; --old-soft: #eef1f5;
+    --report: #7a5bb0; --report-soft: #efe8fa;
+    --shadow: 0 1px 2px rgba(20,30,50,.05), 0 4px 16px rgba(20,30,50,.05);
+    --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", "Noto Sans JP", Meiryo, sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0d131d; --surface: #161e2b; --surface-2: #1d2635; --ink: #e5ebf3;
+      --muted: #94a0b3; --line: #29344a;
+      --accent: #8b95ff; --accent-soft: #232a4b;
+      --gate: #e0a94a; --gate-soft: #38300f;
+      --new: #45d3c1; --new-soft: #103a36;
+      --old: #8b94a5; --old-soft: #1b2331;
+      --report: #b79be6; --report-soft: #2a2140;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 20px rgba(0,0,0,.28);
+    }
+  }
+  :root[data-theme="light"] {
+    --bg:#f3f5f8;--surface:#fff;--surface-2:#eaeef3;--ink:#1a2030;--muted:#5f6a7d;--line:#d9dfe8;
+    --accent:#4550c4;--accent-soft:#e9ebfb;--gate:#a86a15;--gate-soft:#f8eed6;--new:#0c8f81;--new-soft:#d6f0ec;
+    --old:#6b7382;--old-soft:#eef1f5;--report:#7a5bb0;--report-soft:#efe8fa;
+    --shadow:0 1px 2px rgba(20,30,50,.05),0 4px 16px rgba(20,30,50,.05);
+  }
+  :root[data-theme="dark"] {
+    --bg:#0d131d;--surface:#161e2b;--surface-2:#1d2635;--ink:#e5ebf3;--muted:#94a0b3;--line:#29344a;
+    --accent:#8b95ff;--accent-soft:#232a4b;--gate:#e0a94a;--gate-soft:#38300f;--new:#45d3c1;--new-soft:#103a36;
+    --old:#8b94a5;--old-soft:#1b2331;--report:#b79be6;--report-soft:#2a2140;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.28);
+  }
 
-  <div class="tabs">
-    <button class="tab active" data-tab="issue">課題と論点</button>
-    <button class="tab" data-tab="respond">対応：出た2%を直す</button>
-    <button class="tab" data-tab="prevent">抑止：2%を出さない</button>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font-sans); line-height: 1.55; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 1000px; margin: 0 auto; padding: 40px 20px 72px; }
+
+  .eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); margin: 0 0 10px; }
+  h1 { font-size: clamp(22px,3.2vw,32px); line-height: 1.18; letter-spacing: -.02em; text-wrap: balance; margin: 0 0 12px; font-weight: 680; }
+  .lede { color: var(--muted); font-size: 15px; max-width: 64ch; margin: 0; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 14px 22px; margin-top: 22px; padding: 14px 18px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); }
+  .legend .li { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted); }
+  .sw { width: 14px; height: 14px; border-radius: 4px; flex: none; }
+  .sw.ag{background:var(--accent-soft);border:1.5px solid var(--accent);}
+  .sw.new{background:var(--new-soft);border:1.5px solid var(--new);}
+  .sw.in{background:transparent;border:1.5px dashed var(--muted);}
+  .sw.key{background:var(--new-soft);border:1.5px solid var(--new);}
+  .sw.rep{background:var(--report-soft);border:1.5px solid var(--report);}
+  .sw.gate{background:var(--gate-soft);border:1.5px solid var(--gate);border-radius:999px;}
+
+  /* ---------- timeline ---------- */
+  .flow { display: flex; flex-direction: column; align-items: center; margin-top: 36px; }
+
+  .stage { width: 100%; max-width: 560px; }
+  .stnum { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 12px; color: var(--muted); margin-bottom: 7px; letter-spacing: .04em; }
+  .stnum b { width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; }
+
+  /* node = input(top) / agent(mid) / output(bottom) */
+  .node { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); overflow: hidden; }
+  .node > .seg { padding: 11px 14px; }
+  .node > .seg + .seg { border-top: 1px solid var(--line); }
+  .seg.io { background: var(--surface); }
+  .seg.io .lbl { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 9.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-bottom: 7px; }
+  .seg.io.out { background: var(--surface-2); }
+  .seg.mid { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; background: var(--surface); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+
+  .chip { display: inline-flex; align-items: center; padding: 5px 9px; border-radius: 6px; font-size: 12px; }
+  .in { border: 1px dashed var(--muted); background: transparent; font-family: var(--font-mono); font-size: 10.5px; color: var(--muted); }
+  .key { border: 1.5px solid var(--new); background: var(--new-soft); color: var(--new); font-family: var(--font-mono); font-size: 10.5px; font-weight: 640; }
+  .rep { border: 1px solid var(--report); background: var(--report-soft); color: var(--report); font-family: var(--font-mono); font-size: 10.5px; }
+  .doc { border: 1px solid var(--accent); background: var(--accent-soft); color: var(--accent); font-family: var(--font-mono); font-size: 10.5px; font-weight: 600; }
+  .ag { padding: 7px 13px; border-radius: 8px; font-weight: 660; font-size: 13.5px; border: 1px solid var(--accent); background: var(--accent-soft); color: var(--accent); }
+  .ag.multi { font-size: 12.5px; font-weight: 600; }
+  .ag.new { border-color: var(--new); background: var(--new-soft); color: var(--new); }
+  .ag.opt { border-style: dashed; }
+  .ag .b { font-family: var(--font-mono); font-size: 8px; letter-spacing: .1em; font-weight: 800; margin-left: 6px; vertical-align: middle; }
+  .gate { display: inline-flex; align-items: center; gap: 5px; padding: 5px 11px; border-radius: 999px; border: 1.5px solid var(--gate); background: var(--gate-soft); color: var(--gate); font-size: 11.5px; font-weight: 620; }
+  .hint { font-size: 11px; color: var(--muted); }
+
+  /* connectors */
+  .conn { height: 30px; width: 2px; background: var(--line); position: relative; }
+  .conn::after { content: "▼"; position: absolute; left: 50%; bottom: -3px; transform: translateX(-50%); color: var(--line); font-size: 12px; }
+
+  /* split region */
+  .split { width: 100%; max-width: 900px; }
+  .splitbar { text-align: center; margin-bottom: 4px; }
+  .splitbar .tag { display: inline-block; font-family: var(--font-mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; font-weight: 700; color: var(--new); background: var(--new-soft); border: 1px solid var(--new); padding: 4px 12px; border-radius: 999px; }
+  .splitbar .cap { display: block; font-size: 12px; color: var(--muted); margin-top: 8px; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 14px; align-items: start; }
+  .lane { display: flex; flex-direction: column; align-items: stretch; }
+  .lanehead { text-align: center; font-size: 12.5px; font-weight: 680; padding: 7px; border-radius: 8px 8px 0 0; margin-bottom: 0; }
+  .lane.old .lanehead { background: var(--old-soft); color: var(--old); border: 1px solid var(--line); border-bottom: none; }
+  .lane.new .lanehead { background: var(--new-soft); color: var(--new); border: 1px solid var(--new); border-bottom: none; }
+  .lane .node { border-radius: 0 0 12px 12px; }
+  .lane.new .node { border-color: var(--new); }
+  .lane .conn { align-self: center; }
+  .empty { background: var(--old-soft); border: 1px dashed var(--line); border-radius: 12px; padding: 20px 16px; color: var(--muted); font-size: 12.5px; text-align: center; line-height: 1.5; }
+  .empty b { color: var(--ink); }
+
+  .forklabel { display: flex; justify-content: space-between; max-width: 900px; width: 100%; margin: 8px auto 0; font-size: 11px; color: var(--muted); font-family: var(--font-mono); letter-spacing: .05em; }
+  .substage { text-align: center; font-size: 11.5px; font-weight: 640; color: var(--muted); margin-bottom: 6px; }
+  .substage.new { color: var(--new); }
+  .loop { align-self: center; color: var(--gate); font-size: 15px; font-weight: 700; }
+
+  /* ---------- reference tables ---------- */
+  section.ref { margin-top: 50px; }
+  h2 { font-size: 18px; letter-spacing: -.01em; font-weight: 660; margin: 0 0 4px; display: flex; align-items: baseline; gap: 10px; }
+  h2 .n { font-family: var(--font-mono); font-size: 12px; color: var(--muted); font-weight: 600; }
+  .sub { color: var(--muted); font-size: 13.5px; margin: 0 0 18px; max-width: 72ch; }
+  .tblwrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; min-width: 680px; }
+  th, td { text-align: left; padding: 10px 13px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  thead th { background: var(--surface-2); font-weight: 620; font-size: 11.5px; white-space: nowrap; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr.new-row { background: var(--new-soft); }
+  tbody tr.chg-row td:first-child { box-shadow: inset 3px 0 0 var(--new); }
+  td.who { font-weight: 640; white-space: nowrap; }
+  .m { font-family: var(--font-mono); font-size: 11px; }
+  .flag { font-family: var(--font-mono); font-size: 9.5px; font-weight: 700; letter-spacing: .06em; padding: 2px 6px; border-radius: 4px; white-space: nowrap; }
+  .flag.new { background: var(--new); color: #fff; }
+  .flag.chg { background: var(--new-soft); color: var(--new); border: 1px solid var(--new); }
+  .flag.same { color: var(--muted); }
+  .plus { color: var(--new); font-weight: 640; }
+
+  footer { margin-top: 46px; padding-top: 20px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }
+
+  /* ---------- tabs ---------- */
+  .tabs { display: flex; gap: 6px; margin-top: 26px; border-bottom: 1px solid var(--line); }
+  .tab { appearance: none; background: transparent; border: 1px solid transparent; border-bottom: none; padding: 10px 18px; font: inherit; font-size: 13.5px; font-weight: 640; color: var(--muted); cursor: pointer; border-radius: 10px 10px 0 0; margin-bottom: -1px; }
+  .tab:hover { color: var(--ink); }
+  .tab[aria-selected="true"] { color: var(--accent); background: var(--surface); border-color: var(--line); border-bottom-color: var(--surface); }
+  .tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .panelnote { color: var(--muted); font-size: 13.5px; max-width: 70ch; margin: 22px 0 0; }
+
+  /* ---------- scope rings (tab 2) ---------- */
+  .rings { margin-top: 20px; }
+  .ring { border-radius: 16px; padding: 15px; border: 1.5px solid; }
+  .ring > .ring { margin-top: 13px; }
+  .ring.outer { border-color: var(--report); background: var(--report-soft); }
+  .ring.inner { border-color: var(--new); background: var(--new-soft); }
+  .ring.core { border-color: var(--accent); background: var(--accent-soft); }
+  .ringhead { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; margin-bottom: 8px; }
+  .rname { font-size: 13.5px; font-weight: 700; }
+  .ring.outer .rname { color: var(--report); }
+  .ring.inner .rname { color: var(--new); }
+  .ring.core .rname { color: var(--accent); }
+  .rby { font-family: var(--font-mono); font-size: 10.5px; font-weight: 640; padding: 3px 9px; border-radius: 999px; border: 1px solid; background: var(--surface); }
+  .ring.outer .rby { color: var(--report); border-color: var(--report); }
+  .ring.inner .rby { color: var(--new); border-color: var(--new); }
+  .ring.core .rby { color: var(--accent); border-color: var(--accent); }
+  .rdesc { font-size: 12.5px; color: var(--ink); margin: 0 0 10px; max-width: 78ch; }
+  .rsrc { background: var(--surface); border-radius: 10px; padding: 10px 12px; font-size: 11.5px; color: var(--muted); }
+  .rsrc b { color: var(--ink); font-weight: 640; }
+  .rsrc .chips { margin-top: 7px; }
+  .callout { margin-top: 22px; background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--gate); border-radius: 12px; padding: 14px 16px; box-shadow: var(--shadow); font-size: 12.5px; }
+  .callout h3 { margin: 0 0 6px; font-size: 13px; font-weight: 680; color: var(--gate); }
+  .callout p { margin: 0; color: var(--muted); max-width: 78ch; }
+  .cat { font-family: var(--font-mono); font-size: 10.5px; font-weight: 700; padding: 2px 7px; border-radius: 5px; background: var(--surface-2); border: 1px solid var(--line); color: var(--ink); white-space: nowrap; }
+
+  /* ---------- knowledge loop (tab 3) ---------- */
+  .cycle { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 22px; margin-top: 22px; align-items: start; }
+  .cyc-a { grid-column: 1; grid-row: 1; }
+  .cyc-down { grid-column: 1; grid-row: 2; }
+  .cyc-vault { grid-column: 1 / -1; grid-row: 3; }
+  .cyc-up { grid-column: 2; grid-row: 2; }
+  .cyc-b { grid-column: 2; grid-row: 1; }
+  .cycard { background: var(--surface); border: 1.5px solid var(--line); border-radius: 14px; padding: 14px 16px; box-shadow: var(--shadow); }
+  .cycard.rec { border-color: var(--gate); }
+  .cycard.use { border-color: var(--accent); }
+  .cyhead { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; font-size: 13.5px; font-weight: 700; margin-bottom: 8px; }
+  .cycard.rec .cyhead { color: var(--gate); }
+  .cycard.use .cyhead { color: var(--accent); }
+  .cyhead .tagx { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor; }
+  .cystep { display: flex; gap: 9px; font-size: 12.5px; padding: 7px 0; border-top: 1px dashed var(--line); align-items: flex-start; }
+  .cystep:first-of-type { border-top: none; }
+  .cystep .no { flex: none; width: 19px; height: 19px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 10.5px; font-weight: 700; background: var(--surface-2); color: var(--muted); margin-top: 1px; }
+  .cycard.rec .cystep.hi .no { background: var(--gate); color: #fff; }
+  .cycard.use .cystep.hi .no { background: var(--accent); color: #fff; }
+  .cyarrow { display: flex; flex-direction: column; align-items: center; gap: 3px; color: var(--new); font-size: 11.5px; text-align: center; padding: 2px 0; }
+  .cyarrow .gl { font-size: 16px; line-height: 1; }
+  .cyarrow .mob { display: none; }
+  .vault { border: 1.5px solid var(--new); background: var(--new-soft); border-radius: 14px; padding: 15px 16px; }
+  .vault .cyhead { color: var(--new); margin-bottom: 4px; }
+  .vault .vsub { font-size: 12px; color: var(--muted); margin: 0; }
+  .vitems { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+  .vitem { background: var(--surface); border-radius: 10px; padding: 11px 13px; font-size: 12.5px; }
+  .vitem b { display: block; font-family: var(--font-mono); font-size: 11px; color: var(--new); margin-bottom: 4px; }
+  .loopback { margin-top: 16px; display: flex; align-items: center; justify-content: center; gap: 9px; font-size: 12.5px; font-weight: 620; color: var(--gate); background: var(--gate-soft); border: 1px dashed var(--gate); border-radius: 999px; padding: 10px 18px; text-align: center; }
+  @media (max-width: 680px) {
+    .cycle { grid-template-columns: 1fr; }
+    .cyc-a, .cyc-down, .cyc-vault, .cyc-up, .cyc-b { grid-column: 1; grid-row: auto; }
+    .cyarrow .desk { display: none; }
+    .cyarrow .mob { display: block; }
+    .vitems { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 680px) {
+    .cols { grid-template-columns: 1fr; }
+    .forklabel { display: none; }
+  }
+</style>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">pw-dms / エージェント I/O 設計</p>
+    <h1>課題事例⑥: 開発サイクル I/O フロー — 現行エージェント構成</h1>
+    <p class="lede">チケット駆動サイクルを I/O 視点で図示。<b>全体像</b>は工程の流れ、<b>テスト観点の強化</b>はスコープに対するテストケースの網羅範囲。チーム共有・議論用。</p>
+  </header>
+
+  <div class="tabs" role="tablist" aria-label="表示切替">
+    <button class="tab" type="button" role="tab" id="tab-overview" aria-controls="panel-overview" aria-selected="true">全体像</button>
+    <button class="tab" type="button" role="tab" id="tab-debug" aria-controls="panel-debug" aria-selected="false" tabindex="-1">デバッグの改善</button>
+    <button class="tab" type="button" role="tab" id="tab-test" aria-controls="panel-test" aria-selected="false" tabindex="-1">テスト観点の強化</button>
   </div>
 
-  <!-- ====================== タブ1: 課題と論点 ====================== -->
-  <div class="tab-content active" id="tab-issue">
-    <div class="grid">
-
-      <!-- 左: 両輪の構造図 -->
-      <div class="panel">
-        <h2>2%はゼロにできない → 抑止と対応の「両輪」</h2>
-        <svg viewBox="0 0 560 232" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#374151"/></marker>
-          </defs>
-
-          <rect x="160" y="8" width="240" height="42" rx="6" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
-          <text x="280" y="27" text-anchor="middle" font-size="12" font-weight="bold" fill="#92400e">AI が 98% 完成 → 残り 2%</text>
-          <text x="280" y="42" text-anchor="middle" font-size="9.5" fill="#92400e">どれだけ気を付けても必ず出る（ゼロにはできない）</text>
-
-          <line x1="255" y1="50" x2="150" y2="82" stroke="#374151" stroke-width="1.5" marker-end="url(#a1)"/>
-          <line x1="305" y1="50" x2="410" y2="82" stroke="#374151" stroke-width="1.5" marker-end="url(#a1)"/>
-
-          <!-- 継続的な改善を実施している部分（抑止を囲う） -->
-          <rect x="16" y="72" width="258" height="76" rx="9" fill="none" stroke="#047857" stroke-width="1.5" stroke-dasharray="5 3"/>
-          <rect x="20" y="59" width="150" height="16" rx="8" fill="#047857"/>
-          <text x="95" y="70.5" text-anchor="middle" font-size="8.5" font-weight="bold" fill="white">継続的な改善を実施中</text>
-
-          <rect x="28" y="84" width="232" height="54" rx="6" fill="#ecfdf5" stroke="#10b981" stroke-width="1.5"/>
-          <text x="144" y="105" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#047857">抑止 ── 出す量を減らす</text>
-          <text x="144" y="123" text-anchor="middle" font-size="9.5" fill="#1f2937">経路報告 × 敵対的検証（→「抑止」タブ）</text>
-
-          <rect x="300" y="84" width="232" height="54" rx="6" fill="#eef2ff" stroke="#6366f1" stroke-width="1.5"/>
-          <text x="416" y="105" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#4338ca">対応 ── 出た後のコストを減らす</text>
-          <text x="416" y="123" text-anchor="middle" font-size="9.5" fill="#1f2937">3点セット修正 ＋ 再検証ループ（→「対応」タブ）</text>
-
-          <line x1="144" y1="138" x2="235" y2="164" stroke="#374151" stroke-width="1.5" marker-end="url(#a1)"/>
-          <line x1="416" y1="138" x2="325" y2="164" stroke="#374151" stroke-width="1.5" marker-end="url(#a1)"/>
-
-          <rect x="110" y="166" width="340" height="52" rx="6" fill="white" stroke="#047857" stroke-width="2"/>
-          <text x="280" y="186" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#047857">共通の核：指示の3点セット</text>
-          <text x="280" y="203" text-anchor="middle" font-size="9.5" fill="#1f2937">場所・あるべき姿・証拠（欠けると 30分 ＋ 壊れる）</text>
-        </svg>
-        <div style="flex-shrink:0; margin-top:8px; font-size:11.5px; line-height:1.65; color:#1f2937;">
-          <div style="font-weight:700; color:#047857; font-size:11px; margin-bottom:3px;">指示の3点セットとは</div>
-          <div><b style="color:#047857;">場所</b> … どこを（探索を消す＝<b>速い</b>）</div>
-          <div><b style="color:#047857;">あるべき姿</b>（＝契約） … 正しくはどうか（契約誤解を消す＝<b>壊さない</b>）</div>
-          <div><b style="color:#047857;">証拠</b> … その根拠（スクショ・正本・期待値）</div>
-        </div>
-      </div>
-
-      <!-- 右: 課題 + 論点 + 結論 -->
-      <div class="panel">
-        <h2>課題と論点</h2>
-        <div class="issue-block">
-          <div class="label">課題</div>
-          <div class="title">AIが98%正しく作っても、残り2%を100%にする工程は必ず発生する。<br>この工程の <strong>属人性</strong>（＝30分かかる・人が直すと壊れる）をどう無くすか。</div>
-        </div>
-        <div class="points-label">論点</div>
-        <div class="points">
-          <div class="point"><span class="num">1</span><div>「30分かかる」と「人が直すと壊れる」は<strong>別問題か</strong></div></div>
-          <div class="point"><span class="num">2</span><div>属人性は<strong>どこに宿る</strong>か（AI側か・人間側か）</div></div>
-          <div class="point"><span class="num">3</span><div>抑止（出さない工夫）<strong>だけで足りるか</strong></div></div>
-        </div>
-
-        <div class="premise-banner">
-          <span class="tag">発見</span>
-          <div>「30分」と「壊れる」は<strong>同じ現象の裏表</strong>。指示の3点セットが欠けると、AIは全体を探索し(=30分)、契約を誤解して実装をいじる(=壊れる)。</div>
-        </div>
-
-        <div class="conclusion-wrap">
-          <div class="conclusion">
-            <div class="conclusion-label">結論：属人性の正体</div>
-            <div class="conclusion-list">
-              <div class="conclusion-item"><span class="tag">人間側</span>正体は<strong>AIへの指示スキル（暗黙知）</strong>。同じ2%でもうまくいく指示なら30分かからない</div>
-            </div>
-          </div>
-          <div class="conclusion mgmt">
-            <div class="conclusion-label">結論：打ち手は「両輪」</div>
-            <div class="conclusion-list">
-              <div class="conclusion-item"><span class="tag">既存改善</span><strong>既存プロセスの継続的改善</strong>で抑止（出す量を減らす）＝現に回している部分</div>
-              <div class="conclusion-item"><span class="tag">新規</span>それだけでは2%はゼロにならない→<strong>出た後の「対応」を型として新たに整備</strong>する必要</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
+  <div id="panel-overview" role="tabpanel" aria-labelledby="tab-overview">
+    <p class="panelnote">上から下へ時系列で進行。各ノードは<b>入力（上）→ エージェント → 出力（下）</b>。動作が変わる工程だけ<b>旧（左）／現行（右）</b>に分岐する。</p>
+    <div class="legend">
+      <span class="li"><span class="sw ag"></span>エージェント</span>
+      <span class="li"><span class="sw new"></span>新設／責務が変わったエージェント</span>
+      <span class="li"><span class="sw in"></span>入力（成果物）</span>
+      <span class="li"><span class="sw key"></span>test-spec.md（新）</span>
+      <span class="li"><span class="sw rep"></span>検証結果</span>
+      <span class="li"><span class="sw gate"></span>人間ゲート</span>
+      <span class="li"><span class="loop" style="font-size:13px">⟲</span>レビュー差し戻し</span>
     </div>
-  </div>
 
-  <!-- ====================== タブ3: 抑止：2%を出さない ====================== -->
-  <div class="tab-content" id="tab-prevent">
-    <div class="grid">
+  <div class="flow">
 
-      <!-- 左: エージェント運用フロー -->
-      <div class="panel">
-        <h2>生成時にデータ経路をAI自身に検証させて出さない（レイアウト以外＝全部データ経路）</h2>
-        <svg viewBox="0 0 560 232" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <marker id="ga" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#374151"/></marker>
-            <marker id="gr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#dc2626"/></marker>
-          </defs>
-
-          <!-- 実装AI -->
-          <rect x="8" y="16" width="230" height="52" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
-          <text x="123" y="37" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#1e40af">実装AI ── 自己申告</text>
-          <text x="123" y="53" text-anchor="middle" font-size="9" fill="#1f2937">画面項目→table.column→実データ?</text>
-
-          <line x1="238" y1="42" x2="262" y2="42" stroke="#374151" stroke-width="1.5" marker-end="url(#ga)"/>
-
-          <!-- レビューAI -->
-          <rect x="262" y="16" width="290" height="52" rx="6" fill="#eef2ff" stroke="#6366f1" stroke-width="1.5"/>
-          <text x="407" y="37" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#4338ca">レビューAI ── 敵対的検証</text>
-          <text x="407" y="53" text-anchor="middle" font-size="9" fill="#1f2937">Prismaスキーマ(SSOT)・実APIと突合（申告を疑う）</text>
-
-          <!-- 分岐ハブ -->
-          <line x1="407" y1="68" x2="407" y2="84" stroke="#374151" stroke-width="1.5"/>
-          <line x1="120" y1="84" x2="490" y2="84" stroke="#374151" stroke-width="1.2"/>
-          <line x1="120" y1="84" x2="120" y2="108" stroke="#374151" stroke-width="1.5" marker-end="url(#ga)"/>
-          <line x1="300" y1="84" x2="300" y2="108" stroke="#f59e0b" stroke-width="1.5" marker-end="url(#ga)"/>
-          <line x1="490" y1="84" x2="490" y2="108" stroke="#dc2626" stroke-width="1.5" marker-end="url(#gr)"/>
-
-          <!-- 完了 -->
-          <rect x="20" y="110" width="180" height="52" rx="6" fill="#ecfdf5" stroke="#047857" stroke-width="2"/>
-          <text x="110" y="131" text-anchor="middle" font-size="11" font-weight="bold" fill="#047857">経路OK → 完了 100%</text>
-          <text x="110" y="147" text-anchor="middle" font-size="9" fill="#1f2937">実データが正しく通っている</text>
-
-          <!-- 修正 -->
-          <rect x="212" y="110" width="176" height="52" rx="6" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5"/>
-          <text x="300" y="131" text-anchor="middle" font-size="11" font-weight="bold" fill="#92400e">仮値・不整合</text>
-          <text x="300" y="147" text-anchor="middle" font-size="9" fill="#92400e">→ 実装AIへ修正指示</text>
-
-          <!-- 停止・報告 -->
-          <rect x="400" y="110" width="152" height="52" rx="6" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
-          <text x="476" y="131" text-anchor="middle" font-size="11" font-weight="bold" fill="#991b1b">出所不明 → 停止</text>
-          <text x="476" y="147" text-anchor="middle" font-size="9" fill="#991b1b">率直に報告</text>
-
-          <!-- 修正ループバック -->
-          <path d="M 300 162 V 180 H 123 V 68" fill="none" stroke="#f59e0b" stroke-width="1.2" stroke-dasharray="4 3" marker-end="url(#ga)"/>
-
-          <!-- 停止報告の注記 -->
-          <rect x="330" y="192" width="222" height="34" rx="5" fill="white" stroke="#dc2626" stroke-width="1.2" stroke-dasharray="4 3"/>
-          <text x="441" y="206" text-anchor="middle" font-size="9" font-weight="bold" fill="#991b1b">「何が足りないか」をエンジニアへ</text>
-          <text x="441" y="219" text-anchor="middle" font-size="8.5" fill="#991b1b">カラム対応／API／仕様の確認</text>
-        </svg>
+    <!-- Stage 1 -->
+    <div class="stage">
+      <div class="stnum"><b>1</b> 合意（作る前）</div>
+      <div class="node">
+        <div class="seg io"><span class="lbl">▼ 入力</span><div class="chips"><span class="chip in">要望・関連資料</span><span class="chip in">mock</span><span class="chip in">関連ナレッジ（knowledge/）</span></div></div>
+        <div class="seg mid"><span class="ag">pm</span><span class="hint">役割: 合意チケット（起動時に明示）</span><span class="gate">🧑 合意</span></div>
+        <div class="seg io out"><span class="lbl">▲ 出力</span><div class="chips"><span class="chip doc">pm.ticket.md（完了条件）</span></div></div>
       </div>
-
-      <!-- 右: 役割・仮値ルール -->
-      <div class="panel">
-        <h2>採用する仕組み（初回実装のゲート）</h2>
-        <div class="premise-banner">
-          <span class="tag">切り分け</span>
-          <div>レイアウト問題（モックのスクショ突合で対応）を除けば、2%は<strong>すべてデータ経路の問題</strong>。これまで人が手で追っていた<strong>経路の確認をAI自身に肩代わりさせる</strong>。</div>
-        </div>
-
-        <div class="conclusion-wrap" style="margin-top:12px;">
-          <div class="conclusion">
-            <div class="conclusion-label">実装AI＝自己申告</div>
-            <div class="conclusion-list">
-              <div class="conclusion-item"><span class="tag">安い</span>作った本人が<strong>経路を表で申告</strong>（画面項目→出所→table.column→実データ?）</div>
-            </div>
-          </div>
-          <div class="conclusion mgmt">
-            <div class="conclusion-label">レビューAI＝敵対的検証</div>
-            <div class="conclusion-list">
-              <div class="conclusion-item"><span class="tag">疑う</span>申告を鵜呑みにせず<strong>スキーマ(SSOT)・実APIと突合</strong>。幻覚・モック由来の固定値を弾く</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="issue-block" style="margin-top:12px;">
-          <div class="label">仮値ルール（DB非依拠は有罪推定）</div>
-          <div class="title" style="font-size:11.5px;"><strong>DBに基づかない値は原則NG</strong>。table.column まで辿れない値は理由を問わず却下（無罪推定でなく有罪推定）。特に<strong>モック由来の固定値</strong>に注意（モックは<u>レイアウトの正本だが値は偽物</u>）。出所不明なら停止し「何が足りないか」を率直に報告。</div>
-        </div>
-
-        <div class="premise-banner">
-          <span class="tag">限界</span>
-          <div>このゲートが見るのは「<strong>DBに辿れるか</strong>」だけ。値が業務的に正しいか・振る舞い・違和感は<strong>すり抜ける</strong> →「対応」タブへ。</div>
-        </div>
-      </div>
-
     </div>
-  </div>
 
-  <!-- ====================== タブ2: 対応：出た2%を直す ====================== -->
-  <div class="tab-content" id="tab-respond">
-    <div class="grid">
+    <div class="conn"></div>
 
-      <!-- 左: 発生時の対応フロー -->
-      <div class="panel">
-        <h2>出た2%を「速く・壊さず」直すループ</h2>
-        <svg viewBox="0 0 560 232" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <marker id="ra" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#374151"/></marker>
-            <marker id="rd" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#6366f1"/></marker>
-            <marker id="rb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#2563eb"/></marker>
-          </defs>
-
-          <!-- すり抜けた2% -->
-          <rect x="150" y="6" width="260" height="36" rx="6" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
-          <text x="280" y="24" text-anchor="middle" font-size="11" font-weight="bold" fill="#991b1b">抑止をすり抜けた2%（ゲートの外側）</text>
-          <text x="280" y="37" text-anchor="middle" font-size="8.5" fill="#991b1b">契約誤り・振る舞い/異常系・違和感</text>
-          <line x1="280" y1="42" x2="280" y2="52" stroke="#374151" stroke-width="1.5" marker-end="url(#ra)"/>
-
-          <!-- 検知 -->
-          <rect x="110" y="52" width="340" height="36" rx="6" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5"/>
-          <text x="280" y="70" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#92400e">検知：出口検収（シナリオ×テストデータ）＋ 動かして気づく</text>
-          <text x="280" y="83" text-anchor="middle" font-size="8.5" fill="#92400e">抑止ゲートの外側を捕まえる網</text>
-          <line x1="280" y1="88" x2="280" y2="100" stroke="#374151" stroke-width="1.5" marker-end="url(#ra)"/>
-
-          <!-- 事例ナレッジ（入力・案） -->
-          <rect x="6" y="98" width="88" height="46" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="1.3" stroke-dasharray="4 2"/>
-          <text x="50" y="113" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#1e40af">事例ナレッジ</text>
-          <text x="50" y="125" text-anchor="middle" font-size="7.5" fill="#1f2937">既知2%×直し方</text>
-          <text x="50" y="137" text-anchor="middle" font-size="7.5" fill="#6b7280">＋対応を追記(蓄積)</text>
-          <line x1="94" y1="120" x2="110" y2="120" stroke="#2563eb" stroke-width="1.3" marker-end="url(#rb)"/>
-
-          <!-- 修正: AI要求駆動（案） -->
-          <rect x="110" y="98" width="340" height="46" rx="6" fill="#ecfdf5" stroke="#10b981" stroke-width="1.5"/>
-          <text x="280" y="112" text-anchor="middle" font-size="10" font-weight="bold" fill="#047857">修正：AIが事例ナレッジを照合し「必要物」を人に要求</text>
-          <text x="280" y="125" text-anchor="middle" font-size="8" fill="#991b1b">人は材料を提出するだけ・直接コードは触らない（触ると壊れる）</text>
-          <text x="280" y="138" text-anchor="middle" font-size="8.5" fill="#1f2937">→ 3点セット（場所・あるべき姿・証拠）が揃い、AIが直す</text>
-          <line x1="280" y1="144" x2="280" y2="152" stroke="#374151" stroke-width="1.5" marker-end="url(#ra)"/>
-
-          <!-- 再検証 -->
-          <rect x="110" y="152" width="340" height="42" rx="6" fill="#eef2ff" stroke="#6366f1" stroke-width="1.5"/>
-          <text x="280" y="169" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#4338ca">経路報告を再実行 → レビューAIが再検証</text>
-          <text x="280" y="184" text-anchor="middle" font-size="8.5" fill="#1f2937">＝抑止ゲートを「各修正にも巻く」ループ／原因も判定</text>
-
-          <!-- ループバック（右側） -->
-          <path d="M 450 173 H 468 V 121 H 450" fill="none" stroke="#6366f1" stroke-width="1.2" stroke-dasharray="4 3" marker-end="url(#rd)"/>
-
-          <!-- SSOT正本（再発防止：不備なら直す＝根絶） -->
-          <rect x="4" y="150" width="92" height="46" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="1.3"/>
-          <text x="50" y="165" text-anchor="middle" font-size="8.5" font-weight="bold" fill="#1e40af">SSOT（正本）</text>
-          <text x="50" y="176" text-anchor="middle" font-size="7" fill="#1f2937">スキーマ/仕様</text>
-          <text x="50" y="188" text-anchor="middle" font-size="7" font-weight="bold" fill="#991b1b">不備なら直す＝根絶</text>
-          <path d="M 110 173 H 98" fill="none" stroke="#374151" stroke-width="1.2" stroke-dasharray="3 2" marker-end="url(#ra)"/>
-
-          <!-- 根治：クリーンな文脈で直す（社長案の本質） -->
-          <rect x="120" y="202" width="320" height="26" rx="5" fill="white" stroke="#6366f1" stroke-width="1.2" stroke-dasharray="4 3"/>
-          <text x="280" y="219" text-anchor="middle" font-size="8.5" font-weight="bold" fill="#4338ca">根治：修正はクリーンな文脈＋修正対象のファイルだけで（社長案＝文脈を切る）</text>
-        </svg>
-        <div style="flex-shrink:0; margin-top:8px;">
-          <div style="font-weight:700; color:#4338ca; font-size:11px; margin-bottom:5px;">ナレッジの例（蓄積 → AIが照合して必要物を要求／または調査方法を選定）</div>
-          <div style="display:flex; flex-direction:column; gap:5px;">
-            <div style="display:flex; gap:8px; align-items:flex-start; font-size:11px; line-height:1.45;">
-              <span style="flex:0 0 168px; color:#92400e; font-weight:600;">画面がおかしい</span>
-              <span style="color:#9ca3af;">→</span>
-              <span style="flex:1; color:#1f2937;">スクリーンショットと指摘事項を要求する</span>
-            </div>
-            <div style="display:flex; gap:8px; align-items:flex-start; font-size:11px; line-height:1.45;">
-              <span style="flex:0 0 168px; color:#92400e; font-weight:600;">同名のボタンが複数ある画面</span>
-              <span style="color:#9ca3af;">→</span>
-              <span style="flex:1; color:#1f2937;">押し間違えていないか（対象を一意に特定できるか）を確認する</span>
-            </div>
-            <div style="display:flex; gap:8px; align-items:flex-start; font-size:11px; line-height:1.45;">
-              <span style="flex:0 0 168px; color:#92400e; font-weight:600;">項目が空欄・ハイフンだらけ</span>
-              <span style="color:#9ca3af;">→</span>
-              <span style="flex:1; color:#1f2937;"><b style="color:#047857;">データの問題</b>ならSEEDを追加／<b style="color:#047857;">経路の問題</b>なら確認の上で修正</span>
-            </div>
-          </div>
-        </div>
+    <!-- Stage 2 -->
+    <div class="stage">
+      <div class="stnum"><b>2</b> 計画・仕様化</div>
+      <div class="node">
+        <div class="seg io"><span class="lbl">▼ 入力</span><div class="chips"><span class="chip doc">pm.ticket.md</span><span class="chip in">mock</span><span class="chip in">schema.gql</span></div></div>
+        <div class="seg mid"><span class="ag">planner</span><span class="hint">spec を作るのみ。委譲順は制御しない</span></div>
+        <div class="seg io out"><span class="lbl">▲ 出力</span><div class="chips"><span class="chip doc">specs/**</span><span class="chip doc">brief.md §7</span><span class="chip doc">タスク在庫（報告）</span></div></div>
       </div>
-
-      <!-- 右: すり抜ける2% + 修正の型 + 結論 -->
-      <div class="panel">
-        <h2>出た後を型にする</h2>
-        <div class="premise-banner">
-          <span class="tag">前提</span>
-          <div><strong>どれだけ気を付けても2%は出る</strong>。抑止だけに振らず、「出た後」も型にする。抑止で量を、対応でコスト（30分・壊れ）を下げる<strong>両輪</strong>。</div>
-        </div>
-
-        <div class="points-label" style="margin-top:10px;">抑止をすり抜ける2%</div>
-        <div class="points">
-          <div class="point amber"><span class="num">A</span><div><strong>契約自体の誤り</strong>（要件誤解）— 経路は正しいが「あるべき姿」が違う</div></div>
-          <div class="point amber"><span class="num">B</span><div><strong>振る舞い・異常系・状態遷移</strong>— 単項目は正しいが組み合わせで崩れる</div></div>
-          <div class="point amber"><span class="num">C</span><div><strong>レイアウト崩れ</strong>（モックのスクショ突合で対応）／ <strong>違和感</strong>（言語化前でゲートにかからない）</div></div>
-        </div>
-
-        <div class="conclusion-wrap">
-          <div class="conclusion">
-            <div class="conclusion-label">結論：再発防止の仕組み【案】</div>
-            <div class="conclusion-list">
-              <div class="conclusion-item"><span class="tag">ナレッジ</span>対応の暗黙知を<strong>事例化</strong>しAIに与え、AIが必要物を人に要求（人は出すだけ）</div>
-              <div class="conclusion-item"><span class="tag">SSOT判定</span>3点セット提示時に原因を判定。<strong>SSOT（スキーマ・正本・仕様）の不備ならSSOTを直す＝同種2%を根絶</strong></div>
-              <div class="conclusion-item"><span class="tag">ループ</span>修正後に<strong>経路報告を再実行</strong>して再検証／一過性は事例に追記</div>
-            </div>
-          </div>
-          <div class="conclusion mgmt">
-            <div class="conclusion-label">結論：社長案の読み替え</div>
-            <div class="conclusion-list">
-              <div class="conclusion-item"><span class="tag">診断○</span>「主因＝文脈肥大」は的確。<strong>修正は都度クリーンな文脈＋3点セット＋修正対象のファイルだけ</strong>で直すのが根治</div>
-              <div class="conclusion-item"><span class="tag">常設×</span>ただし"2%専任AIを常設"では効かない（2%は散在→結局全体を探索、問題が移動するだけ）</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
     </div>
+
+    <div class="conn"></div>
+
+    <!-- SPLIT REGION -->
+    <div class="split">
+      <div class="splitbar">
+        <span class="tag">ここから動作が変わる（テスト設計の位置・テスト実施の分業）</span>
+        <span class="cap">左＝旧（現行以前）／右＝現行。現行は<b>実装より前</b>にテスト設計が入り、<b>テスト実施前に PR本文（チェックリスト）</b>が立ち、テスト結果はそこへ書き戻される。</span>
+      </div>
+      <div class="forklabel"><span>◀ 旧</span><span>現行 ▶</span></div>
+
+      <div class="cols">
+        <!-- OLD lane -->
+        <div class="lane old">
+          <div class="lanehead" style="border-radius:8px;border-bottom:1px solid var(--line);margin-bottom:12px">旧：実装 → テスト（設計は暗黙）</div>
+          <div class="substage">実装 ＋ レビュー</div>
+          <div class="node" style="border-radius:12px">
+            <div class="seg io"><span class="lbl">▼ 入力</span><div class="chips"><span class="chip doc">specs/**</span><span class="chip doc">brief</span><span class="chip in">mockup</span></div></div>
+            <div class="seg mid"><span class="ag multi">db / backend / frontend-engineer</span><span class="loop">⟲</span><span class="ag multi">backend / frontend-reviewer</span></div>
+            <div class="seg io out"><span class="lbl">▲ 出力</span><div class="chips"><span class="chip in">実装コード</span><span class="chip in">schema.gql</span><span class="chip rep">レビュー指摘 → engineer へ差し戻し</span></div></div>
+          </div>
+          <div class="conn"></div>
+          <div class="substage">テスト実施（設計は実施時に暗黙）</div>
+          <div class="node" style="border-radius:12px">
+            <div class="seg io"><span class="lbl">▼ 入力</span><div class="chips"><span class="chip in">brief §7（観点＝抽象）</span><span class="chip in">＋実装（オラクル推測）</span></div></div>
+            <div class="seg mid"><span class="ag multi">backend / frontend-tester</span></div>
+            <div class="seg io out"><span class="lbl">▲ 出力</span><div class="chips"><span class="chip rep">検証結果レポート</span></div></div>
+          </div>
+          <div class="conn"></div>
+          <div class="empty">旧はここまで。<br><b>デグレ範囲の洗い出し・PR本文・チケット本文</b>は、この下の合流ステージでまとめて実施していた。</div>
+        </div>
+
+        <!-- CURRENT lane -->
+        <div class="lane new">
+          <div class="lanehead" style="border-radius:8px;border-bottom:1px solid var(--new);margin-bottom:12px">現行：テスト設計（実装前）→ 実装 → 範囲確定・PR本文 → テスト</div>
+
+          <div class="substage new">① テスト設計（spec確定直後・実装と並行／既定ステップ）</div>
+          <div class="node" style="border-radius:12px">
+            <div class="seg io"><span class="lbl">▼ 入力</span><div class="chips"><span class="chip doc">pm.ticket 完了条件</span><span class="chip doc">brief §7 / 要件定義書</span><span class="chip doc">spec §5</span><span class="chip in">現行 prisma / DTO / schema.gql（ベースライン）</span></div></div>
+            <div class="seg mid"><span class="ag new">test-spec-designer<span class="b">NEW</span></span><span class="hint">ベースライン ⊕ 変更指示 →「あるべき状態」／スキップは理由を1行記録</span></div>
+            <div class="seg io out"><span class="lbl">▲ 出力</span><div class="chips"><span class="chip key">test-spec.md §3 ケース表</span><span class="chip key">§6 トレーサビリティ</span></div></div>
+          </div>
+
+          <div class="conn"></div>
+          <div class="substage new">② 実装 ＋ レビュー（テスト設計と並行）</div>
+          <div class="node" style="border-radius:12px">
+            <div class="seg io"><span class="lbl">▼ 入力</span><div class="chips"><span class="chip doc">specs/**</span><span class="chip doc">brief</span><span class="chip in">mockup</span></div></div>
+            <div class="seg mid"><span class="ag multi">db / backend / frontend-engineer</span><span class="loop">⟲</span><span class="ag multi">backend / frontend-reviewer</span><span class="hint">FE は 2フェーズ（スケルトン→モードA／実装→モードB）</span></div>
+            <div class="seg mid"><span class="ag multi opt">frontend-consistency-reviewer</span><span class="hint">2画面以上のときだけ・任意（画面をまたぐ整合）</span></div>
+            <div class="seg io out"><span class="lbl">▲ 出力</span><div class="chips"><span class="chip in">実装コード</span><span class="chip in">skeleton.tsx</span><span class="chip in">schema.gql</span><span class="chip rep">レビュー指摘 → engineer へ差し戻し</span></div></div>
+          </div>
+
+          <div class="conn"></div>
+          <div class="substage new">③ デグレ範囲の確定（全実装完了後）</div>
+          <div class="node" style="border-radius:12px">
+            <div class="seg io"><span class="lbl">▼ 入力</span><div class="chips"><span class="chip doc">specs/**</span><span class="chip in">git diff</span></div></div>
+            <div class="seg mid"><span class="ag">regression-scope</span></div>
+            <div class="seg io out"><span class="lbl">▲ 出力</span><div class="chips"><span class="chip doc">regression-scope.md（8カテゴリ別チェックリスト）</span></div></div>
+          </div>
+
+          <div class="conn"></div>
+          <div class="substage new">④ PR本文＝テストの単一の真実（テスト実施の前）</div>
+          <div class="node" style="border-radius:12px">
+            <div class="seg io"><span class="lbl">▼ 入力</span><div class="chips"><span class="chip key">test-spec.md</span><span class="chip doc">regression-scope.md</span><span class="chip in">git diff</span></div></div>
+            <div class="seg mid"><span class="ag">pr-writer</span><span class="hint">両方揃ってから1回で組む（片方だけで起動しない）</span></div>
+            <div class="seg io out"><span class="lbl">▲ 出力</span><div class="chips"><span class="chip doc">pr.md（空チェックリスト）</span><span class="chip doc">安定ID T-* / R-* ＋担当ラベル</span></div></div>
+          </div>
+
+          <div class="conn"></div>
+          <div class="substage new">⑤ テスト実施（結果は PR本文へ書き戻し）</div>
+          <div class="node" style="border-radius:12px">
+            <div class="seg io"><span class="lbl">▼ 入力</span><div class="chips"><span class="chip key">test-spec.md §3（担当ケース）</span><span class="chip doc">regression-scope.md</span><span class="chip doc">pr.md（自分の担当行）</span></div></div>
+            <div class="seg mid"><span class="ag multi new">backend-tester（モードT）</span><span class="ag multi new">frontend-tester（モードT / S）</span></div>
+            <div class="seg mid"><span class="ag multi new">frontend-regression-tester<span class="b">NEW</span></span><span class="hint">デグレ専用に分離。regression-scope のチェックリストが唯一の観点源</span></div>
+            <div class="seg io out"><span class="lbl">▲ 出力</span><div class="chips"><span class="chip rep">検証結果レポート</span><span class="chip rep">＋完了条件カバレッジ</span><span class="chip rep">pr.md へ [x]＋証跡を書き戻し</span></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="conn"></div>
+
+    <!-- MERGE Stage -->
+    <div class="stage">
+      <div class="stnum"><b>3</b> 出力・反映（合流・共通）</div>
+      <div class="node">
+        <div class="seg io"><span class="lbl">▼ 入力</span><div class="chips"><span class="chip in">git diff</span><span class="chip rep">テスト結果（書き戻し済み pr.md）</span><span class="chip doc">pm.ticket.md</span></div></div>
+        <div class="seg mid"><span class="ag multi">pr-writer / ticket-writer（結果を反映して再実行）</span><span class="gate">🧑 外部反映</span></div>
+        <div class="seg mid"><span class="hint">旧フローでは regression-scope もこの位置で実行していた（現行は ③ へ前倒し）</span></div>
+        <div class="seg io out"><span class="lbl">▲ 出力</span><div class="chips"><span class="chip doc">pr.md（結果反映済み）</span><span class="chip doc">ticket.md</span></div></div>
+      </div>
+    </div>
+
+    <div class="conn"></div>
+
+    <!-- Stage 4 -->
+    <div class="stage">
+      <div class="stnum"><b>4</b> セッション分析</div>
+      <div class="node" style="border-color:var(--new)">
+        <div class="seg io"><span class="lbl">▼ 入力</span><div class="chips"><span class="chip in">セッションログ</span></div></div>
+        <div class="seg mid"><span class="ag new">セッション分析<span class="b">NEW</span></span><span class="hint">このチケットで得たものを、次のチケットが参照できる形に残す</span></div>
+        <div class="seg io out"><span class="lbl">▲ 出力</span><div class="chips"><span class="chip key">knowledge/ — 実装したものの情報</span><span class="chip key">knowledge/ — 実装時に人間とやり取りが必要だった部分</span></div></div>
+      </div>
+    </div>
+
   </div>
 
+  <!-- ===== reference ===== -->
+  <section class="ref">
+    <h2><span class="n">MAP</span>全エージェント I/O 一覧（現行15体＋新設1）</h2>
+    <p class="sub"><span class="plus">緑</span>＝新設 / 入力・出力が変わったもの。それ以外の I/O は旧フローから変わらない。</p>
+    <div class="tblwrap">
+      <table>
+        <thead><tr><th>エージェント</th><th>主な入力</th><th>主な出力</th><th>現行</th></tr></thead>
+        <tbody>
+          <tr class="chg-row"><td class="who">pm</td><td>要望・mock・spec（＋実装差分）<span class="plus">／起動時に役割指定（合意チケット or 受け入れ観点）</span></td><td><span class="m">pm.ticket.md</span>（完了条件・受け入れ観点）</td><td><span class="flag chg">入力変更</span></td></tr>
+          <tr class="chg-row"><td class="who">planner</td><td>pm.ticket・mock・schema.gql</td><td><span class="m">specs/**</span>・<span class="m">brief.md §7</span>・<span class="plus">タスク在庫の報告</span></td><td><span class="flag chg">出力変更</span></td></tr>
+          <tr><td class="who">db-architect</td><td>spec（DB）指示</td><td>prisma schema・migration</td><td><span class="flag same">不変</span></td></tr>
+          <tr><td class="who">backend-engineer</td><td><span class="m">specs/backend §3</span></td><td>api-core 実装・<span class="m">schema.gql</span></td><td><span class="flag same">不変</span></td></tr>
+          <tr><td class="who">frontend-engineer</td><td><span class="m">specs/frontend</span>・brief・mockup</td><td>フェーズ1: <span class="m">skeleton.tsx</span> → フェーズ2: app-admin / app-driver 実装</td><td><span class="flag same">不変</span></td></tr>
+          <tr><td class="who">backend-reviewer</td><td>実装コード・spec</td><td>レビュー指摘（静的）→ engineer へ差し戻し</td><td><span class="flag same">不変</span></td></tr>
+          <tr><td class="who">frontend-reviewer</td><td>モードA: skeleton＋mockup／モードB: 実装＋spec</td><td>レビュー指摘（構造 / 実装）→ engineer へ差し戻し</td><td><span class="flag same">不変</span></td></tr>
+          <tr class="new-row"><td class="who">frontend-consistency-reviewer</td><td><b>2画面以上</b>の実装・共通デフォルト・既存画面の多数派パターン</td><td>横断整合レビュー結果（観点×画面マトリクス）</td><td><span class="flag new">任意</span></td></tr>
+          <tr class="new-row"><td class="who">test-spec-designer</td><td><b>変更指示</b>（pm.ticket 完了条件・brief §7・要件定義書・spec §5）＋<b>ベースライン</b>（現行 prisma / DTO / schema.gql）</td><td><span class="m">test-spec.md</span>（確定ケース＋要確認事項＋トレーサビリティ）</td><td><span class="flag new">既定</span></td></tr>
+          <tr class="chg-row"><td class="who">backend-tester</td><td><span class="plus">test-spec.md §3（BE検証対象）※最優先＝モードT</span> → 無ければ specs/backend §3＋brief §7</td><td>検証結果＋<span class="plus">完了条件カバレッジ</span>＋<span class="plus">pr.md「担当: API」へ書き戻し</span></td><td><span class="flag chg">入出力変更</span></td></tr>
+          <tr class="chg-row"><td class="who">frontend-tester</td><td><span class="plus">test-spec.md §3（manual/FE）＝モードT</span> → 無ければ spec §9 / brief §7＝モードS<br><span class="hint">regression-scope だけを渡されたら担当外として振り直す</span></td><td>検証結果＋<span class="plus">完了条件カバレッジ</span>＋<span class="plus">pr.md「担当: 画面」へ書き戻し</span></td><td><span class="flag chg">入出力変更</span></td></tr>
+          <tr class="new-row"><td class="who">frontend-regression-tester</td><td><span class="m">regression-scope.md</span> の画面別チェックリスト（唯一の観点源）</td><td>デグレ検証結果＋<span class="m">pr.md</span>「担当: デグレ」へ書き戻し</td><td><span class="flag new">NEW</span></td></tr>
+          <tr><td class="who">regression-scope</td><td>specs/**・git diff</td><td><span class="m">regression-scope.md</span>（8カテゴリ＋カバレッジ自己診断）</td><td><span class="flag same">不変</span></td></tr>
+          <tr class="chg-row"><td class="who">pr-writer</td><td>git diff・<span class="m">regression-scope.md</span>・<span class="plus">test-spec.md（両方揃ってから起動）</span></td><td><span class="m">pr.md</span>＝<span class="plus">安定ID・担当ラベル付きの空チェックリスト</span>（結果は tester が書き戻す）</td><td><span class="flag chg">入出力変更</span></td></tr>
+          <tr><td class="who">ticket-writer</td><td>git diff・pm.ticket</td><td><span class="m">ticket.md</span>（PM可読・技術用語を除いた業務語）</td><td><span class="flag same">不変</span></td></tr>
+          <tr class="new-row"><td class="who">セッション分析</td><td>セッションログ</td><td><span class="m">knowledge/</span> — ①実装したものの情報 ②実装時に人間とやり取りが必要だった部分<br><span class="hint">次チケットの起動時に「関連ナレッジ」として各エージェントへ渡る</span></td><td><span class="flag new">NEW</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="ref">
+    <h2><span class="n">OWNER</span>PR本文のテスト項目は誰が埋めるか</h2>
+    <p class="sub">pr-writer が空のチェックリストを作り、各 tester が<b>自分の担当ラベルの行だけ</b>を部分編集で埋める。担当の無い項目は作らない（誰も埋めないまま残るため）。</p>
+    <div class="tblwrap">
+      <table>
+        <thead><tr><th>担当ラベル</th><th>埋める tester</th><th>対象</th><th>ID書式</th></tr></thead>
+        <tbody>
+          <tr><td class="who">API</td><td>backend-tester</td><td>GraphQL 実呼び出し・DB確認・エラーコード・<span class="m">jest</span> / <span class="m">tsc</span></td><td><span class="m">T-*</span></td></tr>
+          <tr><td class="who">画面</td><td>frontend-tester</td><td>新規実装画面の受け入れ（モードT / S）・<span class="m">next build</span></td><td><span class="m">T-*</span></td></tr>
+          <tr><td class="who">デグレ</td><td>frontend-regression-tester</td><td>変更が波及する既存画面（<span class="m">REG</span> カテゴリ中心）</td><td><span class="m">R-*</span></td></tr>
+          <tr><td class="who">人手</td><td>人間</td><td>複数画面をまたぐ業務操作など自動検証でカバーできないもの</td><td><span class="m">T-* / R-*</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="ref">
+    <h2><span class="n">SCOPE</span>テスト系3成果物の使い分け</h2>
+    <p class="sub">入力の正本とタイミングで区別する。出力先が違うので互いに上書きしない。</p>
+    <div class="tblwrap">
+      <table>
+        <thead><tr><th>成果物</th><th>生産者</th><th>入力の正本</th><th>担う問い</th></tr></thead>
+        <tbody>
+          <tr><td class="who"><span class="m">pm.ticket 受け入れ観点</span></td><td>pm（役割: 受け入れ観点）</td><td>合意目的（業務語）＋ regression-scope を素材に</td><td>業務として受け入れるか</td></tr>
+          <tr class="new-row"><td class="who"><span class="m">test-spec.md</span></td><td>test-spec-designer</td><td>あるべき状態＝ベースライン ⊕ 変更指示（実装前・チケット内）</td><td>どんなケースで叩くか</td></tr>
+          <tr><td class="who"><span class="m">regression-scope.md</span></td><td>regression-scope</td><td>git diff（実装後）</td><td>どこ（波及）をテストするか</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    pw-dms チケット駆動サイクルを I/O 視点で図示。現行フローの要点は3つ — ①<b>test-spec-designer は既定ステップ</b>で、実装より前に「現行ベースライン（prisma/DTO/schema.gql）⊕ 変更指示（完了条件/brief/要件定義書/spec）」から期待結果を確定する（実装後の DTO/prisma は参照しない。飛ばす場合は理由を1行記録する）。②<b>デグレ検証は frontend-regression-tester に分離</b>され、frontend-tester は新規実装の受け入れ（モードT/S）に専念する。③<b>PR本文がテストの単一の真実</b>で、テスト実施前に pr-writer が安定ID・担当ラベル付きの空チェックリストを作り、各 tester が自分の担当行へ結果と証跡を書き戻す。加えて、あらゆるエージェント起動には<b>オーケストレーターが関連ナレッジ（<span style="font-family:var(--font-mono)">knowledge/</span> の concept パス）を添える</b>（該当なしなら「なし」と明示）。最後の<b>セッション分析</b>がセッションログから「実装したものの情報」と「実装時に人間とやり取りが必要だった部分」を <span style="font-family:var(--font-mono)">knowledge/</span> へ書き戻し、次チケットの入力として還流する（サイクルが閉じる）。旧フローの図示は比較のため据え置き。議論用ドラフト。
+    </footer>
+  </div><!-- /panel-overview -->
+
+  <div id="panel-test" role="tabpanel" aria-labelledby="tab-test" hidden>
+    <p class="panelnote"><b>「このチケットで作るもの」を中心に置く。</b>テスト成果物は 3 層でこれを覆う。層ごとに担当・入力・覆う範囲が違う。</p>
+
+    <section class="ref" style="margin-top:26px">
+      <h2><span class="n">CENTER</span>スコープを中心に、3層で覆う</h2>
+      <div class="rings">
+        <div class="ring outer">
+          <div class="ringhead"><span class="rname">外側｜変更が波及する範囲</span><span class="rby">regression-scope</span><span class="hint">問い: どこをテストするか</span></div>
+          <p class="rdesc">スコープの<b>外</b>まで覆う。仕様どおりかではなく、<b>作ったせいで壊れうるもの</b>を差分から機械的に洗う。共有資産を触ったら利用箇所を grep で全列挙し1件ずつ項目化する。</p>
+          <div class="rsrc"><b>元にするもの:</b> git diff（実装後）／ specs/** ／ 共有資産の利用箇所 grep
+            <div class="chips">
+              <span class="chip in">出力: regression-scope.md</span>
+              <span class="chip in">8カテゴリ別チェックリスト</span>
+              <span class="chip in">カバレッジ自己診断表</span>
+              <span class="chip in">PR本文では R-* 項目</span>
+            </div>
+          </div>
+
+          <div class="ring inner">
+            <div class="ringhead"><span class="rname">内側｜このチケットで作るデルタ</span><span class="rby">test-spec-designer</span><span class="hint">問い: どんなケースで叩くか</span></div>
+            <p class="rdesc">スコープの<b>内</b>だけを覆う。完了条件を <b>前提 → 入力 → 操作 → 期待結果</b>まで確定した実行可能なケースにする。波及（デグレ）は扱わない。</p>
+            <div class="rsrc"><b>元にするもの:</b> <b>変更指示</b>（完了条件・brief §7・要件定義書・spec §5）<b> ⊕ ベースライン契約</b>（現行 prisma / DTO / schema.gql）<br>※実装したデルタのコードは読まない（なぞりを避ける）
+              <div class="chips">
+                <span class="chip key">出力: test-spec.md §3 ケース表</span>
+                <span class="chip key">§6 トレーサビリティ（完了条件↔ケース）</span>
+                <span class="chip key">要確認事項（差し戻し）</span>
+                <span class="chip key">PR本文では T-* 項目</span>
+              </div>
+            </div>
+
+            <div class="ring core">
+              <div class="ringhead"><span class="rname">核｜完了条件・受入基準</span><span class="rby">pm</span><span class="hint">問い: 業務として受け入れるか</span></div>
+              <p class="rdesc">「作るべきもの」の合意そのもの。内側のケースはここへ<b>トレース</b>され、pass ケースが1件も無い完了条件は ❌ 未充足として出る。</p>
+              <div class="rsrc"><b>元にするもの:</b> 合意目的（業務語）
+                <div class="chips"><span class="chip doc">出力: pm.ticket.md（完了条件・受け入れ観点）</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout">
+        <h3>重なって見えるときの区別</h3>
+        <p>変更した画面は両者が触れる。<b>内側＝受入基準どおりか</b>／<b>外側＝層ごとの観点が最低1つ立っているか</b>。問いが違うので片方では足りない。</p>
+      </div>
+    </section>
+
+    <footer>
+      要点は「テストケースの<b>出どころ</b>を分けたこと」。内側は<b>実装前</b>に完了条件から期待結果を確定し、外側は<b>実装後</b>に差分から波及を洗う。出力先が違うので互いに上書きせず、PR本文で1本に合流する。議論用ドラフト。
+    </footer>
+  </div><!-- /panel-test -->
+
+  <div id="panel-debug" role="tabpanel" aria-labelledby="tab-debug" hidden>
+    <p class="panelnote"><b>AI の解釈ズレを人間が是正したやり取りを、ナレッジベースに記録として積む。</b>次のチケットの仕様精査でそれを引き出し、Spec 出力時に「注意すべき点」として先回りで刷り込む。</p>
+
+    <section class="ref" style="margin-top:26px">
+      <h2><span class="n">LOOP</span>是正のやり取りを、次の Spec に先回りさせる</h2>
+
+      <div class="cycle">
+        <div class="cycard rec cyc-a">
+          <div class="cyhead">今回のチケット<span class="tagx">記録する</span></div>
+          <div class="cystep"><span class="no">1</span><span>AI が Spec を解釈して実装する</span></div>
+          <div class="cystep"><span class="no">2</span><span>解釈がズレる（意図と違うものが出る）</span></div>
+          <div class="cystep hi"><span class="no">3</span><span><b>人間が「そうではない、こうだ」と指示して修正させる</b></span></div>
+          <div class="cystep"><span class="no">4</span><span>セッション分析がセッションログから抽出する</span></div>
+        </div>
+
+        <div class="cyarrow cyc-down">
+          <span class="gl">▼</span>
+          <span>セッション分析が積む</span>
+        </div>
+
+        <div class="cyarrow cyc-up">
+          <span class="gl desk">▲</span><span class="gl mob">▼</span>
+          <span>仕様精査が引き出す</span>
+        </div>
+
+        <div class="cycard use cyc-b">
+          <div class="cyhead">次回のチケット<span class="tagx">効かせる</span></div>
+          <div class="cystep"><span class="no">5</span><span>仕様精査で、関連する記録を引き出す</span></div>
+          <div class="cystep hi"><span class="no">6</span><span><b>Spec に「注意すべき点」を書いた状態で AI に渡す</b></span></div>
+          <div class="cystep"><span class="no">7</span><span>AI は同じ取り違えをしない</span></div>
+          <div class="cystep"><span class="no">8</span><span>人間の是正指示が減る＝デバッグが軽くなる</span></div>
+        </div>
+
+        <div class="vault cyc-vault">
+          <div class="cyhead">ナレッジベース（knowledge/）<span class="tagx">チケットをまたいで残る</span></div>
+          <p class="vsub">1回限りの暫定判断は積まない。繰り返し参照される確定知識だけを concept として残す（source: PW-XXX）。</p>
+          <div class="vitems">
+            <div class="vitem"><b>実装記録</b>何を・どう作ったか。仕様変更時に「どこに効くか」を追える as-built の解釈。</div>
+            <div class="vitem"><b>誤解と是正の記録</b>AI がどこを取り違え、人間がどう直させたか。次の Spec に書くべき注意点そのもの。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="loopback"><span>↺</span><span>同じ誤解を2度させない — 是正のやり取り自体が、次の Spec の材料になる</span></div>
+    </section>
+
+    <footer>
+      デバッグを「その場で直して終わり」にせず、<b>誤解の型</b>として残すのが要点。人間の是正は Spec の不足を指し示しているので、それを次の Spec の前提に織り込めば、同じ往復が繰り返されない。議論用ドラフト。
+    </footer>
+  </div><!-- /panel-debug -->
 </div>
 
 <script>
-  document.querySelectorAll('.tab').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-      btn.classList.add('active');
-      document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+(function () {
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('.tab'));
+  function select(index) {
+    tabs.forEach(function (tab, i) {
+      var on = i === index;
+      tab.setAttribute('aria-selected', on ? 'true' : 'false');
+      tab.tabIndex = on ? 0 : -1;
+      var panel = document.getElementById(tab.getAttribute('aria-controls'));
+      if (panel) panel.hidden = !on;
+    });
+  }
+  tabs.forEach(function (tab, i) {
+    tab.addEventListener('click', function () { select(i); });
+    tab.addEventListener('keydown', function (e) {
+      var step = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+      if (!step) return;
+      e.preventDefault();
+      var next = (i + step + tabs.length) % tabs.length;
+      select(next);
+      tabs[next].focus();
     });
   });
+  select(0);
+})();
 </script>
+
+
 </body>
 </html>
