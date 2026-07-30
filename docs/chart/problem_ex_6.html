@@ -154,8 +154,9 @@
 
   /* ---------- scope rings (tab 2) ---------- */
   .rings { margin-top: 20px; }
-  .ring { border-radius: 16px; padding: 15px; border: 1.5px solid; }
-  .ring > .ring { margin-top: 13px; }
+  .ring { border-radius: 16px; padding: 15px; border: 1.5px solid; display: flex; flex-direction: column; }
+  /* 核（最内）を上、内側→外側と下へ向かうよう、入れ子は親の本文より前に描画する */
+  .ring > .ring { order: -1; margin-bottom: 13px; }
   .ring.outer { border-color: var(--report); background: var(--report-soft); }
   .ring.inner { border-color: var(--new); background: var(--new-soft); }
   .ring.core { border-color: var(--accent); background: var(--accent-soft); }
@@ -170,6 +171,9 @@
   .ring.core .rby { color: var(--accent); border-color: var(--accent); }
   .rdesc { font-size: 12.5px; color: var(--ink); margin: 0 0 10px; max-width: 78ch; }
   .rsrc { background: var(--surface); border-radius: 10px; padding: 10px 12px; font-size: 11.5px; color: var(--muted); }
+  /* 層の見出し行の右端に置く「追加入力」の白枠 */
+  .add-in { margin-left: auto; align-self: center; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 6px 11px; font-size: 11.5px; color: var(--muted); white-space: nowrap; }
+  .add-in b { color: var(--ink); font-weight: 640; }
   .rsrc b { color: var(--ink); font-weight: 640; }
   .rsrc .chips { margin-top: 7px; }
   .callout { margin-top: 22px; background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--gate); border-radius: 12px; padding: 14px 16px; box-shadow: var(--shadow); font-size: 12.5px; }
@@ -224,266 +228,45 @@
   <header>
     <p class="eyebrow">pw-dms / エージェント I/O 設計</p>
     <h1>課題事例⑥: 開発サイクル I/O フロー — 現行エージェント構成</h1>
-    <p class="lede">チケット駆動サイクルを I/O 視点で図示。<b>全体像</b>は工程の流れ、<b>テスト観点の強化</b>はスコープに対するテストケースの網羅範囲。チーム共有・議論用。</p>
   </header>
 
   <div class="tabs" role="tablist" aria-label="表示切替">
-    <button class="tab" type="button" role="tab" id="tab-overview" aria-controls="panel-overview" aria-selected="true">全体像</button>
-    <button class="tab" type="button" role="tab" id="tab-debug" aria-controls="panel-debug" aria-selected="false" tabindex="-1">デバッグの改善</button>
+    <button class="tab" type="button" role="tab" id="tab-debug" aria-controls="panel-debug" aria-selected="true">デバッグの改善</button>
     <button class="tab" type="button" role="tab" id="tab-test" aria-controls="panel-test" aria-selected="false" tabindex="-1">テスト観点の強化</button>
   </div>
 
-  <div id="panel-overview" role="tabpanel" aria-labelledby="tab-overview">
-    <p class="panelnote">上から下へ時系列で進行。各ノードは<b>入力（上）→ エージェント → 出力（下）</b>。動作が変わる工程だけ<b>旧（左）／現行（右）</b>に分岐する。</p>
-    <div class="legend">
-      <span class="li"><span class="sw ag"></span>エージェント</span>
-      <span class="li"><span class="sw new"></span>新設／責務が変わったエージェント</span>
-      <span class="li"><span class="sw in"></span>入力（成果物）</span>
-      <span class="li"><span class="sw key"></span>test-spec.md（新）</span>
-      <span class="li"><span class="sw rep"></span>検証結果</span>
-      <span class="li"><span class="sw gate"></span>人間ゲート</span>
-      <span class="li"><span class="loop" style="font-size:13px">⟲</span>レビュー差し戻し</span>
-    </div>
-
-  <div class="flow">
-
-    <!-- Stage 1 -->
-    <div class="stage">
-      <div class="stnum"><b>1</b> 合意（作る前）</div>
-      <div class="node">
-        <div class="seg io"><span class="lbl">▼ 入力</span><div class="chips"><span class="chip in">要望・関連資料</span><span class="chip in">mock</span><span class="chip in">関連ナレッジ（knowledge/）</span></div></div>
-        <div class="seg mid"><span class="ag">pm</span><span class="hint">役割: 合意チケット（起動時に明示）</span><span class="gate">🧑 合意</span></div>
-        <div class="seg io out"><span class="lbl">▲ 出力</span><div class="chips"><span class="chip doc">pm.ticket.md（完了条件）</span></div></div>
-      </div>
-    </div>
-
-    <div class="conn"></div>
-
-    <!-- Stage 2 -->
-    <div class="stage">
-      <div class="stnum"><b>2</b> 計画・仕様化</div>
-      <div class="node">
-        <div class="seg io"><span class="lbl">▼ 入力</span><div class="chips"><span class="chip doc">pm.ticket.md</span><span class="chip in">mock</span><span class="chip in">schema.gql</span></div></div>
-        <div class="seg mid"><span class="ag">planner</span><span class="hint">spec を作るのみ。委譲順は制御しない</span></div>
-        <div class="seg io out"><span class="lbl">▲ 出力</span><div class="chips"><span class="chip doc">specs/**</span><span class="chip doc">brief.md §7</span><span class="chip doc">タスク在庫（報告）</span></div></div>
-      </div>
-    </div>
-
-    <div class="conn"></div>
-
-    <!-- SPLIT REGION -->
-    <div class="split">
-      <div class="splitbar">
-        <span class="tag">ここから動作が変わる（テスト設計の位置・テスト実施の分業）</span>
-        <span class="cap">左＝旧（現行以前）／右＝現行。現行は<b>実装より前</b>にテスト設計が入り、<b>テスト実施前に PR本文（チェックリスト）</b>が立ち、テスト結果はそこへ書き戻される。</span>
-      </div>
-      <div class="forklabel"><span>◀ 旧</span><span>現行 ▶</span></div>
-
-      <div class="cols">
-        <!-- OLD lane -->
-        <div class="lane old">
-          <div class="lanehead" style="border-radius:8px;border-bottom:1px solid var(--line);margin-bottom:12px">旧：実装 → テスト（設計は暗黙）</div>
-          <div class="substage">実装 ＋ レビュー</div>
-          <div class="node" style="border-radius:12px">
-            <div class="seg io"><span class="lbl">▼ 入力</span><div class="chips"><span class="chip doc">specs/**</span><span class="chip doc">brief</span><span class="chip in">mockup</span></div></div>
-            <div class="seg mid"><span class="ag multi">db / backend / frontend-engineer</span><span class="loop">⟲</span><span class="ag multi">backend / frontend-reviewer</span></div>
-            <div class="seg io out"><span class="lbl">▲ 出力</span><div class="chips"><span class="chip in">実装コード</span><span class="chip in">schema.gql</span><span class="chip rep">レビュー指摘 → engineer へ差し戻し</span></div></div>
-          </div>
-          <div class="conn"></div>
-          <div class="substage">テスト実施（設計は実施時に暗黙）</div>
-          <div class="node" style="border-radius:12px">
-            <div class="seg io"><span class="lbl">▼ 入力</span><div class="chips"><span class="chip in">brief §7（観点＝抽象）</span><span class="chip in">＋実装（オラクル推測）</span></div></div>
-            <div class="seg mid"><span class="ag multi">backend / frontend-tester</span></div>
-            <div class="seg io out"><span class="lbl">▲ 出力</span><div class="chips"><span class="chip rep">検証結果レポート</span></div></div>
-          </div>
-          <div class="conn"></div>
-          <div class="empty">旧はここまで。<br><b>デグレ範囲の洗い出し・PR本文・チケット本文</b>は、この下の合流ステージでまとめて実施していた。</div>
-        </div>
-
-        <!-- CURRENT lane -->
-        <div class="lane new">
-          <div class="lanehead" style="border-radius:8px;border-bottom:1px solid var(--new);margin-bottom:12px">現行：テスト設計（実装前）→ 実装 → 範囲確定・PR本文 → テスト</div>
-
-          <div class="substage new">① テスト設計（spec確定直後・実装と並行／既定ステップ）</div>
-          <div class="node" style="border-radius:12px">
-            <div class="seg io"><span class="lbl">▼ 入力</span><div class="chips"><span class="chip doc">pm.ticket 完了条件</span><span class="chip doc">brief §7 / 要件定義書</span><span class="chip doc">spec §5</span><span class="chip in">現行 prisma / DTO / schema.gql（ベースライン）</span></div></div>
-            <div class="seg mid"><span class="ag new">test-spec-designer<span class="b">NEW</span></span><span class="hint">ベースライン ⊕ 変更指示 →「あるべき状態」／スキップは理由を1行記録</span></div>
-            <div class="seg io out"><span class="lbl">▲ 出力</span><div class="chips"><span class="chip key">test-spec.md §3 ケース表</span><span class="chip key">§6 トレーサビリティ</span></div></div>
-          </div>
-
-          <div class="conn"></div>
-          <div class="substage new">② 実装 ＋ レビュー（テスト設計と並行）</div>
-          <div class="node" style="border-radius:12px">
-            <div class="seg io"><span class="lbl">▼ 入力</span><div class="chips"><span class="chip doc">specs/**</span><span class="chip doc">brief</span><span class="chip in">mockup</span></div></div>
-            <div class="seg mid"><span class="ag multi">db / backend / frontend-engineer</span><span class="loop">⟲</span><span class="ag multi">backend / frontend-reviewer</span><span class="hint">FE は 2フェーズ（スケルトン→モードA／実装→モードB）</span></div>
-            <div class="seg mid"><span class="ag multi opt">frontend-consistency-reviewer</span><span class="hint">2画面以上のときだけ・任意（画面をまたぐ整合）</span></div>
-            <div class="seg io out"><span class="lbl">▲ 出力</span><div class="chips"><span class="chip in">実装コード</span><span class="chip in">skeleton.tsx</span><span class="chip in">schema.gql</span><span class="chip rep">レビュー指摘 → engineer へ差し戻し</span></div></div>
-          </div>
-
-          <div class="conn"></div>
-          <div class="substage new">③ デグレ範囲の確定（全実装完了後）</div>
-          <div class="node" style="border-radius:12px">
-            <div class="seg io"><span class="lbl">▼ 入力</span><div class="chips"><span class="chip doc">specs/**</span><span class="chip in">git diff</span></div></div>
-            <div class="seg mid"><span class="ag">regression-scope</span></div>
-            <div class="seg io out"><span class="lbl">▲ 出力</span><div class="chips"><span class="chip doc">regression-scope.md（8カテゴリ別チェックリスト）</span></div></div>
-          </div>
-
-          <div class="conn"></div>
-          <div class="substage new">④ PR本文＝テストの単一の真実（テスト実施の前）</div>
-          <div class="node" style="border-radius:12px">
-            <div class="seg io"><span class="lbl">▼ 入力</span><div class="chips"><span class="chip key">test-spec.md</span><span class="chip doc">regression-scope.md</span><span class="chip in">git diff</span></div></div>
-            <div class="seg mid"><span class="ag">pr-writer</span><span class="hint">両方揃ってから1回で組む（片方だけで起動しない）</span></div>
-            <div class="seg io out"><span class="lbl">▲ 出力</span><div class="chips"><span class="chip doc">pr.md（空チェックリスト）</span><span class="chip doc">安定ID T-* / R-* ＋担当ラベル</span></div></div>
-          </div>
-
-          <div class="conn"></div>
-          <div class="substage new">⑤ テスト実施（結果は PR本文へ書き戻し）</div>
-          <div class="node" style="border-radius:12px">
-            <div class="seg io"><span class="lbl">▼ 入力</span><div class="chips"><span class="chip key">test-spec.md §3（担当ケース）</span><span class="chip doc">regression-scope.md</span><span class="chip doc">pr.md（自分の担当行）</span></div></div>
-            <div class="seg mid"><span class="ag multi new">backend-tester（モードT）</span><span class="ag multi new">frontend-tester（モードT / S）</span></div>
-            <div class="seg mid"><span class="ag multi new">frontend-regression-tester<span class="b">NEW</span></span><span class="hint">デグレ専用に分離。regression-scope のチェックリストが唯一の観点源</span></div>
-            <div class="seg io out"><span class="lbl">▲ 出力</span><div class="chips"><span class="chip rep">検証結果レポート</span><span class="chip rep">＋完了条件カバレッジ</span><span class="chip rep">pr.md へ [x]＋証跡を書き戻し</span></div></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="conn"></div>
-
-    <!-- MERGE Stage -->
-    <div class="stage">
-      <div class="stnum"><b>3</b> 出力・反映（合流・共通）</div>
-      <div class="node">
-        <div class="seg io"><span class="lbl">▼ 入力</span><div class="chips"><span class="chip in">git diff</span><span class="chip rep">テスト結果（書き戻し済み pr.md）</span><span class="chip doc">pm.ticket.md</span></div></div>
-        <div class="seg mid"><span class="ag multi">pr-writer / ticket-writer（結果を反映して再実行）</span><span class="gate">🧑 外部反映</span></div>
-        <div class="seg mid"><span class="hint">旧フローでは regression-scope もこの位置で実行していた（現行は ③ へ前倒し）</span></div>
-        <div class="seg io out"><span class="lbl">▲ 出力</span><div class="chips"><span class="chip doc">pr.md（結果反映済み）</span><span class="chip doc">ticket.md</span></div></div>
-      </div>
-    </div>
-
-    <div class="conn"></div>
-
-    <!-- Stage 4 -->
-    <div class="stage">
-      <div class="stnum"><b>4</b> セッション分析</div>
-      <div class="node" style="border-color:var(--new)">
-        <div class="seg io"><span class="lbl">▼ 入力</span><div class="chips"><span class="chip in">セッションログ</span></div></div>
-        <div class="seg mid"><span class="ag new">セッション分析<span class="b">NEW</span></span><span class="hint">このチケットで得たものを、次のチケットが参照できる形に残す</span></div>
-        <div class="seg io out"><span class="lbl">▲ 出力</span><div class="chips"><span class="chip key">knowledge/ — 実装したものの情報</span><span class="chip key">knowledge/ — 実装時に人間とやり取りが必要だった部分</span></div></div>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- ===== reference ===== -->
-  <section class="ref">
-    <h2><span class="n">MAP</span>全エージェント I/O 一覧（現行15体＋新設1）</h2>
-    <p class="sub"><span class="plus">緑</span>＝新設 / 入力・出力が変わったもの。それ以外の I/O は旧フローから変わらない。</p>
-    <div class="tblwrap">
-      <table>
-        <thead><tr><th>エージェント</th><th>主な入力</th><th>主な出力</th><th>現行</th></tr></thead>
-        <tbody>
-          <tr class="chg-row"><td class="who">pm</td><td>要望・mock・spec（＋実装差分）<span class="plus">／起動時に役割指定（合意チケット or 受け入れ観点）</span></td><td><span class="m">pm.ticket.md</span>（完了条件・受け入れ観点）</td><td><span class="flag chg">入力変更</span></td></tr>
-          <tr class="chg-row"><td class="who">planner</td><td>pm.ticket・mock・schema.gql</td><td><span class="m">specs/**</span>・<span class="m">brief.md §7</span>・<span class="plus">タスク在庫の報告</span></td><td><span class="flag chg">出力変更</span></td></tr>
-          <tr><td class="who">db-architect</td><td>spec（DB）指示</td><td>prisma schema・migration</td><td><span class="flag same">不変</span></td></tr>
-          <tr><td class="who">backend-engineer</td><td><span class="m">specs/backend §3</span></td><td>api-core 実装・<span class="m">schema.gql</span></td><td><span class="flag same">不変</span></td></tr>
-          <tr><td class="who">frontend-engineer</td><td><span class="m">specs/frontend</span>・brief・mockup</td><td>フェーズ1: <span class="m">skeleton.tsx</span> → フェーズ2: app-admin / app-driver 実装</td><td><span class="flag same">不変</span></td></tr>
-          <tr><td class="who">backend-reviewer</td><td>実装コード・spec</td><td>レビュー指摘（静的）→ engineer へ差し戻し</td><td><span class="flag same">不変</span></td></tr>
-          <tr><td class="who">frontend-reviewer</td><td>モードA: skeleton＋mockup／モードB: 実装＋spec</td><td>レビュー指摘（構造 / 実装）→ engineer へ差し戻し</td><td><span class="flag same">不変</span></td></tr>
-          <tr class="new-row"><td class="who">frontend-consistency-reviewer</td><td><b>2画面以上</b>の実装・共通デフォルト・既存画面の多数派パターン</td><td>横断整合レビュー結果（観点×画面マトリクス）</td><td><span class="flag new">任意</span></td></tr>
-          <tr class="new-row"><td class="who">test-spec-designer</td><td><b>変更指示</b>（pm.ticket 完了条件・brief §7・要件定義書・spec §5）＋<b>ベースライン</b>（現行 prisma / DTO / schema.gql）</td><td><span class="m">test-spec.md</span>（確定ケース＋要確認事項＋トレーサビリティ）</td><td><span class="flag new">既定</span></td></tr>
-          <tr class="chg-row"><td class="who">backend-tester</td><td><span class="plus">test-spec.md §3（BE検証対象）※最優先＝モードT</span> → 無ければ specs/backend §3＋brief §7</td><td>検証結果＋<span class="plus">完了条件カバレッジ</span>＋<span class="plus">pr.md「担当: API」へ書き戻し</span></td><td><span class="flag chg">入出力変更</span></td></tr>
-          <tr class="chg-row"><td class="who">frontend-tester</td><td><span class="plus">test-spec.md §3（manual/FE）＝モードT</span> → 無ければ spec §9 / brief §7＝モードS<br><span class="hint">regression-scope だけを渡されたら担当外として振り直す</span></td><td>検証結果＋<span class="plus">完了条件カバレッジ</span>＋<span class="plus">pr.md「担当: 画面」へ書き戻し</span></td><td><span class="flag chg">入出力変更</span></td></tr>
-          <tr class="new-row"><td class="who">frontend-regression-tester</td><td><span class="m">regression-scope.md</span> の画面別チェックリスト（唯一の観点源）</td><td>デグレ検証結果＋<span class="m">pr.md</span>「担当: デグレ」へ書き戻し</td><td><span class="flag new">NEW</span></td></tr>
-          <tr><td class="who">regression-scope</td><td>specs/**・git diff</td><td><span class="m">regression-scope.md</span>（8カテゴリ＋カバレッジ自己診断）</td><td><span class="flag same">不変</span></td></tr>
-          <tr class="chg-row"><td class="who">pr-writer</td><td>git diff・<span class="m">regression-scope.md</span>・<span class="plus">test-spec.md（両方揃ってから起動）</span></td><td><span class="m">pr.md</span>＝<span class="plus">安定ID・担当ラベル付きの空チェックリスト</span>（結果は tester が書き戻す）</td><td><span class="flag chg">入出力変更</span></td></tr>
-          <tr><td class="who">ticket-writer</td><td>git diff・pm.ticket</td><td><span class="m">ticket.md</span>（PM可読・技術用語を除いた業務語）</td><td><span class="flag same">不変</span></td></tr>
-          <tr class="new-row"><td class="who">セッション分析</td><td>セッションログ</td><td><span class="m">knowledge/</span> — ①実装したものの情報 ②実装時に人間とやり取りが必要だった部分<br><span class="hint">次チケットの起動時に「関連ナレッジ」として各エージェントへ渡る</span></td><td><span class="flag new">NEW</span></td></tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
-
-  <section class="ref">
-    <h2><span class="n">OWNER</span>PR本文のテスト項目は誰が埋めるか</h2>
-    <p class="sub">pr-writer が空のチェックリストを作り、各 tester が<b>自分の担当ラベルの行だけ</b>を部分編集で埋める。担当の無い項目は作らない（誰も埋めないまま残るため）。</p>
-    <div class="tblwrap">
-      <table>
-        <thead><tr><th>担当ラベル</th><th>埋める tester</th><th>対象</th><th>ID書式</th></tr></thead>
-        <tbody>
-          <tr><td class="who">API</td><td>backend-tester</td><td>GraphQL 実呼び出し・DB確認・エラーコード・<span class="m">jest</span> / <span class="m">tsc</span></td><td><span class="m">T-*</span></td></tr>
-          <tr><td class="who">画面</td><td>frontend-tester</td><td>新規実装画面の受け入れ（モードT / S）・<span class="m">next build</span></td><td><span class="m">T-*</span></td></tr>
-          <tr><td class="who">デグレ</td><td>frontend-regression-tester</td><td>変更が波及する既存画面（<span class="m">REG</span> カテゴリ中心）</td><td><span class="m">R-*</span></td></tr>
-          <tr><td class="who">人手</td><td>人間</td><td>複数画面をまたぐ業務操作など自動検証でカバーできないもの</td><td><span class="m">T-* / R-*</span></td></tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
-
-  <section class="ref">
-    <h2><span class="n">SCOPE</span>テスト系3成果物の使い分け</h2>
-    <p class="sub">入力の正本とタイミングで区別する。出力先が違うので互いに上書きしない。</p>
-    <div class="tblwrap">
-      <table>
-        <thead><tr><th>成果物</th><th>生産者</th><th>入力の正本</th><th>担う問い</th></tr></thead>
-        <tbody>
-          <tr><td class="who"><span class="m">pm.ticket 受け入れ観点</span></td><td>pm（役割: 受け入れ観点）</td><td>合意目的（業務語）＋ regression-scope を素材に</td><td>業務として受け入れるか</td></tr>
-          <tr class="new-row"><td class="who"><span class="m">test-spec.md</span></td><td>test-spec-designer</td><td>あるべき状態＝ベースライン ⊕ 変更指示（実装前・チケット内）</td><td>どんなケースで叩くか</td></tr>
-          <tr><td class="who"><span class="m">regression-scope.md</span></td><td>regression-scope</td><td>git diff（実装後）</td><td>どこ（波及）をテストするか</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
-
-  <footer>
-    pw-dms チケット駆動サイクルを I/O 視点で図示。現行フローの要点は3つ — ①<b>test-spec-designer は既定ステップ</b>で、実装より前に「現行ベースライン（prisma/DTO/schema.gql）⊕ 変更指示（完了条件/brief/要件定義書/spec）」から期待結果を確定する（実装後の DTO/prisma は参照しない。飛ばす場合は理由を1行記録する）。②<b>デグレ検証は frontend-regression-tester に分離</b>され、frontend-tester は新規実装の受け入れ（モードT/S）に専念する。③<b>PR本文がテストの単一の真実</b>で、テスト実施前に pr-writer が安定ID・担当ラベル付きの空チェックリストを作り、各 tester が自分の担当行へ結果と証跡を書き戻す。加えて、あらゆるエージェント起動には<b>オーケストレーターが関連ナレッジ（<span style="font-family:var(--font-mono)">knowledge/</span> の concept パス）を添える</b>（該当なしなら「なし」と明示）。最後の<b>セッション分析</b>がセッションログから「実装したものの情報」と「実装時に人間とやり取りが必要だった部分」を <span style="font-family:var(--font-mono)">knowledge/</span> へ書き戻し、次チケットの入力として還流する（サイクルが閉じる）。旧フローの図示は比較のため据え置き。議論用ドラフト。
-    </footer>
-  </div><!-- /panel-overview -->
-
   <div id="panel-test" role="tabpanel" aria-labelledby="tab-test" hidden>
-    <p class="panelnote"><b>「このチケットで作るもの」を中心に置く。</b>テスト成果物は 3 層でこれを覆う。層ごとに担当・入力・覆う範囲が違う。</p>
 
     <section class="ref" style="margin-top:26px">
       <h2><span class="n">CENTER</span>スコープを中心に、3層で覆う</h2>
       <div class="rings">
         <div class="ring outer">
-          <div class="ringhead"><span class="rname">外側｜変更が波及する範囲</span><span class="rby">regression-scope</span><span class="hint">問い: どこをテストするか</span></div>
-          <p class="rdesc">スコープの<b>外</b>まで覆う。仕様どおりかではなく、<b>作ったせいで壊れうるもの</b>を差分から機械的に洗う。共有資産を触ったら利用箇所を grep で全列挙し1件ずつ項目化する。</p>
-          <div class="rsrc"><b>元にするもの:</b> git diff（実装後）／ specs/** ／ 共有資産の利用箇所 grep
+          <div class="ringhead"><span class="rname">外側｜リグレッションテストの構築</span><span class="rby">AI</span><span class="hint">問い: どこをテストするか</span></div>
+          <p class="rdesc"><b>レビュー済みの実装から</b>、<b>スコープ外まで含む影響範囲</b>を調査し、<b>リグレッションテスト</b>を構築する。</p>
+          <div class="rsrc"><b>出力:</b>
             <div class="chips">
-              <span class="chip in">出力: regression-scope.md</span>
-              <span class="chip in">8カテゴリ別チェックリスト</span>
-              <span class="chip in">カバレッジ自己診断表</span>
-              <span class="chip in">PR本文では R-* 項目</span>
+              <span class="chip rep">リグレッションテスト仕様書</span>
             </div>
           </div>
 
           <div class="ring inner">
-            <div class="ringhead"><span class="rname">内側｜このチケットで作るデルタ</span><span class="rby">test-spec-designer</span><span class="hint">問い: どんなケースで叩くか</span></div>
-            <p class="rdesc">スコープの<b>内</b>だけを覆う。完了条件を <b>前提 → 入力 → 操作 → 期待結果</b>まで確定した実行可能なケースにする。波及（デグレ）は扱わない。</p>
-            <div class="rsrc"><b>元にするもの:</b> <b>変更指示</b>（完了条件・brief §7・要件定義書・spec §5）<b> ⊕ ベースライン契約</b>（現行 prisma / DTO / schema.gql）<br>※実装したデルタのコードは読まない（なぞりを避ける）
+            <div class="ringhead"><span class="rname">内側｜シナリオテストの構築</span><span class="rby">AI</span><span class="hint">問い: どんなケースで叩くか</span><span class="add-in">追加入力：<b>ナレッジベース</b></span></div>
+            <p class="rdesc">スコープ内のテストのために<b>「核」の情報と既存の実装</b>を下地に、<b>前提 → 入力 → 操作 → 期待結果</b> というテストシナリオを組み立てる。</p>
+            <div class="rsrc"><b>出力:</b>
               <div class="chips">
-                <span class="chip key">出力: test-spec.md §3 ケース表</span>
-                <span class="chip key">§6 トレーサビリティ（完了条件↔ケース）</span>
-                <span class="chip key">要確認事項（差し戻し）</span>
-                <span class="chip key">PR本文では T-* 項目</span>
+                <span class="chip key">シナリオテスト仕様書</span>
               </div>
             </div>
 
             <div class="ring core">
-              <div class="ringhead"><span class="rname">核｜完了条件・受入基準</span><span class="rby">pm</span><span class="hint">問い: 業務として受け入れるか</span></div>
-              <p class="rdesc">「作るべきもの」の合意そのもの。内側のケースはここへ<b>トレース</b>され、pass ケースが1件も無い完了条件は ❌ 未充足として出る。</p>
-              <div class="rsrc"><b>元にするもの:</b> 合意目的（業務語）
-                <div class="chips"><span class="chip doc">出力: pm.ticket.md（完了条件・受け入れ観点）</span></div>
+              <div class="ringhead"><span class="rname">核｜合意チケット</span><span class="rby">PM（人） × エンジニア（人）</span><span class="hint">問い: 何を作り、どこまでで完了とするか</span></div>
+              <p class="rdesc"><b>PM（人）とエンジニア（人）が合意した「チケット」</b>そのもの。<b>ユースケース</b>／<b>実装内容</b>／<b>完了条件</b>の3つで構成される。内側のケースは、このうち<b>完了条件</b>へトレースされる。</p>
+              <div class="rsrc"><b>出力:</b>
+                <div class="chips"><span class="chip doc">① ユースケース</span><span class="chip doc">② 実装内容</span><span class="chip doc">③ 完了条件</span></div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-
-      <div class="callout">
-        <h3>重なって見えるときの区別</h3>
-        <p>変更した画面は両者が触れる。<b>内側＝受入基準どおりか</b>／<b>外側＝層ごとの観点が最低1つ立っているか</b>。問いが違うので片方では足りない。</p>
       </div>
     </section>
 
@@ -492,7 +275,7 @@
     </footer>
   </div><!-- /panel-test -->
 
-  <div id="panel-debug" role="tabpanel" aria-labelledby="tab-debug" hidden>
+  <div id="panel-debug" role="tabpanel" aria-labelledby="tab-debug">
     <p class="panelnote"><b>AI の解釈ズレを人間が是正したやり取りを、ナレッジベースに記録として積む。</b>次のチケットの仕様精査でそれを引き出し、Spec 出力時に「注意すべき点」として先回りで刷り込む。</p>
 
     <section class="ref" style="margin-top:26px">
