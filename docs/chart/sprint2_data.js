@@ -14,7 +14,8 @@ const SPRINT2_DATA = {
   // 記録日→その時点の累積 EV/AC（h）。週1回くらい追記する。
   evmSnapshots: {
     "2026-07-21": { "ev": 43.2, "ac": 42.9 },
-    "2026-07-29": { "ev": 148.1, "ac": 111.1 }
+    "2026-07-29": { "ev": 121.6, "ac": 111.1 },   // ev是正: 「テスト設計・実施(ファイル連携)」progress=5(500%)の過大計上 約26.5h を除去（旧148.1）
+    "2026-07-30": { "ev": 136.9, "ac": 126.5 }
   },
   // 予定休（人員別）。その人員の営業日から除外し、当該人員のタスクを後ろ倒しする。
   leaves: {
@@ -69,27 +70,27 @@ const SPRINT2_DATA = {
     { name: "PR・レビュー対応(認可)", base: "auth", person: 1, group: "PR", code: "PR1", owner: "両", deps: [], asis: 26.7, plan: 4.9, tobe: 0, status: "予定", progress: 0, desc: "①のうち【テスト/PR未実施】の実装系47.6hに対するPR本文作成＋レビュー指摘対応。暫定係数0.102＝PW-229実測（pr-writer 5.7分＋reviewer 24.9分）。" },
 
     // ───────── ③ ファイル連携（S3＋Transfer Family の SFTP 前提。人員2はこの③から着手＝③→②→④）─────────
-    { name: "仕様精査(ファイル連携)～PM合意", base: "file", person: 2, group: "仕様精査", code: "SP", owner: "両", deps: [], asis: 10.8, plan: 7.2, tobe: 1.5, status: "着手中", progress: 0.21, desc: "出荷指示取込・出荷実績送信の精査と論点整理（ファイル定義・バリデーション正本・文字コード・部分失敗ポリシー・冪等・スケジュール起動・SFTP/S3授受の前提）。ファイル連携チケット修正〜PR〜PM案内（PM承認）を含む。" },
-    { name: "仕様精査(SMS連携)～PM合意", base:"export", person:2, group:"仕様精査", code:"SP", owner:"両", deps:[], asis:10.8, plan:14.4, tobe:0.75, status:"着手中", progress:0.05, desc:"SMS連携の精査と論点整理（機能I/F粒度・ドライバー化方針・再送/冪等・文面テンプレ・接続情報/環境変数の未確定欄）。SMS設計情報確認・親チケット起票（PM承認）着手を含む。実装より仕様精査に時間を投下し今日まで継続中（高品質インプットで実装を圧縮）。IVRは後発（要件FIX後・今回スコープ外）。" },
-    { name: "仕様精査(帳票)～PM合意",   base: "report", person: 2, group: "仕様精査", code: "SP", owner: "両", deps: [], asis: 10.8, plan: 7.2, tobe: 0.75, status: "着手中", progress: 0.10, desc: "画面出力／取込出力の精査と論点整理（非同期生成方式・生成状況テーブル・S3成果物・ポーリング/通知テーブル・エラー扱い・デポ別並列）。帳票設計情報確認・親チケット起票（PM承認）着手を含む。RP021/RP022は含否がG1論点＝今回除外・次スプリント。" },
+    { name: "仕様精査(ファイル連携)～PM合意", base: "file", person: 2, group: "仕様精査", code: "SP", owner: "両", deps: [], asis: 10.8, plan: 7.2, tobe: 2.51, status: "着手中", progress: 0.35, desc: "出荷指示取込・出荷実績送信の精査と論点整理（ファイル定義・バリデーション正本・文字コード・部分失敗ポリシー・冪等・スケジュール起動・SFTP/S3授受の前提）。ファイル連携チケット修正〜PR〜PM案内（PM承認）を含む。" },
+    { name: "仕様精査(SMS連携)～PM合意", base:"export", person:2, group:"仕様精査", code:"SP", owner:"両", deps:[], asis:10.8, plan:14.4, tobe:2.18, status:"着手中", progress:0.15, desc:"SMS連携の精査と論点整理（機能I/F粒度・ドライバー化方針・再送/冪等・文面テンプレ・接続情報/環境変数の未確定欄）。SMS設計情報確認・親チケット起票（PM承認）着手を含む。実装より仕様精査に時間を投下し今日まで継続中（高品質インプットで実装を圧縮）。IVRは後発（要件FIX後・今回スコープ外）。" },
+    { name: "仕様精査(帳票)～PM合意",   base: "report", person: 2, group: "仕様精査", code: "SP", owner: "両", deps: [], asis: 10.8, plan: 7.2, tobe: 2.82, status: "着手中", progress: 0.39, desc: "画面出力／取込出力の精査と論点整理（非同期生成方式・生成状況テーブル・S3成果物・ポーリング/通知テーブル・エラー扱い・デポ別並列）。帳票設計情報確認・親チケット起票（PM承認）着手を含む。RP021/RP022は含否がG1論点＝今回除外・次スプリント。" },
     { name: "S3/SFTP基盤",     base: "file", person: 2, group: "基盤", code: "F0", owner: "BE", deps: [],                                     asis: 22.9, plan: 4.2, tobe: 0, status: "予定", progress: 0, desc: "S3バケット＋Transfer Family による SFTP アクセス整備（各基幹システム担当者がファイル送受信）。AWS側整備でAI駆動範囲外の手作業を含む。" },
     { name: "ファイル授受基盤", base: "file", person: 2, group: "基盤", code: "F1", owner: "BE", deps: ["S3/SFTP基盤"],                        asis: 19.1, plan: 3.5, tobe: 0.5, status: "着手中", progress: 0.14, desc: "S3 get/put＋退避・リネームのファイル授受アダプタ。取込ファイル取得／実績ファイル配置の共通経路。" },
     { name: "ファイル定義基盤", base: "file", person: 2, group: "基盤", code: "F2", owner: "BE", deps: [],                                     asis: 26.7, plan: 4.9, tobe: 0, status: "予定", progress: 0, desc: "取込/生成の「定義型」基盤（列マッピング・型・バリデーション）。既存エクスポート定義基盤と対称。定義1個＝1帳票。" },
     { name: "バッチ起動基盤",   base: "file", person: 2, group: "基盤", code: "F3", owner: "BE", deps: [],                                     asis: 15.3, plan: 2.8, tobe: 0, status: "予定", progress: 0, desc: "特定時刻キックのスケジューラ＋ジョブ実行枠＋t_batch_logs記録。取込/送信の両処理を起動。" },
-    { name: "出荷指示取込",     base: "file", person: 2, group: "取込", code: "F4", owner: "BE", deps: ["ファイル授受基盤", "ファイル定義基盤", "バッチ起動基盤"], asis: 22.9, plan: 4.2, tobe: 0, status: "予定", progress: 0, desc: "起動→S3から取込ファイル取得→バリデーション＋マッピング（約53項目）→PW-DMS DB登録（$transaction・部分失敗ポリシー・冪等upsert・取込ログ）。" },
+    { name: "出荷指示取込",     base: "file", person: 2, group: "取込", code: "F4", owner: "BE", deps: ["ファイル授受基盤", "ファイル定義基盤", "バッチ起動基盤"], asis: 22.9, plan: 4.2, tobe: 3.7, status: "着手中", progress: 0.88, desc: "起動→S3から取込ファイル取得→バリデーション＋マッピング（約53項目）→PW-DMS DB登録（$transaction・部分失敗ポリシー・冪等upsert・取込ログ）。" },
     { name: "配送指示書作成連携", base: "file", person: 2, group: "取込", code: "F5", owner: "BE", deps: ["出荷指示取込"],                       asis: 11.4, plan: 2.1, tobe: 0, status: "予定", progress: 0, desc: "取込完了後に配送指示書の作成処理をキック（既存処理の呼出配線）。" },
     { name: "サイサン指示受信(IF004)", base: "file", person: 2, group: "取込", code: "F9", owner: "BE", deps: ["ファイル定義基盤", "出荷指示取込"], asis: 11.4, plan: 2.1, tobe: 0, status: "予定", progress: 0, desc: "IF004。サイサン出荷指示の定義追加＋サイサン⇔PWフォーマット差分変換。取込本体は出荷指示取込を再利用。" },
-    { name: "出荷実績生成",     base: "file", person: 2, group: "送信", code: "F6", owner: "BE", deps: ["ファイル定義基盤", "バッチ起動基盤"],   asis: 19.1, plan: 3.5, tobe: 0, status: "予定", progress: 0, desc: "起動→PW-DMS DBから対象データ取得→定義で出荷実績ファイル（約32項目・forU/WS別）を生成。15時までにS3配置（担当者がSFTPで受領）。" },
+    { name: "出荷実績生成",     base: "file", person: 2, group: "送信", code: "F6", owner: "BE", deps: ["ファイル定義基盤", "バッチ起動基盤"],   asis: 19.1, plan: 3.5, tobe: 2.17, status: "着手中", progress: 0.62, desc: "起動→PW-DMS DBから対象データ取得→定義で出荷実績ファイル（約32項目・forU/WS別）を生成。15時までにS3配置（担当者がSFTPで受領）。" },
     { name: "実績ファイル配置", base: "file", person: 2, group: "送信", code: "F7", owner: "BE", deps: ["出荷実績生成", "ファイル授受基盤"],     asis: 11.4, plan: 2.1, tobe: 0, status: "予定", progress: 0, desc: "生成した出荷実績ファイルをS3へ配置（担当者がSFTPで受領）。" },
     { name: "サイサン実績送信(IF005)", base: "file", person: 2, group: "送信", code: "F10", owner: "BE", deps: ["ファイル定義基盤", "出荷実績生成"], asis: 11.4, plan: 2.1, tobe: 0, status: "予定", progress: 0, desc: "IF005。サイサン出荷実績の定義追加（別ファイル・サンプル無し→正解は基幹側読込検証）。生成本体は出荷実績生成を再利用。" },
     { name: "連携E2E(ファイル)", base: "file", person: 2, group: "E2E", code: "F8", owner: "両", deps: ["配送指示書作成連携", "実績ファイル配置"], asis: 11.4, plan: 2.1, tobe: 0, status: "予定", progress: 0, desc: "SFTPでファイル配置→取込→指示書作成／実績生成→S3配置 を1本通すE2E（成功・部分失敗・冪等再取込）。" },
-    { name: "テスト設計・実施(ファイル連携)", base: "file", person: 2, group: "テスト", code: "QA3", owner: "両", deps: ["連携E2E(ファイル)"], asis: 28.9, plan: 5.3, tobe: 0, status: "予定", progress: 5, desc: "③実装系31.5hに対するテスト仕様設計＋テスト実施＋デグレチェック範囲確認。暫定係数0.168＝PW-229実測。新規追加型のため低係数で置いているが、既存の取込/出力処理に触る範囲が出たら見直す。" },
-    { name: "PR・レビュー対応(ファイル連携)", base: "file", person: 2, group: "PR", code: "PR3", owner: "両", deps: [], asis: 17.4, plan: 3.2, tobe: 0, status: "予定", progress: 0, desc: "③実装系31.5hに対するPR本文作成＋レビュー指摘対応。暫定係数0.102＝PW-229実測。" },
+    { name: "テスト設計・実施(ファイル連携)", base: "file", person: 2, group: "テスト", code: "QA3", owner: "両", deps: ["連携E2E(ファイル)"], asis: 28.9, plan: 5.3, tobe: 2.17, status: "着手中", progress: 0.41, desc: "③実装系31.5hに対するテスト仕様設計＋テスト実施＋デグレチェック範囲確認。暫定係数0.168＝PW-229実測。新規追加型のため低係数で置いているが、既存の取込/出力処理に触る範囲が出たら見直す。" },
+    { name: "PR・レビュー対応(ファイル連携)", base: "file", person: 2, group: "PR", code: "PR3", owner: "両", deps: [], asis: 17.4, plan: 3.2, tobe: 1.18, status: "着手中", progress: 0.37, desc: "③実装系31.5hに対するPR本文作成＋レビュー指摘対応。暫定係数0.102＝PW-229実測。" },
 
     // ───────── ② 外部連携（SMS）※実装以降(L1-L5/QA2/PR2)はレーン均衡のため人員1が担当。仕様精査は人員2が継続し spec を渡す ─────────
     { name:"SMS連携I/F定義", base:"export", person:1, group:"基盤", code:"L1", owner:"BE", deps:[], asis:8.7, plan:1.6, tobe:0, status:"予定", progress:0, desc:"使いたい機能を機能軸のサービスI/Fに契約化（配信/配信結果取得/結果通知）。実ベンダーアクセスはドライバーに閉じる。仕様精査を厚くした分、実装は圧縮。" },
     { name:"SMSモックドライバー", base:"export", person:1, group:"基盤", code:"L2", owner:"BE", deps:["SMS連携I/F定義"], asis:10.9, plan:2.0, tobe:0, status:"予定", progress:0, desc:"アクリート実サービス⇔エミュレーターをドライバーで差替（環境変数切替・成功/失敗/遅延の応答パターン）。SoftBank番号は開通後。" },
-    { name:"SMSサービス・API(IF008)", base:"export", person:1, group:"基盤", code:"L3", owner:"BE", deps:["SMS連携I/F定義","SMSモックドライバー"], asis:13.1, plan:2.4, tobe:0, status:"予定", progress:0, desc:"IF008の利用機能（配信・配信結果取得・結果通知）を束ねるBEサービス＋GraphQL。103pから機能選定。" },
+    { name:"SMSサービス・API(IF008)", base:"export", person:1, group:"基盤", code:"L3", owner:"BE", deps:["SMS連携I/F定義","SMSモックドライバー"], asis:13.1, plan:2.4, tobe:1.61, status:"着手中", progress:0.67, desc:"IF008の利用機能（配信・配信結果取得・結果通知）を束ねるBEサービス＋GraphQL。103pから機能選定。" },
     { name:"文面テンプレ適用", base:"export", person:1, group:"適用", code:"L4", owner:"BE", deps:["SMSサービス・API(IF008)"], asis:8.7, plan:1.6, tobe:0, status:"予定", progress:0, desc:"業務イベント（配送遅延・ご不在）に既存文面テンプレを適用してSMS送信。既存送信経路を再利用（重複回避）。" },
     { name:"FE036 遅延SMS送信画面", base:"export", person:1, group:"適用", code:"L5", owner:"FE", deps:["SMSサービス・API(IF008)"], asis:10.9, plan:2.0, tobe:0, status:"予定", progress:0, desc:"遅延SMSの手動送信UI（対象選択→文面確認→送信→配信結果表示）。" },
     { name:"テスト設計・実施(SMS)", base:"export", person:1, group:"テスト", code:"QA2", owner:"両", deps:["FE036 遅延SMS送信画面"], asis:8.7, plan:1.6, tobe:0, status:"予定", progress:0, desc:"②実装系9.6hに対するテスト仕様設計＋テスト実施。暫定係数0.168＝PW-229実測。SMS E2Eは開通申請待ちのため後発（スコープ外）。" },
