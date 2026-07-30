@@ -246,6 +246,14 @@
   .callout--red { background: #fee2e2; border-color: #fecaca; }
   .callout--red::before { border-right-color: #fecaca; }
   .callout--red .co-tag { background: #dc2626; }
+
+  /* 実施タブ: エンジニアの所感（無機質なメモ矩形。三角ポインタ・強い配色なし） */
+  .soukan { margin-top: 2px; border: 1px solid #d1d5db; background: #fbfbfb; border-radius: 3px; padding: 5px 9px; }
+  .soukan .sk-head { font-size: 9.5px; font-weight: 700; color: #6b7280; margin-bottom: 3px; }
+  .soukan ul { margin: 0; padding: 0; list-style: none; }
+  .soukan li { position: relative; padding-left: 11px; font-size: 9.3px; line-height: 1.4; color: #4b5563; margin-bottom: 2px; }
+  .soukan li:last-child { margin-bottom: 0; }
+  .soukan li::before { content: '・'; position: absolute; left: 0; color: #9ca3af; }
 </style>
 </head>
 <body>
@@ -452,7 +460,7 @@
           <div class="rc-title">PM から入った指摘・補足</div>
           <div class="callout callout--gray">
             <span class="co-tag">認識の補足</span>
-            <div class="co-body">PW基幹は2系統「<b>forU／WS</b>」（同一形式・保管場所のみ別）。再散・東京ガスも同形式で届く。KSLも同じ置き場だが、<b>SFTP受信口へ置く経路が要件定義完了時と変化</b>している点が課題。</div>
+            <div class="co-body">主要荷主の基幹は<b>2系統</b>（同一形式・保管場所のみ別）。他の荷主も同形式で届く。一部の荷主も同じ置き場だが、<b>SFTP受信口へ置く経路が要件定義完了時と変化</b>している点が課題。</div>
           </div>
           <div class="callout callout--blue">
             <span class="co-tag">業務背景</span>
@@ -461,6 +469,15 @@
           <div class="callout callout--amber">
             <span class="co-tag">認識の訂正</span>
             <div class="co-body">作る指示書は「<b>翌日分</b>」（当日分は前日14時まで）。受信は<b>最大3日先</b>まで、長期休暇は<b>休み明けまでの分が一括</b>で届く。</div>
+          </div>
+          <div class="soukan">
+            <div class="sk-head">所感</div>
+            <ul>
+              <li>記入の際に業務の流れを構造化して考える必要があり、思考に抜けがあることに気づけた</li>
+              <li>PMからも入口についてが特に指摘いただけた</li>
+              <li>PM自身も把握できていないこともあったため、PMに対する気づきとして機能する場面も見られた（ex: 出荷実績の利用先）</li>
+              <li>書いた後で具体について気になるところが出てくるため、AIへのインプット前に情報整理として役立った（ex: 出荷指示→配送指示書は、どのような単位で作成される？）</li>
+            </ul>
           </div>
         </div>
       </div>
@@ -482,15 +499,22 @@
           <div class="rc-title">PM から入った指摘・補足</div>
           <div class="callout callout--blue">
             <span class="co-tag">責務の確認</span>
-            <div class="co-body">責務境界を確認。<b>A＝受信・取込まで</b>／<b>B＝実績を作成しS3へ配置まで</b>（KSL以外は配送指示書を出す）。</div>
+            <div class="co-body">責務境界を確認。<b>A＝受信・取込まで</b>／<b>B＝実績を作成しS3へ配置まで</b>（一部の荷主以外は配送指示書を出す）。</div>
           </div>
           <div class="callout callout--amber">
             <span class="co-tag">資料の訂正</span>
-            <div class="co-body">実績の送信先から<b>KSLを除外</b>。現行でKSLへ実績は送っていない（KSL以外はAと同じ送信先）。</div>
+            <div class="co-body">実績の送信先から<b>一部の荷主を除外</b>。現行でその荷主へ実績は送っていない（それ以外はAと同じ送信先）。</div>
           </div>
           <div class="callout callout--gray">
             <span class="co-tag">業務情報の補足</span>
-            <div class="co-body">KSLは配送指示書でなく「<b>送り状＋納品書</b>」を独自出力。実績の用途は<b>運賃計算・水源地別の集計</b>→在庫補充/需要予測。</div>
+            <div class="co-body">一部の荷主は配送指示書でなく「<b>送り状＋納品書</b>」を独自出力。実績の用途は<b>運賃計算・水源地別の集計</b>→在庫補充/需要予測。</div>
+          </div>
+          <div class="soukan">
+            <div class="sk-head">所感</div>
+            <ul>
+              <li>書いた後に出口側（完了条件）を確認し異常系について定義が必要と気づき戻るなど、思考の整理に役立った印象</li>
+              <li>思考を国語的に書いているため、疑問が表出しやすい（ex: 再配置を実行？とあるが、これはPMも意識できていなかった項目。PMの気づきにつながった）</li>
+            </ul>
           </div>
         </div>
       </div>
@@ -521,6 +545,13 @@
           <div class="callout callout--red">
             <span class="co-tag">重要</span>
             <div class="co-body"><b>重複取込の防止</b>。再送時はキー項目で既取込をスキップし、既取込95件＋修正5件が重複エラーにならないように。結論＝「<b>正しいものが入る</b>」。</div>
+          </div>
+          <div class="soukan">
+            <div class="sk-head">所感</div>
+            <ul>
+              <li>フォーマット化されているため、どういった内容を書けばいいのかを思考しやすかった</li>
+              <li>全項目を書くには多すぎるため、要点を意識して記述することに繋がった</li>
+            </ul>
           </div>
         </div>
       </div>
