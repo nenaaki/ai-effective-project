@@ -99,6 +99,10 @@
   .panel.bottom .decisions { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
   .panel.bottom .decision { padding: 7px 9px; font-size: 11px; line-height: 1.5; }
   .panel.bottom .quote { margin-top: 7px; padding: 5px 9px; font-size: 10px; line-height: 1.5; }
+  .panel.bottom .notes { display: grid; grid-template-columns: 1.4fr 1fr; gap: 8px; }
+  .panel.bottom .notes .quote { margin-top: 7px; }
+  .quote.info { background: #eef2ff; border-left-color: #4f46e5; color: #312e81; }
+  .quote.info .who { color: #4338ca; }
 
   /* 決定事項・ネクストアクション */
   .decisions { display: flex; flex-direction: column; gap: 6px; }
@@ -210,14 +214,14 @@
             <span class="num">2</span>
             <div>
               <div class="title">「過程」と「出口」の往復運動</div>
-              <div class="desc">思考の流れ（過程）と完了条件（出口）を<strong>別々に整理し往復させる</strong>ことで、異常系の考慮漏れ・未検討仕様を炙り出す。</div>
+              <div class="desc">過程（思考の流れ）と出口（完了条件）を<strong>別々に整理し往復</strong>させ、異常系の考慮漏れ・未検討仕様を炙り出す。</div>
             </div>
           </div>
           <div class="item">
             <span class="num">3</span>
             <div>
               <div class="title">実践報告：PMとのレビューで双方に効果</div>
-              <div class="desc">実践の結果、<strong>エンジニアの理解が深まるだけでなく、PM側も把握しきれていなかった業務背景に気づいた</strong>。有識者の頭の中にある「正しさ（理論値）」とエンジニアの認識を<strong>イコールにする</strong>のがゴール。</div>
+              <div class="desc"><strong>エンジニアの理解が深まるだけでなく、PM側も把握しきれていなかった業務背景に気づいた</strong>。有識者の「正しさ（理論値）」とエンジニアの認識を<strong>イコールにする</strong>のがゴール。</div>
             </div>
           </div>
           <div class="item">
@@ -257,10 +261,6 @@
         </div>
       </div>
 
-      <div class="quote">
-        <span class="who">冒頭報告（進捗・EVM是正）</span>
-        AIのフォロー範囲が広がり1タスクの時間の性質が変化し、従来計算では予実が正しく出なくなっていた。各タスク開始時に<strong>「仕様精査」「PM承認」を明示的に挿入</strong>してEVMの傾きを是正。<strong>徐々に遅れを詰めていける見立て</strong>。
-      </div>
     </div>
 
   </div>
@@ -273,9 +273,15 @@
       <div class="decision"><span class="tag action">アクション</span><strong>サンプリングレビューの継続と改善</strong> — PW案件の中で業務背景を問うレビューを1機能ずつ継続し、<strong>フォーマットを磨き上げる</strong>。</div>
       <div class="decision"><span class="tag">決定</span><strong>エンジニアコミュニティの活用</strong> — 「AIに逆方向の探索をさせる仕掛け」等の難テーマを<strong>社内の技術チャンネルにお題として投げ</strong>、集合知でアイデアを募る。</div>
     </div>
-    <div class="quote">
-      <span class="who">社長からの総括メッセージ</span>
-      「システムは完璧に動いて当たり前（引き分け）、バグが出れば批判される（負け）。中でもデバッグは、いつ終わるか・いつ原因が特定できるか分からない“爆弾”のような時間で、エンジニアが最も孤独に追い込まれる工程だ。<strong>デバッグのプレッシャーからエンジニアを救いたい。入口（背景理解）とデバッグのメソドロジーという両端を標準化すれば、誰でも高い成果を出せる未来が作れる</strong>」。
+    <div class="notes">
+      <div class="quote">
+        <span class="who">社長からの総括メッセージ</span>
+        「システムは動いて当たり前（引き分け）、バグが出れば批判される（負け）。中でもデバッグは、いつ終わるか分からない“爆弾”のような時間だ。<strong>デバッグのプレッシャーからエンジニアを救いたい。入口（背景理解）とデバッグのメソドロジーという両端を標準化すれば、誰でも高い成果を出せる未来が作れる</strong>」。
+      </div>
+      <div class="quote info">
+        <span class="who">冒頭報告（進捗・EVM是正）</span>
+        AIのフォロー範囲拡大で1タスクの時間の性質が変化し予実が正しく出なくなっていた。各タスク開始時に<strong>「仕様精査」「PM承認」を明示挿入</strong>してEVMの傾きを是正。<strong>徐々に遅れを詰めていける見立て</strong>。
+      </div>
     </div>
   </div>
 
