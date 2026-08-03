@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>議事まとめ 2026-07-30</title>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body {
+    font-family: -apple-system, "Hiragino Kaku Gothic ProN", "Yu Gothic", system-ui, sans-serif;
+    color: #1f2937;
+    background: #fafafa;
+    padding: 12px 28px 8px;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+  .page { max-width: 1240px; margin: 0 auto; height: 100%; display: flex; flex-direction: column; }
+  h1 { font-size: 18px; margin: 0; border-bottom: 3px solid #2563eb; padding-bottom: 5px; }
+  .sub { color: #6b7280; font-size: 11.5px; margin: 5px 0 8px; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1.12fr;
+    gap: 14px;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+  }
+  .panel {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 11px 13px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: auto;
+  }
+  h2 { font-size: 12.5px; margin: 0 0 7px; padding-left: 8px; border-left: 3px solid #2563eb; }
+  h2.amber { border-left-color: #f59e0b; }
+  h2.indigo { border-left-color: #4f46e5; }
+
+  .items { display: flex; flex-direction: column; gap: 5px; }
+  .item {
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 11.5px;
+    line-height: 1.45;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .item .num {
+    background: #2563eb;
+    color: white;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 11px;
+    flex-shrink: 0;
+  }
+  .item.amber .num { background: #f59e0b; }
+  .item.indigo .num { background: #4f46e5; }
+  .item .title { font-weight: 600; color: #1f2937; }
+  .item .desc { color: #4b5563; margin-top: 2px; font-size: 11px; }
+  .item .desc a, .ref-line a { color: #2563eb; text-decoration: none; }
+  .item .desc a:hover, .ref-line a:hover { text-decoration: underline; }
+
+  .item-detail {
+    margin-top: 4px;
+    background: #f9fafb;
+    border-left: 2px solid #2563eb;
+    border-radius: 3px;
+    padding: 4px 8px;
+    font-size: 10.5px;
+    line-height: 1.45;
+    color: #374151;
+  }
+  .item-detail .head {
+    font-size: 10px;
+    font-weight: 700;
+    color: #1e40af;
+    letter-spacing: 0.04em;
+    margin-bottom: 4px;
+  }
+  .item-detail ul { margin: 0; padding-left: 16px; }
+  .item-detail li { margin: 2px 0; }
+  .item-detail.amber { border-left-color: #f59e0b; }
+  .item-detail.amber .head { color: #b45309; }
+
+  .ref-line { margin-top: 5px; font-size: 10.5px; color: #6b7280; padding-left: 4px; }
+
+  /* 下段: 決定事項（全幅・3カラム） */
+  .panel.bottom { margin-top: 11px; flex: none; overflow: visible; padding: 9px 13px 10px; }
+  .panel.bottom .decisions { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .panel.bottom .decision { padding: 7px 9px; font-size: 11px; line-height: 1.5; }
+  .panel.bottom .quote { margin-top: 7px; padding: 5px 9px; font-size: 10px; line-height: 1.5; }
+
+  /* 決定事項・ネクストアクション */
+  .decisions { display: flex; flex-direction: column; gap: 6px; }
+  .decision {
+    background: #ecfdf5;
+    border-left: 3px solid #10b981;
+    border-radius: 4px;
+    padding: 8px 10px;
+    font-size: 11.5px;
+    line-height: 1.55;
+  }
+  .decision .tag {
+    display: inline-block;
+    background: #10b981;
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 3px;
+    margin-right: 6px;
+    vertical-align: 1px;
+  }
+  .decision .tag.action { background: #2563eb; }
+  .decision .tag.hold { background: #9ca3af; }
+
+  /* 最終メッセージ・補足 */
+  .quote {
+    background: #fef3c7;
+    border-left: 3px solid #f59e0b;
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 10.5px;
+    line-height: 1.55;
+    color: #78350f;
+    font-style: italic;
+  }
+  .quote .who { display: block; font-style: normal; font-weight: 700; font-size: 10px; color: #b45309; margin-bottom: 2px; letter-spacing: 0.04em; }
+  .quote a { color: #b45309; font-style: normal; }
+
+  .block { margin-bottom: 9px; }
+  .block:last-child { margin-bottom: 0; }
+  .panel .block h2 { margin-bottom: 6px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>議事まとめ 2026-07-30 ― デバッグの「逆方向探索」標準化と レビュー／テストの役割分担</h1>
+  <div class="sub">参加者: 社長・PJメンバー ／ AI駆動開発プロセス標準化・品質管理MTG。前回: <a href="minutes_2026-07-22.html">議事まとめ 2026-07-22</a>／関連: <a href="problem_ex_7.html">課題事例⑦（サンプリングレビューの内部統制化）</a>・<a href="problem_ex_6.html">課題事例⑥（最後の2%の属人性）</a></div>
+
+  <div class="grid">
+
+    <!-- 左: 議題① デバッグ（2%問題）の標準化 -->
+    <div class="panel">
+      <h2 class="amber">① デバッグ（残り2%）の標準化 ―「逆方向の探索」</h2>
+      <div class="items">
+        <div class="item amber">
+          <span class="num">1</span>
+          <div>
+            <div class="title">工程を2ステップに明確分離する</div>
+            <div class="desc"><strong>①原因の特定（なぜ期待値とズレるのかの解明）</strong>と<strong>②原因の除去（再設計・再実装）</strong>を別工程として置く。前回定義したメソドロジーを、今回さらに「特定」側の具体手順まで踏み込んで整理した。</div>
+          </div>
+        </div>
+        <div class="item amber">
+          <span class="num">2</span>
+          <div>
+            <div class="title">「期待値のズレ」を起点にAIへ逆算させる</div>
+            <div class="desc">従来の開発は「入力→出力」の<strong>順方向</strong>しか持たない。ここに<strong>結果から原因を逆算する経路</strong>を組み込むのが今回の中心アイデア。</div>
+            <div class="item-detail amber">
+              <div class="head">目的変数／説明変数という整理</div>
+              <ul>
+                <li><strong>目的変数（結果）</strong>＝「期待値と実際がズレている」という揺るぎない事実。人間はこれをAIに投入する。</li>
+                <li><strong>説明変数（原因・過程）</strong>＝入力データやAIの中間処理ロジック。AIに「どの部分でズレたか特定せよ」と問う。</li>
+                <li><strong>セッションログ</strong>を意図的に吐き出させ、人間が「ここがおかしい」と判断できる材料をAI側から提示させる。</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="item amber">
+          <span class="num">3</span>
+          <div>
+            <div class="title">ナレッジベース化による再発防止</div>
+            <div class="desc">人間からの指摘内容をAIに分析させ、セッションログとあわせてナレッジベースに蓄積。<strong>次のチケットで同じ誤解をさせない仕掛け</strong>にする。</div>
+          </div>
+        </div>
+        <div class="item">
+          <span class="num">4</span>
+          <div>
+            <div class="title">狙う姿：アプリケーションの自己進化</div>
+            <div class="desc">テストケースがNG（＝目的変数のズレ）になった瞬間に、AIが説明変数側から原因を特定し修正プランを提示、人が承認すれば直る。<strong>テストケースを出すだけで勝手に進化し続けるアプリケーション</strong>を最終的な到達点に置く。</div>
+          </div>
+        </div>
+      </div>
+      <div class="ref-line">元メモ: <a href="../../.work/2026-07-30_議事録.md">.work/2026-07-30_議事録.md</a></div>
+    </div>
+
+    <!-- 右: 議題② レビュー洗練 + 議題③ テスト階層 -->
+    <div class="panel">
+      <div class="block">
+        <h2>② サンプリングレビュー「入口・過程・出口」の洗練</h2>
+        <div class="items">
+          <div class="item">
+            <span class="num">1</span>
+            <div>
+              <div class="title">「入口」の質的転換</div>
+              <div class="desc">仕様の確認ではなく、<strong>「業務課題」「誰が・いつ・なぜ・どう使うか」</strong>という背景をエンジニアに問う形へ変更。</div>
+            </div>
+          </div>
+          <div class="item">
+            <span class="num">2</span>
+            <div>
+              <div class="title">「過程」と「出口」の往復運動</div>
+              <div class="desc">思考の流れ（過程）と完了条件（出口）を<strong>別々に整理し往復させる</strong>ことで、異常系の考慮漏れ・未検討仕様を炙り出す。</div>
+            </div>
+          </div>
+          <div class="item">
+            <span class="num">3</span>
+            <div>
+              <div class="title">実践報告：PMとのレビューで双方に効果</div>
+              <div class="desc">実践の結果、<strong>エンジニアの理解が深まるだけでなく、PM側も把握しきれていなかった業務背景に気づいた</strong>。有識者の頭の中にある「正しさ（理論値）」とエンジニアの認識を<strong>イコールにする</strong>のがゴール。</div>
+            </div>
+          </div>
+          <div class="item">
+            <span class="num">4</span>
+            <div>
+              <div class="title">運用：全件ではなくサンプリング</div>
+              <div class="desc">PMの負担を考慮しサンプリングで実施。<strong>似た機能は学習効果を活かして効率化</strong>する。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2 class="indigo">③ テスト戦略の階層化（人とAIの役割分担）</h2>
+        <div class="items">
+          <div class="item indigo">
+            <span class="num">単</span>
+            <div>
+              <div class="title">単機能テスト ― AI駆動開発と対になるベーシック領域</div>
+              <div class="desc">テストケースとデータを整備することで<strong>開発効率を劇的に向上</strong>させる。AI駆動チームが戦略的に整備。</div>
+            </div>
+          </div>
+          <div class="item indigo">
+            <span class="num">結</span>
+            <div>
+              <div class="title">結合テスト ― 専門家が「正解ロジック」、AIが「実行」</div>
+              <div class="desc">変数が多く網羅が困難。<strong>品質管理の外部専門家チーム</strong>が判定ロジック・シナリオ／リグレッションを言語化し、AI駆動チームは<strong>実行プロセスのみ機械化</strong>する分業。</div>
+            </div>
+          </div>
+          <div class="item indigo">
+            <span class="num">総</span>
+            <div>
+              <div class="title">総合テスト ― 人間の判断領域として切り離す</div>
+              <div class="desc">お客さまのビジネス視点に基づく<strong>主観的な工程</strong>で、検収とイコール。握り（合意）が必要な領域として別管理。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="quote">
+        <span class="who">冒頭報告（進捗・EVM是正）</span>
+        AIのフォロー範囲が広がり1タスクの時間の性質が変化し、従来計算では予実が正しく出なくなっていた。各タスク開始時に<strong>「仕様精査」「PM承認」を明示的に挿入</strong>してEVMの傾きを是正。<strong>徐々に遅れを詰めていける見立て</strong>。
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 下段: 決定事項・アクションアイテム -->
+  <div class="panel bottom">
+    <h2>決定事項・アクションアイテム</h2>
+    <div class="decisions">
+      <div class="decision"><span class="tag action">アクション</span><strong>デバッグプロセスの明文化</strong> — 「原因特定」→「原因除去」のフローをガイドラインに組み込み、AIに<strong>原因探索をさせる問い方のテンプレート</strong>を検討する。</div>
+      <div class="decision"><span class="tag action">アクション</span><strong>サンプリングレビューの継続と改善</strong> — PW案件の中で業務背景を問うレビューを1機能ずつ継続し、<strong>フォーマットを磨き上げる</strong>。</div>
+      <div class="decision"><span class="tag">決定</span><strong>エンジニアコミュニティの活用</strong> — 「AIに逆方向の探索をさせる仕掛け」等の難テーマを<strong>社内の技術チャンネルにお題として投げ</strong>、集合知でアイデアを募る。</div>
+    </div>
+    <div class="quote">
+      <span class="who">社長からの総括メッセージ</span>
+      「システムは完璧に動いて当たり前（引き分け）、バグが出れば批判される（負け）。中でもデバッグは、いつ終わるか・いつ原因が特定できるか分からない“爆弾”のような時間で、エンジニアが最も孤独に追い込まれる工程だ。<strong>デバッグのプレッシャーからエンジニアを救いたい。入口（背景理解）とデバッグのメソドロジーという両端を標準化すれば、誰でも高い成果を出せる未来が作れる</strong>」。
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
