@@ -70,6 +70,13 @@
 
   footer { margin-top: 46px; padding-top: 20px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }
 
+  /* ---------- クローズ通知 ---------- */
+  .closed { display: flex; align-items: flex-start; gap: 12px; margin: 16px 0 0; padding: 12px 16px; border: 1px solid var(--gate); background: var(--gate-soft); border-radius: 12px; }
+  .closed .ctag { flex: none; font-family: var(--font-mono); font-size: 10px; font-weight: 700; letter-spacing: .12em; color: var(--gate); border: 1px solid var(--gate); border-radius: 999px; padding: 3px 10px; margin-top: 1px; }
+  .closed .cbody { font-size: 12.5px; line-height: 1.6; color: var(--ink); }
+  .closed .cbody b { font-weight: 660; }
+  .closed a { color: var(--gate); font-weight: 660; }
+
   /* ---------- tabs ---------- */
   .tabs { display: flex; gap: 6px; margin-top: 26px; border-bottom: 1px solid var(--line); }
   .tab { appearance: none; background: transparent; border: 1px solid transparent; border-bottom: none; padding: 10px 18px; font: inherit; font-size: 13.5px; font-weight: 640; color: var(--muted); cursor: pointer; border-radius: 10px 10px 0 0; margin-bottom: -1px; }
@@ -145,6 +152,13 @@
   <header>
     <p class="eyebrow">pw-dms / エージェント I/O 設計</p>
     <h1>課題事例⑥: 開発サイクル I/O フロー — 現行エージェント構成</h1>
+    <div class="closed">
+      <span class="ctag">CLOSED</span>
+      <div class="cbody">
+        本ページは<b>クローズ</b>。以降の検討は <a href="problem_ex_8.html">課題事例⑧: デバッグ（残り2%）の逆方向探索 — 遡れる場所へ問題を移す</a> に<b>移譲</b>した。<br>
+        ここに残すのは<b>検討当時の記録</b>。特に「デバッグの改善」タブのループは、<b>セッションログから誤解を抽出して積む</b>前提で描いているが、⑧では<b>AIの自己申告は事後作話になりうる</b>ため、<b>再現テストで裏取りした因果だけを積む</b>方針に改めている。
+      </div>
+    </div>
   </header>
 
   <div class="tabs" role="tablist" aria-label="表示切替">
