@@ -2,372 +2,457 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>デバッグ（残り2%）の逆方向探索</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>逆方向の探索 — 作った経路を逆にたどる</title>
 <style>
-  html, body { margin: 0; padding: 0; height: 100%; }
-  body {
-    font-family: -apple-system, "Hiragino Kaku Gothic ProN", "Yu Gothic", system-ui, sans-serif;
-    color: #1f2937;
-    background: #fafafa;
-    padding: 28px 32px;
-    box-sizing: border-box;
-    overflow: hidden;
-  }
-  .page { max-width: 1240px; margin: 0 auto; height: 100%; display: flex; flex-direction: column; }
-  h1 { font-size: 19px; margin: 0; border-bottom: 3px solid #2563eb; padding-bottom: 6px; }
-  .sub { color: #6b7280; font-size: 12px; margin: 6px 0 14px; }
-  .sub a { color: #2563eb; text-decoration: none; }
-  .sub a:hover { text-decoration: underline; }
-
-  .tabs { display: flex; gap: 4px; margin-bottom: 14px; border-bottom: 1px solid #e5e7eb; }
-  .tab {
-    padding: 8px 16px;
-    background: transparent;
-    border: 1px solid transparent;
-    border-bottom: none;
-    border-radius: 6px 6px 0 0;
-    cursor: pointer;
-    font-size: 13px;
-    font-family: inherit;
-    color: #6b7280;
-    margin-bottom: -1px;
-  }
-  .tab.active { background: white; border-color: #e5e7eb; color: #2563eb; font-weight: 600; }
-  .tab:hover { color: #1f2937; }
-
-  .tab-content { display: none; flex: 1; min-height: 0; }
-  .tab-content.active { display: flex; }
-
-  .layout { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 10px; width: 100%; }
-  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; flex: 1; min-height: 0; width: 100%; }
-  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; flex: 1; min-height: 0; width: 100%; }
-  .panel {
-    background: white;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    padding: 12px 14px;
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-    overflow: hidden;
-  }
-  h2 { font-size: 13px; margin: 0 0 9px; padding-left: 8px; border-left: 3px solid #2563eb; }
-  h2.amber { border-left-color: #f59e0b; }
-  h2.green { border-left-color: #10b981; }
-  h2.indigo { border-left-color: #4338ca; }
-  .lead { font-size: 11px; color: #6b7280; margin: 0 0 9px; line-height: 1.5; }
-
-  /* 上部の結論バンド */
-  .band { flex-shrink: 0; border-radius: 8px; padding: 8px 14px; display: flex; align-items: center; gap: 12px; }
-  .band--blue { background: #eff6ff; border: 1px solid #bfdbfe; }
-  .band--green { background: #ecfdf5; border: 1px solid #a7f3d0; }
-  .band--gray { background: #f8fafc; border: 1px solid #e5e7eb; }
-  .band .bt { flex-shrink: 0; color: #fff; font-size: 9px; font-weight: 700; padding: 2px 8px; border-radius: 3px; letter-spacing: .04em; }
-  .band--blue .bt { background: #2563eb; }
-  .band--green .bt { background: #10b981; }
-  .band--gray .bt { background: #9ca3af; }
-  .band .bd { font-size: 12px; line-height: 1.5; color: #1f2937; }
-  .band--blue .bd strong { color: #1e40af; }
-  .band--green .bd strong { color: #047857; }
-
-  /* カード（観点） */
-  .cards { display: flex; flex-direction: column; gap: 6px; }
-  .card { border: 1px solid #e5e7eb; border-radius: 6px; overflow: hidden; }
-  .card__t { padding: 4px 10px; font-size: 11.5px; font-weight: 700; color: #fff; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-  .card__t .hint { font-size: 9.5px; font-weight: 600; opacity: .92; }
-  .card__t--gray { background: #6b7280; }
-  .card__t--amber { background: #b45309; }
-  .card__t--red { background: #dc2626; }
-  .card__t--blue { background: #2563eb; }
-  .card__t--green { background: #047857; }
-  .card__t--indigo { background: #4338ca; }
-  .card p { margin: 0; padding: 6px 10px; font-size: 10.5px; line-height: 1.5; color: #374151; }
-  .card p strong { color: #1f2937; }
-
-  /* 表 */
-  .tbl { width: 100%; border-collapse: collapse; font-size: 11px; }
-  .tbl th, .tbl td { text-align: left; padding: 6px 9px; border-bottom: 1px solid #eef0f3; vertical-align: top; line-height: 1.45; }
-  .tbl th { background: #f3f4f6; color: #374151; font-weight: 700; font-size: 10.5px; }
-  .tbl td.k { font-weight: 700; color: #1f2937; }
-  .tbl td.v { color: #4b5563; }
-  .tbl tr.hi td { background: #ecfdf5; }
-  .tbl tr.hi td.k { color: #047857; }
-
-  /* 警告・結論の小帯 */
-  .note { border-radius: 6px; padding: 7px 11px; font-size: 10.5px; line-height: 1.5; }
-  .note--amber { background: #fffbeb; border: 1px solid #fcd34d; border-left: 4px solid #f59e0b; }
-  .note--green { background: #ecfdf5; border: 1px solid #a7f3d0; border-left: 4px solid #10b981; }
-  .note--gray { background: #f3f4f6; border: 1px solid #d1d5db; border-left: 4px solid #9ca3af; }
-  .note .nt { display: inline-block; color: #fff; font-size: 9px; font-weight: 700; padding: 1px 6px; border-radius: 3px; margin-right: 6px; vertical-align: 1px; }
-  .note--amber .nt { background: #f59e0b; }
-  .note--green .nt { background: #10b981; }
-  .note--gray .nt { background: #9ca3af; }
-  .note b { color: #1f2937; }
-
-  /* 手法カラム（タブ2） */
-  .mcol { display: flex; flex-direction: column; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; background: #fff; min-height: 0; }
-  .mhead { padding: 6px 11px; color: #fff; font-size: 11.5px; font-weight: 700; }
-  .mhead small { display: block; font-weight: 600; font-size: 9.5px; opacity: .9; margin-top: 1px; }
-  .mcol--a .mhead { background: #2563eb; }
-  .mcol--b .mhead { background: #4338ca; }
-  .mcol--c .mhead { background: #047857; }
-  .mrow { padding: 7px 11px; border-bottom: 1px dashed #e5e7eb; }
-  .mrow:last-child { border-bottom: none; flex: 1; background: #f9fafb; }
-  .mtag { display: inline-block; font-size: 8.5px; font-weight: 700; padding: 1px 6px; border-radius: 3px; margin-bottom: 4px; background: #f3f4f6; color: #4b5563; border: 1px solid #e5e7eb; }
-  .mcol--a .mrow:last-child .mtag { background: #eff6ff; color: #1e40af; border-color: #bfdbfe; }
-  .mcol--b .mrow:last-child .mtag { background: #eef2ff; color: #4338ca; border-color: #c7d2fe; }
-  .mcol--c .mrow:last-child .mtag { background: #ecfdf5; color: #047857; border-color: #a7f3d0; }
-  .mtext { font-size: 10.5px; line-height: 1.5; color: #374151; }
-  .mtext b { color: #1f2937; }
-  .qbox { margin-top: 5px; background: #f8fafc; border: 1px dashed #94a3b8; border-radius: 4px; padding: 4px 8px; font-size: 10px; line-height: 1.5; color: #334155; }
-
-  /* ステップ（タブ3） */
-  .steps { display: flex; flex-direction: column; gap: 7px; }
-  .step { display: flex; gap: 10px; align-items: flex-start; border: 1px solid #e5e7eb; border-radius: 6px; padding: 7px 10px; }
-  .step .no { flex: none; width: 21px; height: 21px; border-radius: 50%; background: #2563eb; color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; margin-top: 1px; }
-  .step.later .no { background: #9ca3af; }
-  .step .stt { font-size: 11.5px; font-weight: 700; color: #1f2937; }
-  .step .std { font-size: 10.3px; line-height: 1.45; color: #4b5563; margin-top: 2px; }
-  .step .std b { color: #1f2937; }
-
-  .kv { display: flex; flex-direction: column; gap: 6px; }
-  .kvrow { display: grid; grid-template-columns: 128px 1fr; gap: 9px; align-items: start; font-size: 10.6px; line-height: 1.5; }
-  .kvrow .kk { font-weight: 700; color: #fff; background: #4338ca; border-radius: 4px; padding: 3px 8px; text-align: center; font-size: 10px; }
-  .kvrow.no .kk { background: #dc2626; }
-  .kvrow .vv { color: #374151; padding-top: 2px; }
-  .kvrow .vv b { color: #1f2937; }
-
-  .oneline { flex-shrink: 0; background: #ecfdf5; border: 1px solid #10b981; border-radius: 8px; padding: 9px 14px; text-align: center; font-size: 13px; font-weight: 700; color: #047857; line-height: 1.5; }
+  *{box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
+  img{max-width:100%;}
 </style>
 </head>
 <body>
-<div class="page">
-  <h1>課題事例⑧: デバッグ（残り2%）の逆方向探索 — 遡れる場所へ問題を移す</h1>
-  <div class="sub">2026-07-30 MTG「逆方向の探索」の具体化 ／ <a href="problem_ex_6.html">課題事例⑥（最後の2%の属人性）</a>を継承　—　AI内部の判断経路は原理的に遡れない。遡行可能なコード・テスト・差分に問題を移してから原因を特定する</div>
 
-  <div class="tabs">
-    <button class="tab active" data-tab="premise">前提の置き換え</button>
-    <button class="tab" data-tab="method">手法の翻訳</button>
-    <button class="tab" data-tab="ops">運用と着手順</button>
+<div class="deck">
+
+<!-- ═══════════ 1 トレースを取っていないとき ═══════════ -->
+<section class="slide" data-title="トレース無し">
+  <header class="s-head">
+    <p class="eyebrow">状態 1 / 3</p>
+    <h2>トレースを取っていないとき</h2>
+    <p class="s-lead">残るのは<strong>コードとコミット、そしてセッションログ</strong>だけ。判断根拠はどこにも書かれない。</p>
+  </header>
+
+  <figure>
+    <svg viewBox="0 0 940 396" role="img" aria-label="トレース無しの状態では、順方向でコードとログだけが残り、逆方向は書いた瞬間と読んだ資料までは辿れるが、なぜそう決めたかと何に従ったかで経路が切れることを示す図" class="fig">
+      <defs>
+        <marker id="f1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><polygon points="0,0 10,5 0,10" fill="currentColor"/></marker>
+        <marker id="b1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><polygon points="0,0 10,5 0,10" class="p-acc"/></marker>
+        <marker id="x1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><polygon points="0,0 10,5 0,10" class="p-lost"/></marker>
+      </defs>
+
+      <text x="20" y="24" class="t-l">順方向 — 作ると何が残るか</text>
+      <rect x="20" y="40" width="190" height="52" rx="3" class="st"/><text x="115" y="71" text-anchor="middle" class="t-b">正本・要求</text>
+      <rect x="250" y="40" width="190" height="52" rx="3" class="st dash faint"/><text x="345" y="65" text-anchor="middle" class="t-b faint">spec</text><text x="345" y="83" text-anchor="middle" class="t-n faint">無い / 会話に埋没</text>
+      <rect x="480" y="40" width="190" height="52" rx="3" class="st dash faint"/><text x="575" y="65" text-anchor="middle" class="t-b faint">判断</text><text x="575" y="83" text-anchor="middle" class="t-n faint">記録されない</text>
+      <rect x="710" y="40" width="210" height="52" rx="3" class="st hi"/><text x="815" y="71" text-anchor="middle" class="t-b">コード</text>
+      <line x1="210" y1="66" x2="242" y2="66" class="st" marker-end="url(#f1)"/>
+      <line x1="440" y1="66" x2="472" y2="66" class="st" marker-end="url(#f1)"/>
+      <line x1="670" y1="66" x2="702" y2="66" class="st" marker-end="url(#f1)"/>
+
+      <text x="20" y="126" class="t-l">アウトプット</text>
+      <rect x="120" y="108" width="126" height="28" rx="2" class="st dash faint"/><text x="183" y="127" text-anchor="middle" class="t-xs faint">spec なし</text>
+      <rect x="254" y="108" width="126" height="28" rx="2" class="st dash faint"/><text x="317" y="127" text-anchor="middle" class="t-xs faint">テストケース なし</text>
+      <rect x="388" y="108" width="126" height="28" rx="2" class="st dash faint"/><text x="451" y="127" text-anchor="middle" class="t-xs faint">trace なし</text>
+      <rect x="522" y="108" width="126" height="28" rx="2" class="st dash faint"/><text x="585" y="127" text-anchor="middle" class="t-xs faint">questions なし</text>
+      <rect x="656" y="108" width="126" height="28" rx="2" class="st"/><text x="719" y="127" text-anchor="middle" class="t-xs">コミット</text>
+      <rect x="790" y="108" width="126" height="28" rx="2" class="st"/><text x="853" y="127" text-anchor="middle" class="t-xs">セッションログ</text>
+
+      <line x1="20" y1="164" x2="920" y2="164" class="st dash thin"/>
+
+      <text x="20" y="196" class="t-l acc">逆方向 — 壊れたとき何が辿れるか</text>
+
+      <rect x="710" y="212" width="210" height="56" rx="3" class="st hi"/><text x="815" y="245" text-anchor="middle" class="t-b">コードの1行</text>
+      <rect x="480" y="212" width="190" height="56" rx="3" class="st"/><text x="575" y="237" text-anchor="middle" class="t-b">書いた瞬間・担当</text><text x="575" y="256" text-anchor="middle" class="t-n">ログの操作履歴</text>
+      <rect x="250" y="212" width="190" height="56" rx="3" class="st"/><text x="345" y="237" text-anchor="middle" class="t-b">直前に読んだもの</text><text x="345" y="256" text-anchor="middle" class="t-n">開いた順に並ぶ</text>
+      <rect x="20" y="212" width="190" height="56" rx="3" class="st dash lost"/><text x="115" y="237" text-anchor="middle" class="t-b lost">なぜ・何に従ったか</text><text x="115" y="256" text-anchor="middle" class="t-n lost">到達できない</text>
+
+      <line x1="702" y1="240" x2="678" y2="240" class="st acc w2" marker-end="url(#b1)"/>
+      <text x="690" y="204" text-anchor="middle" class="t-ok">○</text>
+      <line x1="472" y1="240" x2="448" y2="240" class="st acc w2" marker-end="url(#b1)"/>
+      <text x="460" y="204" text-anchor="middle" class="t-ok">○</text>
+      <line x1="242" y1="240" x2="218" y2="240" class="st lost dash" marker-end="url(#x1)"/>
+      <line x1="222" y1="226" x2="238" y2="254" class="st lost w2"/><line x1="238" y1="226" x2="222" y2="254" class="st lost w2"/>
+      <text x="230" y="204" text-anchor="middle" class="t-ng">✕</text>
+
+      <rect x="480" y="300" width="440" height="80" rx="3" class="st"/>
+      <text x="700" y="326" text-anchor="middle" class="t-h acc">逆方向で可能なこと</text>
+      <text x="700" y="349" text-anchor="middle" class="t-s">誰が・いつ書いたか／その直前に何を読み、何を読まなかったか</text>
+      <text x="700" y="368" text-anchor="middle" class="t-n">＝ 機械的リンク。放っておいても残る</text>
+
+      <rect x="20" y="300" width="440" height="80" rx="3" class="st dash lost"/>
+      <text x="240" y="326" text-anchor="middle" class="t-h lost">逆方向で不可能なこと</text>
+      <text x="240" y="349" text-anchor="middle" class="t-s lost">なぜその値にしたか／どの正本に従ったか／そもそも決めごとが有ったか</text>
+      <text x="240" y="368" text-anchor="middle" class="t-n lost">思考は仕様上ログに残らない（実測でも 1 件も残っていない）</text>
+
+    </svg>
+  </figure>
+</section>
+
+<!-- ═══════════ 2 トレースを取っている現在 ═══════════ -->
+<section class="slide" data-title="現在">
+  <header class="s-head">
+    <p class="eyebrow">状態 2 / 3 — 現在</p>
+    <h2>トレースを取っている今</h2>
+    <p class="s-lead">spec・trace・questions が出るようになり、<strong>「なぜ」まで到達できる可能性が高まった</strong>。</p>
+  </header>
+
+  <figure>
+    <svg viewBox="0 0 940 474" role="img" aria-label="現在はspecとtraceとquestionsが出力され逆方向で未解決の業務論点まで到達できるが、コードから書いた瞬間へ入る1本目と判断根拠へ渡る2本目の2本だけが条件付きで、入口を外すと進めず判断根拠が空でも理由が分からないこと、および探索の都度AIの推論が入り時間とトークンを浪費したうえで理由に到達できない、あるいは誤った結論に至る場合があることを示す図" class="fig">
+      <defs>
+        <marker id="f2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><polygon points="0,0 10,5 0,10" fill="currentColor"/></marker>
+        <marker id="b2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><polygon points="0,0 10,5 0,10" class="p-acc"/></marker>
+      </defs>
+
+      <text x="20" y="24" class="t-l">順方向 — 作ると何が残るか</text>
+      <rect x="20" y="40" width="190" height="52" rx="3" class="st"/><text x="115" y="71" text-anchor="middle" class="t-b">正本・要求</text>
+      <rect x="250" y="40" width="190" height="52" rx="3" class="st"/><text x="345" y="71" text-anchor="middle" class="t-b">spec</text>
+      <rect x="480" y="40" width="190" height="52" rx="3" class="st"/><text x="575" y="65" text-anchor="middle" class="t-b">判断</text><text x="575" y="83" text-anchor="middle" class="t-n">trace に1行ずつ</text>
+      <rect x="710" y="40" width="210" height="52" rx="3" class="st hi"/><text x="815" y="71" text-anchor="middle" class="t-b">コード</text>
+      <line x1="210" y1="66" x2="242" y2="66" class="st" marker-end="url(#f2)"/>
+      <line x1="440" y1="66" x2="472" y2="66" class="st" marker-end="url(#f2)"/>
+      <line x1="670" y1="66" x2="702" y2="66" class="st" marker-end="url(#f2)"/>
+
+      <text x="20" y="126" class="t-l">アウトプット</text>
+      <rect x="120" y="108" width="126" height="28" rx="2" class="st"/><text x="183" y="127" text-anchor="middle" class="t-xs">specs/</text>
+      <rect x="254" y="108" width="126" height="28" rx="2" class="st"/><text x="317" y="127" text-anchor="middle" class="t-xs">テストケース</text>
+      <rect x="388" y="108" width="126" height="28" rx="2" class="st hi"/><text x="451" y="127" text-anchor="middle" class="t-xs acc">.work/*.trace.md</text>
+      <rect x="522" y="108" width="126" height="28" rx="2" class="st"/><text x="585" y="127" text-anchor="middle" class="t-xs">questions/*.tsv</text>
+      <rect x="656" y="108" width="126" height="28" rx="2" class="st"/><text x="719" y="127" text-anchor="middle" class="t-xs">コミット</text>
+      <rect x="790" y="108" width="126" height="28" rx="2" class="st"/><text x="853" y="127" text-anchor="middle" class="t-xs">セッションログ</text>
+
+      <line x1="20" y1="164" x2="920" y2="164" class="st dash thin"/>
+
+      <text x="20" y="196" class="t-l acc">逆方向 — 壊れたとき何が辿れるか</text>
+
+      <rect x="710" y="212" width="210" height="56" rx="3" class="st hi"/><text x="815" y="245" text-anchor="middle" class="t-b">コードの1行</text>
+      <rect x="480" y="212" width="190" height="56" rx="3" class="st"/><text x="575" y="237" text-anchor="middle" class="t-b">書いた瞬間・担当</text><text x="575" y="256" text-anchor="middle" class="t-n">ログの操作履歴</text>
+      <rect x="250" y="212" width="190" height="56" rx="3" class="st"/><text x="345" y="237" text-anchor="middle" class="t-b">なぜそう決めたか</text><text x="345" y="256" text-anchor="middle" class="t-n">trace の該当行</text>
+      <rect x="20" y="212" width="190" height="56" rx="3" class="st hi"/><text x="115" y="237" text-anchor="middle" class="t-b acc">正本・未解決の論点</text><text x="115" y="256" text-anchor="middle" class="t-n acc">spec / questions</text>
+
+      <line x1="702" y1="240" x2="678" y2="240" class="st acc w2 dash" marker-end="url(#b2)"/><text x="690" y="204" text-anchor="middle" class="t-cond">△</text>
+      <line x1="472" y1="240" x2="448" y2="240" class="st acc w2 dash" marker-end="url(#b2)"/><text x="460" y="204" text-anchor="middle" class="t-cond">△</text>
+      <line x1="242" y1="240" x2="218" y2="240" class="st acc w2" marker-end="url(#b2)"/><text x="230" y="204" text-anchor="middle" class="t-ok">○</text>
+
+      <path d="M 690 268 L 690 286" class="st thin dash cond" fill="none"/>
+      <text x="690" y="302" text-anchor="middle" class="t-cond-s">条件① ここに入れないと 1 歩も進めない</text>
+      <path d="M 460 268 L 460 286" class="st thin dash cond" fill="none"/>
+      <text x="452" y="302" text-anchor="middle" class="t-cond-s">条件② ここが空でも理由が分からない</text>
+
+      <rect x="480" y="316" width="440" height="76" rx="3" class="st"/>
+      <text x="700" y="340" text-anchor="middle" class="t-h acc">逆方向で可能なこと</text>
+      <text x="700" y="362" text-anchor="middle" class="t-s">コードから未解決の業務論点まで、途中で切れずに辿り着く</text>
+      <text x="700" y="381" text-anchor="middle" class="t-n">＝ 実装ミスか未確定かを区別できる</text>
+
+      <rect x="20" y="316" width="440" height="76" rx="3" class="st dash cond"/>
+      <text x="240" y="340" text-anchor="middle" class="t-h cond-t">条件が付くのはこの 2 本（図の △）</text>
+      <text x="240" y="362" text-anchor="middle" class="t-s cond-t">① 入口の検索語を勘で選ぶ。外すと最初の1歩が踏めず、やり直しに上限が無い</text>
+      <text x="240" y="381" text-anchor="middle" class="t-s cond-t">② 判断根拠に当たらないとき「未記録」か「書き方が違う」かを判別できない</text>
+
+      <rect x="20" y="406" width="900" height="58" rx="3" class="st lost"/>
+      <text x="40" y="430" class="t-h lost">現在の欠点 — 探索の都度、AI の推論が入る</text>
+      <text x="40" y="452" class="t-s">検索語を考え、外れればまた考え直す。<tspan class="lost">時間とトークンを浪費したうえで、「なぜ決まったか」にたどり着けない（または、誤った結論にたどり着く）ことがある</tspan></text>
+
+    </svg>
+  </figure>
+</section>
+
+<!-- ═══════════ 3 整理 ═══════════ -->
+<section class="slide" data-title="加えるもの">
+  <header class="s-head">
+    <p class="eyebrow">加えるべきもの</p>
+    <h2>加えるべきものは3つ</h2>
+    <p class="s-lead">いずれも<strong>思考過程を残すものではない</strong>。切れているリンクを1本ずつ繋ぎ直すだけ。<strong>A と C が本体</strong>で、B は別軸。</p>
+  </header>
+
+  <div class="cols">
+    <table class="grid ab">
+      <thead><tr><th>加えるもの</th><th>直すリンク</th><th>As-Is（現状）</th><th>To-Be（改善後）</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><span class="p-key">A</span>探索の機械化<span class="sub-note">スキルとして実装</span></td>
+          <td>探索そのもの<span class="sub-note">束ねる工程</span></td>
+          <td class="asis">経路を毎回手作業で辿る。ログ全体を都度走査し、辿り方も探す人によって違う。外れたら最初からやり直しで、この往復に上限が無い</td>
+          <td class="tobe">入力は<strong>ファイルの1行か、テストケースIDの1つだけ</strong>。0.2〜1.4 秒で、いつも同じ形の材料がまとまって出る。<em>解釈は AI・判断は人</em>に分業が固定される</td>
+        </tr>
+        <tr>
+          <td><span class="p-key">B</span>暫定実装に ID<span class="sub-note">規約・対象を限定</span></td>
+          <td>回答後の差し替え<span class="sub-note">デバッグ用ではない</span></td>
+          <td class="asis">未確定の論点に依存する暫定実装が、回答が来たときにどこにあるか分からない</td>
+          <td class="tobe"><em>未確定に依存する箇所だけ</em>に不明点 ID をコメントする</td>
+        </tr>
+        <tr>
+          <td><span class="p-key">C</span>trace に列を1つ<span class="sub-note">書式</span></td>
+          <td>判断 → コード<span class="sub-note">当たり外れの解消</span></td>
+          <td class="asis">「決めたこと」が業務語のみ。どのファイルに落ちたか書かれておらず、trace に当たるかは運</td>
+          <td class="tobe">「落ちた先（ファイル / シンボル）」列を追加。<strong>なぜへの到達が確実になる</strong></td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 
-  <!-- ====================== タブ1: 前提の置き換え ====================== -->
-  <div class="tab-content active" id="tab-premise">
-    <div class="layout">
-
-      <div class="band band--blue">
-        <span class="bt">結論</span>
-        <div class="bd">AIを「<strong>内部を覗く対象</strong>」ではなく「<strong>仮説を大量に出す生成器</strong>」と割り切り、<strong>判定は決定論的な機構（テスト実行・差分適用）に持たせる</strong>。</div>
-      </div>
-
-      <div class="grid">
-
-        <!-- 左: 遡れない -->
-        <div class="panel">
-          <h2 class="amber">遡れないもの ― AIの内部</h2>
-          <div class="cards">
-            <div class="card">
-              <div class="card__t card__t--gray"><span>非可逆な情報の圧縮</span><span class="hint">数理的な制約</span></div>
-              <p>順伝播（入力→出力）は情報を<strong>捨てながら</strong>進む。結果を再現しうる入力・中間状態の組み合わせは<strong>無数に存在する</strong>ため、「この経路しかあり得なかった」と一意に遡ることはできない。</p>
-            </div>
-            <div class="card">
-              <div class="card__t card__t--gray"><span>そもそも「分岐点」が無い</span><span class="hint">構造の制約</span></div>
-              <p>判断はIF/THENではなく、高次元ベクトル空間での<strong>微小な数値の積の集積</strong>。人間が認識できる「ここで右を選んだ」という<strong>離散的な分岐は内部に存在しない</strong>。</p>
-            </div>
-            <div class="card">
-              <div class="card__t card__t--gray"><span>内部解析技術は手元では使えない</span><span class="hint">立場の制約</span></div>
-              <p>アテンションの可視化・メカニスティック可解釈性・Causal Tracing は進展しているが、いずれも<strong>モデル内部の活性値にアクセスできる立場</strong>の技術。API／CLI 越しに開発する我々の手元には無い。</p>
-            </div>
-            <div class="card">
-              <div class="card__t card__t--red"><span>帰結：「なぜそう判断したか」は聞けない</span><span class="hint">要注意</span></div>
-              <p>内部にログが残っていない以上、返るのは<strong>その場で生成されたもっともらしい説明（事後作話）</strong>。セッションログをそのまま積む手順は、<strong>検証不能な情報を増やすだけ</strong>になるリスクがある。</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- 右: 遡れる -->
-        <div class="panel">
-          <h2 class="green">遡れるもの ― 外部に残った成果物</h2>
-          <p class="lead">説明変数を「AIの中間処理ロジック」に置くと追跡不能になる。<strong>外部に取り出せるものだけ</strong>を説明変数と定義し直す。</p>
-          <table class="tbl">
-            <thead><tr><th>説明変数（追跡可能）</th><th>取得方法</th></tr></thead>
-            <tbody>
-              <tr><td class="k">入力コンテキスト</td><td class="v">プロンプト／CLAUDE.md／読み込みファイル一覧</td></tr>
-              <tr class="hi"><td class="k">AIが置いた前提・仕様解釈</td><td class="v"><b>実装前に明文化させる</b>（後から聞かない）</td></tr>
-              <tr><td class="k">変更差分</td><td class="v">git diff（分割適用が可能）</td></tr>
-              <tr><td class="k">期待値</td><td class="v">テストケース（先行定義）</td></tr>
-              <tr><td class="k">実行結果</td><td class="v">テスト結果・実行ログ</td></tr>
-            </tbody>
-          </table>
-          <div class="note note--green" style="margin-top:10px">
-            <span class="nt">要点</span><b>コードとテストは完全に決定論的で、完全に遡行可能。</b>2%問題の逆方向探索は、遡行可能な側で行う。
-          </div>
-        </div>
-
-      </div>
-
-      <div class="band band--gray">
-        <span class="bt">肝</span>
-        <div class="bd"><b>AIが置いた前提を、実装の「前」に外に出させる。</b>　事後に「なぜ？」と聞けば作話になるが、事前に書かせた前提は<b>検証可能な記録</b>として残る。ズレが出たときに突き合わせるのはこの記録。</div>
-      </div>
-
+  <div class="closing">
+    <div class="close-a">
+      <p class="c-h">残すのは思考ではない</p>
+      <p class="c-b">実際に効いたのは推論の流れではなく、<strong>「決めたこと」と「選ばなかった解釈」の2文</strong>だった。1 判断あたり 1 行で足りる。</p>
+    </div>
+    <div class="close-b">
+      <p class="c-h">なぜ 3 つで足りるのか</p>
+      <p class="c-b">放っておいても残る分と、どうやっても残らない分は動かせない。<strong>動かせるのは前ページの △ 2 本だけ</strong>で、A と C がそこを潰す。</p>
+    </div>
+    <div class="close-c">
+      <p class="c-h">trace は使い捨てでよい</p>
+      <p class="c-b">寿命は<strong>その部分のデバッグが終わるまで</strong>。引き継ぎ資産ではないので、量を気にせず厚く書いてよく、<code>.work/</code> が git 管理外でも支障は無い。残すのは、回答待ちとして起票した業務論点だけ。</p>
     </div>
   </div>
+</section>
 
-  <!-- ====================== タブ2: 手法の翻訳 ====================== -->
-  <div class="tab-content" id="tab-method">
-    <div class="layout">
+<!-- ═══════════ 4 加えたとき ═══════════ -->
+<section class="slide" data-title="加えたとき">
+  <header class="s-head">
+    <p class="eyebrow">状態 3 / 3 — 加えたあとの姿</p>
+    <h2>出力から入力への正確な経路の抽出</h2>
+    <p class="s-lead"><strong>「仕様不備・不整合」「人間判断による仮実装」「AI 独断」</strong>を正確に摘出する方法。</p>
+  </header>
 
-      <div class="band band--blue">
-        <span class="bt">切り口</span>
-        <div class="bd">モデル内部では使えない解析手法も、<strong>開発プロセスのレベルには移植できる</strong>。3つとも「AIの自己申告に依存しない」点が共通。</div>
-      </div>
+  <figure>
+    <svg viewBox="0 0 940 478" role="img" aria-label="改善後は出力から入力への経路が確実に辿れるようになり、到達の可否によって仕様不備・不整合、人間判断による仮実装、AI独断の3種にレビュー観点が振り分かることを示す図" class="fig">
+      <defs>
+        <marker id="f3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><polygon points="0,0 10,5 0,10" fill="currentColor"/></marker>
+        <marker id="b3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><polygon points="0,0 10,5 0,10" class="p-acc"/></marker>
+      </defs>
 
-      <div class="grid3">
+      <text x="20" y="24" class="t-l">順方向 — 作ると何が残るか</text>
+      <rect x="20" y="40" width="190" height="52" rx="3" class="st"/><text x="115" y="71" text-anchor="middle" class="t-b">正本・要求</text>
+      <rect x="250" y="40" width="190" height="52" rx="3" class="st"/><text x="345" y="71" text-anchor="middle" class="t-b">spec</text>
+      <rect x="480" y="40" width="190" height="52" rx="3" class="st hi"/><text x="575" y="65" text-anchor="middle" class="t-b acc">判断 ＋ 落ちた先</text><text x="575" y="83" text-anchor="middle" class="t-n acc">C. trace に列を1つ追加</text>
+      <rect x="710" y="40" width="210" height="52" rx="3" class="st"/><text x="815" y="65" text-anchor="middle" class="t-b">コード（＋暫定実装だけ ID）</text><text x="815" y="83" text-anchor="middle" class="t-n">B. 回答待ちの目印</text>
+      <line x1="210" y1="66" x2="242" y2="66" class="st" marker-end="url(#f3)"/>
+      <line x1="440" y1="66" x2="472" y2="66" class="st" marker-end="url(#f3)"/>
+      <line x1="670" y1="66" x2="702" y2="66" class="st" marker-end="url(#f3)"/>
 
-        <div class="mcol mcol--a">
-          <div class="mhead">A. 反実仮想（Counterfactual）<small>問い方テンプレートの核</small></div>
-          <div class="mrow">
-            <span class="mtag">元の手法</span>
-            <div class="mtext">勾配ベースの Saliency ― 入力を微修正したとき出力がどう変わるかで寄与を測る。</div>
-          </div>
-          <div class="mrow">
-            <span class="mtag">プロセス版</span>
-            <div class="mtext">「なぜそうしたのか」ではなく <b>「入力のどこが変われば結果が変わるか」</b> を問う。<b>AIが実際に答えられる形</b>の質問になる。</div>
-            <div class="qbox">悪い問い：「なぜこの実装にしたのか」<br>良い問い：「期待値に合わせるには、仕様のどの記述が変わる必要があるか」</div>
-          </div>
-          <div class="mrow">
-            <span class="mtag">何が分かるか</span>
-            <div class="mtext">ズレを生んでいる<b>入力側の記述</b>が特定できる。7/30アクション「問い方テンプレート」はこの形に統一する。</div>
-          </div>
-        </div>
+      <text x="20" y="126" class="t-l">アウトプット</text>
+      <rect x="120" y="108" width="126" height="28" rx="2" class="st"/><text x="183" y="127" text-anchor="middle" class="t-xs">specs/</text>
+      <rect x="254" y="108" width="126" height="28" rx="2" class="st"/><text x="317" y="127" text-anchor="middle" class="t-xs">テストケース</text>
+      <rect x="388" y="108" width="126" height="28" rx="2" class="st"/><text x="451" y="127" text-anchor="middle" class="t-xs">.work/*.trace.md</text>
+      <rect x="522" y="108" width="126" height="28" rx="2" class="st"/><text x="585" y="127" text-anchor="middle" class="t-xs">questions/*.tsv</text>
+      <rect x="656" y="108" width="126" height="28" rx="2" class="st"/><text x="719" y="127" text-anchor="middle" class="t-xs">コミット</text>
+      <rect x="790" y="108" width="126" height="28" rx="2" class="st"/><text x="853" y="127" text-anchor="middle" class="t-xs">セッションログ</text>
 
-        <div class="mcol mcol--b">
-          <div class="mhead">B. 介入実験（アブレーション）<small>コンテキストを操作する</small></div>
-          <div class="mrow">
-            <span class="mtag">元の手法</span>
-            <div class="mtext">Causal Tracing ― ネットワーク途中の計算値を書き換え／消去し、出力変化から因果を見る。</div>
-          </div>
-          <div class="mrow">
-            <span class="mtag">プロセス版</span>
-            <div class="mtext">仕様の該当記述を<b>抜く／変える／足して再生成</b>し、症状が変わるかを観察する。</div>
-            <div class="qbox">記述を足したら直った → 仕様の欠落<br>何をしても再現する → 実装側／別の要因</div>
-          </div>
-          <div class="mrow">
-            <span class="mtag">何が分かるか</span>
-            <div class="mtext"><b>「AIの誤解」なのか「仕様の欠陥」なのか</b>がここで割れる。直す対象が spec 側か実装側かを決められる。</div>
-          </div>
-        </div>
+      <line x1="20" y1="164" x2="920" y2="164" class="st dash thin"/>
 
-        <div class="mcol mcol--c">
-          <div class="mhead">C. 差分の二分探索<small>最も信頼できる手段</small></div>
-          <div class="mrow">
-            <span class="mtag">元の手法</span>
-            <div class="mtext">層・部分ごとの寄与の切り分け（どこが決定的な判断を担ったかの同定）。</div>
-          </div>
-          <div class="mrow">
-            <span class="mtag">プロセス版</span>
-            <div class="mtext">AIが行った変更を<b>分割適用</b>し、どの差分が期待値のズレを生んだかを機械的に特定する（git bisect と同じ発想）。</div>
-            <div class="qbox">AIの推測を<b>一切介さず</b>に真因を絞れる ― コードは決定論的だから成立する</div>
-          </div>
-          <div class="mrow">
-            <span class="mtag">何が分かるか</span>
-            <div class="mtext">真因の<b>物理的な位置</b>。信頼性が最も高く、<b>自動化の投資価値が最も大きい</b>領域。</div>
-          </div>
-        </div>
+      <text x="20" y="196" class="t-l acc">逆方向 — 壊れたとき何が辿れるか</text>
 
-      </div>
+      <rect x="710" y="212" width="210" height="56" rx="3" class="st hi"/><text x="815" y="237" text-anchor="middle" class="t-b">コードの1行</text><text x="815" y="256" text-anchor="middle" class="t-n">起点は1行 or テストケース</text>
+      <rect x="480" y="212" width="190" height="56" rx="3" class="st"/><text x="575" y="237" text-anchor="middle" class="t-b">書いた瞬間・担当</text><text x="575" y="256" text-anchor="middle" class="t-n">ログがあれば</text>
+      <rect x="250" y="212" width="190" height="56" rx="3" class="st"/><text x="345" y="237" text-anchor="middle" class="t-b">なぜそう決めたか</text><text x="345" y="256" text-anchor="middle" class="t-n">落ちた先の列で確実に一致</text>
+      <rect x="20" y="212" width="190" height="56" rx="3" class="st hi"/><text x="115" y="237" text-anchor="middle" class="t-b acc">正本・未解決の論点</text><text x="115" y="256" text-anchor="middle" class="t-n acc">spec / questions</text>
 
-      <div class="band band--green">
-        <span class="bt">切り分けの第一手</span>
-        <div class="bd"><strong>再現性そのものを診断に使う。</strong>　同じ指示で複数回・別セッションで生成させ、挙動の一致／不一致を見る　—　<strong>毎回同じ間違い＝インプット（仕様）の欠陥</strong>／<strong>毎回違う結果＝指示が曖昧・情報不足</strong>。コストが低く、すぐ運用に乗る。</div>
-      </div>
+      <line x1="702" y1="240" x2="678" y2="240" class="st acc w2" marker-end="url(#b3)"/><text x="690" y="204" text-anchor="middle" class="t-ok">○</text>
+      <line x1="472" y1="240" x2="448" y2="240" class="st acc w2" marker-end="url(#b3)"/><text x="460" y="204" text-anchor="middle" class="t-ok">○</text>
+      <line x1="242" y1="240" x2="218" y2="240" class="st acc w2" marker-end="url(#b3)"/><text x="230" y="204" text-anchor="middle" class="t-ok">○</text>
 
-    </div>
-  </div>
+      <path d="M 815 268 L 815 288 L 115 288 L 115 274" class="st dash faint" fill="none" marker-end="url(#b3)"/>
+      <text x="465" y="304" text-anchor="middle" class="t-s">B. 短絡は<tspan class="mono"> 未確定に依存する箇所だけ </tspan>— デバッグ用ではなく「回答後に差し替える目印」</text>
 
-  <!-- ====================== タブ3: 運用と着手順 ====================== -->
-  <div class="tab-content" id="tab-ops">
-    <div class="layout">
+      <text x="20" y="312" class="t-l">摘出できる 3 種 — 到達の可否で振り分かる</text>
 
-      <div class="grid">
+      <rect x="20" y="326" width="288" height="114" rx="3" class="st lost"/>
+      <text x="164" y="350" text-anchor="middle" class="t-h lost">仕様不備・不整合</text>
+      <text x="164" y="374" text-anchor="middle" class="t-s">正本にはたどり着ける</text>
+      <text x="164" y="394" text-anchor="middle" class="t-s lost">だが正本と人間の判断がズレている</text>
+      <text x="164" y="420" text-anchor="middle" class="t-act">→ 判断のずれをなくすため AI が人間に問う</text>
 
-        <!-- 左: ナレッジベース -->
-        <div class="panel">
-          <h2 class="indigo">ナレッジベースは「検証済みの因果」だけに絞る</h2>
-          <p class="lead">セッションログをそのまま蓄積すると、<strong>作話混じりの情報が資産に混入する</strong>。何を積むかを限定する。</p>
-          <div class="kv">
-            <div class="kvrow no">
-              <span class="kk">積まない</span>
-              <div class="vv">AIの自己申告した原因、思考過程の説明、1回限りの暫定判断。<b>裏取りが無いものは資産にならない</b>。</div>
-            </div>
-            <div class="kvrow">
-              <span class="kk">積む</span>
-              <div class="vv">再現テストが「<b>落ちた → 直った</b>」で裏取りされた<b>（症状 → 真因 → 修正）のペアだけ</b>。</div>
-            </div>
-          </div>
-          <div class="note note--amber" style="margin-top:10px">
-            <span class="nt">前提条件</span>修正の前に必ず<b>失敗する再現テストを書かせる</b>。これは「AIが自己申告した原因」を、テストという事実によって確定させる手順。
-          </div>
-          <div class="note note--green" style="margin-top:7px">
-            <span class="nt">効果</span><b>テストが真偽判定を担う＝AIの説明の正しさに依存しない。</b>目指す「テストケースを出すだけで自己進化するアプリケーション」ループの前提条件にもなる。
-          </div>
-        </div>
+      <rect x="326" y="326" width="288" height="114" rx="3" class="st cond"/>
+      <text x="470" y="350" text-anchor="middle" class="t-h cond-t">人間判断による仮実装</text>
+      <text x="470" y="374" text-anchor="middle" class="t-s">未確定の論点に依存する暫定実装</text>
+      <text x="470" y="394" text-anchor="middle" class="t-s cond-t">ID コメントで印が付いている（B）</text>
+      <text x="470" y="420" text-anchor="middle" class="t-act">→ 回答を取り、実装を差し替える</text>
 
-        <!-- 右: 着手順 -->
-        <div class="panel">
-          <h2>推奨する取り組み順</h2>
-          <p class="lead">効果とコストのバランスで並べる。1〜3は既存プロセスへの追記で着手でき、4のみ実装投資が必要。</p>
-          <div class="steps">
-            <div class="step">
-              <span class="no">1</span>
-              <div>
-                <div class="stt">問い方テンプレートを「反実仮想型」で作る</div>
-                <div class="std">7/30アクションの具体化。<b>最小コストで着手可能</b>。</div>
-              </div>
-            </div>
-            <div class="step">
-              <span class="no">2</span>
-              <div>
-                <div class="stt">再現性チェックを切り分けの第一手にする</div>
-                <div class="std">複数回生成して、<b>仕様欠陥か指示欠陥かを先に判定</b>する。</div>
-              </div>
-            </div>
-            <div class="step">
-              <span class="no">3</span>
-              <div>
-                <div class="stt">再現テスト先行を工程の入口条件として明文化</div>
-                <div class="std">「原因の特定」の完了定義＝<b>落ちるテストが書けたこと</b>。</div>
-              </div>
-            </div>
-            <div class="step later">
-              <span class="no">4</span>
-              <div>
-                <div class="stt">差分二分探索の自動化を検討</div>
-                <div class="std">効果は最大だが<b>実装コストあり</b>。1〜3の後に着手。</div>
-              </div>
-            </div>
-          </div>
-        </div>
+      <rect x="632" y="326" width="288" height="114" rx="3" class="st dash lost"/>
+      <text x="776" y="350" text-anchor="middle" class="t-h lost">AI 独断</text>
+      <text x="776" y="374" text-anchor="middle" class="t-s">どの正本にもたどり着けない</text>
+      <text x="776" y="394" text-anchor="middle" class="t-s lost">印も根拠も残っていない</text>
+      <text x="776" y="420" text-anchor="middle" class="t-act">→ 正本と突合し、デバッグの対象にする</text>
 
-      </div>
-
-      <div class="oneline">AIの中は遡れない。だから、遡れる場所（コード・テスト・差分）に問題を移してから遡る。</div>
-
-    </div>
-  </div>
+      <text x="470" y="464" text-anchor="middle" class="t-s">起点を決めれば <tspan class="acc">0.2〜1.4 秒で同じ材料が揃う</tspan>（A）。<tspan class="acc">摘出は機械・判定は人</tspan> — どれも「誤り」の断定ではなく、当て先の振り分け</text>
+    </svg>
+    <figcaption>加わるのは順方向に 1 つ（trace の1列）、逆方向に 1 つ（探索の機械化）だけ。それだけで探索が毎回同じ手順・同じ時間で終わり、<strong>「いつ終わるか分からない」状態が消える</strong>。さらに、到達できたかどうかが<strong>疑うべき種類の振り分け</strong>になるため、逆方向の経路が事後の追跡だけでなく事前の点検にも使える。</figcaption>
+  </figure>
+</section>
 
 </div>
 
+<nav class="rail" aria-label="スライド操作">
+  <button id="prev" aria-label="前のページ">←</button>
+  <div class="dots" id="dots"></div>
+  <button id="next" aria-label="次のページ">→</button>
+  <span class="count"><span id="cur">1</span> / <span id="tot">4</span></span>
+</nav>
+
+<style>
+:root{
+  --bg:#F1F2F0; --card:#FFFFFF; --ink:#161A19; --ink-2:#4C5350; --ink-3:#7C8480;
+  --line:#D3D7D3; --line-2:#E6E9E5;
+  --acc:#0F6C7C; --acc-bg:#E2EFF1;
+  --ok:#2E7D57; --cond:#8A6410;
+  --lost:#A33F31; --lost-bg:#F5E5E2;
+  --sans:"Hiragino Kaku Gothic ProN","Yu Gothic",YuGothic,"Noto Sans JP",system-ui,-apple-system,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#101413; --card:#181D1C; --ink:#E9EBE8; --ink-2:#A6ADA9; --ink-3:#77807C;
+    --line:#2A312F; --line-2:#212724;
+    --acc:#63C2D2; --acc-bg:#12292E; --ok:#6FB58C; --cond:#C9982F;
+    --lost:#D3776A; --lost-bg:#2C1B18;
+  }
+}
+:root[data-theme="light"]{
+  --bg:#F1F2F0; --card:#FFFFFF; --ink:#161A19; --ink-2:#4C5350; --ink-3:#7C8480;
+  --line:#D3D7D3; --line-2:#E6E9E5;
+  --acc:#0F6C7C; --acc-bg:#E2EFF1; --ok:#2E7D57; --cond:#8A6410;
+  --lost:#A33F31; --lost-bg:#F5E5E2;
+}
+:root[data-theme="dark"]{
+  --bg:#101413; --card:#181D1C; --ink:#E9EBE8; --ink-2:#A6ADA9; --ink-3:#77807C;
+  --line:#2A312F; --line-2:#212724;
+  --acc:#63C2D2; --acc-bg:#12292E; --ok:#6FB58C; --cond:#C9982F;
+  --lost:#D3776A; --lost-bg:#2C1B18;
+}
+
+body{
+  background:var(--bg); color:var(--ink); font-family:var(--sans);
+  margin:0; font-size:15px; line-height:1.8; -webkit-font-smoothing:antialiased;
+}
+.deck{padding:0 24px 120px;}
+.slide{max-width:1000px; margin-inline:auto; min-height:80vh; display:none; flex-direction:column; justify-content:center; padding:44px 0 20px;}
+.slide.on{display:flex;}
+@media (prefers-reduced-motion:no-preference){
+  .slide.on{animation:in .24s cubic-bezier(.2,.7,.3,1);}
+  @keyframes in{from{opacity:0; transform:translateX(9px);} to{opacity:1; transform:none;}}
+}
+
+.s-head{margin-bottom:26px;}
+.eyebrow{
+  font-family:var(--mono); font-size:11px; letter-spacing:.13em; color:var(--acc);
+  margin:0 0 12px; display:flex; align-items:center; gap:10px;
+}
+.eyebrow::before{content:""; width:22px; height:1px; background:var(--acc); flex:none;}
+h2{font-size:clamp(23px,3.3vw,33px); font-weight:700; line-height:1.38; margin:0 0 12px; text-wrap:balance; letter-spacing:-.005em;}
+.s-lead{font-size:15px; color:var(--ink-2); margin:0; max-width:none; text-wrap:pretty;}
+code{font-family:var(--mono); font-size:.87em; background:var(--line-2); padding:.1em .38em; border-radius:2px;}
+strong{font-weight:700;}
+
+/* 図 */
+figure{margin:0; overflow-x:auto;}
+.fig{width:100%; max-width:100%; height:auto; color:var(--ink); display:block; min-width:700px;}
+.fig .st{stroke:currentColor; fill:none; stroke-width:1.15;}
+.fig .thin{stroke-width:1;}
+.fig .w2{stroke-width:2;}
+.fig .dash{stroke-dasharray:5 4;}
+.fig .acc{stroke:var(--acc);}
+.fig text.acc{fill:var(--acc); stroke:none;}
+.fig .hi{stroke:var(--acc); stroke-width:1.7;}
+.fig .lost{stroke:var(--lost);}
+.fig text.lost,.fig tspan.lost{fill:var(--lost); stroke:none;}
+.fig tspan.acc{fill:var(--acc); stroke:none;}
+.fig .faint{stroke:var(--ink-3); opacity:.62;}
+.fig text.faint{fill:var(--ink-3); stroke:none; opacity:1;}
+.fig .p-acc{fill:var(--acc); stroke:none;}
+.fig .p-lost{fill:var(--lost); stroke:none;}
+.fig text{fill:currentColor; font-family:var(--sans);}
+.fig .t-h{font-size:14px; font-weight:700;}
+.fig .t-b{font-size:12.5px; font-weight:500;}
+.fig .t-s{font-size:11.5px; fill:var(--ink-2);}
+.fig .t-n{font-size:10.5px; font-family:var(--mono); fill:var(--ink-3);}
+.fig .t-xs{font-size:10.5px; font-family:var(--mono);}
+.fig .t-l{font-size:11px; font-family:var(--mono); letter-spacing:.11em; fill:var(--ink-3);}
+.fig .t-em{font-size:12.5px; font-weight:600;}
+.fig .t-ok{font-size:15px; font-weight:700; fill:var(--ok);}
+.fig .t-ng{font-size:15px; font-weight:700; fill:var(--lost);}
+.fig .cond{stroke:var(--cond);}
+.fig .t-cond{font-size:15px; font-weight:700; fill:var(--cond);}
+.fig .t-cond-s{font-size:10.5px; fill:var(--cond);}
+.fig .t-act{font-size:10.5px; fill:var(--acc); font-weight:600;}
+.fig text.cond-t{fill:var(--cond); stroke:none;}
+.fig .mono,.fig tspan.mono{font-family:var(--mono); font-size:.94em;}
+figcaption{font-size:12.5px; color:var(--ink-3); line-height:1.85; margin-top:18px; padding-top:13px; border-top:1px solid var(--line); max-width:82ch;}
+
+/* 表 */
+.cols{overflow-x:auto;}
+.grid{width:100%; border-collapse:collapse; font-size:13px; min-width:760px;}
+.grid thead th{font-size:11px; letter-spacing:.1em; color:var(--ink-3); font-weight:500; text-align:left; padding:0 14px 10px 0; border-bottom:1px solid var(--ink-3);}
+.grid td{padding:15px 14px 15px 0; border-bottom:1px solid var(--line); vertical-align:top; line-height:1.75;}
+.grid tbody tr:last-child td{border-bottom:0;}
+.grid.ab td:first-child{font-weight:700; white-space:nowrap; padding-right:22px;}
+.grid.ab td:nth-child(2){color:var(--ink-2); white-space:nowrap; padding-right:22px;}
+.p-key{display:inline-block; font-family:var(--mono); font-size:11px; color:var(--acc); background:var(--acc-bg); border-radius:2px; padding:2px 7px; margin-right:9px; font-weight:500;}
+.sub-note{display:block; font-size:10.5px; font-weight:400; color:var(--ink-3); font-family:var(--mono); margin-top:5px; letter-spacing:.03em;}
+.asis{color:var(--ink-3); position:relative; padding-left:15px !important;}
+.asis::before{content:""; position:absolute; left:0; top:17px; bottom:17px; width:2px; background:var(--lost); opacity:.45;}
+.tobe{color:var(--ink); position:relative; padding-left:15px !important;}
+.tobe::before{content:""; position:absolute; left:0; top:17px; bottom:17px; width:2px; background:var(--acc);}
+.tobe em{font-style:normal; font-weight:700;}
+
+/* 締め */
+.closing{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:2px; margin-top:28px;}
+.closing > div{background:var(--card); padding:20px 22px 22px; border-top:2px solid var(--line);}
+.close-a{border-top-color:var(--acc);}
+.close-b{border-top-color:var(--ink-3);}
+.close-c{border-top-color:var(--ink-3);}
+.c-h{font-size:15px; font-weight:700; margin:0 0 8px;}
+.c-b{font-size:13px; color:var(--ink-2); margin:0; line-height:1.85;}
+
+/* レール */
+.rail{
+  position:fixed; left:0; right:0; bottom:0; z-index:20;
+  display:flex; align-items:center; gap:16px; justify-content:center;
+  padding:14px 24px; background:color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter:blur(8px); border-top:1px solid var(--line);
+}
+.rail button{
+  appearance:none; background:none; border:1px solid var(--line); color:var(--ink-2);
+  width:38px; height:32px; border-radius:2px; cursor:pointer; font-size:14px; line-height:1;
+  transition:border-color .12s, color .12s;
+}
+.rail button:hover:not(:disabled){border-color:var(--acc); color:var(--acc);}
+.rail button:disabled{opacity:.32; cursor:default;}
+.rail button:focus-visible{outline:2px solid var(--acc); outline-offset:2px;}
+.dots{display:flex; gap:7px;}
+.dots button{width:9px; height:9px; padding:0; border-radius:50%; border:1px solid var(--ink-3); background:none; cursor:pointer; transition:background .12s, border-color .12s;}
+.dots button[aria-current="true"]{background:var(--acc); border-color:var(--acc);}
+.count{font-family:var(--mono); font-size:11.5px; color:var(--ink-3); letter-spacing:.06em; min-width:44px; text-align:right;}
+@media(max-width:600px){ .count{display:none;} }
+</style>
+
 <script>
-  document.querySelectorAll('.tab').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-      btn.classList.add('active');
-      document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
-    });
+(function(){
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var dots = document.getElementById('dots');
+  var prev = document.getElementById('prev'), next = document.getElementById('next');
+  var cur = document.getElementById('cur');
+  document.getElementById('tot').textContent = slides.length;
+  var i = 0;
+
+  slides.forEach(function(s, n){
+    var b = document.createElement('button');
+    b.setAttribute('aria-label', (n+1) + 'ページ目：' + (s.dataset.title || ''));
+    b.addEventListener('click', function(){ go(n); });
+    dots.appendChild(b);
   });
+  var dotEls = Array.prototype.slice.call(dots.children);
+
+  function go(n){
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach(function(s, k){ s.classList.toggle('on', k === i); });
+    dotEls.forEach(function(d, k){ d.setAttribute('aria-current', k === i ? 'true' : 'false'); });
+    prev.disabled = i === 0;
+    next.disabled = i === slides.length - 1;
+    cur.textContent = i + 1;
+    window.scrollTo({top:0, behavior:'instant'});
+  }
+  prev.addEventListener('click', function(){ go(i - 1); });
+  next.addEventListener('click', function(){ go(i + 1); });
+  document.addEventListener('keydown', function(e){
+    if(e.target.tagName === 'BUTTON' && (e.key === ' ' || e.key === 'Enter')) return;
+    if(e.key === 'ArrowRight' || e.key === 'PageDown'){ e.preventDefault(); go(i + 1); }
+    if(e.key === 'ArrowLeft'  || e.key === 'PageUp'){ e.preventDefault(); go(i - 1); }
+    if(e.key === 'Home'){ e.preventDefault(); go(0); }
+    if(e.key === 'End'){ e.preventDefault(); go(slides.length - 1); }
+  });
+  go(0);
+})();
 </script>
+
 </body>
 </html>
