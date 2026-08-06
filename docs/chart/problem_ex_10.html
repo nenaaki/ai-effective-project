@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>A社案件へのAI駆動開発の展開（相談）</title>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body {
+    font-family: -apple-system, "Hiragino Kaku Gothic ProN", "Yu Gothic", system-ui, sans-serif;
+    color: #1f2937;
+    background: #fafafa;
+    padding: 28px 32px;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+  .page { max-width: 1240px; margin: 0 auto; height: 100%; display: flex; flex-direction: column; }
+  h1 { font-size: 19px; margin: 0; border-bottom: 3px solid #2563eb; padding-bottom: 6px; }
+  .sub { color: #6b7280; font-size: 12px; margin: 6px 0 14px; }
+
+  .tabs { display: flex; gap: 4px; margin-bottom: 14px; border-bottom: 1px solid #e5e7eb; }
+  .tab {
+    padding: 8px 16px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-bottom: none;
+    border-radius: 6px 6px 0 0;
+    cursor: pointer;
+    font-size: 13px;
+    font-family: inherit;
+    color: #6b7280;
+    margin-bottom: -1px;
+  }
+  .tab.active { background: white; border-color: #e5e7eb; color: #2563eb; font-weight: 600; }
+  .tab:hover { color: #1f2937; }
+
+  .tab-content { display: none; flex: 1; min-height: 0; }
+  .tab-content.active { display: flex; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 18px;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+  }
+  .panel {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  h2 { font-size: 13px; margin: 0 0 10px; padding-left: 8px; border-left: 3px solid #2563eb; }
+
+  /* 左パネル: 背景の縦フロー（番号付きカード） */
+  .bg-steps { display: flex; flex-direction: column; gap: 8px; }
+  .bg-step {
+    display: flex; gap: 10px; align-items: flex-start;
+    border: 1px solid #e5e7eb; border-radius: 6px;
+    padding: 10px 12px; font-size: 12px; line-height: 1.5; background: #fff;
+  }
+  .bg-step .n {
+    background: #2563eb; color: #fff;
+    width: 20px; height: 20px; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-weight: bold; font-size: 11px; flex-shrink: 0;
+  }
+  .bg-step.here { border-color: #10b981; background: #ecfdf5; }
+  .bg-step.here .n { background: #10b981; }
+
+  .warn-band {
+    margin-top: 12px;
+    background: #fef3c7; border-left: 3px solid #f59e0b; border-radius: 4px;
+    padding: 10px 12px; font-size: 11.5px; line-height: 1.55; color: #92400e;
+  }
+  .warn-band strong { color: #991b1b; }
+  .key-band {
+    margin-top: 12px;
+    background: #eff6ff; border-left: 3px solid #2563eb; border-radius: 4px;
+    padding: 10px 12px; font-size: 11.5px; line-height: 1.55; color: #1e40af;
+  }
+  .key-band strong { color: #1e3a8a; }
+  .key-band .kb-tag { display: inline-block; background: #2563eb; color: #fff; font-size: 9px; font-weight: 700; padding: 1px 6px; border-radius: 3px; margin-right: 6px; vertical-align: 1px; }
+
+  /* 右パネル: 相談 + 相談事項 */
+  .issue-block {
+    background: #fef3c7;
+    border-left: 3px solid #f59e0b;
+    padding: 12px 14px;
+    border-radius: 4px;
+    margin-bottom: 12px;
+  }
+  .issue-block .label { font-size: 11px; color: #92400e; font-weight: 600; }
+  .issue-block .title { font-size: 13.5px; font-weight: 600; color: #1f2937; margin-top: 4px; line-height: 1.5; }
+
+  .points-label { font-size: 12px; font-weight: 600; color: #2563eb; margin: 6px 0; }
+  .points { display: flex; flex-direction: column; gap: 8px; }
+  .point {
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 9px 12px;
+    font-size: 12px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .point .num {
+    background: #2563eb; color: white;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-weight: bold; font-size: 11px;
+    flex-shrink: 0;
+  }
+
+  .conclusion {
+    margin-top: 0;
+    background: #ecfdf5;
+    border-left: 3px solid #10b981;
+    border-radius: 4px;
+    padding: 8px 10px;
+  }
+  .conclusion-label {
+    font-size: 10.5px; font-weight: 700; color: #047857;
+    letter-spacing: 0.04em; margin-bottom: 6px;
+  }
+  .conclusion-list { display: flex; flex-direction: column; gap: 5px; }
+  .conclusion-item { font-size: 11px; line-height: 1.5; color: #1f2937; }
+  .conclusion-item .tag {
+    display: inline-block; background: #10b981; color: white;
+    font-size: 9.5px; font-weight: 700; padding: 1px 5px;
+    border-radius: 3px; margin-right: 5px; vertical-align: 1px;
+  }
+
+  .conclusion-premise {
+    background: white; border: 1.5px solid #047857; border-radius: 4px;
+    padding: 7px 10px; margin: 12px 0 8px;
+    font-size: 11px; line-height: 1.5; color: #1f2937;
+    display: flex; align-items: flex-start; gap: 6px;
+  }
+  .conclusion-premise .tag {
+    background: #047857; color: white; font-size: 9.5px; font-weight: 700;
+    padding: 1px 6px; border-radius: 3px; flex-shrink: 0; margin-top: 1px; letter-spacing: 0.03em;
+  }
+
+  /* タブ2: 情報の切り分け（3ティア） */
+  .split-wrap { display: flex; flex-direction: column; flex: 1; min-height: 0; width: 100%; }
+  .draft-note {
+    background: #fffbeb; border: 1.5px dashed #f59e0b; border-radius: 4px;
+    padding: 7px 12px; margin-bottom: 12px; font-size: 11px; color: #92400e; line-height: 1.5;
+  }
+  .draft-note .chip {
+    display: inline-block; background: #f59e0b; color: #fff;
+    font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 3px; margin-right: 7px;
+  }
+  .tier-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+    flex: 1; min-height: 0; width: 100%;
+  }
+  .tier {
+    border-radius: 8px; padding: 13px 15px; display: flex; flex-direction: column;
+    min-height: 0; border: 1.5px solid;
+  }
+  .tier-1 { border-color: #2563eb; background: #eff6ff; }
+  .tier-2 { border-color: #f59e0b; background: #fffbeb; }
+  .tier-3 { border-color: #dc2626; background: #fef2f2; }
+  .tier-head { font-size: 12.5px; font-weight: 700; margin-bottom: 4px; line-height: 1.35; }
+  .tier-1 .tier-head { color: #1e40af; }
+  .tier-2 .tier-head { color: #92400e; }
+  .tier-3 .tier-head { color: #991b1b; }
+  .tier-sub {
+    display: inline-block; font-size: 10px; font-weight: 700; color: #fff;
+    border-radius: 3px; padding: 2px 7px; margin-bottom: 9px;
+  }
+  .tier-1 .tier-sub { background: #2563eb; }
+  .tier-2 .tier-sub { background: #f59e0b; }
+  .tier-3 .tier-sub { background: #dc2626; }
+  .tier-list { margin: 0; padding-left: 16px; font-size: 11px; line-height: 1.6; color: #1f2937; }
+  .tier-list li { margin-bottom: 6px; }
+  .tier-note { margin-top: auto; padding-top: 8px; font-size: 10px; line-height: 1.45; color: #92400e; font-weight: 600; }
+  .split-foot {
+    margin-top: 12px; text-align: center; font-size: 10.5px; color: #6b7280;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>A社案件へのAI駆動開発の展開（相談）</h1>
+  <div class="sub">AI駆動開発の社外展開に関する相談 ／ A社（大手製造業）案件 ／ 2026-08</div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="issue">背景と相談</button>
+    <button class="tab" data-tab="split">情報の切り分け</button>
+  </div>
+
+  <!-- ====================== タブ1: 背景と相談 ====================== -->
+  <div class="tab-content active" id="tab-issue">
+    <div class="grid">
+
+      <!-- 左: 背景 -->
+      <div class="panel">
+        <h2>背景 — 相談に至る状況</h2>
+        <div class="bg-steps">
+          <div class="bg-step">
+            <span class="n">1</span>
+            <div><strong>A社のゴール</strong>：AIを使って業務を改善する</div>
+          </div>
+          <div class="bg-step">
+            <span class="n">2</span>
+            <div><strong>CCTへの提案要求（2つ）</strong>：① AIで開発の費用・期間を抑える ／ ② AIでA社の業務改善</div>
+          </div>
+          <div class="bg-step">
+            <span class="n">3</span>
+            <div>社内担当経由で、A社案件へ <strong>「AI駆動開発の展開」</strong> を依頼された</div>
+          </div>
+          <div class="bg-step here">
+            <span class="n">4</span>
+            <div><strong>現在地</strong>：先日、AI駆動開発の方針は担当しているCCTのチームに共有済み</div>
+          </div>
+        </div>
+
+        <div class="key-band">
+          <span class="kb-tag">本案件の特徴</span>
+          <strong>お客様の開発チームも一部参画する共同開発</strong>。お客様も社内で <strong>AI活用の開発効率化</strong> を掲げており、AI駆動開発の取り組みを <strong>共有する流れが見込まれる</strong>。
+        </div>
+        <div class="warn-band">
+          <strong>だからこそ</strong> ＝ 内製化も視野に入れる A社に、AIDD のノウハウ（競争資産）を
+          <strong>何をどこまで共有するか</strong> の線引きが必要。
+        </div>
+      </div>
+
+      <!-- 右: 相談したいこと -->
+      <div class="panel">
+        <h2>相談したいこと</h2>
+        <div class="issue-block">
+          <div class="label">相談</div>
+          <div class="title">AI駆動開発をA社案件へどう展開するか。特に“社内チームへ展開する内容”と“お客様へ開示してよい情報”の線引きを整理したい。</div>
+        </div>
+
+        <div class="points-label">相談事項</div>
+        <div class="points">
+          <div class="point">
+            <span class="num">1</span>
+            <div>展開の <strong>条件・進め方に、指定・制約があればご提示</strong> いただきたい</div>
+          </div>
+          <div class="point">
+            <span class="num">2</span>
+            <div><strong>情報の切り分け</strong>：① 社内（A社担当チーム）へ展開する内容 ／ ② お客様へ開示してよい情報 を整理したい</div>
+          </div>
+          <div class="point">
+            <span class="num">3</span>
+            <div>内製化を視野に入れる顧客ゆえ、<strong>ノウハウのどこまでを開示可</strong> とするかの線引きを握りたい</div>
+          </div>
+        </div>
+
+        <div class="conclusion-premise">
+          <span class="tag">現在地</span>
+          <div>AI駆動開発の方針は担当しているCCTのチームに共有済み。展開の具体に入る前に、<strong>条件と情報の線引きの方針</strong> を仰ぎたい。</div>
+        </div>
+
+        <div class="conclusion">
+          <div class="conclusion-label">ネクストアクション</div>
+          <div class="conclusion-list">
+            <div class="conclusion-item"><span class="tag">指定確認</span>展開の条件・進め方の指定を受ける</div>
+            <div class="conclusion-item"><span class="tag">切り分け確定</span>① 社内展開 ／ ② 顧客開示可 の線引きを確定</div>
+            <div class="conclusion-item"><span class="tag">展開開始</span>確定後、A社案件へ AIDD の展開を進める</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ====================== タブ2: 情報の切り分け（叩き台） ====================== -->
+  <div class="tab-content" id="tab-split">
+    <div class="split-wrap">
+      <h2>情報の切り分け（叩き台・要相談）— 何を社内展開し、何を顧客へ開示するか</h2>
+
+      <div class="draft-note">
+        <span class="chip">叩き台</span>以下の各項目は <strong>提案（仮）</strong> です。実際の線引きは <strong>相談の上で確定</strong> します。
+      </div>
+
+      <div class="tier-grid">
+
+        <!-- ① 社内フル展開 -->
+        <div class="tier tier-1">
+          <div class="tier-head">① 社内（A社担当チーム）へフル展開</div>
+          <span class="tier-sub">全展開・仮</span>
+          <ul class="tier-list">
+            <li>オーケストレーション設計・タスク分解</li>
+            <li>spec 駆動・スキーマ契約</li>
+            <li>レビュー &amp; テストの役割分担</li>
+            <li>Yes-No 下駄・確認フロー</li>
+            <li>デバッグ標準化（逆方向探索）</li>
+          </ul>
+          <div class="tier-note">＝ AIDD ノウハウ全般を担当チームへ展開</div>
+        </div>
+
+        <!-- ② 顧客開示可（限定） -->
+        <div class="tier tier-2">
+          <div class="tier-head">② お客様（A社）へ開示してよい</div>
+          <span class="tier-sub">限定開示・仮</span>
+          <ul class="tier-list">
+            <li>成果と効果（工数削減・EVM）</li>
+            <li>AIDD の進め方の概観</li>
+            <li>業務改善の考え方・体制</li>
+          </ul>
+          <div class="tier-note">※ 内製化に直結する詳細な仕組みは含めない</div>
+        </div>
+
+        <!-- ③ 保護（非開示） -->
+        <div class="tier tier-3">
+          <div class="tier-head">③ 保護（開示しない）＝競争資産</div>
+          <span class="tier-sub">非開示・仮</span>
+          <ul class="tier-list">
+            <li>具体的なオーケストレーション定義</li>
+            <li>スキル・プロンプト設計</li>
+            <li>エージェント実装</li>
+            <li>内部ルール</li>
+          </ul>
+          <div class="tier-note">＝ 内製化に直結する競争資産は保護</div>
+        </div>
+
+      </div>
+
+      <div class="split-foot">これは叩き台。実際の線引きは相談の上で確定（各項目は仮）。</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const switchTab = (target) => {
+    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    document.querySelector(`.tab[data-tab="${target}"]`)?.classList.add('active');
+    document.getElementById('tab-' + target).classList.add('active');
+  };
+  document.querySelectorAll('.tab').forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+  });
+</script>
+</body>
+</html>
