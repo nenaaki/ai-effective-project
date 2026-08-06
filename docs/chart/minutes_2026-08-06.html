@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>議事まとめ 2026-08-06</title>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body {
+    font-family: -apple-system, "Hiragino Kaku Gothic ProN", "Yu Gothic", system-ui, sans-serif;
+    color: #1f2937;
+    background: #fafafa;
+    padding: 12px 28px 8px;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+  .page { max-width: 1240px; margin: 0 auto; height: 100%; display: flex; flex-direction: column; }
+  h1 { font-size: 18px; margin: 0; border-bottom: 3px solid #2563eb; padding-bottom: 5px; }
+  .sub { color: #6b7280; font-size: 11.5px; margin: 5px 0 8px; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1.08fr;
+    gap: 14px;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+  }
+  .panel {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 11px 13px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: auto;
+  }
+  h2 { font-size: 12.5px; margin: 0 0 7px; padding-left: 8px; border-left: 3px solid #2563eb; }
+  h2.amber { border-left-color: #f59e0b; }
+  h2.indigo { border-left-color: #4f46e5; }
+
+  .items { display: flex; flex-direction: column; gap: 4px; }
+  .item {
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 5px 9px;
+    font-size: 11px;
+    line-height: 1.4;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .item .num {
+    background: #2563eb;
+    color: white;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 11px;
+    flex-shrink: 0;
+  }
+  .item.amber .num { background: #f59e0b; }
+  .item.indigo .num { background: #4f46e5; }
+  .item .title { font-weight: 600; color: #1f2937; }
+  .item .desc { color: #4b5563; margin-top: 2px; font-size: 10.5px; }
+  .item .desc a, .ref-line a { color: #2563eb; text-decoration: none; }
+  .item .desc a:hover, .ref-line a:hover { text-decoration: underline; }
+
+  .item-detail {
+    margin-top: 4px;
+    background: #f9fafb;
+    border-left: 2px solid #2563eb;
+    border-radius: 3px;
+    padding: 4px 8px;
+    font-size: 10.5px;
+    line-height: 1.45;
+    color: #374151;
+  }
+  .item-detail .head {
+    font-size: 10px;
+    font-weight: 700;
+    color: #1e40af;
+    letter-spacing: 0.04em;
+    margin-bottom: 4px;
+  }
+  .item-detail ul { margin: 0; padding-left: 16px; }
+  .item-detail li { margin: 2px 0; }
+  .item-detail.amber { border-left-color: #f59e0b; }
+  .item-detail.amber .head { color: #b45309; }
+
+  .ref-line { margin-top: 5px; font-size: 10.5px; color: #6b7280; padding-left: 4px; }
+
+  /* 下段: 決定事項（全幅・3カラム） */
+  .panel.bottom { margin-top: 11px; flex: none; overflow: visible; padding: 9px 13px 10px; }
+  .panel.bottom .decisions { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .panel.bottom .decision { padding: 7px 9px; font-size: 11px; line-height: 1.5; }
+  .panel.bottom .quote { margin-top: 7px; padding: 5px 9px; font-size: 10px; line-height: 1.5; }
+  .panel.bottom .notes { display: grid; grid-template-columns: 1.4fr 1fr; gap: 8px; }
+  .panel.bottom .notes .quote { margin-top: 7px; }
+  .quote.info { background: #eef2ff; border-left-color: #4f46e5; color: #312e81; }
+  .quote.info .who { color: #4338ca; }
+
+  /* 決定事項・ネクストアクション */
+  .decisions { display: flex; flex-direction: column; gap: 6px; }
+  .decision {
+    background: #ecfdf5;
+    border-left: 3px solid #10b981;
+    border-radius: 4px;
+    padding: 8px 10px;
+    font-size: 11.5px;
+    line-height: 1.55;
+  }
+  .decision .tag {
+    display: inline-block;
+    background: #10b981;
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 3px;
+    margin-right: 6px;
+    vertical-align: 1px;
+  }
+  .decision .tag.action { background: #2563eb; }
+  .decision .tag.hold { background: #9ca3af; }
+
+  /* 最終メッセージ・補足 */
+  .quote {
+    background: #fef3c7;
+    border-left: 3px solid #f59e0b;
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 10.5px;
+    line-height: 1.55;
+    color: #78350f;
+    font-style: italic;
+  }
+  .quote .who { display: block; font-style: normal; font-weight: 700; font-size: 10px; color: #b45309; margin-bottom: 2px; letter-spacing: 0.04em; }
+  .quote a { color: #b45309; font-style: normal; }
+
+  .block { margin-bottom: 9px; }
+  .block:last-child { margin-bottom: 0; }
+  .panel .block h2 { margin-bottom: 6px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>議事まとめ 2026-08-06 ― 視座向上「残り20点」と デバッグ逆方向探索の実装方針</h1>
+  <div class="sub">参加者: 社長・PJメンバー ／ 戦略・進捗確認会議。前回: <a href="minutes_2026-07-30.html">議事まとめ 2026-07-30</a>／関連: <a href="problem_ex_8.html">課題事例⑧</a>・<a href="problem_ex_6.html">課題事例⑥（最後の2%の属人性）</a>・<a href="aidd_report.html">AIDDレポート（EVM）</a></div>
+
+  <div class="grid">
+
+    <!-- 左: 議題① 進捗 + 議題② 視座向上 -->
+    <div class="panel">
+      <div class="block">
+        <h2 class="indigo">① 進捗報告とベースライン是正</h2>
+        <div class="items">
+          <div class="item indigo">
+            <span class="num">順</span>
+            <div>
+              <div class="title">認証・認可基盤は1週間前倒し</div>
+              <div class="desc">実装は今週中〜来週頭、テストは来週中に完了見込み。</div>
+            </div>
+          </div>
+          <div class="item indigo">
+            <span class="num">是</span>
+            <div>
+              <div class="title">休暇を織り込んだベースラインに修正</div>
+              <div class="desc">来週のリフレッシュ休暇による一時的な鈍化を<strong>前提として計画に反映</strong>することで合意。</div>
+            </div>
+          </div>
+          <div class="item amber">
+            <span class="num">課</span>
+            <div>
+              <div class="title">見積り課題：データモデル修正の予実乖離</div>
+              <div class="desc">想定 <strong>3.4</strong> に対し実測 <strong>10.93</strong>（約3.2倍）。→ 議題⑤の対策に接続。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2>② エンジニアの視座向上 ― 入口・出口チェックの高度化</h2>
+        <div class="items">
+          <div class="item">
+            <span class="num">1</span>
+            <div>
+              <div class="title">実践報告：IVR（電話番号入力）タスク</div>
+              <div class="desc">チームリーダーへのヒアリングを通じて<strong>業務背景を整理したプロセス</strong>を報告。</div>
+            </div>
+          </div>
+          <div class="item">
+            <span class="num">2</span>
+            <div>
+              <div class="title">社長評価：現在の到達度は80点</div>
+              <div class="desc">残り20点は<strong>「仕事ができる人間の考え方」に完全に寄せること</strong>。100点への近づけ方は今後のフィードバックで継続アップデート。<strong>差がつくのは情報非対称性の解消</strong>（詳細は下段）。</div>
+            </div>
+          </div>
+          <div class="item">
+            <span class="num">3</span>
+            <div>
+              <div class="title">アクション：質問テンプレートの標準化</div>
+              <div class="desc">上位者（PM等）から情報を引き出す<strong>「ヒアリング観点＝質問テンプレート」</strong>を推進リードが具体化し、<strong>入口の工程で投げ込むプロセス</strong>として標準化する。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="ref-line">元メモ: <a href="../../.work/2026-08-06_議事録.md">.work/2026-08-06_議事録.md</a></div>
+    </div>
+
+    <!-- 右: 議題③ デバッグ標準化 + 議題⑤ 頻出タスク最適化 -->
+    <div class="panel">
+      <div class="block">
+        <h2 class="amber">③ デバッグの標準化（2%問題）―「逆方向の探索」の具体化</h2>
+        <div class="items">
+          <div class="item amber">
+            <span class="num">1</span>
+            <div>
+              <div class="title">定義：目的変数から説明変数を特定する作業</div>
+              <div class="desc"><strong>目的変数＝「期待値とのズレ」という事実</strong>、<strong>説明変数＝過程のミス</strong>。</div>
+            </div>
+          </div>
+          <div class="item amber">
+            <span class="num">2</span>
+            <div>
+              <div class="title">手法：中間地点の「理論値」を人間が与える</div>
+              <div class="desc">前回の「逆方向探索」を一段具体化。AI任せの総当たりではなく<strong>人間が正解値を置いて探索範囲を絞る</strong>のが要点。</div>
+              <div class="item-detail amber">
+                <div class="head">3ステップ</div>
+                <ul>
+                  <li>AIに<strong>過程（セッションログ等）</strong>を吐き出させる。</li>
+                  <li>人間が<strong>中間地点の正解値（理論値）</strong>を与える。</li>
+                  <li>AIに<strong>どのステップで論理が逸れたか</strong>を逆算探索させる。</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="item amber">
+            <span class="num">3</span>
+            <div>
+              <div class="title">追加アイデア（推進リード）：グラフ探索での記録</div>
+              <div class="desc"><strong>どのノードをどう辿ったかを記録するだけ</strong>なら記録が容易で、逆向きにも辿りやすい。</div>
+            </div>
+          </div>
+          <div class="item">
+            <span class="num">4</span>
+            <div>
+              <div class="title">展望：自己修正アプリケーション</div>
+              <div class="desc"><strong>テストNGの瞬間にAIが原因を特定し自ら修正する</strong>「自己進化するアプリケーション」に繋がる。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2>⑤ 特定頻出タスクの最適化（データモデル修正）</h2>
+        <div class="items">
+          <div class="item">
+            <span class="num">課</span>
+            <div>
+              <div class="title">CRUD用オーケストレーションの流用が非効率</div>
+              <div class="desc">大規模なデータモデル修正に適用すると<strong>フロントエンドまで不必要に巻き込む</strong>。①の予実乖離の一因。</div>
+            </div>
+          </div>
+          <div class="item">
+            <span class="num">対</span>
+            <div>
+              <div class="title">頻出タスクは専用「スキル」に切り分ける</div>
+              <div class="desc"><strong>特定の頻出タスクは専用スキル（エージェント設定）として分離・管理</strong>する方針で合意。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- 下段: 決定事項・アクションアイテム -->
+  <div class="panel bottom">
+    <h2>決定事項・アクションアイテム</h2>
+    <div class="decisions">
+      <div class="decision"><span class="tag">決定</span><strong>スケジュールの修正</strong> — 推進リードの休暇を踏まえた<strong>最新のベースラインを再設定</strong>する。前倒し分と相殺して現実的な計画にする。</div>
+      <div class="decision"><span class="tag action">アクション</span><strong>質問テンプレートの策定</strong> — PMや上位者から本質的な情報を引き出す<strong>「入口チェック用質問リスト」</strong>を作成し標準プロセスに組み込む。</div>
+      <div class="decision"><span class="tag action">アクション</span><strong>デバッグプロセスの試行</strong> — 「目的変数から説明変数を追う」<strong>逆方向のデバッグ手法を実際の開発フローで実証</strong>する。</div>
+    </div>
+    <div class="notes">
+      <div class="quote">
+        <span class="who">社長からの指導（視座の残り20点）</span>
+        「<strong>誰でも得られる情報を拾うのは当たり前</strong>。プロフェッショナルとして差がつくのは、<strong>誰もが持っているわけではない上位層の意図や背景を、自分から捕まえに行く姿勢</strong>だ。まず自分で抑えられる情報を抑え、その上で上位者に聞きに行く」。
+      </div>
+      <div class="quote info">
+        <span class="who">④ AGC案件への共有方針 ―「選択と集中」</span>
+現在の開発プロセスと<strong>密接に関係があれば対応、単なる余計なことなら断る</strong>。まず相手の <strong>What / Who / Why</strong> を確認し、関係が薄ければリソースを投入しない。<strong>角を立てずに期待値を調整する総合職スキル</strong>を推進リードに求めた。→ 依頼元・先方担当に目的と親和性を確認の上で判断。
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
