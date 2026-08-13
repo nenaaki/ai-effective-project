@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>debugger — エージェント仕様</title>
+</head>
+<body>
+
+<div class="deck">
+
+<section class="slide cover" data-title="表紙">
+  <p class="eyebrow">pw-dms / エージェント仕様</p>
+  <h1>debugger</h1>
+  <p class="c-lead">症状から原因までを、<strong>推測ではなく観測で</strong>特定する。<br>作らない・仕様を決めない・恒久的な修正はしない。</p>
+  <div class="c-meta">
+    <span>pw-dms のエージェント構成のひとつ</span>
+    <span>2026-08-11 現在 / 環境ゲート優先へ改訂</span>
+  </div>
+  <p class="foot">→ ／ ← でめくる。</p>
+</section>
+<section class="slide" data-title="担当範囲">
+  <header class="s-head">
+    <p class="eyebrow">位置づけ 1 / 3</p>
+    <h2>担当範囲 — 症状と原因の間</h2>
+    <p class="s-lead">作るのは engineer、壊れていることを見つけるのは tester。<strong>その間は今まで誰の担当でもなかった。</strong></p>
+  </header>
+  <figure>
+    <svg viewBox="0 0 940 330" role="img" aria-label="AsIsではtesterが症状を報告しengineerが原因を推測して差し戻す往復が起きている。ToBeではtesterからdebuggerへ症状が渡り、debuggerが再現と観測で因果を確定してから診断書をengineerへ渡し、業務判断が必要なものはquestionsへ抜ける、という2つの状態を上下に並べた図" class="fig">
+      <defs>
+        <marker id="a-l" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><polygon points="0,0 10,5 0,10" class="p-lost"/></marker>
+        <marker id="a-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><polygon points="0,0 10,5 0,10" class="p-acc"/></marker>
+        <marker id="a-c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><polygon points="0,0 10,5 0,10" class="p-cond"/></marker>
+      </defs>
+
+      <text x="20" y="20" class="t-l">AsIs</text>
+      <rect x="20" y="34" width="170" height="52" rx="3" class="st"/><text x="105" y="65" text-anchor="middle" class="t-b">tester</text>
+      <rect x="750" y="34" width="170" height="52" rx="3" class="st"/><text x="835" y="65" text-anchor="middle" class="t-b">engineer</text>
+      <line x1="196" y1="50" x2="742" y2="50" class="st lost" marker-end="url(#a-l)"/>
+      <text x="469" y="42" text-anchor="middle" class="t-n">症状を報告</text>
+      <line x1="744" y1="72" x2="198" y2="72" class="st lost" marker-end="url(#a-l)"/>
+      <text x="469" y="89" text-anchor="middle" class="t-n lost">原因が分からず差し戻す</text>
+      <text x="469" y="112" text-anchor="middle" class="t-s lost">この往復が繰り返される</text>
+
+      <line x1="20" y1="130" x2="920" y2="130" class="st dash thin"/>
+
+      <text x="20" y="154" class="t-l acc">ToBe</text>
+      <rect x="20" y="166" width="150" height="56" rx="3" class="st"/><text x="95" y="199" text-anchor="middle" class="t-b">tester ／ 人間</text>
+      <rect x="300" y="166" width="220" height="56" rx="3" class="st hi"/>
+      <text x="410" y="190" text-anchor="middle" class="t-h acc">debugger</text>
+      <text x="410" y="210" text-anchor="middle" class="t-n">再現 → 観測 → 因果の確定</text>
+      <rect x="770" y="166" width="150" height="56" rx="3" class="st"/><text x="845" y="199" text-anchor="middle" class="t-b">engineer</text>
+      <line x1="176" y1="194" x2="294" y2="194" class="st acc" marker-end="url(#a-a)"/>
+      <text x="235" y="186" text-anchor="middle" class="t-n">症状（自然文）</text>
+      <line x1="526" y1="194" x2="764" y2="194" class="st acc" marker-end="url(#a-a)"/>
+      <text x="645" y="186" text-anchor="middle" class="t-n">診断書</text>
+      <text x="645" y="212" text-anchor="middle" class="t-n">原因・経路・ON/OFF 検証</text>
+
+      <line x1="410" y1="226" x2="410" y2="258" class="st cond" marker-end="url(#a-c)"/>
+      <text x="420" y="248" class="t-xs cond-t">業務判断が必要なら</text>
+      <rect x="300" y="262" width="330" height="52" rx="3" class="st cond dash"/>
+      <text x="465" y="284" text-anchor="middle" class="t-b cond-t">業務論点リストへ</text>
+      <text x="465" y="303" text-anchor="middle" class="t-n">直さずに人へ返す</text>
+    </svg>
+    <figcaption class="foot">往復（AsIs）を、1回の決定論的な探索（ToBe）に置き換える。担当は<strong>「見つかった症状」と「直せる原因」の間だけ</strong>。</figcaption>
+  </figure>
+</section>
+<section class="slide" data-title="3つの軸">
+  <header class="s-head">
+    <p class="eyebrow">位置づけ 2 / 3</p>
+    <h2>3つの軸 — 実行・来歴・外的要因</h2>
+    <p class="s-lead">症状の1点から<strong>3方向</strong>へ探す。3つ目の<strong>「自分の外で状態が変わった」</strong>は差分にも自分のコードにも現れない — <strong>ここを見ないとコードをいくら読んでも当たらない。</strong></p>
+  </header>
+  <figure>
+    <svg viewBox="0 0 940 300" role="img" aria-label="症状の1点を原点として、右方向に実行の軸が層①表示から⑥DBまでの実測値を取りにいき、上方向に来歴の軸が誰がいつ書いたか・何を見ていたか・なぜそう決めたかを遡り、下方向に外的要因の軸が環境の欠損・降ってきたマージ・他の処理との衝突を突き合わせる、直交する3軸の探索であることを示す図。打つ順序は1が外的要因の環境・経路、2が実行軸のAPI" class="fig">
+      <defs>
+        <marker id="b-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><polygon points="0,0 10,5 0,10" fill="currentColor"/></marker>
+        <marker id="b-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><polygon points="0,0 10,5 0,10" class="p-acc"/></marker>
+        <marker id="b-l" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><polygon points="0,0 10,5 0,10" class="p-lost"/></marker>
+      </defs>
+
+      <circle cx="250" cy="160" r="6" class="p-acc"/>
+      <text x="236" y="156" text-anchor="end" class="t-h">症状の1点</text>
+      <text x="236" y="174" text-anchor="end" class="t-n">再現手順で固定した状態</text>
+
+      <line x1="250" y1="160" x2="905" y2="160" class="st" marker-end="url(#b-ar)"/>
+      <text x="905" y="120" text-anchor="end" class="t-l">実行 — いま何が起きているか</text>
+      <line x1="350" y1="154" x2="350" y2="166" class="st thin"/><text x="350" y="146" text-anchor="middle" class="t-n">①表示</text>
+      <line x1="430" y1="154" x2="430" y2="166" class="st thin"/><text x="430" y="146" text-anchor="middle" class="t-n">②通信</text>
+      <circle cx="510" cy="160" r="7" class="st hi"/><text x="510" y="146" text-anchor="middle" class="t-xs acc">③API</text>
+      <line x1="600" y1="154" x2="600" y2="166" class="st thin"/><text x="600" y="146" text-anchor="middle" class="t-n">④処理</text>
+      <line x1="680" y1="154" x2="680" y2="166" class="st thin"/><text x="680" y="146" text-anchor="middle" class="t-n">⑤SQL</text>
+      <line x1="760" y1="154" x2="760" y2="166" class="st thin"/><text x="760" y="146" text-anchor="middle" class="t-n">⑥DB</text>
+      <text x="510" y="132" text-anchor="middle" class="t-act">2 次に打つ</text>
+
+      <line x1="250" y1="160" x2="250" y2="28" class="st acc" marker-end="url(#b-a)"/>
+      <text x="266" y="22" class="t-l acc">来歴 — なぜこう書かれたか</text>
+      <line x1="244" y1="122" x2="256" y2="122" class="st thin"/><text x="266" y="126" class="t-s">誰が・いつ書いたか</text>
+      <line x1="244" y1="94" x2="256" y2="94" class="st thin"/><text x="266" y="98" class="t-s">直前に何を見ていたか（正本を開いたか）</text>
+      <line x1="244" y1="66" x2="256" y2="66" class="st thin"/><text x="266" y="70" class="t-s">なぜそう決めたか・何が未解決か</text>
+
+      <line x1="250" y1="160" x2="250" y2="288" class="st lost" marker-end="url(#b-l)"/>
+      <text x="266" y="284" class="t-l lost">外的要因 — 自分の外で何が変わったか</text>
+      <line x1="244" y1="192" x2="256" y2="192" class="st acc w2"/><text x="266" y="196" class="t-s">環境・経路が落ちている／設定が欠けている</text>
+      <text x="502" y="196" class="t-act">1 最初に打つ</text>
+      <line x1="244" y1="221" x2="256" y2="221" class="st thin"/><text x="266" y="225" class="t-s">降ってきた変更（他者のマージ・別環境との差）</text>
+      <line x1="244" y1="250" x2="256" y2="250" class="st thin"/><text x="266" y="254" class="t-s">他の処理との衝突（同時更新・共有データ・バックグラウンド処理の状態）</text>
+    </svg>
+  </figure>
+  <div class="idx">
+    <div class="idx-g">
+      <p class="idx-h">実行 — 測る</p>
+      <ul class="plain">
+        <li>各層に<strong>実際の値を取る手段</strong>がある。推論せずそれを打つ</li>
+        <li>③から始めると1手で上下どちらかが無罪になる</li>
+      </ul>
+    </div>
+    <div class="idx-g">
+      <p class="idx-h">来歴 — 辿る</p>
+      <ul class="plain">
+        <li><strong>直前に正本を開いていない</strong> → 制約を見ずに実装している</li>
+        <li><strong>未解決の業務論点にヒット</strong> → <strong>不具合ではない。人へ返す</strong></li>
+      </ul>
+    </div>
+    <div class="idx-g">
+      <p class="idx-h">外的要因 — 突き合わせる</p>
+      <ul class="plain">
+        <li>環境は<strong>調査の最初のゲート</strong>で潰す</li>
+        <li>降ってきた変更は<strong>症状の場所と交差するか</strong>を見る</li>
+      </ul>
+    </div>
+  </div>
+  <p class="foot claim">束ねるのは<strong>機械</strong>、どこがズレの起点かを読むのは<strong>AI</strong>、直すか業務論点として戻すかを決めるのは<strong>人</strong>。この分界は崩さない。</p>
+</section>
+<section class="slide" data-title="権限">
+  <header class="s-head">
+    <p class="eyebrow">位置づけ 3 / 3</p>
+    <h2>権限 — 一時変更が許される唯一のエージェント</h2>
+    <p class="s-lead">tester 系は読み取り専用、engineer 系は spec 駆動。<strong>debugger はどちらでもない</strong> — 値を推測せず取るため、観測用のコードを仕込んでよい。</p>
+  </header>
+  <div class="two">
+    <div>
+      <p class="idx-h"><span class="ok-t">できること</span></p>
+      <ul class="yeslist">
+        <li><strong>観測のために一時的なログを仕込む</strong><span class="sub-note">デバッグ終了時に必ず戻す</span></li>
+        <li><strong>検証用データを自分で作り、自分で消す</strong></li>
+        <li><strong>自分では再現できないときだけ、画面の写真を人に頼む</strong></li>
+      </ul>
+    </div>
+    <div>
+      <p class="idx-h"><span class="ng-t">できないこと</span></p>
+      <ul class="nolist">
+        <li><strong>恒久的な修正を確定する</strong><span class="sub-note">診断書を engineer へ渡す。人が「そのまま直して」と言った場合のみ例外</span></li>
+        <li><strong>仕様・期待値を決める</strong>（テストの期待値を実装に合わせて緩めるのも同じ）</li>
+        <li><strong>既存データを書き換える・消す</strong>（壊れたデータも潰さない＝証拠）</li>
+        <li><strong>再現していない状態で修正を提案する</strong></li>
+      </ul>
+    </div>
+  </div>
+  <p class="foot claim">仕込んだものは<strong>戻してから報告する</strong>（差分が空であることを確認）。記憶に頼ると必ず残る。<strong>個人情報はログに出さない</strong> — 出してよいのは件数・型・有無だけ。</p>
+</section>
+<section class="slide" data-title="全体像とゲート">
+  <header class="s-head">
+    <p class="eyebrow">工程 1 / 5</p>
+    <h2>全体像 — 通してはいけないゲートと、抜ける出口</h2>
+    <p class="s-lead">線形に見えるが、効いているのは<strong>通してはいけないゲート</strong>と<strong>engineer に渡さず抜ける出口</strong>。</p>
+  </header>
+  <figure>
+    <svg viewBox="0 0 940 270" role="img" aria-label="環境ゲート・問診・層のbisect・仮説台帳と因果の確定・引き渡しという流れの中に、経路が通るまで通さない環境ゲート、再現できなければ通さない再現ゲート、ONOFFで確定できなければ通さない因果ゲートの3つがあり、期待値が正本に無い場合はquestionsへ、仮説を5件棄却しても確定しない場合は人へ返す2つの出口があることを示す図" class="fig">
+      <defs>
+        <marker id="c-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><polygon points="0,0 10,5 0,10" fill="currentColor"/></marker>
+        <marker id="c-c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><polygon points="0,0 10,5 0,10" class="p-cond"/></marker>
+        <marker id="c-l" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><polygon points="0,0 10,5 0,10" class="p-lost"/></marker>
+      </defs>
+      <path d="M650,88 V58 H460 V88" class="st dash" marker-end="url(#c-ar)"/>
+      <text x="555" y="50" text-anchor="middle" class="t-n">反証を1件ずつ打ち直す</text>
+
+      <rect x="5" y="90" width="150" height="52" rx="3" class="st"/>
+      <text x="80" y="110" text-anchor="middle" class="t-n">step 1</text><text x="80" y="130" text-anchor="middle" class="t-b">前提と経路</text>
+      <rect x="195" y="90" width="150" height="52" rx="3" class="st"/>
+      <text x="270" y="110" text-anchor="middle" class="t-n">step 2</text><text x="270" y="130" text-anchor="middle" class="t-b">問診</text>
+      <rect x="385" y="90" width="150" height="52" rx="3" class="st"/>
+      <text x="460" y="110" text-anchor="middle" class="t-n">step 3</text><text x="460" y="130" text-anchor="middle" class="t-b">層の bisect</text>
+      <rect x="575" y="90" width="150" height="52" rx="3" class="st"/>
+      <text x="650" y="110" text-anchor="middle" class="t-n">step 4–5</text><text x="650" y="130" text-anchor="middle" class="t-b">台帳・因果の確定</text>
+      <rect x="765" y="90" width="150" height="52" rx="3" class="st"/>
+      <text x="840" y="110" text-anchor="middle" class="t-n">step 6</text><text x="840" y="130" text-anchor="middle" class="t-b">引き渡し</text>
+
+      <line x1="155" y1="116" x2="191" y2="116" class="st" marker-end="url(#c-ar)"/>
+      <line x1="345" y1="116" x2="381" y2="116" class="st" marker-end="url(#c-ar)"/>
+      <line x1="535" y1="116" x2="571" y2="116" class="st" marker-end="url(#c-ar)"/>
+      <line x1="725" y1="116" x2="761" y2="116" class="st" marker-end="url(#c-ar)"/>
+
+      <line x1="168" y1="84" x2="168" y2="148" class="st acc w2"/>
+      <line x1="178" y1="84" x2="178" y2="148" class="st acc w2"/>
+      <text x="173" y="166" text-anchor="middle" class="t-xs acc">環境ゲート</text>
+      <text x="173" y="182" text-anchor="middle" class="t-n">経路が通るまで通さない</text>
+
+      <line x1="358" y1="84" x2="358" y2="148" class="st acc w2"/>
+      <line x1="368" y1="84" x2="368" y2="148" class="st acc w2"/>
+      <text x="363" y="166" text-anchor="middle" class="t-xs acc">再現ゲート</text>
+      <text x="363" y="182" text-anchor="middle" class="t-n">1コマンドで打てるまで通さない</text>
+
+      <line x1="738" y1="84" x2="738" y2="148" class="st acc w2"/>
+      <line x1="748" y1="84" x2="748" y2="148" class="st acc w2"/>
+      <text x="743" y="166" text-anchor="middle" class="t-xs acc">因果ゲート</text>
+      <text x="743" y="182" text-anchor="middle" class="t-n">ON/OFF できるまで通さない</text>
+
+      <line x1="270" y1="146" x2="270" y2="204" class="st cond" marker-end="url(#c-c)"/>
+      <rect x="155" y="208" width="230" height="50" rx="3" class="st cond dash"/>
+      <text x="270" y="228" text-anchor="middle" class="t-b cond-t">業務論点へ</text>
+      <text x="270" y="246" text-anchor="middle" class="t-n">期待値が正本に無い＝業務論点</text>
+
+      <line x1="650" y1="146" x2="650" y2="204" class="st lost" marker-end="url(#c-l)"/>
+      <rect x="535" y="208" width="230" height="50" rx="3" class="st lost dash"/>
+      <text x="650" y="228" text-anchor="middle" class="t-b lost">人へ返す</text>
+      <text x="650" y="246" text-anchor="middle" class="t-n">仮説5件を棄却しても確定しない</text>
+    </svg>
+  </figure>
+  <div class="flag">
+    <p class="fl-h">ゲートを通す条件</p>
+    <ol class="fl-l">
+      <li><strong>環境ゲート</strong> — 前提チェックと経路疎通が通る（有効な観測を引き継げるならスキップ可。人間からの報告は必ず通す）</li>
+      <li><strong>再現ゲート</strong> — 再現手順が1コマンドで打てる。ゆらぐなら測定へ、ローカルで出ないなら環境差へ</li>
+      <li><strong>因果ゲート</strong> — ①症状までの経路を端から端まで説明できる ②<strong>原因を出し入れして症状を ON / OFF できる</strong></li>
+    </ol>
+    <p class="fl-f">2 が満たせないなら、まだ見つけていない。<strong>ここを緩めると「触ったら消えた」が完了報告になる。</strong></p>
+  </div>
+  <p class="foot">仮説台帳は「仮説」と「それを否定する最小の観測」をセットで書く。順序は<strong>確からしさ × 安さ</strong>で、棄却した仮説も消さない（書式は仕様書側）。</p>
+</section>
+<section class="slide" data-title="Step 1 環境ゲート">
+  <header class="s-head">
+    <p class="eyebrow">工程 2 / 5</p>
+    <h2>Step 1 環境ゲート — 調査を始める資格</h2>
+    <p class="s-lead"><strong>環境が通っているか確かめる前に、症状の話を始めない。</strong>一番よく溶けるのは<strong>前提が壊れたままロジックを疑っていた</strong>時間。</p>
+  </header>
+  <figure>
+    <svg viewBox="0 0 940 310" role="img" aria-label="入口は2つ。上流からの引き渡しは観測を1行で引き継いで環境ゲートを通る。人間からの報告は環境が2つあり、自分の環境は前提と経路を打ち、相手の環境は観測できないため起動し直して再実行を依頼するという別の出口へ抜ける。ゲートの先は2つに分かれ、前提が通っていれば症状の話へ、前提が壊れていた場合は直して状況を説明し症状がまだ出るか確認してもらう、という出口になる図" class="fig">
+      <defs>
+        <marker id="g-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><polygon points="0,0 10,5 0,10" fill="currentColor"/></marker>
+        <marker id="g-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><polygon points="0,0 10,5 0,10" class="p-acc"/></marker>
+        <marker id="g-l" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><polygon points="0,0 10,5 0,10" class="p-lost"/></marker>
+      </defs>
+
+      <rect x="15" y="28" width="200" height="46" rx="3" class="st"/>
+      <text x="115" y="56" text-anchor="middle" class="t-b">上流からの引き渡し</text>
+      <line x1="219" y1="51" x2="267" y2="51" class="st acc" marker-end="url(#g-a)"/>
+      <rect x="275" y="28" width="230" height="46" rx="3" class="st acc dash"/>
+      <text x="390" y="56" text-anchor="middle" class="t-b acc">観測を1行で引き継ぐ</text>
+      <line x1="509" y1="51" x2="557" y2="51" class="st acc" marker-end="url(#g-a)"/>
+
+      <rect x="15" y="108" width="200" height="110" rx="3" class="st"/>
+      <text x="115" y="150" text-anchor="middle" class="t-b">人間からの報告</text>
+      <text x="115" y="174" text-anchor="middle" class="t-n">環境が2つある</text>
+      <line x1="219" y1="133" x2="267" y2="133" class="st acc" marker-end="url(#g-a)"/>
+      <rect x="275" y="110" width="230" height="46" rx="3" class="st"/>
+      <text x="390" y="130" text-anchor="middle" class="t-b">自分の環境</text>
+      <text x="390" y="148" text-anchor="middle" class="t-n">前提と経路を打つ</text>
+      <line x1="509" y1="133" x2="557" y2="133" class="st acc" marker-end="url(#g-a)"/>
+
+      <line x1="219" y1="199" x2="267" y2="199" class="st lost" marker-end="url(#g-l)"/>
+      <rect x="275" y="176" width="230" height="46" rx="3" class="st lost dash"/>
+      <text x="390" y="196" text-anchor="middle" class="t-b lost">相手の環境</text>
+      <text x="390" y="214" text-anchor="middle" class="t-n">観測できない</text>
+      <line x1="390" y1="224" x2="390" y2="248" class="st lost" marker-end="url(#g-l)"/>
+      <rect x="275" y="252" width="230" height="42" rx="3" class="st lost dash"/>
+      <text x="390" y="278" text-anchor="middle" class="t-b lost">起動し直して再実行を依頼</text>
+
+      <line x1="565" y1="14" x2="565" y2="238" class="st acc w2"/>
+      <line x1="577" y1="14" x2="577" y2="238" class="st acc w2"/>
+      <text x="571" y="256" text-anchor="middle" class="t-xs acc">環境ゲート</text>
+      <text x="571" y="272" text-anchor="middle" class="t-n">通るまで症状の話をしない</text>
+
+      <line x1="583" y1="70" x2="641" y2="70" class="st acc" marker-end="url(#g-a)"/>
+      <rect x="645" y="47" width="200" height="46" rx="3" class="st hi"/>
+      <text x="745" y="75" text-anchor="middle" class="t-b acc">症状の話へ</text>
+
+      <line x1="583" y1="170" x2="641" y2="170" class="st lost" marker-end="url(#g-l)"/>
+      <rect x="645" y="140" width="240" height="60" rx="3" class="st lost dash"/>
+      <text x="765" y="163" text-anchor="middle" class="t-b lost">前提が壊れていた</text>
+      <text x="765" y="185" text-anchor="middle" class="t-n">直して状況を説明し、まだ出るか確認してもらう</text>
+    </svg>
+  </figure>
+  <div class="two">
+    <div>
+      <p class="idx-h">何を見るか</p>
+      <ul class="plain">
+        <li>サービスが動いているか（ポートとプロセスの<strong>両方</strong>）</li>
+        <li>自動生成コードがソースに追いついているか</li>
+        <li>ビルド成果物が上書きされていないか</li>
+        <li>DB の適用状態（未適用・履歴の分岐）</li>
+        <li>設定の欠落・タイムゾーン・作業ツリーの中断</li>
+        <li><strong>直近に降ってきた変更</strong>（自分の差分には出ない）</li>
+      </ul>
+    </div>
+    <div>
+      <p class="idx-h">引き継いだ観測が切れる条件</p>
+      <ul class="plain">
+        <li>本流の取り込み</li>
+        <li>DB 更新・データ再投入</li>
+        <li>ビルド・コード生成</li>
+        <li>時間経過・別セッション</li>
+      </ul>
+      <p class="foot">どれかに触れたら<strong>引き継がず打ち直す</strong>。</p>
+    </div>
+  </div>
+  <p class="foot claim">続けて<strong>既知の失敗モードを症状で引く</strong>。載っているのは<strong>症状と原因の場所が離れている</strong>ものばかりで、症状からコードを読み始めても当たらない。<strong>ただし前提が壊れていても、そこで終わりにしない</strong> — 直したことは症状が消えた証明にならない。<strong>環境が原因だったのか、環境に隠れて別の不具合があるのかは、こちらでは分からない。</strong></p>
+</section>
+<section class="slide" data-title="Step 2 問診">
+  <header class="s-head">
+    <p class="eyebrow">工程 3 / 5</p>
+    <h2>Step 2 問診 — 自然文を再現手順に変える</h2>
+    <p class="s-lead"><strong>「TC-XXX が落ちる」の形を人間に要求しない。</strong>人は「荷受けでスキャンしても進まない」と言う。それが正常な入口で、変換するのは debugger の仕事。</p>
+  </header>
+  <div class="two">
+    <div>
+      <pre class="code">再現コマンド: &lt;1行&gt;
+環境:         &lt;local / stg / 報告者の手元。commit・seed の状態&gt;
+期待:         &lt;何が起きるべきか&gt;
+実際:         &lt;何が起きるか。原文のまま&gt;
+再現率:       &lt;n/n 回&gt;</pre>
+      <p class="foot">満たすべき条件は<strong>決定論的</strong>（3回打って3回同じ）・<strong>最小</strong>・<strong>速い</strong>こと。ゆらぐならそれ自体が最初の症状。</p>
+      <p class="foot claim">再現できないときは<strong>そこで止めて人に返す</strong>。「多分ここだろう」で直すのは、<strong>直ったか判定する手段がないまま変更を入れる</strong>ということ。</p>
+    </div>
+    <div class="cols">
+      <table class="grid">
+        <thead><tr><th>情報</th><th>人に聞くか</th></tr></thead>
+        <tbody>
+          <tr><td>起動状態・生成物の鮮度・DB の適用状況</td><td>聞かない</td></tr>
+          <tr><td>画面のエラー・通信の失敗</td><td>聞かない</td></tr>
+          <tr><td>API のエラーコード・スタックトレース</td><td>聞かない</td></tr>
+          <tr><td>誰の・どの判断で書かれたか</td><td>聞かない</td></tr>
+          <tr><td>直近の取り込み・履歴の巻き戻し</td><td>聞かない</td></tr>
+          <tr><td><strong>何が起きるべきだったか（期待値）</strong></td><td class="ng-t">必ず聞く</td></tr>
+          <tr><td>どう操作したか</td><td>推測できないときだけ</td></tr>
+          <tr><td>前は動いていたか・いつからか</td><td>聞く</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <p class="foot claim"><strong>機械で取れることを人に聞かない。</strong>ただし<strong>期待値だけは代替不能</strong> — 人にも分からず正本にも無いなら、それはバグではなく業務論点。</p>
+</section>
+<section class="slide" data-title="ゆらぎの原因">
+  <header class="s-head">
+    <p class="eyebrow">工程 4 / 5</p>
+    <h2>ゆらぎの原因を突き止める — 何が結果を変えているか</h2>
+    <p class="s-lead">3回打ってそろわないのは<strong>「再現できない」ではなく、何かが結果を変えている</strong>という情報。<strong>何が変えているのかを先に決める</strong> — よくあるのは次の3つで、それぞれ<strong>調べる先が違う</strong>。</p>
+  </header>
+  <div class="idx">
+    <div class="idx-g">
+      <p class="idx-h">① 時間と順序が変えている</p>
+      <ul class="plain">
+        <li>再現率と失敗の偏りを測る</li>
+        <li>偏り＝初回だけ／後半に集中／時間切れ</li>
+        <li><strong>→ タイムアウトと無応答時の振る舞いを調べる</strong></li>
+      </ul>
+    </div>
+    <div class="idx-g">
+      <p class="idx-h">② 環境が変えている（ローカルで出ない）</p>
+      <ul class="plain">
+        <li>環境差を安い順に1つずつ持ち込む</li>
+        <li>症状が出たら、そのとき持ち込んだ差分が原因</li>
+        <li><strong>→ インフラとエミュレーターの仕様を調べる</strong></li>
+      </ul>
+    </div>
+    <div class="idx-g">
+      <p class="idx-h">③ 同時に動くものが変えている</p>
+      <ul class="plain">
+        <li>相手は人の操作とは限らない（未着手／実行中／完了後）</li>
+        <li>足並みをそろえて同時に撃つ</li>
+        <li><strong>→ 処理のシーケンスを調べる</strong></li>
+      </ul>
+    </div>
+  </div>
+  <p class="foot claim">原因に迫ったら<strong>論理的な修正案</strong>まで出す。ただし<strong>この種の不具合には、どうやっても防げない条件が必ず残る</strong> — そのとき<strong>利用者のデータをどう守るか</strong>（失敗側に倒す／後から突合して直す／記録だけ残す）は<strong>業務の判断</strong>なので、決めずに人へ返す。</p>
+  <p class="foot">どれにも当たらないなら人へ返す。<strong>自分の環境で再現しないことは、不具合が無いことの証明ではない。</strong></p>
+</section>
+<section class="slide" data-title="層と道具">
+  <header class="s-head">
+    <p class="eyebrow">工程 5 / 5</p>
+    <h2>Step 3 層の bisect — 打つものと、割れる範囲</h2>
+    <p class="s-lead">推論せず観測する。<strong>③から始めると1手で範囲が半分になる。</strong>使い捨てのスクリプトは書かない。</p>
+  </header>
+  <figure>
+    <svg viewBox="0 0 940 300" role="img" aria-label="6つの層を上から下に並べ、それぞれに実際の値を取る手段があること、ただし処理の中だけは道具が無く自分でログを仕込むこと、そして3番目のAPIで再現するかどうかで上2層または下3層が無罪になり範囲が半分に割れることを示した図" class="fig">
+      <defs>
+        <marker id="h-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><polygon points="0,0 10,5 0,10" fill="currentColor"/></marker>
+        <marker id="h-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><polygon points="0,0 10,5 0,10" class="p-acc"/></marker>
+      </defs>
+      <text x="20" y="12" class="t-l">見る場所</text>
+      <text x="200" y="12" class="t-l">値の取り方</text>
+      <text x="406" y="12" class="t-l">出てくるもの</text>
+      <rect x="14" y="106" width="916" height="44" rx="3" class="row-hi"/>
+      <rect x="20" y="26" width="140" height="36" rx="3" class="st"/><text x="34" y="49" class="t-b">① 画面</text>
+      <rect x="20" y="68" width="140" height="36" rx="3" class="st"/><text x="34" y="91" class="t-b">② 通信</text>
+      <rect x="20" y="110" width="140" height="36" rx="3" class="st hi"/><text x="34" y="133" class="t-b acc">③ API</text>
+      <rect x="20" y="152" width="140" height="36" rx="3" class="st"/><text x="34" y="175" class="t-b">④ 処理の中</text>
+      <rect x="20" y="194" width="140" height="36" rx="3" class="st"/><text x="34" y="217" class="t-b">⑤ 発行 SQL</text>
+      <rect x="20" y="236" width="140" height="36" rx="3" class="st"/><text x="34" y="259" class="t-b">⑥ DB</text>
+      <path d="M166,44 H176 V86 H166" class="st thin"/>
+      <line x1="176" y1="65" x2="192" y2="65" class="st" marker-end="url(#h-ar)"/>
+      <rect x="200" y="47" width="190" height="36" rx="3" class="st"/><text x="295" y="70" text-anchor="middle" class="t-b">画面を機械で開く</text>
+      <text x="406" y="69" class="t-s">例外・エラー名・画面に出ている文字</text>
+      <line x1="166" y1="128" x2="192" y2="128" class="st acc" marker-end="url(#h-a)"/>
+      <rect x="200" y="110" width="190" height="36" rx="3" class="st hi"/><text x="295" y="133" text-anchor="middle" class="t-b acc">API を直接叩く</text>
+      <text x="406" y="132" class="t-s">API の返事そのまま（ログインは自動）</text>
+      <line x1="166" y1="170" x2="192" y2="170" class="st dash" marker-end="url(#h-ar)"/>
+      <rect x="200" y="152" width="190" height="36" rx="3" class="st dash"/><text x="295" y="175" text-anchor="middle" class="t-b">自分でログを仕込む</text>
+      <text x="406" y="174" class="t-s">ここだけ道具が無い</text>
+      <line x1="166" y1="212" x2="192" y2="212" class="st" marker-end="url(#h-ar)"/>
+      <rect x="200" y="194" width="190" height="36" rx="3" class="st"/><text x="295" y="217" text-anchor="middle" class="t-b">発行 SQL を覗く</text>
+      <text x="406" y="216" class="t-s">実際に流れたクエリと回数</text>
+      <line x1="166" y1="254" x2="192" y2="254" class="st" marker-end="url(#h-ar)"/>
+      <rect x="200" y="236" width="190" height="36" rx="3" class="st"/><text x="295" y="259" text-anchor="middle" class="t-b">DB を読む</text>
+      <text x="406" y="258" class="t-s">DB の実際の値（読むだけ）</text>
+      <path d="M694,44 H704 V86 H694" class="st ok-s"/>
+      <text x="712" y="63" class="t-s">③で<tspan class="ok-t2">再現すれば</tspan>無罪</text>
+      <text x="712" y="81" class="t-n">＝フロントを読まなくてよい</text>
+      <text x="712" y="132" class="t-act">まずここを打つ（一番安い）</text>
+      <path d="M694,170 H704 V254 H694" class="st lost"/>
+      <text x="712" y="210" class="t-s">③で<tspan class="lost">再現しなければ</tspan>無罪</text>
+      <text x="712" y="228" class="t-n">＝バックエンドとDBを読まなくてよい</text>
+    </svg>
+    <figcaption class="foot">③が一番安く、1発で上下どちらかが無罪になる。以降も<strong>残っている範囲の真ん中</strong>を打つ。言い切れなくなったら推測が混ざったサイン。</figcaption>
+  </figure>
+  <p class="foot claim">「前は動いていた」ならコミット方向にも境界がある。<strong>ただしその前に⑦の履歴を見る</strong> — 取り込みが症状の場所と交差していれば、全体を二分探索せず2点比較で境界が出る。</p>
+</section>
+<section class="slide" data-title="出口">
+  <header class="s-head">
+    <p class="eyebrow">出口</p>
+    <h2>出口 — 何を残し、どこへ渡すか</h2>
+    <p class="s-lead"><strong>仕様が決まっていないものは engineer へ渡さない</strong>（渡すと実装で決めた仕様が既成事実になる）。</p>
+  </header>
+  <div class="two">
+    <div>
+      <div class="cols">
+      <table class="grid narrow">
+        <thead><tr><th>原因の種類</th><th>渡す先</th></tr></thead>
+        <tbody>
+          <tr><td>バックエンドの実装バグ</td><td>backend-engineer</td></tr>
+          <tr><td>画面側の実装バグ</td><td>frontend-engineer</td></tr>
+          <tr><td>DB スキーマ / マイグレーション</td><td>db-architect</td></tr>
+          <tr><td>テストの期待結果自体が誤り</td><td>test-spec-designer</td></tr>
+          <tr><td><strong>仕様が決まっていない</strong></td><td class="cond-t2">業務論点へ</td></tr>
+          <tr><td>環境・設定</td><td>人 ＋ 既知の失敗モード表へ1行</td></tr>
+          <tr><td>テスト環境でだけ再現する</td><td>人。<strong>どの差分で再現したか</strong>を明記（未特定なら「未特定」）</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <div class="flag lost-f">
+        <p class="fl-h">打ち切り</p>
+        <p class="fl-f"><strong>仮説を5件棄却しても確定しないときは、台帳を持って人に返す。</strong>最大の損失は誤診ではなく<strong>誤診に気づかないまま編集を重ねること</strong>。<strong>ゆらぐものは件数では止まらない</strong>ので<strong>時間で打ち切る</strong>（既定5分）。</p>
+      </div>
+    </div>
+    <div>
+      <p class="idx-h">やってはいけない</p>
+      <ul class="nolist">
+        <li>例外を握りつぶす／リトライ・待ち時間で「たまたま通る」状態にする</li>
+        <li>再現していない状態で修正を提案する</li>
+        <li>「おそらく〇〇が原因です」「たまに出る」で報告を終える</li>
+        <li>ゆらぐ症状で、1回通っただけで「直った」と言う</li>
+        <li>一時的な観測コードを戻し忘れる</li>
+      </ul>
+      <div class="flag">
+        <p class="fl-h">稼働実績 — まだ少ない</p>
+        <p class="fl-f">定義の確定以降の起動は<strong>3件</strong>、いずれも同一チケットの再テスト中。全件が診断を返した一方、<strong>2件目は直前のマージを疑えず誤診</strong>し、3件目で自ら訂正した。<strong>環境ゲートはこの誤診から入れたチェック</strong>。「原状回復済み」は自己申告で、第三者検証ではない。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<nav class="rail" aria-label="ページ送り">
+  <button id="prev" aria-label="前のページ">←</button>
+  <div class="dots" id="dots"></div>
+  <button id="next" aria-label="次のページ">→</button>
+  <span class="count"><span id="cur">1</span> / <span id="tot">12</span></span>
+</nav>
+
+<style>
+:root{
+  --bg:#F1F2F0; --card:#FFFFFF; --ink:#161A19; --ink-2:#4C5350; --ink-3:#7C8480;
+  --line:#D3D7D3; --line-2:#E6E9E5;
+  --acc:#0F6C7C; --acc-bg:#E2EFF1; --ok:#2E7D57; --cond:#8A6410;
+  --lost:#A33F31; --lost-bg:#F5E5E2;
+  --sans:"Hiragino Kaku Gothic ProN","Yu Gothic",YuGothic,"Noto Sans JP",system-ui,-apple-system,sans-serif;
+  --serif:"Hiragino Mincho ProN","Yu Mincho",YuMincho,"Noto Serif JP",serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#101413; --card:#181D1C; --ink:#E9EBE8; --ink-2:#A6ADA9; --ink-3:#77807C;
+    --line:#2A312F; --line-2:#212724;
+    --acc:#63C2D2; --acc-bg:#12292E; --ok:#6FB58C; --cond:#C9982F;
+    --lost:#D3776A; --lost-bg:#2C1B18;
+  }
+}
+:root[data-theme="light"]{
+  --bg:#F1F2F0; --card:#FFFFFF; --ink:#161A19; --ink-2:#4C5350; --ink-3:#7C8480;
+  --line:#D3D7D3; --line-2:#E6E9E5;
+  --acc:#0F6C7C; --acc-bg:#E2EFF1; --ok:#2E7D57; --cond:#8A6410;
+  --lost:#A33F31; --lost-bg:#F5E5E2;
+}
+:root[data-theme="dark"]{
+  --bg:#101413; --card:#181D1C; --ink:#E9EBE8; --ink-2:#A6ADA9; --ink-3:#77807C;
+  --line:#2A312F; --line-2:#212724;
+  --acc:#63C2D2; --acc-bg:#12292E; --ok:#6FB58C; --cond:#C9982F;
+  --lost:#D3776A; --lost-bg:#2C1B18;
+}
+
+body{background:var(--bg); color:var(--ink); font-family:var(--sans); margin:0; font-size:15px; line-height:1.8; -webkit-font-smoothing:antialiased;}
+.deck{padding:0 24px 84px;}
+.slide{max-width:1000px; margin-inline:auto; min-height:70vh; display:none; flex-direction:column; justify-content:center; padding:20px 0 8px; gap:12px;}
+.slide.on{display:flex;}
+@media (prefers-reduced-motion:no-preference){
+  .slide.on{animation:in .24s cubic-bezier(.2,.7,.3,1);}
+  @keyframes in{from{opacity:0; transform:translateX(9px);} to{opacity:1; transform:none;}}
+}
+
+.s-head{margin:0;}
+.eyebrow{font-family:var(--mono); font-size:11px; letter-spacing:.13em; color:var(--acc); margin:0 0 12px; display:flex; align-items:center; gap:10px;}
+.eyebrow::before{content:""; width:22px; height:1px; background:var(--acc); flex:none;}
+h1{font-family:var(--serif); font-size:clamp(40px,7vw,72px); font-weight:600; letter-spacing:-.01em; line-height:1.1; margin:0 0 18px;}
+h2{font-family:var(--serif); font-size:clamp(23px,3.3vw,33px); font-weight:600; line-height:1.38; margin:0 0 12px; text-wrap:balance; letter-spacing:-.005em;}
+.s-lead{font-size:15px; color:var(--ink-2); margin:0; text-wrap:pretty;}
+code{font-family:var(--mono); font-size:.87em; background:var(--line-2); padding:.1em .38em; border-radius:2px;}
+strong{font-weight:700;}
+
+/* 表紙 */
+.cover{justify-content:center;}
+.c-lead{font-size:17px; color:var(--ink-2); margin:0 0 26px; line-height:1.85;}
+.c-meta{display:flex; flex-wrap:wrap; gap:6px 26px; font-family:var(--mono); font-size:11.5px; color:var(--ink-3); border-top:1px solid var(--line); padding-top:16px;}
+.c-meta b{color:var(--ink-2); font-weight:500;}
+
+/* 目次 */
+.idx{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:26px;}
+@media(max-width:820px){ .idx{grid-template-columns:1fr;} }
+.idx-h{font-family:var(--mono); font-size:11px; letter-spacing:.11em; color:var(--ink-3); margin:0 0 10px; padding-bottom:8px; border-bottom:1px solid var(--line);}
+.idx ul{list-style:none; margin:0; padding:0; display:grid; gap:2px;}
+.idx button{appearance:none; background:none; border:0; border-radius:2px; text-align:left; font:inherit; font-size:13.5px; color:var(--ink); cursor:pointer; padding:5px 6px 5px 0; width:100%; display:flex; align-items:baseline; gap:10px; line-height:1.6;}
+.idx button:hover{color:var(--acc);}
+.idx button:focus-visible{outline:2px solid var(--acc); outline-offset:1px;}
+.idx .k{font-family:var(--mono); font-size:11px; color:var(--ink-3); flex:none;}
+.idx button:hover .k{color:var(--acc);}
+
+/* 図（既存デッキと同じ規約） */
+figure{margin:0; overflow-x:auto;}
+.fig{width:100%; max-width:100%; height:auto; color:var(--ink); display:block; min-width:700px;}
+.fig .st{stroke:currentColor; fill:none; stroke-width:1.15;}
+.fig .thin{stroke-width:1;}
+.fig .w2{stroke-width:2;}
+.fig .dash{stroke-dasharray:5 4;}
+.fig .acc{stroke:var(--acc);}
+.fig text.acc,.fig tspan.acc{fill:var(--acc); stroke:none;}
+.fig .hi{stroke:var(--acc); stroke-width:1.7;}
+.fig .row-hi{fill:var(--acc-bg); stroke:none;}
+.fig .cond{stroke:var(--cond);}
+.fig text.cond-t,.fig tspan.cond-t{fill:var(--cond); stroke:none;}
+.fig .lost{stroke:var(--lost);}
+.fig text.lost,.fig tspan.lost{fill:var(--lost); stroke:none;}
+.fig .ok-s{stroke:var(--ok);}
+.fig tspan.ok-t2{fill:var(--ok); stroke:none; font-weight:700;}
+.fig .p-acc{fill:var(--acc); stroke:none;}
+.fig .p-lost{fill:var(--lost); stroke:none;}
+.fig .p-cond{fill:var(--cond); stroke:none;}
+.fig text{fill:currentColor; font-family:var(--sans);}
+.fig .t-h{font-size:14px; font-weight:700;}
+.fig .t-b{font-size:12.5px; font-weight:500;}
+.fig .t-s{font-size:11.5px; fill:var(--ink-2);}
+.fig .t-n{font-size:10.5px; font-family:var(--mono); fill:var(--ink-3);}
+.fig .t-xs{font-size:10.5px; font-family:var(--mono);}
+.fig .t-l{font-size:11px; font-family:var(--mono); letter-spacing:.11em; fill:var(--ink-3);}
+.fig .t-ng{font-size:12px; font-weight:700; fill:var(--lost);}
+.fig .t-act{font-size:10.5px; fill:var(--acc); font-weight:600;}
+figcaption{margin-top:10px;}
+
+/* 表 */
+.cols{overflow-x:auto;}
+.grid{width:100%; border-collapse:collapse; font-size:13px; min-width:640px;}
+.grid.narrow{min-width:0; font-size:12.5px;}
+.grid.narrow td:first-child{font-weight:700; white-space:nowrap; padding-right:14px;}
+.grid thead th{font-size:11px; letter-spacing:.1em; color:var(--ink-3); font-weight:500; text-align:left; padding:0 14px 10px 0; border-bottom:1px solid var(--ink-3);}
+.grid td{padding:12px 14px 12px 0; border-bottom:1px solid var(--line); vertical-align:top; line-height:1.7;}
+.grid tbody tr:last-child td{border-bottom:0;}
+.grid tr.hl td{background:var(--acc-bg);}
+.grid.ab td:first-child,.grid.ab td:nth-child(2){white-space:nowrap; padding-right:22px;}
+.grid.ab td:first-child{font-weight:700;}
+.grid.ab td:nth-child(2){color:var(--ink-2);}
+.k-t{font-family:var(--mono); color:var(--ink-3); white-space:nowrap;}
+.acc-t{color:var(--acc);}
+.ok-t{color:var(--ok); font-weight:700; white-space:nowrap;}
+.ng-t{color:var(--lost); font-weight:700; white-space:nowrap;}
+.cond-t2{color:var(--cond); font-weight:700;}
+.nw{white-space:nowrap; font-family:var(--mono); font-size:11.5px; color:var(--ink-2);}
+.sub-note{display:block; font-size:10.5px; font-weight:400; color:var(--ink-3); font-family:var(--mono); margin-top:5px; letter-spacing:.03em;}
+.asis{color:var(--ink-3); position:relative; padding-left:15px !important;}
+.asis::before{content:""; position:absolute; left:0; top:14px; bottom:14px; width:2px; background:var(--lost); opacity:.45;}
+.tobe{position:relative; padding-left:15px !important;}
+.tobe::before{content:""; position:absolute; left:0; top:14px; bottom:14px; width:2px; background:var(--acc);}
+.tobe em{font-style:normal; font-weight:700;}
+
+/* 2カラム */
+.two{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:26px; align-items:start;}
+@media(max-width:820px){ .two{grid-template-columns:1fr;} }
+.two > div{display:grid; gap:12px; min-width:0;}
+
+pre.code{margin:0; background:var(--card); border:1px solid var(--line); border-radius:2px; padding:12px 14px; font-family:var(--mono); font-size:11.5px; line-height:1.85; color:var(--ink); overflow-x:auto;}
+
+/* 注記 */
+.foot{font-size:12.5px; color:var(--ink-3); margin:0; line-height:1.8;}
+.foot.claim{font-size:13.5px; color:var(--ink-2); border-left:2px solid var(--acc); padding-left:16px;}
+.flag{border-left:2px solid var(--acc); background:var(--acc-bg); padding:12px 16px; display:grid; gap:8px;}
+.flag.lost-f{border-left-color:var(--lost); background:var(--lost-bg);}
+.fl-h{margin:0; font-size:13.5px; font-weight:700; color:var(--ink);}
+.fl-l{margin:0; padding-left:20px; font-size:13px; color:var(--ink-2); display:grid; gap:4px;}
+.fl-f{margin:0; font-size:12.5px; color:var(--ink-2); line-height:1.8;}
+.nolist{list-style:none; margin:0; padding:0; display:grid; gap:6px; font-size:13px; color:var(--ink-2);}
+.nolist li{padding-left:15px; position:relative;}
+.nolist li::before{content:"✕"; position:absolute; left:0; color:var(--lost); font-size:11px;}
+.yeslist{list-style:none; margin:0; padding:0; display:grid; gap:6px; font-size:13px; color:var(--ink-2);}
+.yeslist li{padding-left:15px; position:relative;}
+.yeslist li::before{content:"✓"; position:absolute; left:0; color:var(--ok); font-size:11px;}
+.plain{list-style:none; margin:0; padding:0; display:grid; gap:6px; font-size:13px; color:var(--ink-2);}
+.plain li{padding-left:15px; position:relative;}
+.plain li::before{content:"—"; position:absolute; left:0; color:var(--ink-3); font-size:11px;}
+
+/* ナビ */
+.rail{position:fixed; left:0; right:0; bottom:0; z-index:20; display:flex; align-items:center; gap:16px; justify-content:center; padding:14px 24px; background:var(--bg); background:color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter:blur(8px); border-top:1px solid var(--line);}
+.rail button{appearance:none; background:none; border:1px solid var(--line); color:var(--ink-2); width:38px; height:32px; border-radius:2px; cursor:pointer; font-size:14px; line-height:1; transition:border-color .12s, color .12s;}
+.rail button:hover:not(:disabled){border-color:var(--acc); color:var(--acc);}
+.rail button:disabled{opacity:.32; cursor:default;}
+.rail button:focus-visible{outline:2px solid var(--acc); outline-offset:2px;}
+.dots{display:flex; gap:7px;}
+.dots button{width:9px; height:9px; padding:0; border-radius:50%; border:1px solid var(--ink-3); background:none; cursor:pointer; transition:background .12s, border-color .12s;}
+.dots button[aria-current="true"]{background:var(--acc); border-color:var(--acc);}
+.count{font-family:var(--mono); font-size:11.5px; color:var(--ink-3); letter-spacing:.06em; min-width:52px; text-align:right;}
+@media(max-width:600px){ .count{display:none;} .dots{gap:5px;} }
+</style>
+
+<script>
+(function(){
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var dots = document.getElementById('dots');
+  var prev = document.getElementById('prev'), next = document.getElementById('next');
+  var cur = document.getElementById('cur');
+  document.getElementById('tot').textContent = slides.length;
+  var i = 0;
+
+  slides.forEach(function(s, n){
+    var b = document.createElement('button');
+    b.setAttribute('aria-label', (n+1) + 'ページ目：' + (s.dataset.title || ''));
+    b.addEventListener('click', function(){ go(n); });
+    dots.appendChild(b);
+  });
+  var dotEls = Array.prototype.slice.call(dots.children);
+
+  function go(n){
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach(function(s, k){ s.classList.toggle('on', k === i); });
+    dotEls.forEach(function(d, k){ d.setAttribute('aria-current', k === i ? 'true' : 'false'); });
+    prev.disabled = i === 0;
+    next.disabled = i === slides.length - 1;
+    cur.textContent = i + 1;
+    window.scrollTo({top:0, behavior:'instant'});
+  }
+  prev.addEventListener('click', function(){ go(i - 1); });
+  next.addEventListener('click', function(){ go(i + 1); });
+
+  Array.prototype.forEach.call(document.querySelectorAll('[data-goto]'), function(el){
+    el.addEventListener('click', function(){ go(parseInt(el.dataset.goto, 10)); });
+  });
+
+  document.addEventListener('keydown', function(e){
+    if(e.target.tagName === 'BUTTON' && (e.key === ' ' || e.key === 'Enter')) return;
+    if(e.key === 'ArrowRight' || e.key === 'PageDown'){ e.preventDefault(); go(i + 1); }
+    if(e.key === 'ArrowLeft'  || e.key === 'PageUp'){ e.preventDefault(); go(i - 1); }
+    if(e.key === 'Home'){ e.preventDefault(); go(0); }
+    if(e.key === 'End'){ e.preventDefault(); go(slides.length - 1); }
+  });
+  go(0);
+})();
+</script>
+
+</body>
+</html>
