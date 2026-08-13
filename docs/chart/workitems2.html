@@ -711,15 +711,16 @@ function copyEvmSnap(btn){
 }
 (function(){
   const BAC = totalBufH;                                  // 計画総工数（バッファ込み）
-  // 横軸＝営業日（週末・祝日は除外＝グラフに出さない）。PV は人員別に予定休を差し引いて消化工数を積み上げるので、
-  // 休みの人員がいる営業日は PV の傾きが緩む（その人員の分だけ進まない）。
+  // 横軸＝営業日（週末・祝日は除外＝グラフに出さない）。
+  // PV はチーム全体のキャパシティで積む：各営業日の稼働人数（予定休の人員を除く）×HPD を BAC まで累積。
+  // 人員別レーンの積み上げは使わない（帳票を人員1へ寄せる等の担当替えで PV 線が動いてしまうため）。
+  // 予定休の人員がいる営業日はその分だけ日次キャパが減るので、PV の傾きが緩む。
   const wd = i => bizDate(D.meta.start, Math.max(0, i));   // 営業日index(0始まり) → Date（週末・祝日スキップ）
-  const isLeaveP = (p, d) => LEAVE[p].has(iso(d));
-  const wdaysP = (p, d) => { let n=0; for(let k=0;k<d;k++){ if(!isLeaveP(p, bizDate(D.meta.start, k))) n++; } return n; };  // 先頭 d 営業日のうち人員pが働く日数
-  const elapsedHP = (p, d) => Math.min(laneCursor[p], wdaysP(p, d)*HPD);
-  const pvBiz = d => elapsedHP(1, d) + elapsedHP(2, d);
-  const lastDP = p => { let d=0, g=0; while(elapsedHP(p, d) < laneCursor[p] - 1e-9 && g<9999){ d++; g++; } return d; };
-  const spanDays = Math.max(1, lastDP(1), lastDP(2));      // 計画完了までの営業日数（予定休で増える）
+  const PERSONS = Object.keys(LEAVE).map(Number);
+  const headcount = d => PERSONS.reduce((n,p) => n + (LEAVE[p].has(iso(d)) ? 0 : 1), 0);   // その日に稼働する人数
+  const capH = d => { let h=0; for(let k=0;k<d;k++) h += headcount(bizDate(D.meta.start, k))*HPD; return h; };  // 先頭 d 営業日の累積キャパ(h)
+  const pvBiz = d => Math.min(BAC, capH(d));
+  const spanDays = (()=>{ let d=0; while(capH(d) < BAC - 1e-9 && d<9999) d++; return Math.max(1,d); })();  // 計画完了までの営業日数（予定休で増える）
   const bizIdxOf = isoStr => { let c=0, d=parse(D.meta.start), end=parse(isoStr); while(d<=end){ if(isBiz(d)) c++; d.setUTCDate(d.getUTCDate()+1); } return c; };
   // ライブ再計算（progress/tobe〈実績〉 から。次のスナップショット記録用）
   const evLive = D.tasks.reduce((a,t)=>a + buffered(t)*(t.progress||0), 0);
@@ -840,8 +841,8 @@ function copyEvmSnap(btn){
     `<div style="flex:0 0 auto;">${svg}${legend}${memo}</div>`+
     `<div style="flex:0 0 340px;">${table}${devbox}</div></div>`;
   document.getElementById("enote").textContent = hasSnap
-    ? `基準日 ${baseISO}（最新の週次スナップショット・全${snapDates.length}件）。横軸＝営業日（週末・祝日は含めない）。PV=計画値（人員別に予定休を差し引いて消化＝休みの人員がいる営業日は傾きが緩む）／EV・AC=記録スナップショット。SPI<1=遅れ / CPI<1=超過。EAC は現在効率(CPI×SPI)継続前提。スナップショットは週1回 sprint2_data.js の evmSnapshots に追記する。`
-    : `スナップショット未記録のため PV（計画値）＋計画完了マーカーのみ表示。横軸＝営業日（週末・祝日は含めない）。PV は人員別に予定休を差し引いて消化するため、休みの人員がいる営業日は傾きが緩む。週1回、sprint2_data.js の evmSnapshots に "YYYY-MM-DD": { ev, ac } を追記すると EV・AC・SPI・CPI・EAC・完了予測日が描画されます（下の「算出」からライブ値をコピー可）。`;
+    ? `基準日 ${baseISO}（最新の週次スナップショット・全${snapDates.length}件）。横軸＝営業日（週末・祝日は含めない）。PV=計画値（チーム全体のキャパシティ＝各営業日の稼働人数×${HPD}h を BAC まで累積。担当替えでは動かず、予定休の人員がいる営業日だけ傾きが緩む）／EV・AC=記録スナップショット。SPI<1=遅れ / CPI<1=超過。EAC は現在効率(CPI×SPI)継続前提。スナップショットは週1回 sprint2_data.js の evmSnapshots に追記する。`
+    : `スナップショット未記録のため PV（計画値）＋計画完了マーカーのみ表示。横軸＝営業日（週末・祝日は含めない）。PV はチーム全体のキャパシティ（各営業日の稼働人数×${HPD}h）で積むため、予定休の人員がいる営業日は傾きが緩む。週1回、sprint2_data.js の evmSnapshots に "YYYY-MM-DD": { ev, ac } を追記すると EV・AC・SPI・CPI・EAC・完了予測日が描画されます（下の「算出」からライブ値をコピー可）。`;
 })();
 
 // ---- タブ切替（workitems と同挙動＋URLハッシュで直接オープン）----
