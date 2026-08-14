@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>議事まとめ 2026-08-13</title>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body {
+    font-family: -apple-system, "Hiragino Kaku Gothic ProN", "Yu Gothic", system-ui, sans-serif;
+    color: #1f2937;
+    background: #fafafa;
+    padding: 12px 28px 8px;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+  .page { max-width: 1240px; margin: 0 auto; height: 100%; display: flex; flex-direction: column; }
+  h1 { font-size: 18px; margin: 0; border-bottom: 3px solid #2563eb; padding-bottom: 5px; }
+  .sub { color: #6b7280; font-size: 11.5px; margin: 5px 0 8px; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1.08fr;
+    gap: 14px;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+  }
+  .panel {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 11px 13px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: auto;
+  }
+  h2 { font-size: 12.5px; margin: 0 0 7px; padding-left: 8px; border-left: 3px solid #2563eb; }
+  h2.amber { border-left-color: #f59e0b; }
+  h2.indigo { border-left-color: #4f46e5; }
+
+  .items { display: flex; flex-direction: column; gap: 4px; }
+  .item {
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 5px 9px;
+    font-size: 11px;
+    line-height: 1.4;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .item .num {
+    background: #2563eb;
+    color: white;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 11px;
+    flex-shrink: 0;
+  }
+  .item.amber .num { background: #f59e0b; }
+  .item.indigo .num { background: #4f46e5; }
+  .item .title { font-weight: 600; color: #1f2937; }
+  .item .desc { color: #4b5563; margin-top: 2px; font-size: 10.5px; }
+  .item .desc a, .ref-line a { color: #2563eb; text-decoration: none; }
+  .item .desc a:hover, .ref-line a:hover { text-decoration: underline; }
+
+  .item-detail {
+    margin-top: 4px;
+    background: #f9fafb;
+    border-left: 2px solid #2563eb;
+    border-radius: 3px;
+    padding: 4px 8px;
+    font-size: 10.5px;
+    line-height: 1.45;
+    color: #374151;
+  }
+  .item-detail .head {
+    font-size: 10px;
+    font-weight: 700;
+    color: #1e40af;
+    letter-spacing: 0.04em;
+    margin-bottom: 4px;
+  }
+  .item-detail ul { margin: 0; padding-left: 16px; }
+  .item-detail li { margin: 2px 0; }
+  .item-detail.amber { border-left-color: #f59e0b; }
+  .item-detail.amber .head { color: #b45309; }
+
+  .ref-line { margin-top: 5px; font-size: 10.5px; color: #6b7280; padding-left: 4px; }
+
+  /* 下段: 決定事項（全幅・4カラム） */
+  .panel.bottom { margin-top: 11px; flex: none; overflow: visible; padding: 9px 13px 10px; }
+  .panel.bottom .decisions { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; }
+  .panel.bottom .decision { padding: 6px 9px; font-size: 10.5px; line-height: 1.45; }
+  .panel.bottom .quote { margin-top: 6px; padding: 5px 9px; font-size: 9.5px; line-height: 1.5; }
+  .panel.bottom .notes { display: grid; grid-template-columns: 1.4fr 1fr; gap: 8px; }
+  .panel.bottom .notes .quote { margin-top: 7px; }
+  .quote.info { background: #eef2ff; border-left-color: #4f46e5; color: #312e81; }
+  .quote.info .who { color: #4338ca; }
+
+  /* 決定事項・ネクストアクション */
+  .decisions { display: flex; flex-direction: column; gap: 6px; }
+  .decision {
+    background: #ecfdf5;
+    border-left: 3px solid #10b981;
+    border-radius: 4px;
+    padding: 8px 10px;
+    font-size: 11.5px;
+    line-height: 1.55;
+  }
+  .decision .tag {
+    display: inline-block;
+    background: #10b981;
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 3px;
+    margin-right: 6px;
+    vertical-align: 1px;
+  }
+  .decision .tag.action { background: #2563eb; }
+  .decision .tag.hold { background: #9ca3af; }
+
+  /* 最終メッセージ・補足 */
+  .quote {
+    background: #fef3c7;
+    border-left: 3px solid #f59e0b;
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 10.5px;
+    line-height: 1.55;
+    color: #78350f;
+    font-style: italic;
+  }
+  .quote .who { display: block; font-style: normal; font-weight: 700; font-size: 10px; color: #b45309; margin-bottom: 2px; letter-spacing: 0.04em; }
+  .quote a { color: #b45309; font-style: normal; }
+
+  .block { margin-bottom: 9px; }
+  .block:last-child { margin-bottom: 0; }
+  .panel .block h2 { margin-bottom: 6px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>議事まとめ 2026-08-13 ― デバッガーエージェントの機能分解と「原因調査」戦略</h1>
+  <div class="sub">参加者: 社長・推進担当 ／ 進捗報告とデバッガーエージェント方針の相談。前回: <a href="minutes_2026-08-06.html">議事まとめ 2026-08-06</a>／関連: <a href="problem_ex_6.html">課題事例⑥（最後の2%の属人性）</a>・<a href="aidd_report.html">AIDDレポート（EVM）</a></div>
+
+  <div class="grid">
+
+    <!-- 左: 議題① 進捗 + 議題② デバッガーエージェント現状 -->
+    <div class="panel">
+      <div class="block">
+        <h2 class="indigo">① 進捗報告</h2>
+        <div class="items">
+          <div class="item indigo">
+            <span class="num">完</span>
+            <div>
+              <div class="title">認証・認可は全て完了</div>
+              <div class="desc">前回ミーティング以降で完了。休暇中のメンバーのタスクを推進担当が引き取り中。</div>
+            </div>
+          </div>
+          <div class="item indigo">
+            <span class="num">順</span>
+            <div>
+              <div class="title">PDF生成を引き取り、進捗は順調</div>
+              <div class="desc">休暇予定を組んでいた分の遅れも<strong>あと少しで追いつく</strong>見込み。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2>② デバッガーエージェントの現状報告（推進担当）</h2>
+        <div class="items">
+          <div class="item">
+            <span class="num">方</span>
+            <div>
+              <div class="title">設計方針：自分のデバッグ手順をそのまま叩き込む</div>
+              <div class="desc">従来は<strong>エンジニアエージェントに直す箇所を推測させていた</strong>。その手前に<strong>判定エージェントを一つ挟む</strong>。業務判断が必要なものは打ち切って人間に返す。</div>
+              <div class="item-detail">
+                <div class="head">3つの調査軸</div>
+                <ul>
+                  <li><strong>実装の筋</strong>：環境が立ち上がっていない等の前提条件の不備を最初に潰す。</li>
+                  <li><strong>層のバイセクト</strong>：表示→API→DB。まずAPIを叩いてフロント／バックを切り分ける。</li>
+                  <li><strong>来歴</strong>：思考経路ログから、人間とAIの間にどんな行き違いがあったかを並行調査。</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="item">
+            <span class="num">特</span>
+            <div>
+              <div class="title">このエージェントのみ一時的なソース変更を許可</div>
+              <div class="desc">ログ出力やスリープ挿入など。<strong>最後に必ず元に戻し</strong>、データも現象回復させる。</div>
+            </div>
+          </div>
+          <div class="item">
+            <span class="num">流</span>
+            <div>
+              <div class="title">全体フロー：環境ゲート → 問診ゲート → 層のバイセクト</div>
+              <div class="desc">問診では<strong>ログを見れば分かることは一切尋ねず</strong>、「何が起きるべきだったか」「以前は動いていたか」のみ人間に尋ねる。異常系でどこまでデータを守るかは業務判断として人間に委ねる。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="ref-line">元メモ: <a href="../../.work/2026-08-13_議事録.md">.work/2026-08-13_議事録.md</a></div>
+    </div>
+
+    <!-- 右: 議題③ 機能分解 + 議題④ 原因調査戦略 -->
+    <div class="panel">
+      <div class="block">
+        <h2 class="amber">③ 社長の指摘 ― 機能分解が不十分（モジュラー設計）</h2>
+        <div class="items">
+          <div class="item amber">
+            <span class="num">結</span>
+            <div>
+              <div class="title">デバッグは「原因調査」だけを機能ブロックにする</div>
+              <div class="desc"><strong>MECEでない構成</strong>は経路で取り違えるリスクを生む。3つを完全に分離し、後ろ2つは<strong>デバッグではない</strong>と定義する。</div>
+              <div class="item-detail amber">
+                <div class="head">分離すべき3ブロック</div>
+                <ul>
+                  <li>① 原因を調査して明確にする　←　<strong>これだけがデバッグ</strong></li>
+                  <li>② 原因に対して修正指示を与える</li>
+                  <li>③ 修正指示を実行させる</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="item amber">
+            <span class="num">理</span>
+            <div>
+              <div class="title">修正は「変更要求の反映」と全く同一</div>
+              <div class="desc">出元が新機能要求か誤りの修正かは<strong>発生源の違いにすぎず</strong>、手の加え方の答えは同じ。よって<strong>デバッガー側の修正反映処理は不要</strong>で、構築済みの新規機能開発ルートを呼び出す。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2>④ 原因調査の戦略（社長の提案）</h2>
+        <div class="items">
+          <div class="item">
+            <span class="num">1</span>
+            <div>
+              <div class="title">原因は2つに明確に分類できる</div>
+              <div class="desc"><strong>(a) 要求事項（仕様情報）自体の不備</strong>／<strong>(b) 要求は正しいが実現方法の選定が不適切</strong>（AIが勝手な前提を置いて経路を採択）。原因が全く異なるのでまず切り分ける。</div>
+            </div>
+          </div>
+          <div class="item">
+            <span class="num">2</span>
+            <div>
+              <div class="title">要求情報側（a）を先に潰す方が早い</div>
+              <div class="desc">AIの認識とエンジニアの前提とで<strong>壁打ちして過不足を潰す</strong>。<strong>実現方策側は従属変数</strong>で結果的に直る確率が高い。ただし前提側だけで閉じると窮屈で、<strong>どこかで諦めてソース探求に行くタイミング</strong>も出る。</div>
+            </div>
+          </div>
+          <div class="item">
+            <span class="num">3</span>
+            <div>
+              <div class="title">手口：期待値と実結果をそのまま投入する</div>
+              <div class="desc">「期待値はこれ、結果はこれ」を<strong>追加投入</strong>すると、仕様の認識を変えるべき箇所をAIがまず出してくる。人間が先に当たりを付けるより、AIに示唆を出させる。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- 下段: 決定事項・アクションアイテム -->
+  <div class="panel bottom">
+    <h2>決定事項・アクションアイテム</h2>
+    <div class="decisions">
+      <div class="decision"><span class="tag">決定</span><strong>「原因調査」のみに機能分解</strong> — 修正指示の生成・実行は<strong>既存の新規機能開発ルート（変更要求の反映）を呼び出す</strong>形に変更。</div>
+      <div class="decision"><span class="tag action">アクション</span><strong>原因調査を二段構成に</strong> — まず要求情報（仕様）の過不足を壁打ちで潰し、解決しなければ実現方策（ソース）の探求へ進む。</div>
+      <div class="decision"><span class="tag action">アクション</span><strong>期待値と実結果の投入フロー</strong> — 誤ったテストケース・結果をAIに投入し、<strong>仕様の認識を修正すべき箇所を挙げさせる</strong>。</div>
+      <div class="decision"><span class="tag">決定</span><strong>最後の受け皿は従来通りの力技</strong> — ベテランによる探索を最終手段として残し、プロセス全体の完全性を確保する。</div>
+    </div>
+    <div class="notes">
+      <div class="quote">
+        <span class="who">設計思想の中心に置く共通認識</span>
+        「<strong>前段のAIが認識している情報は、完全性を担保し得るものではない</strong>。頭の中をそのまま伝えることはできず、限られた情報量に圧縮して仕様情報として渡している。だから細部でテストケースが欠落し、AIが取り違えてバグが出る。<strong>誤りを認識させる形で仕様そのものを修正させる</strong>のが基本戦略になる」。
+      </div>
+      <div class="quote info">
+        <span class="who">⑤ 位置づけと結論 ― この方針で進める</span>
+現エージェントは<strong>「AIが認識している仕様の不備にエンジニアが気づきやすくする」</strong>アプローチとして位置づける。うまく使えば<strong>9割方は解決</strong>し、残りは力技で受け止める。→ <strong>2%問題が0.2%程度まで下がる</strong>見通し。
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
