@@ -280,6 +280,13 @@
   #tab-revise .obs-card p { padding: 8px 11px; font-size: 11.6px; line-height: 1.55; }
   #tab-revise .fmt-slot { font-size: 11.5px; padding: 2px 10px; }
   #tab-revise .ipo-memo { font-size: 11.6px; padding: 9px 13px; }
+  /* 2軸拡張の概念図 */
+  #tab-revise .axis-fig { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 4px 6px 0; }
+  #tab-revise .axis-fig svg { width: 100%; height: auto; display: block; }
+  #tab-revise .axis-legend { display: flex; flex-direction: column; gap: 7px; margin-top: 11px; }
+  #tab-revise .axis-legend .al { display: flex; gap: 9px; align-items: center; font-size: 11.6px; line-height: 1.4; color: #374151; }
+  #tab-revise .axis-legend .al .n { flex-shrink: 0; width: 19px; height: 19px; border-radius: 50%; color: #fff; font-weight: 700; font-size: 11px; line-height: 19px; text-align: center; }
+  #tab-revise .axis-legend .al b { color: #1f2937; }
 
   /* ===== 実施記録: 2階層サブタブ（回 × 段） ===== */
   .rec-wrap { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 8px; width: 100%; }
@@ -712,22 +719,55 @@
 
       <div class="grid">
 
-        <!-- 左: 変更点 -->
+        <!-- 左: 業務理解を2軸に広げる（概念図） -->
         <div class="panel">
-          <h2>変更点</h2>
-          <div class="obs-list">
-            <div class="obs-card">
-              <div class="obs-card__title obs-card__title--in"><span>① 前後の工程を追加</span><span class="hint">業務の流れの中で捉える</span></div>
-              <p>対象の作業だけでなく、<strong>前工程から何を受け取るか</strong>／<strong>出たものを誰が受け取り何に使うか</strong>を各一文で書かせる。作業単体の理解に閉じさせない。</p>
-            </div>
-            <div class="obs-card">
-              <div class="obs-card__title obs-card__title--proc"><span>② 条件をチェックリストで抽出</span><span class="hint">想起の型を与える</span></div>
-              <p>通常以外に業務が変わる要因を<strong>5観点（時期・扱う対象／相手・量・やり直し・想定通りに進まないとき）</strong>で当てさせる。自由記述では本人が思い出せた範囲しか出てこない。</p>
-            </div>
-            <div class="obs-card">
-              <div class="obs-card__title obs-card__title--why"><span>③ 答えられない項目は空欄で残す</span><span class="hint">残り20点の取りに行き方</span></div>
-              <p>空欄が<strong>そのまま「PMに聞くべき問い」</strong>になる。レビューの場でPMと一緒に埋める運用にし、エンジニア側から<strong>意図・背景を能動的に引き出す</strong>動きを作る。</p>
-            </div>
+          <h2>変更点 ― 業務理解を2軸に広げる</h2>
+          <div class="axis-fig">
+            <svg viewBox="0 0 630 300" role="img" aria-label="入口設問を業務の流れと業務の幅の2軸へ拡張する概念図（2本の帯が交差）">
+              <defs>
+                <radialGradient id="af-fuzz" cx="0.5" cy="0.5" r="0.5">
+                  <stop offset="0" stop-color="#fbbf24" stop-opacity="0.95"/>
+                  <stop offset="0.55" stop-color="#f59e0b" stop-opacity="0.5"/>
+                  <stop offset="1" stop-color="#f59e0b" stop-opacity="0"/>
+                </radialGradient>
+                <filter id="af-blur" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="5"/></filter>
+                <marker id="af-ah-flow" markerUnits="userSpaceOnUse" markerWidth="17" markerHeight="15" refX="14" refY="7.5" orient="auto"><path d="M0,0 L17,7.5 L0,15 Z" fill="#1d4ed8"/></marker>
+                <marker id="af-ah-cond" markerUnits="userSpaceOnUse" markerWidth="17" markerHeight="15" refX="14" refY="7.5" orient="auto"><path d="M0,0 L17,7.5 L0,15 Z" fill="#4f46e5"/></marker>
+              </defs>
+
+              <!-- 帯1: 業務の流れ（前→後）アイソメの帯 + 厚み -->
+              <polygon points="75,73 445,257 445,266 75,82" fill="#93c5fd"/>
+              <polygon points="135,43 505,227 445,257 75,73" fill="#dbeafe" stroke="#60a5fa" stroke-width="1.3"/>
+              <!-- 帯2: 業務の幅（条件）アイソメの帯 + 厚み（交点で上に重ねる） -->
+              <polygon points="135,257 505,73 505,82 135,266" fill="#a5b4fc"/>
+              <polygon points="135,257 505,73 445,43 75,227" fill="#e0e7ff" stroke="#a5b4fc" stroke-width="1.3"/>
+
+              <!-- 従来: 2帯の交点付近をふわっと1問 -->
+              <ellipse cx="290" cy="152" rx="42" ry="15" fill="#0f172a" opacity="0.08"/>
+              <circle cx="290" cy="150" r="34" fill="url(#af-fuzz)" filter="url(#af-blur)"/>
+
+              <!-- 各帯の方向（明確に問う） -->
+              <line x1="395" y1="201" x2="470" y2="238" stroke="#1d4ed8" stroke-width="4" stroke-linecap="round" marker-end="url(#af-ah-flow)"/>
+              <line x1="395" y1="99" x2="470" y2="62" stroke="#4f46e5" stroke-width="4" stroke-linecap="round" marker-end="url(#af-ah-cond)"/>
+              <text x="103" y="52" text-anchor="end" font-size="10" fill="#1e40af">前工程</text>
+
+              <!-- 上: 残り20点をPMから / 下: 従来ふわっと -->
+              <rect x="196" y="7" width="188" height="23" rx="11.5" fill="#ecfdf5" stroke="#047857" stroke-width="1.3"/>
+              <text x="290" y="23" text-anchor="middle" font-size="11.5" font-weight="700" fill="#047857">残り20点 → PMから引き出す</text>
+              <rect x="176" y="272" width="228" height="23" rx="11.5" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.3"/>
+              <text x="290" y="288" text-anchor="middle" font-size="11" font-weight="700" fill="#92400e">従来: 交点付近をふわっと1問（80点）</text>
+
+              <!-- 軸ラベル -->
+              <text x="503" y="54" font-size="12.5" font-weight="700" fill="#4338ca">業務の幅（条件）</text>
+              <text x="503" y="69" font-size="9.5" fill="#6366f1">時期/対象/量/やり直し/想定外</text>
+              <text x="503" y="233" font-size="12.5" font-weight="700" fill="#1d4ed8">業務の流れ</text>
+              <text x="503" y="248" font-size="9.5" fill="#3b82f6">前 → 対象 → 後</text>
+            </svg>
+          </div>
+          <div class="axis-legend">
+            <div class="al"><span class="n" style="background:#1d4ed8">①</span><span><b>業務の流れ軸</b>を追加 ― 前後の工程まで広げて問う</span></div>
+            <div class="al"><span class="n" style="background:#4f46e5">②</span><span><b>業務の幅（条件）軸</b>を追加 ― 5観点で通常以外を当てさせる</span></div>
+            <div class="al"><span class="n" style="background:#047857">③</span><span><b>残り20点は空欄→PMへ</b> ― 意図・背景を能動的に引き出す</span></div>
           </div>
         </div>
 
