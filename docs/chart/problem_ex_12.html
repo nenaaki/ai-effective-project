@@ -166,6 +166,12 @@
   .cmp-row .v { font-size: 14px; }
   .cmp-row.bad { background: var(--crit-soft); border-color: var(--crit); }
   .cmp-note { margin: 2px 0 0; font-size: 12.5px; font-weight: 700; color: var(--crit); line-height: 1.5; }
+  .equiv { margin: 0; align-self: flex-start; font-size: clamp(14.5px,1.55vw,17.5px); line-height: 1.5;
+    background: var(--accent-soft); border-left: 4px solid var(--accent);
+    border-radius: 0 6px 6px 0; padding: 9px 18px; }
+  .equiv b { font-weight: 700; color: var(--accent); }
+  .equiv .tag { font-family:"IBM Plex Mono",ui-monospace,monospace; font-size: 11px; letter-spacing: .08em;
+    color: var(--ground); background: var(--accent); padding: 3px 9px; border-radius: 3px; margin-right: 12px; }
   .gate { margin: 0; font-size: clamp(13px,1.35vw,15px); line-height: 1.6;
     border-left: 3px solid var(--accent); padding-left: 13px; }
   .gate b { font-weight: 700; }
@@ -232,7 +238,7 @@
         <text class="t-f" x="875" y="122" text-anchor="middle">手戻り 約 2 日</text>
 
         <path class="lnf" d="M450 106 V180 H760" marker-end="url(#arF)"/>
-        <text class="t-f" x="466" y="200">誰も聞かなければ、この線をたどって本番へ</text>
+        <text class="t-f" x="466" y="200">誰も気づかなければ、この線をたどってプロダクト環境へ</text>
       </svg>
     </figure>
 
@@ -316,7 +322,7 @@
 </section>
 
 <!-- ============ 3 ============ -->
-<section class="slide ev">
+<section class="slide ev tight">
   <div class="inner">
     <div class="eyebrow">手続き ／ 実装前に何をするか</div>
     <h1>設計図を見ながら、<br>疑問と違和感を突き合わせる。</h1>
@@ -367,7 +373,7 @@
       </svg>
     </figure>
 
-    <p class="gate">毎回やるわけではない。対象は<b>処理の単位が 2 つ以上のもの</b>だけで、通常の登録・一覧・編集は対象外。</p>
+    <p class="equiv">これは、従来の開発プロセスでいう <b>「詳細設計」を AI と協働で行う工程</b>。</p>
   </div>
   <div class="pageno">3 / 5</div>
 </section>
@@ -379,13 +385,15 @@
     <h1>バグの修正に極めて有効。<br>しかし事前に実施するともっと効果的。</h1>
 
     <figure>
-      <svg viewBox="0 0 940 250" role="img" aria-label="相談なしで実装した1回目は作り直しになり、先に4時間相談した2回目は同じ規模を一晩で指摘ゼロで終えた">
+      <svg viewBox="0 0 940 250" role="img" aria-label="相談なしの1回目は実装1日のあと1日気づかず約1日の作り直しになり、先に4時間相談した2回目は同じ規模を一晩で指摘ゼロで終えた">
         <text class="t-b" x="20" y="38">1 回目　相談なし</text>
         <text class="t-s" x="20" y="57">（バグの解消）</text>
         <rect class="bxn" x="230" y="26" width="180" height="34" rx="4"/>
         <text class="t-s" x="320" y="48" text-anchor="middle">実装 1 日</text>
-        <rect class="bxc" x="414" y="26" width="360" height="34" rx="4"/>
-        <text class="t-c" x="594" y="48" text-anchor="middle">作り直し　約 2 日</text>
+        <rect class="bxcd" x="414" y="26" width="180" height="34" rx="4"/>
+        <text class="t-c" x="504" y="48" text-anchor="middle">気づかなかった期間 1 日</text>
+        <rect class="bxc" x="598" y="26" width="180" height="34" rx="4"/>
+        <text class="t-c" x="688" y="48" text-anchor="middle">作り直し　約 1 日</text>
         <text class="t-f" x="230" y="80">着手前の合意はゼロ。AI が書いた前提を人が読まないまま実装へ</text>
 
         <line class="divi" x1="20" y1="106" x2="920" y2="106"/>
@@ -410,7 +418,7 @@
       <div class="cap"><span class="i">03</span><p><b>AI が実装前に「知りたいこと」を設計書に書き出す。</b>それを人と壁打ちしながら、設計を確定させていく。</p></div>
     </div>
 
-    <p class="gate">この 4 時間は基盤・新しい仕組みのときだけ。<b>CRUD 画面には要らない。</b></p>
+    <p class="equiv scope"><span class="tag">適用の目安</span><b>CRUD より複雑なものを作るとき</b>は、実装前に行った方が良い。</p>
 
     <p class="linkrow"><a class="lnk" href="problem_ex_12_design.html" target="_blank" rel="noopener">そのとき使った設計図を見る →</a><span class="linknote">2026-08-17 の協議で描いたもの。これを見た 13 分後に、作り直しの判断へ届いた</span></p>
   </div>

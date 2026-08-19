@@ -61,6 +61,7 @@
   .cal-subrow { display:grid; grid-template-columns:repeat(5, minmax(150px,1fr)); }
   .cal-bar { margin:1px 3px; border-radius:4px; color:#fff; font-size:12px; line-height:1.35; padding:3px 7px; box-sizing:border-box; border:1px solid rgba(0,0,0,.12); overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
   .cal-bar.leave { background:repeating-linear-gradient(45deg,#e5e7eb,#e5e7eb 4px,#f3f4f6 4px,#f3f4f6 8px); color:#6b7280; border:1px solid #cbd5e1; font-weight:700; text-align:center; padding:3px 0; }
+  .cal-bar.leave.half { background:repeating-linear-gradient(45deg,#eef2f7,#eef2f7 4px,#fbfdff 4px,#fbfdff 8px); color:#94a3b8; border-style:dashed; }
   .cal-bar.done { font-weight:700; border-color:#14532d; box-shadow:inset 0 0 0 1px rgba(255,255,255,.35); }
   /* カレンダー左 / バーンダウン右 の2カラム */
   .cal-wrap { display:flex; gap:20px; align-items:flex-start; }
@@ -590,9 +591,21 @@ D.tasks.forEach(t=>{
   t._ed = Math.max(t._sd, Math.floor((s.startH + s.spanH - 1e-9) / HPD));
 });
 // 予定休（人員別）: その人員の営業日から個別に除外
-const LEAVE = { 1:new Set(), 2:new Set() };
-Object.entries(D.leaves||{}).forEach(([p,arr])=>{ const pp=+p; if(LEAVE[pp]) (arr||[]).forEach(dd=>LEAVE[pp].add(dd)); });
-const isBizP = (p,d) => isBiz(d) && !LEAVE[p].has(iso(d));
+// LEAVE: iso日付 → 休みの割合（1=終日休 / 0.5=半休）。記述は "2026-09-01"（終日）／"2026-09-01:0.5"（半休）
+const LEAVE = { 1:new Map(), 2:new Map() };
+Object.entries(D.leaves||{}).forEach(([p,arr])=>{
+  const pp=+p; if(!LEAVE[pp]) return;
+  (arr||[]).forEach(e=>{
+    let ds, off;
+    if(typeof e === "string"){ const m=e.split(":"); ds=m[0].trim(); off = m.length>1 ? Number(m[1]) : 1; }
+    else if(e && typeof e === "object"){ ds=(e.date||e.d||"").trim(); off = e.off!=null ? Number(e.off) : (e.hours!=null ? Number(e.hours)/HPD : 1); }
+    if(!ds) return;
+    off = Math.min(1, Math.max(0, Number.isFinite(off) ? off : 1));
+    if(off > 0) LEAVE[pp].set(ds, Math.max(LEAVE[pp].get(ds)||0, off));
+  });
+});
+const leaveOff = (p,ds) => LEAVE[p].get(ds) || 0;                // 0=通常 / 0.5=半休 / 1=終日休
+const isBizP = (p,d) => isBiz(d) && leaveOff(p, iso(d)) < 1;     // 半休は営業日のまま（工数だけ減る）
 function bizDateP(p, i){ let d=parse(D.meta.start), c=0; while(true){ if(isBizP(p,d)){ if(c===i) return new Date(d); c++; } d.setUTCDate(d.getUTCDate()+1); } }
 // 人員別の作業日数（レーン累積時間 → 営業日数）
 const laneDaysP = {1:Math.max(1,Math.ceil(laneCursor[1]/HPD)), 2:Math.max(1,Math.ceil(laneCursor[2]/HPD))};
@@ -601,7 +614,7 @@ const wiMetaP = {1:{}, 2:{}};
 [1,2].forEach(p=>{ for(let i=0;i<laneDaysP[p];i++){ const d=bizDateP(p,i); wiMetaP[p][i]={ week:Math.floor(calOffMon(d)/7), col:(d.getUTCDay()+6)%7 }; } });
 // 予定休の週/列（人員別・開始日以降のもの）
 const leaveMeta = {1:[], 2:[]};
-[1,2].forEach(p=>{ [...LEAVE[p]].forEach(ds=>{ const d=parse(ds); if(d>=START) leaveMeta[p].push({ week:Math.floor(calOffMon(d)/7), col:(d.getUTCDay()+6)%7, iso:ds }); }); });
+[1,2].forEach(p=>{ [...LEAVE[p].entries()].forEach(([ds,off])=>{ const d=parse(ds); if(d>=START) leaveMeta[p].push({ week:Math.floor(calOffMon(d)/7), col:(d.getUTCDay()+6)%7, iso:ds, off }); }); });
 const hasLeave = {1:leaveMeta[1].length>0, 2:leaveMeta[2].length>0};
 // 人員ごとにサブ行を割当（作業日レンジが重なるタスクは段組み＝workitems流）
 const laneRows = {1:1, 2:1};
@@ -643,7 +656,7 @@ const laneRows = {1:1, 2:1};
         let bars = "";
         if(r===leaveRow){
           leaveMeta[p].filter(l=>l.week===w).forEach(l=>{
-            bars += `<div class="cal-bar leave" style="grid-column:${l.col+1}/${l.col+2}" title="予定休 ${l.iso}（人員${p}）">休</div>`;
+            bars += `<div class="cal-bar leave${l.off<1?" half":""}" style="grid-column:${l.col+1}/${l.col+2}" title="${l.off<1?"半休":"予定休"} ${l.iso}（人員${p}）">${l.off<1?"半":"休"}</div>`;
           });
         } else {
           D.tasks.filter(t=>sched.get(t.name).person===p && t._row===r).forEach(t=>{
@@ -667,9 +680,9 @@ const laneRows = {1:1, 2:1};
       `<div class="cal-daygrid">${dayHead}</div></div>${lanes}</div>`;
   }
   document.getElementById("gantt").innerHTML = html;
-  const leaveSummary = [1,2].map(p=>{ const ls=[...LEAVE[p]].sort(); return ls.length ? `人員${p}: ${ls.map(s=>{const d=parse(s);return `${d.getUTCMonth()+1}/${d.getUTCDate()}`;}).join('・')}` : null; }).filter(Boolean).join(' ／ ');
+  const leaveSummary = [1,2].map(p=>{ const ls=[...LEAVE[p].entries()].sort((a,b)=>a[0]<b[0]?-1:1); return ls.length ? `人員${p}: ${ls.map(([s,off])=>{const d=parse(s);return `${d.getUTCMonth()+1}/${d.getUTCDate()}${off<1?'(半)':''}`;}).join('・')}` : null; }).filter(Boolean).join(' ／ ');
   document.getElementById("gnote").textContent =
-    `1行＝1週間（平日 月〜金のみ・土日非表示）。人員2名のレーン（担当は person で設定・現状 人員1=①、人員2=②③④）。タスクは作業日数分の幅（1日単位・端数切り上げ）で複数日にまたがり、同時進行は段組み表示。週またぎは「…」で継続。祝日（例 7/20）は作業なし。${leaveSummary?`予定休 → ${leaveSummary}（当該人員のタスクは翌営業日へ後ろ倒し）。`:''}色は基盤（①青/②紫/③シアン/④アンバー・予備=グレー）。完了タスクは緑＋✓で表示。全${numWeeks}週。`;
+    `1行＝1週間（平日 月〜金のみ・土日非表示）。人員2名のレーン（担当は person で設定・現状 人員1=①、人員2=②③④）。タスクは作業日数分の幅（1日単位・端数切り上げ）で複数日にまたがり、同時進行は段組み表示。週またぎは「…」で継続。祝日（例 7/20）は作業なし。${leaveSummary?`予定休 → ${leaveSummary}（終日休は当該人員のタスクを翌営業日へ後ろ倒し。(半)＝半休はその日の工数だけ 0.5 人日に減る）。`:''}色は基盤（①青/②紫/③シアン/④アンバー・予備=グレー）。完了タスクは緑＋✓で表示。全${numWeeks}週。`;
 })();
 
 // ---- バーンダウン（計画・SVG）----
@@ -717,8 +730,8 @@ function copyEvmSnap(btn){
   // 予定休の人員がいる営業日はその分だけ日次キャパが減るので、PV の傾きが緩む。
   const wd = i => bizDate(D.meta.start, Math.max(0, i));   // 営業日index(0始まり) → Date（週末・祝日スキップ）
   const PERSONS = Object.keys(LEAVE).map(Number);
-  const headcount = d => PERSONS.reduce((n,p) => n + (LEAVE[p].has(iso(d)) ? 0 : 1), 0);   // その日に稼働する人数
-  const capH = d => { let h=0; for(let k=0;k<d;k++) h += headcount(bizDate(D.meta.start, k))*HPD; return h; };  // 先頭 d 営業日の累積キャパ(h)
+  const capacity = d => PERSONS.reduce((n,p) => n + (1 - leaveOff(p, iso(d))), 0);   // その日の稼働人日（終日休=0 / 半休=0.5）
+  const capH = d => { let h=0; for(let k=0;k<d;k++) h += capacity(bizDate(D.meta.start, k))*HPD; return h; };  // 先頭 d 営業日の累積キャパ(h)
   const pvBiz = d => Math.min(BAC, capH(d));
   const spanDays = (()=>{ let d=0; while(capH(d) < BAC - 1e-9 && d<9999) d++; return Math.max(1,d); })();  // 計画完了までの営業日数（予定休で増える）
   const bizIdxOf = isoStr => { let c=0, d=parse(D.meta.start), end=parse(isoStr); while(d<=end){ if(isBiz(d)) c++; d.setUTCDate(d.getUTCDate()+1); } return c; };
@@ -830,10 +843,9 @@ function copyEvmSnap(btn){
     <div style="color:#94a3b8; margin-top:6px;">この行を sprint2_data.js の <b>evmSnapshots</b> に貼り付けて週次スナップショットを記録（週1回）。progress／tobe（実績）を最新化してから算出すること。</div>
   </div>`;
   const memo = `<div style="margin-top:12px; font-size:12px; border:1px solid #fcd34d; background:#fffbeb; border-radius:6px; padding:9px 11px; max-width:660px;">
-    <div style="font-weight:700; color:#92400e; margin-bottom:5px;">7/30 メモ</div>
+    <div style="font-weight:700; color:#92400e; margin-bottom:5px;">8/30 メモ</div>
     <ul style="margin:0; padding-left:18px; line-height:1.7; color:#334155;">
-      <li>7/22以降「PM承認」「テスト実施」の工程を加えたため、EVとACの傾きは現実的な状態になった。</li>
-      <li>工程を加えた分＋イテレーション①の変更管理があり、完了予定は8月上旬→中旬末へとずれ込んでいる。</li>
+      <li>AIエージェントの実装のバグ対応にかなりの時間を要した（エージェントの改善作業を含む）。</li>
     </ul>
   </div>`;
   document.getElementById("evm").innerHTML =
@@ -841,8 +853,8 @@ function copyEvmSnap(btn){
     `<div style="flex:0 0 auto;">${svg}${legend}${memo}</div>`+
     `<div style="flex:0 0 340px;">${table}${devbox}</div></div>`;
   document.getElementById("enote").textContent = hasSnap
-    ? `基準日 ${baseISO}（最新の週次スナップショット・全${snapDates.length}件）。横軸＝営業日（週末・祝日は含めない）。PV=計画値（チーム全体のキャパシティ＝各営業日の稼働人数×${HPD}h を BAC まで累積。担当替えでは動かず、予定休の人員がいる営業日だけ傾きが緩む）／EV・AC=記録スナップショット。SPI<1=遅れ / CPI<1=超過。EAC は現在効率(CPI×SPI)継続前提。スナップショットは週1回 sprint2_data.js の evmSnapshots に追記する。`
-    : `スナップショット未記録のため PV（計画値）＋計画完了マーカーのみ表示。横軸＝営業日（週末・祝日は含めない）。PV はチーム全体のキャパシティ（各営業日の稼働人数×${HPD}h）で積むため、予定休の人員がいる営業日は傾きが緩む。週1回、sprint2_data.js の evmSnapshots に "YYYY-MM-DD": { ev, ac } を追記すると EV・AC・SPI・CPI・EAC・完了予測日が描画されます（下の「算出」からライブ値をコピー可）。`;
+    ? `基準日 ${baseISO}（最新の週次スナップショット・全${snapDates.length}件）。横軸＝営業日（週末・祝日は含めない）。PV=計画値（チーム全体のキャパシティ＝各営業日の稼働人日×${HPD}h を BAC まで累積。終日休=0／半休=0.5 人日。担当替えでは動かず、休みのある営業日だけ傾きが緩む）／EV・AC=記録スナップショット。SPI<1=遅れ / CPI<1=超過。EAC は現在効率(CPI×SPI)継続前提。スナップショットは週1回 sprint2_data.js の evmSnapshots に追記する。`
+    : `スナップショット未記録のため PV（計画値）＋計画完了マーカーのみ表示。横軸＝営業日（週末・祝日は含めない）。PV はチーム全体のキャパシティ（各営業日の稼働人日×${HPD}h・終日休=0／半休=0.5）で積むため、休みのある営業日は傾きが緩む。週1回、sprint2_data.js の evmSnapshots に "YYYY-MM-DD": { ev, ac } を追記すると EV・AC・SPI・CPI・EAC・完了予測日が描画されます（下の「算出」からライブ値をコピー可）。`;
 })();
 
 // ---- タブ切替（workitems と同挙動＋URLハッシュで直接オープン）----
