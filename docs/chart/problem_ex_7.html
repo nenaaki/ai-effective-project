@@ -260,6 +260,27 @@
   .soukan--solo .sk-head { font-size: 11px; margin-bottom: 5px; }
   .soukan--solo li { font-size: 10.6px; line-height: 1.55; margin-bottom: 5px; padding-left: 13px; }
 
+  /* ===== タブ「入口設問の変更方針」 ===== */
+  .rev-layout { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 10px; width: 100%; }
+  .tmpl { display: flex; flex-direction: column; gap: 8px; }
+  .tmpl-row { display: flex; gap: 10px; align-items: flex-start; border: 1px solid #e5e7eb; border-radius: 6px; padding: 9px 12px; background: #fff; }
+  .tmpl-row--main { border-color: #bfdbfe; background: #f8fbff; }
+  .tr-k { flex-shrink: 0; width: 40px; font-size: 11.5px; font-weight: 700; color: #fff; background: #6b7280; border-radius: 4px; text-align: center; padding: 3px 0; }
+  .tmpl-row--main .tr-k { background: #2563eb; }
+  .tr-v { font-size: 12px; line-height: 1.5; color: #374151; padding-top: 2px; }
+  .tmpl-cond { margin-top: 12px; border: 1px solid #c7d2fe; background: #eef2ff; border-radius: 6px; padding: 10px 13px; }
+  .tc-head { font-size: 12px; font-weight: 700; color: #4338ca; margin-bottom: 7px; }
+  .cond-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .cond-chip { background: #fff; border: 1px solid #a5b4fc; border-radius: 4px; padding: 2px 9px; font-size: 11.5px; color: #3730a3; font-weight: 600; }
+  .tc-note { margin-top: 8px; font-size: 11px; line-height: 1.55; color: #4b5563; }
+  .tc-note b { color: #4338ca; }
+  #tab-revise .obs-list { gap: 9px; }
+  #tab-revise .obs-card__title { padding: 6px 11px; font-size: 12.5px; }
+  #tab-revise .obs-card__title .hint { font-size: 10.5px; }
+  #tab-revise .obs-card p { padding: 8px 11px; font-size: 11.6px; line-height: 1.55; }
+  #tab-revise .fmt-slot { font-size: 11.5px; padding: 2px 10px; }
+  #tab-revise .ipo-memo { font-size: 11.6px; padding: 9px 13px; }
+
   /* ===== 実施記録: 2階層サブタブ（回 × 段） ===== */
   .rec-wrap { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 8px; width: 100%; }
   .round-tabs { display: flex; gap: 8px; flex-shrink: 0; }
@@ -289,6 +310,7 @@
     <button class="tab" data-tab="question">具体的な設問</button>
     <button class="tab" data-tab="names">名称案</button>
     <button class="tab" data-tab="rec">実施記録</button>
+    <button class="tab" data-tab="revise">入口設問の変更方針</button>
   </div>
 
   <!-- ====================== タブ1: 方向性 ====================== -->
@@ -680,6 +702,68 @@
 
       </div><!-- /rec-stage -->
     </div><!-- /rec-wrap -->
+  </div>
+
+  <!-- ====================== タブ: 入口設問の変更方針 ====================== -->
+  <div class="tab-content" id="tab-revise">
+    <div class="rev-layout">
+
+      <div class="ipo-memo"><span class="ii-tag">背景</span>2026-08-06 社長レビューで<b>現状80点</b>。調べれば分かる情報を拾えるのは当然のラインで、<b>残り20点は上位層しか持っていない意図・背景（情報の非対称性）を自分から取りに行く姿勢</b>との指摘。これを設問の側から起こす形に改める。<b>対象は入口のみ</b>（過程・出口は現行のまま）。</div>
+
+      <div class="grid">
+
+        <!-- 左: 変更点 -->
+        <div class="panel">
+          <h2>変更点</h2>
+          <div class="obs-list">
+            <div class="obs-card">
+              <div class="obs-card__title obs-card__title--in"><span>① 前後の工程を追加</span><span class="hint">業務の流れの中で捉える</span></div>
+              <p>対象の作業だけでなく、<strong>前工程から何を受け取るか</strong>／<strong>出たものを誰が受け取り何に使うか</strong>を各一文で書かせる。作業単体の理解に閉じさせない。</p>
+            </div>
+            <div class="obs-card">
+              <div class="obs-card__title obs-card__title--proc"><span>② 条件をチェックリストで抽出</span><span class="hint">想起の型を与える</span></div>
+              <p>通常以外に業務が変わる要因を<strong>5観点（時期・扱う対象／相手・量・やり直し・想定通りに進まないとき）</strong>で当てさせる。自由記述では本人が思い出せた範囲しか出てこない。</p>
+            </div>
+            <div class="obs-card">
+              <div class="obs-card__title obs-card__title--why"><span>③ 答えられない項目は空欄で残す</span><span class="hint">残り20点の取りに行き方</span></div>
+              <p>空欄が<strong>そのまま「PMに聞くべき問い」</strong>になる。レビューの場でPMと一緒に埋める運用にし、エンジニア側から<strong>意図・背景を能動的に引き出す</strong>動きを作る。</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右: 新しい入口設問 -->
+        <div class="panel">
+          <h2>新しい入口設問</h2>
+          <p class="lead">担当エンジニアが着手前に記述し、PM／チームリーダーがレビューして補足する。</p>
+          <div class="tmpl">
+            <div class="tmpl-row">
+              <span class="tr-k">前</span>
+              <div class="tr-v">前の工程では誰が何をしていて、そこから何を受け取るか（一文で）</div>
+            </div>
+            <div class="tmpl-row tmpl-row--main">
+              <span class="tr-k">対象</span>
+              <div class="tr-v"><span class="fmt-slots"><span class="fmt-slot">何をするか</span><span class="fmt-slot">なぜするか</span><span class="fmt-slot">誰がするか</span><span class="fmt-slot">どのようにするか</span><span class="fmt-slot">現状の業務課題</span></span></div>
+            </div>
+            <div class="tmpl-row">
+              <span class="tr-k">後</span>
+              <div class="tr-v">出たものを誰が受け取り、何に使うか（一文で）</div>
+            </div>
+          </div>
+          <div class="tmpl-cond">
+            <div class="tc-head">条件の抽出 — 当てはまるものにチェックして内容を書く</div>
+            <div class="cond-chips">
+              <span class="cond-chip">□ 時期</span>
+              <span class="cond-chip">□ 扱う対象・相手の種類</span>
+              <span class="cond-chip">□ 量</span>
+              <span class="cond-chip">□ やり直し</span>
+              <span class="cond-chip">□ 想定通りに進まないとき</span>
+            </div>
+            <div class="tc-note">チェックした条件それぞれについて<b>通常と何が変わるか</b>を書く。<b>答えられないものは空欄のまま残し、レビューでPMと一緒に埋める。</b></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
   </div>
 
 </div>

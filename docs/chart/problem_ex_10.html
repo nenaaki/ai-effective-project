@@ -184,6 +184,31 @@
   .split-foot {
     margin-top: 12px; text-align: center; font-size: 10.5px; color: #6b7280;
   }
+
+  /* タブ3: 調査結果と対応方針 */
+  .facts { display: flex; flex-direction: column; gap: 7px; }
+  .fact {
+    display: flex; gap: 10px; align-items: flex-start;
+    border: 1px solid #e5e7eb; border-radius: 6px;
+    padding: 8px 11px; font-size: 11.5px; line-height: 1.5; background: #fff;
+  }
+  .fact .k {
+    flex-shrink: 0; width: 52px; font-weight: 700;
+    color: #1e40af; font-size: 10.5px; padding-top: 1px;
+  }
+  .fact.neg { border-color: #fcd34d; background: #fffbeb; }
+  .fact.neg .k { color: #92400e; }
+
+  .verdict {
+    background: #ecfdf5; border: 1.5px solid #10b981;
+    border-radius: 6px; padding: 11px 13px; margin-bottom: 12px;
+  }
+  .verdict .vlabel {
+    font-size: 10.5px; font-weight: 700; color: #047857;
+    letter-spacing: 0.04em; margin-bottom: 5px;
+  }
+  .verdict .vtext { font-size: 13px; font-weight: 600; line-height: 1.5; color: #1f2937; }
+  #tab-assess .conclusion { margin-top: 12px; }
 </style>
 </head>
 <body>
@@ -194,6 +219,7 @@
   <div class="tabs">
     <button class="tab active" data-tab="issue">背景と相談</button>
     <button class="tab" data-tab="split">情報の切り分け</button>
+    <button class="tab" data-tab="assess">調査結果と対応方針</button>
   </div>
 
   <!-- ====================== タブ1: 背景と相談 ====================== -->
@@ -327,6 +353,75 @@
       </div>
 
       <div class="split-foot">これは叩き台。実際の線引きは相談の上で確定（各項目は仮）。</div>
+    </div>
+  </div>
+
+  <!-- ====================== タブ3: 調査結果と対応方針 ====================== -->
+  <div class="tab-content" id="tab-assess">
+    <div class="grid">
+
+      <!-- 左: 調査結果 -->
+      <div class="panel">
+        <h2>調査結果 — 案件の現状</h2>
+        <div class="facts">
+          <div class="fact">
+            <span class="k">案件</span>
+            <div>2〜3年継続。現在は<strong>既存システムの開発・運用</strong>フェーズ</div>
+          </div>
+          <div class="fact">
+            <span class="k">構成</span>
+            <div>フロント Nuxt（Vue）／バック Python（Django）。<strong>標準アーキ非ベース</strong></div>
+          </div>
+          <div class="fact">
+            <span class="k">開発対象</span>
+            <div>顧客からのバグ指摘への対応が主。新規機能開発ではない</div>
+          </div>
+          <div class="fact neg">
+            <span class="k">進捗</span>
+            <div>全体スケジュールに対し<strong>約2ヶ月の遅延</strong></div>
+          </div>
+        </div>
+
+        <div class="warn-band">
+          <strong>求められているもの</strong> ＝ 遅延しているプロジェクトの状況を、
+          <strong>AIを活用することで取り戻したい</strong>。
+        </div>
+      </div>
+
+      <!-- 右: 判断 -->
+      <div class="panel">
+        <h2>適用すべきかの判断</h2>
+
+        <div class="verdict">
+          <div class="vlabel">判断</div>
+          <div class="vtext">現行の AIDD 資産は、この案件には適用しない。<br>AIの使い方に関する相談・助言に限定する。</div>
+        </div>
+
+        <div class="points-label">判断の根拠</div>
+        <div class="points">
+          <div class="point">
+            <span class="num">1</span>
+            <div><strong>資産の前提が合わない</strong>：現行 AIDD は画面定義・データモデルから新規に作り上げる想定。本案件は既存システムのバグ修正が主体</div>
+          </div>
+          <div class="point">
+            <span class="num">2</span>
+            <div><strong>技術スタックが異なる</strong>：Django / Nuxt 構成は現行の標準構成と別系統で、オーケストレーションをそのまま流用できない</div>
+          </div>
+          <div class="point">
+            <span class="num">3</span>
+            <div><strong>インプットが未整備</strong>：バグ指摘に対応する内容となるため、インプットがドキュメントという形で整備されていない</div>
+          </div>
+        </div>
+
+        <div class="conclusion">
+          <div class="conclusion-label">対応方針</div>
+          <div class="conclusion-list">
+            <div class="conclusion-item"><span class="tag">助言のみ</span>バグ修正規模なら軽量なコーディング支援で足りる。相談があった場合に応える程度にとどめる</div>
+            <div class="conclusion-item"><span class="tag">資産は渡さない</span>オーケストレーション定義・スキル・エージェント実装は展開対象外</div>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 
