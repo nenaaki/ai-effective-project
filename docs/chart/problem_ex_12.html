@@ -11,7 +11,7 @@
 <style>
   :root {
     --ground:#f5f7f7; --surface:#ffffff; --surface-alt:#eaefee;
-    --ink:#16201f; --ink-soft:#4d5c5a; --ink-faint:#7c8a88;
+    --ink:#16201f; --ink-soft:#16201f; --ink-faint:#16201f; --hint:#7c8a88;
     --rule:#d3dcdb; --rule-strong:#b4c2c0;
     --accent:#0d6b68; --accent-soft:#d9ecea;
     --crit:#9d2f2a;  --crit-soft:#f7e2e0;
@@ -20,7 +20,7 @@
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
       --ground:#0f1414; --surface:#171d1d; --surface-alt:#1e2626;
-      --ink:#e6ecea; --ink-soft:#a7b5b2; --ink-faint:#7d8b89;
+      --ink:#e6ecea; --ink-soft:#e6ecea; --ink-faint:#e6ecea; --hint:#7d8b89;
       --rule:#2b3534; --rule-strong:#3d4948;
       --accent:#5cc3bd; --accent-soft:#16302f;
       --crit:#e58a83;  --crit-soft:#301b1a;
@@ -29,7 +29,7 @@
   }
   :root[data-theme="dark"] {
     --ground:#0f1414; --surface:#171d1d; --surface-alt:#1e2626;
-    --ink:#e6ecea; --ink-soft:#a7b5b2; --ink-faint:#7d8b89;
+    --ink:#e6ecea; --ink-soft:#e6ecea; --ink-faint:#e6ecea; --hint:#7d8b89;
     --rule:#2b3534; --rule-strong:#3d4948;
     --accent:#5cc3bd; --accent-soft:#16302f;
     --crit:#e58a83;  --crit-soft:#301b1a;
@@ -50,7 +50,7 @@
     padding: 52px clamp(26px, 5.5vw, 84px) 68px;
     border-bottom: 1px solid var(--rule); position: relative;
   }
-  .inner { width: 100%; max-width: 1010px; margin: 0 auto; display: flex; flex-direction: column; gap: 26px; }
+  .inner { width: 100%; max-width: 1240px; margin: 0 auto; display: flex; flex-direction: column; gap: 26px; }
 
   .eyebrow {
     font-family: "IBM Plex Mono", ui-monospace, monospace;
@@ -64,6 +64,8 @@
     font-size: clamp(27px, 4.2vw, 46px); line-height: 1.32; margin: 0; text-wrap: balance;
   }
 
+  h1 .sub { font-size: 48%; font-weight: 400; letter-spacing: .02em; margin-left: .4em; }
+
   .pageno {
     position: absolute; right: clamp(26px,5.5vw,84px); bottom: 28px;
     font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 12px; color: var(--ink-faint);
@@ -73,24 +75,26 @@
   figure { margin: 0; }
   svg { display: block; width: 100%; height: auto; color: var(--ink); }
   svg text { fill: currentColor; font-family: "Zen Kaku Gothic New","Hiragino Kaku Gothic ProN",system-ui,sans-serif; }
-  .t-b { font-size: 14px; font-weight: 700; }
-  .t-m { font-size: 12.5px; }
-  .t-s { font-size: 11.5px; fill: var(--ink-soft); }
-  .t-f { font-size: 11px; fill: var(--ink-faint); }
-  .t-c { font-size: 12.5px; fill: var(--crit); font-weight: 700; }
-  .t-o { font-size: 12.5px; fill: var(--ok); font-weight: 700; }
-  .t-a { font-size: 12.5px; fill: var(--accent); font-weight: 700; }
+  .t-b { font-size: 15.5px; font-weight: 700; }
+  .t-m { font-size: 14px; }
+  .t-s { font-size: 13px; fill: var(--ink-soft); }
+  .t-f { font-size: 12.5px; fill: var(--ink-faint); }
+  .t-c { font-size: 14px; fill: var(--crit); font-weight: 700; }
+  .t-o { font-size: 14px; fill: var(--ok); font-weight: 700; }
+  .t-a { font-size: 14px; fill: var(--accent); font-weight: 700; }
+  .t-q { font-size: 18px; fill: var(--crit); font-weight: 700; }
   .bx  { fill: var(--surface); stroke: currentColor; stroke-width: 1.3; }
   .bxa { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.6; }
   .bxc { fill: var(--crit-soft); stroke: var(--crit); stroke-width: 1.5; }
   .bxcd{ fill: var(--crit-soft); stroke: var(--crit); stroke-width: 1.6; stroke-dasharray: 6 4; }
+  .bxad{ fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 6 4; }
   .bxo { fill: var(--ok-soft); stroke: var(--ok); stroke-width: 1.5; }
   .bxn { fill: var(--surface-alt); stroke: var(--rule-strong); stroke-width: 1; }
   .ln  { stroke: currentColor; stroke-width: 1.4; fill: none; }
   .lna { stroke: var(--accent); stroke-width: 1.8; fill: none; }
   .lnc { stroke: var(--crit); stroke-width: 1.8; fill: none; }
   .lno { stroke: var(--ok); stroke-width: 1.8; fill: none; }
-  .lnf { stroke: var(--ink-faint); stroke-width: 1.3; fill: none; stroke-dasharray: 5 4; }
+  .lnf { stroke: var(--hint); stroke-width: 1.3; fill: none; stroke-dasharray: 5 4; }
   .brk { stroke: var(--accent); stroke-width: 1.4; fill: none; }
   .divi{ stroke: var(--rule-strong); stroke-width: 1; }
   .dot { fill: var(--surface); stroke: currentColor; stroke-width: 1.6; }
@@ -100,14 +104,14 @@
   #arA polygon { fill: var(--accent); }
   #arC polygon { fill: var(--crit); }
   #arO polygon { fill: var(--ok); }
-  #arF polygon { fill: var(--ink-faint); }
+  #arF polygon { fill: var(--hint); }
 
   .probs { display: grid; grid-template-columns: repeat(3,1fr); gap: 1px; background: var(--rule);
     border: 1px solid var(--rule); border-radius: 7px; overflow: hidden; }
   .prob { background: var(--surface); padding: 14px 16px; display: flex; flex-direction: column; gap: 5px; }
-  .prob .n { font-family:"IBM Plex Mono",ui-monospace,monospace; font-size: 11px; color: var(--crit); }
+  .prob .n { font-family:"IBM Plex Mono",ui-monospace,monospace; font-size: 12px; color: var(--crit); }
   .prob .h { font-size: clamp(13.5px,1.4vw,15.5px); font-weight: 700; line-height: 1.45; }
-  .prob .s { font-size: 11.5px; color: var(--ink-faint); line-height: 1.5; }
+  .prob .s { font-size: 13px; color: var(--ink-faint); line-height: 1.55; }
   .prob .chip { align-self: flex-start; margin-top: 3px; font-family:"IBM Plex Mono",ui-monospace,monospace;
     font-size: 10.5px; letter-spacing: .06em; color: var(--accent); background: var(--accent-soft);
     padding: 2px 8px; border-radius: 3px; }
@@ -117,7 +121,7 @@
     font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 11px;
     color: var(--accent); margin-top: 2px;
   }
-  .cap p { margin: 0; font-size: clamp(13px,1.35vw,15px); line-height: 1.65; }
+  .cap p { margin: 0; font-size: clamp(14px,1.5vw,16.5px); line-height: 1.65; }
   .cap b { font-weight: 700; }
 
   .punch {
@@ -125,12 +129,52 @@
     padding: 15px 22px; border-radius: 0 5px 5px 0;
     font-size: clamp(15px,1.8vw,20px); font-weight: 700; line-height: 1.55; text-wrap: balance;
   }
+  .slide.ev .inner { gap: 18px; }
+  .slide.ev figure { max-width: min(100%, 120vh); }
+  .slide.ev.tight figure { max-width: min(100%, 105vh); }
+  .causes { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: stretch; }
+  .panel { display: flex; flex-direction: column; gap: 10px; justify-content: center;
+    border: 1px solid var(--rule-strong); border-radius: 8px; background: var(--surface); padding: 12px 16px 14px; }
+  .ptag { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 12.5px;
+    font-weight: 700; letter-spacing: .06em; color: var(--crit); }
+  .panel figure { max-width: 100%; }
+  .close { display: grid; grid-template-columns: 1.12fr .88fr; gap: 26px; align-items: center; }
+  .talk { display: flex; flex-direction: column; gap: 5px; }
+  .talk .lead { font-family:"IBM Plex Mono",ui-monospace,monospace;
+    letter-spacing: .14em; color: var(--hint); margin-bottom: 2px; font-size: 12px; }
+  .talk .row { display: flex; align-items: flex-start; gap: 9px; }
+  .talk .who { flex: 0 0 auto; margin-top: 4px; font-size: 12px; font-weight: 700;
+    padding: 1px 6px; border-radius: 3px; line-height: 1.5; }
+  .talk .who.p  { background: var(--crit-soft); color: var(--crit); }
+  .talk .who.ai { background: var(--surface-alt); color: var(--ink-soft); border: 1px solid var(--rule-strong); }
+  .talk .bub { position: relative; background: var(--surface); border: 1px solid var(--rule-strong);
+    border-radius: 4px 10px 10px 10px; padding: 4px 11px; font-size: 14.5px; line-height: 1.5; }
+  .talk .row.ai .bub { background: var(--surface-alt); }
+  .talk .row.last .bub { background: var(--accent-soft); border-color: var(--accent); font-weight: 700; }
+  .talk .bub::before, .talk .bub::after { content:""; position:absolute; top: 7px; width:0; height:0;
+    border: 6px solid transparent; border-left: 0; }
+  .talk .bub::before { left: -6px; border-right-color: var(--rule-strong); }
+  .talk .bub::after  { left: -5px; border-right-color: var(--surface); }
+  .talk .row.ai .bub::after   { border-right-color: var(--surface-alt); }
+  .talk .row.last .bub::before{ border-right-color: var(--accent); }
+  .talk .row.last .bub::after { border-right-color: var(--accent-soft); }
+  .cmp { display: flex; flex-direction: column; gap: 6px; }
+  .cmp-row { display: flex; flex-direction: column; gap: 1px;
+    border: 1px solid var(--rule-strong); border-left-width: 4px; border-radius: 4px;
+    background: var(--surface-alt); padding: 5px 11px; }
+  .cmp-row .k { font-size: 11.5px; color: var(--ink-soft); }
+  .cmp-row .v { font-size: 14px; }
+  .cmp-row.bad { background: var(--crit-soft); border-color: var(--crit); }
+  .cmp-note { margin: 2px 0 0; font-size: 12.5px; font-weight: 700; color: var(--crit); line-height: 1.5; }
+  .gate { margin: 0; font-size: clamp(13px,1.35vw,15px); line-height: 1.6;
+    border-left: 3px solid var(--accent); padding-left: 13px; }
+  .gate b { font-weight: 700; }
   .linkrow { display:flex; flex-wrap:wrap; align-items:baseline; gap:6px 14px; margin:0; }
   a.lnk { display:inline-block; font-weight:700; font-size:clamp(13.5px,1.4vw,15.5px); color:var(--accent);
     text-decoration:none; border-bottom:2px solid var(--accent); padding-bottom:2px; }
   a.lnk:hover { background:var(--accent-soft); }
   a.lnk:focus-visible { outline:2px solid var(--accent); outline-offset:3px; border-radius:2px; }
-  .linknote { font-size:12px; color:var(--ink-faint); }
+  .linknote { font-size:13px; color:var(--ink-faint); }
 
   @media (max-width: 700px) {
     html { scroll-snap-type: none; }
@@ -141,12 +185,11 @@
 </style>
 </head>
 <body>
-
 <!-- ============ 1 ============ -->
-<section class="slide">
+<section class="slide ev">
   <div class="inner">
     <div class="eyebrow">事象 ／ PW-225 帳票生成基盤</div>
-    <h1>テストは全部通った。<br>気づけたのは、偶然だった。</h1>
+    <h1>バグは 0 だった。<br>間違っていたのは、構造だった。</h1>
 
     <figure>
       <svg viewBox="0 0 940 250" role="img" aria-label="実装は1日で完了しテストも全通過したが、構造の誤りはPR本文の1行を人が読んで質問したことでしか発見されなかった">
@@ -163,107 +206,222 @@
         <line class="divi" x1="510" y1="16" x2="510" y2="200" stroke-dasharray="4 4"/>
 
         <line class="ln" x1="40" y1="96" x2="470" y2="96"/>
-        <line class="lna" x1="550" y1="96" x2="900" y2="96" marker-end="url(#arA)"/>
+        <line class="lna" x1="550" y1="96" x2="915" y2="96" marker-end="url(#arA)"/>
 
         <circle class="dot" cx="70"  cy="96" r="5"/>
         <circle class="dot" cx="200" cy="96" r="5"/>
         <circle class="dot" cx="330" cy="96" r="5"/>
         <circle class="doto" cx="450" cy="96" r="6"/>
-        <circle class="dota" cx="580" cy="96" r="7"/>
-        <circle class="dota" cx="720" cy="96" r="5"/>
-        <circle class="dota" cx="860" cy="96" r="5"/>
+        <circle class="dota" cx="595" cy="96" r="7"/>
+        <circle class="dota" cx="735" cy="96" r="5"/>
+        <circle class="dota" cx="875" cy="96" r="5"/>
 
         <text class="t-m" x="70"  y="80" text-anchor="middle">依頼</text>
         <text class="t-m" x="200" y="80" text-anchor="middle">実装開始</text>
         <text class="t-f" x="200" y="122" text-anchor="middle">依頼から 48 分</text>
         <text class="t-m" x="330" y="80" text-anchor="middle">完成</text>
         <text class="t-f" x="330" y="122" text-anchor="middle">4 層・132 ファイル</text>
-        <text class="t-o" x="450" y="80" text-anchor="middle">テスト 414 件 全通過</text>
-        <text class="t-f" x="450" y="122" text-anchor="middle">レビューも通過・バグ 0</text>
+        <text class="t-o" x="444" y="80" text-anchor="middle">テスト 414 件 全通過</text>
+        <text class="t-f" x="444" y="122" text-anchor="middle">レビューも通過・バグ 0</text>
 
-        <text class="t-a" x="580" y="72" text-anchor="middle">人が PR の 1 行を読む</text>
-        <text class="t-f" x="580" y="122" text-anchor="middle">「369MiB？なぜ」</text>
-        <text class="t-a" x="720" y="80" text-anchor="middle">図を描かせる</text>
-        <text class="t-f" x="720" y="122" text-anchor="middle">13 分で誤りに到達</text>
-        <text class="t-a" x="860" y="80" text-anchor="middle">作り直し</text>
-        <text class="t-f" x="860" y="122" text-anchor="middle">手戻り 約 2 日</text>
+        <text class="t-a" x="595" y="72" text-anchor="middle">人が PR の 1 行を読む</text>
+        <text class="t-q" x="595" y="126" text-anchor="middle">「369MiB？なぜ」</text>
+        <text class="t-a" x="735" y="80" text-anchor="middle">図を描かせる</text>
+        <text class="t-f" x="735" y="122" text-anchor="middle">13 分で誤りに到達</text>
+        <text class="t-a" x="875" y="80" text-anchor="middle">作り直し</text>
+        <text class="t-f" x="875" y="122" text-anchor="middle">手戻り 約 2 日</text>
 
         <path class="lnf" d="M450 106 V180 H760" marker-end="url(#arF)"/>
         <text class="t-f" x="466" y="200">誰も聞かなければ、この線をたどって本番へ</text>
       </svg>
     </figure>
 
-    <div class="punch">誤っていたのは、入力でも出力でもない。その間の「経路」だった。</div>
+    <div class="close">
+      <div class="talk">
+        <div class="lead">こんなやり取りがあった</div>
+        <div class="row"><span class="who p">人</span><span class="bub">このラムダのサイズは何？</span></div>
+        <div class="row ai"><span class="who ai">AI</span><span class="bub">DBにアクセスするためにAPIモジュールをすべて内包しました</span></div>
+        <div class="row last"><span class="who p">人</span><span class="bub">…ちょっと君、何でそんなことになったのかログを解析しなさい</span></div>
+      </div>
+      <div class="punch">誤っていたのは、入力でも出力でもない。その間の「経路」だった。</div>
+    </div>
   </div>
-  <div class="pageno">1 / 4</div>
+  <div class="pageno">1 / 5</div>
 </section>
 
 <!-- ============ 2 ============ -->
-<section class="slide">
+<section class="slide ev tight">
   <div class="inner">
     <div class="eyebrow">構造 ／ なぜ誰も気づかなかったか</div>
-    <h1>経路は、誰も見ていない区間にある。</h1>
+    <h1>AIはなぜ誤解したのか。<span class="sub">（ログ検証から分かったこと）</span></h1>
+
+    <div class="causes">
+      <div class="panel">
+        <div class="ptag">原因① 経路を見ていない</div>
+        <figure>
+          <svg viewBox="0 0 640 232" role="img" aria-label="正本が決めるのは入力と出力だけ、テストが見るのも入力と出力だけで、その間の経路は誰にも観測されない">
+            <text class="t-a" x="320" y="20" text-anchor="middle">正本（チケット・要件）が決めるのは、ここだけ</text>
+            <path class="brk" d="M10 46 V32 H160 V46"/>
+            <path class="brk" d="M480 46 V32 H630 V46"/>
+
+            <rect class="bx"  x="10"  y="76" width="150" height="58" rx="5"/>
+            <text class="t-b" x="85" y="101" text-anchor="middle">入力</text>
+            <text class="t-s" x="85" y="121" text-anchor="middle">何を渡すか</text>
+
+            <rect class="bxcd" x="200" y="68" width="240" height="74" rx="5"/>
+            <text class="t-c" x="320" y="93" text-anchor="middle">経路</text>
+            <text class="t-s" x="320" y="112" text-anchor="middle">どこを通って処理するか</text>
+            <text class="t-s" x="320" y="131" text-anchor="middle">＝ 実装側が必ず補う</text>
+
+            <rect class="bx"  x="480" y="76" width="150" height="58" rx="5"/>
+            <text class="t-b" x="555" y="101" text-anchor="middle">出力</text>
+            <text class="t-s" x="555" y="121" text-anchor="middle">何が出れば正解か</text>
+
+            <g class="ln" marker-end="url(#ar)">
+              <line x1="160" y1="105" x2="196" y2="105"/>
+              <line x1="440" y1="105" x2="476" y2="105"/>
+            </g>
+
+            <text class="t-c" x="320" y="166" text-anchor="middle">誰も見ていない</text>
+            <path class="brk" d="M10 182 V196 H160 V182"/>
+            <path class="brk" d="M480 182 V196 H630 V182"/>
+            <text class="t-a" x="320" y="216" text-anchor="middle">テストが見るのも、ここだけ</text>
+          </svg>
+        </figure>
+      </div>
+
+      <div class="panel">
+        <div class="ptag">原因② 作り方の指定が無い</div>
+        <div class="cmp">
+          <div class="cmp-row"><span class="k">正本に書いてあったこと</span><span class="v">「対象データを取得する」</span></div>
+          <div class="cmp-row bad"><span class="k">プランナー(AI)が読んだこと</span><span class="v">「DB から 対象データを取得する」</span></div>
+          <div class="cmp-row bad"><span class="k">エンジニア(AI)の解釈</span><span class="v">「DB から（直接） 対象データを取得する」</span></div>
+          <p class="cmp-note">人の回答から足した 3 文字が以後の前提となり、経路が確定した</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="close">
+      <div class="talk">
+        <div class="lead">こんなやり取りがあった</div>
+        <div class="row ai"><span class="who ai">AI</span><span class="bub">『情報を取るのはDBですか？』にあなたは『YES』と答えました</span></div>
+        <div class="row"><span class="who p">人</span><span class="bub">api-coreをそのまま組み込むのはやりすぎじゃない？</span></div>
+        <div class="row ai"><span class="who ai">AI</span><span class="bub">何も制限されなかったので、制約を受けずに作りました</span></div>
+        <div class="row last"><span class="who p">人</span><span class="bub">…どのような設計をしたのか知りたい。設計図を出力して</span></div>
+      </div>
+      <div class="punch">「経路を見ていない」×「作り方の指定が無い」＝ 何が起きるかわからない</div>
+    </div>
+  </div>
+  <div class="pageno">2 / 5</div>
+</section>
+
+<!-- ============ 3 ============ -->
+<section class="slide ev">
+  <div class="inner">
+    <div class="eyebrow">手続き ／ 実装前に何をするか</div>
+    <h1>設計図を見ながら、<br>疑問と違和感を突き合わせる。</h1>
+
+    <div class="probs">
+      <div class="prob"><span class="n">問題 ①</span><span class="h">何の疑いもなく</span><span class="s">選んだという自覚がない。だから案が 1 つしか出ない</span><span class="chip">① 図に出させる</span></div>
+      <div class="prob"><span class="n">問題 ②</span><span class="h">誰にも相談せず</span><span class="s">外の目が一度も入らない</span><span class="chip">② 外の目を入れる</span></div>
+      <div class="prob"><span class="n">問題 ③</span><span class="h">提出し、かつ採用した</span><span class="s">提案者と決裁者が同じ。だからレビューが成立しない</span><span class="chip">③④ 決裁を移す</span></div>
+    </div>
 
     <figure>
-      <svg viewBox="0 0 940 350" role="img" aria-label="正本もテストも入力と出力しか見ておらず、その間の経路は誰にも観測されない。正本の一文にAIがDBからの3文字を足していた">
-        <text class="t-a" x="470" y="24" text-anchor="middle">正本（チケット・要件）が決めるのは、ここだけ</text>
-        <path class="brk" d="M70 52 V38 H260 V52"/>
-        <path class="brk" d="M680 52 V38 H870 V52"/>
+      <svg viewBox="0 0 940 300" role="img" aria-label="AIに現時点の実装イメージを設計図として出力させ、AIの疑問点と人の違和感を撃ち合わせる。決着しない論点だけを有識者と揉み、結論を設計図に反映して実装へ進む手続き">
+        <rect class="bxn" x="14" y="112" width="182" height="66" rx="6"/>
+        <text class="t-b" x="105" y="140" text-anchor="middle">① 設計図を書かせる</text>
+        <text class="t-s" x="105" y="162" text-anchor="middle">今の実装イメージを1枚に</text>
 
-        <rect class="bx"  x="70"  y="96" width="190" height="62" rx="5"/>
-        <text class="t-b" x="165" y="124" text-anchor="middle">入力</text>
-        <text class="t-s" x="165" y="144" text-anchor="middle">何を渡すか</text>
+        <rect class="bxa" x="250" y="112" width="182" height="66" rx="6"/>
+        <text class="t-b" x="341" y="140" text-anchor="middle">② 撃ち合う</text>
+        <text class="t-s" x="341" y="162" text-anchor="middle">疑問と違和感をぶつける</text>
 
-        <rect class="bxcd" x="350" y="88" width="240" height="78" rx="5"/>
-        <text class="t-c" x="470" y="118" text-anchor="middle">経路</text>
-        <text class="t-s" x="470" y="138" text-anchor="middle">どこを通って処理するか</text>
-        <text class="t-s" x="470" y="156" text-anchor="middle">＝ 実装側が必ず補う</text>
+        <rect class="bxad" x="486" y="112" width="182" height="66" rx="6"/>
+        <text class="t-b" x="577" y="140" text-anchor="middle">③ 有識者と揉む</text>
+        <text class="t-s" x="577" y="162" text-anchor="middle">決着しないときだけ</text>
 
-        <rect class="bx"  x="680" y="96" width="190" height="62" rx="5"/>
-        <text class="t-b" x="775" y="124" text-anchor="middle">出力</text>
-        <text class="t-s" x="775" y="144" text-anchor="middle">何が出れば正解か</text>
+        <rect class="bxo" x="722" y="112" width="204" height="66" rx="6"/>
+        <text class="t-b" x="824" y="140" text-anchor="middle">④ 結論を反映</text>
+        <text class="t-s" x="824" y="162" text-anchor="middle">設計図を直して実装へ</text>
 
         <g class="ln" marker-end="url(#ar)">
-          <line x1="260" y1="127" x2="344" y2="127"/>
-          <line x1="590" y1="127" x2="674" y2="127"/>
+          <line x1="196" y1="145" x2="244" y2="145"/>
+          <line x1="432" y1="145" x2="480" y2="145"/>
+          <line x1="668" y1="145" x2="716" y2="145"/>
         </g>
 
-        <text class="t-c" x="470" y="192" text-anchor="middle">誰も見ていない</text>
-        <path class="brk" d="M70 212 V226 H260 V212"/>
-        <path class="brk" d="M680 212 V226 H870 V212"/>
-        <text class="t-a" x="470" y="244" text-anchor="middle">テストが見るのも、ここだけ</text>
+        <rect class="bxn" x="250" y="26" width="182" height="60" rx="6"/>
+        <text class="t-b" x="341" y="52" text-anchor="middle">AI の疑問点</text>
+        <text class="t-s" x="341" y="72" text-anchor="middle">決め切れていない前提</text>
+        <line class="lna" x1="341" y1="86" x2="341" y2="106" marker-end="url(#arA)"/>
 
-        <line class="divi" x1="70" y1="272" x2="870" y2="272"/>
-        <text class="t-s" x="70" y="300">正本に書いてあったこと</text>
-        <rect class="bxn" x="300" y="284" width="290" height="26" rx="4"/>
-        <text class="t-m" x="445" y="302" text-anchor="middle">「対象データを取得する」</text>
+        <rect class="bxc" x="250" y="204" width="182" height="60" rx="6"/>
+        <text class="t-b" x="341" y="230" text-anchor="middle">人の違和感</text>
+        <text class="t-s" x="341" y="250" text-anchor="middle">運用で困りそうな点</text>
+        <line class="lna" x1="341" y1="204" x2="341" y2="184" marker-end="url(#arA)"/>
 
-        <text class="t-s" x="70" y="332">AI が読んだこと</text>
-        <rect class="bxc" x="300" y="316" width="290" height="26" rx="4"/>
-        <text class="t-m" x="445" y="334" text-anchor="middle">「DB から 対象データを取得する」</text>
-        <text class="t-c" x="606" y="334">← 足した 3 文字が、以後の前提になった</text>
+
+        <path class="lnf" d="M824 178 V282 H105 V186" marker-end="url(#arF)"/>
+        <text class="t-f" x="452" y="274">設計が変わるたび、同じ手続きを繰り返す</text>
+      </svg>
+    </figure>
+
+    <p class="gate">毎回やるわけではない。対象は<b>処理の単位が 2 つ以上のもの</b>だけで、通常の登録・一覧・編集は対象外。</p>
+  </div>
+  <div class="pageno">3 / 5</div>
+</section>
+
+<!-- ============ 4 ============ -->
+<section class="slide ev tight">
+  <div class="inner">
+    <div class="eyebrow">効果 ／ 進め方の見直し</div>
+    <h1>バグの修正に極めて有効。<br>しかし事前に実施するともっと効果的。</h1>
+
+    <figure>
+      <svg viewBox="0 0 940 250" role="img" aria-label="相談なしで実装した1回目は作り直しになり、先に4時間相談した2回目は同じ規模を一晩で指摘ゼロで終えた">
+        <text class="t-b" x="20" y="38">1 回目　相談なし</text>
+        <text class="t-s" x="20" y="57">（バグの解消）</text>
+        <rect class="bxn" x="230" y="26" width="180" height="34" rx="4"/>
+        <text class="t-s" x="320" y="48" text-anchor="middle">実装 1 日</text>
+        <rect class="bxc" x="414" y="26" width="360" height="34" rx="4"/>
+        <text class="t-c" x="594" y="48" text-anchor="middle">作り直し　約 2 日</text>
+        <text class="t-f" x="230" y="80">着手前の合意はゼロ。AI が書いた前提を人が読まないまま実装へ</text>
+
+        <line class="divi" x1="20" y1="106" x2="920" y2="106"/>
+
+        <text class="t-b" x="20" y="140">2 回目　先に相談</text>
+        <text class="t-s" x="20" y="159">（設計フェーズの追加）</text>
+        <rect class="bxa" x="230" y="128" width="120" height="34" rx="4"/>
+        <text class="t-a" x="290" y="150" text-anchor="middle">相談 4 時間</text>
+        <rect class="bxo" x="354" y="128" width="150" height="34" rx="4"/>
+        <text class="t-o" x="429" y="150" text-anchor="middle">実装 一晩</text>
+        <text class="t-o" x="520" y="150">同じ規模で、レビュー 3 周 指摘ゼロ</text>
+        <text class="t-f" x="230" y="182">決定 26 項目を根拠つきで確定してから着手</text>
+
+        <path class="lna" d="M290 196 V216 H600" marker-end="url(#arA)"/>
+        <text class="t-a" x="614" y="220">この 4 時間で、2 日の手戻りが消えた</text>
       </svg>
     </figure>
 
     <div class="caps">
-      <div class="cap"><span class="i">01</span><p><b>正本が経路を書かないのは、設計を委ねているから。</b>良い設計を求めるほど、経路は白紙になる。</p></div>
-      <div class="cap"><span class="i">02</span><p><b>テストも入力と出力を見る。</b>だから 414 件が全部通った。<b>経路だけが誰にも観測されない。</b></p></div>
+      <div class="cap"><span class="i">01</span><p><b>合意するのは「経路と分け方」。</b>何を作るかはチケットにある。決まっていないのは、どこを通すか。</p></div>
+      <div class="cap"><span class="i">02</span><p><b>やり方は図を描かせて指摘する。</b>文章だと話が一直線に進み、矛盾が見えない。</p></div>
+      <div class="cap"><span class="i">03</span><p><b>AI が実装前に「知りたいこと」を設計書に書き出す。</b>それを人と壁打ちしながら、設計を確定させていく。</p></div>
     </div>
+
+    <p class="gate">この 4 時間は基盤・新しい仕組みのときだけ。<b>CRUD 画面には要らない。</b></p>
+
+    <p class="linkrow"><a class="lnk" href="problem_ex_12_design.html" target="_blank" rel="noopener">そのとき使った設計図を見る →</a><span class="linknote">2026-08-17 の協議で描いたもの。これを見た 13 分後に、作り直しの判断へ届いた</span></p>
   </div>
-  <div class="pageno">2 / 4</div>
+  <div class="pageno">4 / 5</div>
 </section>
 
-<!-- ============ 3 ============ -->
+<!-- ============ 5 ============ -->
 <section class="slide">
   <div class="inner">
-    <div class="eyebrow">対策 1 ／ エージェントに何を持たせたか</div>
+    <div class="eyebrow">他の対策 ／ エージェントに何を持たせたか</div>
     <h1>無数の穴を塞ぐより、2 案から選ぶ。</h1>
-
-    <div class="probs">
-      <div class="prob"><span class="n">問題 ①</span><span class="h">何の疑いもなく</span><span class="s">選んだという自覚がない。だから案が 1 つしか出ない</span><span class="chip">対策 1 で塞ぐ</span></div>
-      <div class="prob"><span class="n">問題 ②</span><span class="h">誰にも相談せず</span><span class="s">外の目が一度も入らない</span><span class="chip">対策 2 で塞ぐ</span></div>
-      <div class="prob"><span class="n">問題 ③</span><span class="h">提出し、かつ採用した</span><span class="s">提案者と決裁者が同じ。だからレビューが成立しない</span><span class="chip">対策 2 で塞ぐ</span></div>
-    </div>
 
     <figure>
       <svg viewBox="0 0 940 300" role="img" aria-label="既に持ち主がいるものへ新しい処理から触るときは、直結を増やす案と持ち主を通す案の2つを必ず並べる">
@@ -304,106 +462,17 @@
 
     <div class="caps">
       <div class="cap"><span class="i">01</span><p><b>発火が客観的。</b>「迷ったら考える」では、迷わなかった今回は動かない。</p></div>
-      <div class="cap"><span class="i">02</span><p><b>原則は決まっている。</b>運用上のデメリット・リスクが多い方を廃案にする。<b>廃案にした理由を記録して積み上げる。</b></p></div>
+      <div class="cap"><span class="i">02</span><p><b>原則は決まっている。</b>運用上のデメリット・リスクが多い方を廃案にする。<b>廃案にした理由を記録して積み上げる。</b>（AIは禁止事項と認識することができる）</p></div>
       <div class="cap"><span class="i">03</span><p><b>導入前</b> — 発覚したあと、人との 4 回の問答でようやく真意に到達した。<br><b>導入後</b> — 運用時のデメリットを、事前に潰す舵取りになる。</p></div>
     </div>
   </div>
-  <div class="pageno">3 / 4</div>
+  <div class="pageno">5 / 5</div>
 </section>
 
-<!-- ============ 4 ============ -->
+<!-- ============ Appendix ============ -->
 <section class="slide">
   <div class="inner">
-    <div class="eyebrow">対策 2 ／ 設計図を提出物にする</div>
-    <h1>CRUD より複雑なものは、<br>設計図を出してから作る。</h1>
-
-    <figure>
-      <svg viewBox="0 0 940 280" role="img" aria-label="処理の単位が1つなら図は不要、2つ以上なら図を1枚描いてエンジニアへ提出してから実装する">
-        <rect class="bxn" x="20" y="112" width="150" height="46" rx="5"/>
-        <text class="t-b" x="95" y="140" text-anchor="middle">作るもの</text>
-
-        <path class="ln" d="M170 135 H236" marker-end="url(#ar)"/>
-        <rect class="bxa" x="236" y="106" width="168" height="58" rx="6"/>
-        <text class="t-a" x="320" y="130" text-anchor="middle">処理の単位は</text>
-        <text class="t-a" x="320" y="150" text-anchor="middle">いくつか？</text>
-
-        <path class="lnf" d="M404 122 H470 V62 H520" marker-end="url(#arF)"/>
-        <text class="t-f" x="424" y="54">1 つ</text>
-        <rect class="bxn" x="520" y="42" width="200" height="40" rx="5"/>
-        <text class="t-s" x="620" y="67" text-anchor="middle">図は不要（通常の画面）</text>
-        <text class="t-f" x="736" y="67">登録・一覧・編集など</text>
-
-        <path class="lna" d="M404 148 H470 V206 H520" marker-end="url(#arA)"/>
-        <text class="t-a" x="424" y="198">2 つ以上</text>
-        <rect class="bxa" x="520" y="186" width="150" height="40" rx="5"/>
-        <text class="t-a" x="595" y="211" text-anchor="middle">設計図を 1 枚</text>
-        <path class="lna" d="M670 206 H706" marker-end="url(#arA)"/>
-        <rect class="bxo" x="706" y="186" width="130" height="40" rx="5"/>
-        <text class="t-o" x="771" y="211" text-anchor="middle">エンジニアへ提出</text>
-        <path class="lno" d="M771 226 V256" marker-end="url(#arO)"/>
-        <text class="t-o" x="790" y="252">それから実装</text>
-        <text class="t-a" x="706" y="176">採った案と、採らなかった案を並べて出す</text>
-        <text class="t-f" x="706" y="160">＝ 決めるのは受け取った側になる</text>
-
-        <text class="t-s" x="520" y="252">載せるのは 3 つだけ ─</text>
-        <text class="t-f" x="520" y="270">誰が何に触るか ／ どこが境界か ／ 処理の単位はいくつか</text>
-      </svg>
-    </figure>
-
-    <div class="caps">
-      <div class="cap"><span class="i">01</span><p><b>「提出物」であることが本体。</b>自己点検は省いても誰も気づかないが、提出物は無ければ気づかれる。<b>承認を増やさずに見る人が 1 人増える。</b></p></div>
-      <div class="cap"><span class="i">02</span><p><b>受け手のいない記録は残らない。</b>AI の判断根拠を報告末尾に書く運用は、実測で <b>63 件中 3 件</b>しか残らなかった。</p></div>
-      <div class="cap"><span class="i">03</span><p><b>2 案を並べて出す。</b>1 枚だけ出すと「これで決めました」の報告になる。<b>並べて出せば、決裁が受け取った側へ移る</b>（対策 1 で 2 案は既に立っている）。</p></div>
-    </div>
-  </div>
-  <div class="pageno">4 / 4</div>
-</section>
-
-<!-- ============ Appendix 1 ============ -->
-<section class="slide">
-  <div class="inner">
-    <div class="eyebrow">Appendix 1 ／ 進め方の見直し</div>
-    <h1>基盤は、作る前に AI と合意する。</h1>
-
-    <figure>
-      <svg viewBox="0 0 940 250" role="img" aria-label="相談なしで実装した1回目は作り直しになり、先に4時間相談した2回目は同じ規模を一晩で指摘ゼロで終えた">
-        <text class="t-b" x="20" y="44">1 回目　相談なし</text>
-        <rect class="bxn" x="230" y="26" width="180" height="34" rx="4"/>
-        <text class="t-s" x="320" y="48" text-anchor="middle">実装 1 日</text>
-        <rect class="bxc" x="414" y="26" width="360" height="34" rx="4"/>
-        <text class="t-c" x="594" y="48" text-anchor="middle">作り直し　約 2 日</text>
-        <text class="t-f" x="230" y="80">着手前の合意はゼロ。AI が書いた前提を人が読まないまま実装へ</text>
-
-        <line class="divi" x1="20" y1="106" x2="920" y2="106"/>
-
-        <text class="t-b" x="20" y="146">2 回目　先に相談</text>
-        <rect class="bxa" x="230" y="128" width="120" height="34" rx="4"/>
-        <text class="t-a" x="290" y="150" text-anchor="middle">相談 4 時間</text>
-        <rect class="bxo" x="354" y="128" width="150" height="34" rx="4"/>
-        <text class="t-o" x="429" y="150" text-anchor="middle">実装 一晩</text>
-        <text class="t-o" x="520" y="150">同じ規模で、レビュー 3 周 指摘ゼロ</text>
-        <text class="t-f" x="230" y="182">決定 26 項目を根拠つきで確定してから着手</text>
-
-        <path class="lna" d="M290 196 V216 H600" marker-end="url(#arA)"/>
-        <text class="t-a" x="614" y="220">この 4 時間で、2 日の手戻りが消えた</text>
-      </svg>
-    </figure>
-
-    <div class="caps">
-      <div class="cap"><span class="i">01</span><p><b>合意するのは「経路と分け方」。</b>何を作るかはチケットにある。決まっていないのは、どこを通すか。</p></div>
-      <div class="cap"><span class="i">02</span><p><b>やり方は図を描かせて指摘する。</b>文章だと話が一直線に進み、矛盾が見えない。</p></div>
-      <div class="cap"><span class="i">03</span><p><b>AI が実装前に「知りたいこと」を設計書に書き出す。</b>それを人と壁打ちしながら、設計を確定させていく。</p></div>
-    </div>
-
-    <p class="linkrow"><a class="lnk" href="problem_ex_12_design.html" target="_blank" rel="noopener">そのとき使った設計図を見る →</a><span class="linknote">2026-08-17 の協議で描いたもの。これを見た 13 分後に、作り直しの判断へ届いた</span></p>
-  </div>
-  <div class="pageno">Appendix 1 / 2</div>
-</section>
-
-<!-- ============ Appendix 2 ============ -->
-<section class="slide">
-  <div class="inner">
-    <div class="eyebrow">Appendix 2 ／ 大きな開発の分け方</div>
+    <div class="eyebrow">Appendix ／ 大きな開発の分け方</div>
     <h1>大きさで割らない。決定で割る。</h1>
 
     <figure>
@@ -463,7 +532,7 @@
       <div class="cap"><span class="i">03</span><p><b>大きさは原因ではない。</b>小さく刻むより、決定を先に閉じる方が効く。</p></div>
     </div>
   </div>
-  <div class="pageno">Appendix 2 / 2</div>
+  <div class="pageno">Appendix</div>
 </section>
 
 </body>
