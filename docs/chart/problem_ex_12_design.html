@@ -1,0 +1,1517 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PDF生成基盤設計</title>
+</head>
+<body>
+
+<style>
+  :root {
+    --ground: #f4f6f8;
+    --surface: #ffffff;
+    --surface-2: #eaeff4;
+    --ink: #14202a;
+    --ink-2: #46586a;
+    --ink-3: #6e8095;
+    --line: #d4dce4;
+    --line-strong: #b0bdc9;
+    --accent: #23557f;
+    --accent-soft: #e2ecf5;
+    --async: #0b7a63;
+    --async-soft: #e0f1ed;
+    --hot: #a6362c;
+    --hot-soft: #fbebe8;
+
+    --font-sans: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic Medium",
+      "Yu Gothic", "Noto Sans JP", Meiryo, system-ui, sans-serif;
+    --font-mono: ui-monospace, "SFMono-Regular", "SF Mono", Menlo, Consolas,
+      "Liberation Mono", monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #0d141b;
+      --surface: #16212c;
+      --surface-2: #1d2b37;
+      --ink: #e3eaf1;
+      --ink-2: #a8b8c6;
+      --ink-3: #808f9e;
+      --line: #26343f;
+      --line-strong: #3c4e5f;
+      --accent: #7fb0dc;
+      --accent-soft: #14293a;
+      --async: #45c4a6;
+      --async-soft: #10312b;
+      --hot: #e0796c;
+      --hot-soft: #351a17;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground: #0d141b;
+    --surface: #16212c;
+    --surface-2: #1d2b37;
+    --ink: #e3eaf1;
+    --ink-2: #a8b8c6;
+    --ink-3: #808f9e;
+    --line: #26343f;
+    --line-strong: #3c4e5f;
+    --accent: #7fb0dc;
+    --accent-soft: #14293a;
+    --async: #45c4a6;
+    --async-soft: #10312b;
+    --hot: #e0796c;
+    --hot-soft: #351a17;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.85;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 56px 24px 96px;
+    display: flex;
+    flex-direction: column;
+    gap: 54px;
+  }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin: 0;
+  }
+
+  header.masthead {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-bottom: 30px;
+    border-bottom: 2px solid var(--ink);
+  }
+  header.masthead h1 {
+    font-size: clamp(27px, 3.8vw, 38px);
+    line-height: 1.26;
+    letter-spacing: -0.015em;
+    margin: 0;
+    text-wrap: balance;
+  }
+  header.masthead p.lede {
+    margin: 4px 0 0;
+    max-width: 80ch;
+    color: var(--ink-2);
+    font-size: 16px;
+  }
+  .status {
+    align-self: flex-start;
+    margin-top: 6px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: 999px;
+    padding: 3px 13px;
+  }
+
+  section { display: flex; flex-direction: column; gap: 18px; }
+
+  h2 {
+    font-size: 21px;
+    letter-spacing: -0.01em;
+    margin: 0;
+    padding-left: 13px;
+    border-left: 3px solid var(--accent);
+    text-wrap: balance;
+  }
+  h3 { font-size: 15px; margin: 0; letter-spacing: 0.01em; }
+  /* 本文は表と同じ幅まで使う（表より狭いと折り返し位置が食い違って読みにくい） */
+  p { margin: 0; }
+
+  code, .mono { font-family: var(--font-mono); font-size: 0.88em; }
+  code {
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 1px 5px;
+    word-break: break-word;
+  }
+
+  .tenets { display: grid; gap: 12px; }
+  .tenet {
+    display: grid;
+    grid-template-columns: 42px 1fr;
+    gap: 4px 14px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    padding: 16px 18px;
+  }
+  .tenet .num {
+    grid-row: 1 / span 2;
+    font-family: var(--font-mono);
+    font-size: 19px;
+    color: var(--accent);
+    line-height: 1.2;
+    font-variant-numeric: tabular-nums;
+  }
+  .tenet b { font-size: 14.5px; }
+  .tenet span { color: var(--ink-2); font-size: 13.5px; line-height: 1.75; }
+
+  figure {
+    margin: 0;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 22px 22px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .scroll { overflow-x: auto; }
+  figure svg { display: block; width: 100%; height: auto; }
+  #fig-seq svg, #fig-infra svg, #fig-entry svg { min-width: 760px; }
+  figcaption {
+    font-size: 13px;
+    line-height: 1.75;
+    color: var(--ink-2);
+    border-top: 1px solid var(--line);
+    padding-top: 12px;
+  }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 22px;
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    letter-spacing: 0.03em;
+    color: var(--ink-2);
+  }
+  .legend span { display: inline-flex; align-items: center; gap: 7px; }
+  .chip { width: 22px; height: 12px; border-radius: 3px; border: 1.5px solid var(--line-strong); background: var(--surface-2); }
+  .chip.acc { border-color: var(--accent); background: var(--accent-soft); }
+  .chip.asy { border-color: var(--async); background: var(--async-soft); }
+
+  .table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface);
+  }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 680px;
+    font-size: 13.5px;
+    font-variant-numeric: tabular-nums;
+  }
+  th, td {
+    text-align: left;
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+    line-height: 1.65;
+  }
+  thead th {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    font-weight: 600;
+    background: var(--surface-2);
+    white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  /* 注目させたい行。色はテーマトークン任せなので明暗どちらでも薄く出る */
+  tbody tr.mark td { background: var(--accent-soft); }
+  /* 本文を左、注記を右端に寄せて1行に収める */
+  td .split { display: flex; align-items: baseline; justify-content: space-between; gap: 20px; }
+  td .split .note { white-space: nowrap; font-weight: 600; color: var(--accent); }
+  td.res { font-family: var(--font-mono); font-size: 12px; line-height: 1.7; }
+  td.step { white-space: nowrap; font-weight: 600; }
+
+  .callout {
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--accent);
+    border-radius: 8px;
+    background: var(--surface);
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .callout.open { border-left-color: var(--hot); background: var(--hot-soft); }
+  .callout ul { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; }
+  .callout li { line-height: 1.75; }
+  .callout ul ul { margin-top: 8px; gap: 6px; }
+  .callout ul ul li { color: var(--ink-2); font-size: 14px; }
+
+  footer {
+    border-top: 1px solid var(--line);
+    padding-top: 18px;
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    color: var(--ink-3);
+    line-height: 1.9;
+  }
+
+  a { color: var(--accent); }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+
+<div class="page">
+
+  <header class="masthead">
+    <p class="eyebrow">配送管理システム &#183; アーキテクチャ設計</p>
+    <h1>PDF生成基盤設計</h1>
+    <p class="lede">
+      配送指示書 PDF をデポ単位の ZIP にまとめ、期限付き URL で渡す仕組みです。
+      受付と生成を切り離してあり、帳票定義を1件足せば新しい帳票へ広がります。
+    </p>
+    <span class="status">実装済み &#183; デプロイ前</span>
+  </header>
+
+  <!-- ============ 設計原則 ============ -->
+  <section>
+    <h2>設計原則</h2>
+    <div class="tenets">
+      <div class="tenet">
+        <span class="num">01</span>
+        <b>受付と生成を切り離す</b>
+        <span>要求を受けたら即座に応答を返し、生成は裏で走らせます。画面は状態を見に行くだけです。</span>
+      </div>
+      <div class="tenet">
+        <span class="num">02</span>
+        <b>業務データのやり取りは api-core に集約する</b>
+        <span>画面もワーカーも、読み書きは API Gateway 経由で api-core に依頼します。業務ルールと権限が1か所に集まります。</span>
+      </div>
+      <div class="tenet">
+        <span class="num">03</span>
+        <b>重い処理だけをワーカーへ</b>
+        <span>PDF 生成が積むのは Chromium・テンプレート・フォントだけ。業務ロジックは持ちません。</span>
+      </div>
+      <div class="tenet">
+        <span class="num">04</span>
+        <b>成果物は S3 へ直接、状態は api-core 経由で</b>
+        <span>出力ファイルは S3 へ直接書き、状態と保存先だけを api-core に書き戻します。</span>
+      </div>
+      <div class="tenet">
+        <span class="num">05</span>
+        <b>権限の範囲を超えて見えないファイル構成で出す</b>
+        <span>「自デポのみ」の人に他デポの情報が渡らないよう、ファイルの区切りを権限の区切りに合わせます。またぐなら分けて出します。</span>
+      </div>
+      <div class="tenet">
+        <span class="num">06</span>
+        <b>認証の形態で住み分ける</b>
+        <span>画面用は Cognito JWT、ワーカー用は内部 API キー。ガードが別なので取り違えません。キーはシステム内で1つ。</span>
+      </div>
+      <div class="tenet">
+        <span class="num">07</span>
+        <b>仕事は「積む」、ワーカーは「引き取る」</b>
+        <span>api-core は「生成待機中」で積むだけ。ワーカーは対象を指定されずに起動し、古い順に1件ずつ引き取ります。</span>
+      </div>
+      <div class="tenet">
+        <span class="num">08</span>
+        <b>仕事が無くなればワーカーは終了する</b>
+        <span>引き取れる仕事が無くなった時点で終わります。常駐しないので、動いた分だけで済みます。</span>
+      </div>
+      <div class="tenet">
+        <span class="num">09</span>
+        <b>引き取りは楽観的排他制御で行う</b>
+        <span>「生成待機中」→「生成中」の更新に勝った1つだけが進みます。負けたワーカーは別のレコードへ移るので、二重に作られません。</span>
+      </div>
+      <div class="tenet">
+        <span class="num">10</span>
+        <b>並列数は「生成中」の件数で抑える</b>
+        <span>起動時に「生成中」を数え、上限（仮 10 件）に達していれば起動しません。積まれた仕事は稼働中のワーカーが拾います。</span>
+      </div>
+      <div class="tenet">
+        <span class="num">11</span>
+        <b>進捗を書き、止まったものはタイムアウトにする</b>
+        <span>PDF 1枚ごとに生成済み枚数を書きます。これが進捗表示と心拍を兼ね、更新が1分途切れた「生成中」はタイムアウトエラーになります。</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 図1 入口 ============ -->
+  <section>
+    <h2>1. 生成の入口は2つ、起動口はひとつ</h2>
+
+    <p>
+      入口は画面からの手動要求と、取込完了後の自動要求の2つ。
+      どちらも api-core の受付を通るので、<strong>ワーカーを起動するのは常に api-core だけ</strong>です。
+    </p>
+
+    <figure id="fig-entry">
+      <div class="scroll">
+        <svg viewBox="0 0 960 352" role="img"
+             aria-label="生成要求の入口が2系統あることを示す図。上段は外部システムから届いた出荷指示データを連携用 S3 に置き、取込ワーカーが解析して api-core 経由で配送データを登録したうえでデポごとに生成を要求する経路。下段は管理画面から手動で要求する経路。両者は api-core の受付に合流し、そこから PDF 生成ワーカーが起動される">
+          <defs>
+            <marker id="a4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="var(--ink-2)"/>
+            </marker>
+            <marker id="a4p" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/>
+            </marker>
+            <marker id="a4a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="var(--async)"/>
+            </marker>
+          </defs>
+
+          <text x="14" y="28" font-family="var(--font-mono)" font-size="10.5" fill="var(--ink-3)" letter-spacing="0.1em">A &#183; 取込からの自動要求</text>
+
+          <rect x="16" y="46" width="106" height="56" rx="6" fill="var(--surface-2)" stroke="var(--line-strong)" stroke-width="1.5"/>
+          <text x="69" y="70" text-anchor="middle" font-size="12" fill="var(--ink)">外部システム</text>
+          <text x="69" y="88" text-anchor="middle" font-family="var(--font-mono)" font-size="10" fill="var(--ink-3)">出荷指示</text>
+
+          <rect x="158" y="46" width="106" height="56" rx="6" fill="var(--surface-2)" stroke="var(--line-strong)" stroke-width="1.5"/>
+          <text x="211" y="70" text-anchor="middle" font-size="12" fill="var(--ink)">連携用 S3</text>
+          <text x="211" y="88" text-anchor="middle" font-family="var(--font-mono)" font-size="10" fill="var(--ink-3)">ファイル配置</text>
+
+          <rect x="300" y="38" width="112" height="72" rx="6" fill="var(--surface)" stroke="var(--ink-3)" stroke-width="1.5" stroke-dasharray="5 4"/>
+          <text x="356" y="62" text-anchor="middle" font-size="12" fill="var(--ink)">取込ワーカー</text>
+          <text x="356" y="80" text-anchor="middle" font-family="var(--font-mono)" font-size="10" fill="var(--ink-3)">ファイルを解析</text>
+          <text x="356" y="96" text-anchor="middle" font-family="var(--font-mono)" font-size="10" fill="var(--ink-3)">別スコープ</text>
+
+          <rect x="448" y="38" width="160" height="72" rx="6" fill="var(--surface-2)" stroke="var(--line-strong)" stroke-width="1.5"/>
+          <text x="528" y="62" text-anchor="middle" font-size="12.5" fill="var(--ink)">配送データの検証・登録</text>
+          <text x="528" y="80" text-anchor="middle" font-family="var(--font-mono)" font-size="10" fill="var(--ink-3)">api-core 経由</text>
+          <text x="528" y="96" text-anchor="middle" font-family="var(--font-mono)" font-size="10" fill="var(--ink-3)">検証 → 書き込み（再検証）</text>
+
+          <line x1="122" y1="74" x2="154" y2="74" stroke="var(--ink-2)" stroke-width="1.6" marker-end="url(#a4)"/>
+          <line x1="264" y1="74" x2="296" y2="74" stroke="var(--ink-2)" stroke-width="1.6" marker-end="url(#a4)"/>
+          <line x1="412" y1="74" x2="444" y2="74" stroke="var(--ink-2)" stroke-width="1.6" marker-end="url(#a4)"/>
+
+          <path d="M608,74 H648 V152" fill="none" stroke="var(--accent)" stroke-width="2.2" marker-end="url(#a4p)"/>
+          <text x="660" y="120" font-size="11.5" fill="var(--accent)">デポごとに生成を要求</text>
+
+          <text x="14" y="268" font-family="var(--font-mono)" font-size="10.5" fill="var(--ink-3)" letter-spacing="0.1em">B &#183; 画面からの手動要求</text>
+
+          <rect x="16" y="284" width="106" height="52" rx="6" fill="var(--surface-2)" stroke="var(--line-strong)" stroke-width="1.5"/>
+          <text x="69" y="315" text-anchor="middle" font-size="12" fill="var(--ink)">管理画面</text>
+
+          <path d="M122,310 H568 V236" fill="none" stroke="var(--ink-2)" stroke-width="1.7" marker-end="url(#a4)"/>
+          <text x="330" y="302" text-anchor="middle" font-size="11.5" fill="var(--ink-2)">操作したn件を要求</text>
+
+          <rect x="528" y="158" width="240" height="78" rx="6" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2"/>
+          <text x="648" y="182" text-anchor="middle" font-size="13" fill="var(--ink)">受付（api-core）</text>
+          <text x="648" y="201" text-anchor="middle" font-family="var(--font-mono)" font-size="10.5" fill="var(--ink-2)">結果レコードを「生成待機中」で積む</text>
+          <text x="648" y="218" text-anchor="middle" font-family="var(--font-mono)" font-size="10.5" fill="var(--ink-2)">「生成中」が上限未満なら起動</text>
+
+          <line x1="768" y1="197" x2="832" y2="197" stroke="var(--async)" stroke-width="2.4" marker-end="url(#a4a)"/>
+          <text x="800" y="176" text-anchor="middle" font-size="11" fill="var(--async)">唯一の</text>
+          <text x="800" y="190" text-anchor="middle" font-size="11" fill="var(--async)">起動口</text>
+          <text x="840" y="193" font-size="11.5" fill="var(--async)">PDF生成</text>
+          <text x="840" y="209" font-size="11.5" fill="var(--async)">ワーカーへ</text>
+        </svg>
+      </div>
+      <figcaption>
+        <strong>ファイルの解析は別スコープです</strong>（破線）。取込側に提供するのは
+        <strong>検証・書き込み・生成の要求・状態の確認</strong>の4つの API だけ（&sect;5）。
+        取込側は<strong>登録が済んでから</strong>生成を要求します。逆になると、まだ入っていないデータで帳票が作られます。
+      </figcaption>
+    </figure>
+  </section>
+
+  <!-- ============ 図2 シーケンス ============ -->
+  <section>
+    <h2>2. ランタイムフロー</h2>
+
+    <figure id="fig-seq">
+      <div class="legend">
+        <span><i class="chip"></i>画面用 API（Cognito JWT）</span>
+        <span><i class="chip acc"></i>内部 API（x-pw-api-key）</span>
+        <span><i class="chip asy"></i>非同期 Invoke ／ S3 直接</span>
+      </div>
+
+      <div class="scroll">
+        <svg viewBox="0 0 980 880" role="img"
+             aria-label="帳票生成の時系列。受付は結果レコードを生成待機中で積み、生成中の件数が上限未満のときだけワーカーを起動する。ワーカーは処理対象を指定されずに起動し、古い順に生成待機中のレコードを楽観的排他制御で引き取ってから、エリアごとにデータを取得して PDF を作り、1枚ごとに生成済み枚数を書き戻す。全エリアを終えたら ZIP にして S3 へ保存し完了を書き戻す。引き取れるレコードが無くなるとワーカーは終了する。画面は状態をポーリングし、完了後にダウンロード URL を要求する">
+          <defs>
+            <marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="var(--ink-2)"/>
+            </marker>
+            <marker id="a2p" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/>
+            </marker>
+            <marker id="a2a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="var(--async)"/>
+            </marker>
+          </defs>
+
+          <rect x="24" y="16" width="128" height="40" rx="5" fill="var(--surface-2)" stroke="var(--line-strong)" stroke-width="1.5"/>
+          <text x="88" y="41" text-anchor="middle" font-size="12.5" fill="var(--ink)">管理画面</text>
+
+          <rect x="222" y="16" width="156" height="40" rx="5" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.8"/>
+          <text x="300" y="41" text-anchor="middle" font-size="12.5" fill="var(--ink)">api-core</text>
+
+          <rect x="428" y="16" width="144" height="40" rx="5" fill="var(--surface-2)" stroke="var(--line-strong)" stroke-width="1.5"/>
+          <text x="500" y="41" text-anchor="middle" font-size="12.5" fill="var(--ink)">PostgreSQL</text>
+
+          <rect x="608" y="16" width="184" height="40" rx="5" fill="var(--async-soft)" stroke="var(--async)" stroke-width="1.8"/>
+          <text x="700" y="41" text-anchor="middle" font-size="12.5" fill="var(--ink)">PDF生成ワーカー</text>
+
+          <rect x="836" y="16" width="128" height="40" rx="5" fill="var(--async-soft)" stroke="var(--async)" stroke-width="1.8"/>
+          <text x="900" y="41" text-anchor="middle" font-size="12.5" fill="var(--ink)">帳票 S3</text>
+
+          <line x1="88" y1="56" x2="88" y2="860" stroke="var(--line-strong)" stroke-width="1.2" stroke-dasharray="3 5"/>
+          <line x1="300" y1="56" x2="300" y2="860" stroke="var(--line-strong)" stroke-width="1.2" stroke-dasharray="3 5"/>
+          <line x1="500" y1="56" x2="500" y2="860" stroke="var(--line-strong)" stroke-width="1.2" stroke-dasharray="3 5"/>
+          <line x1="700" y1="56" x2="700" y2="860" stroke="var(--line-strong)" stroke-width="1.2" stroke-dasharray="3 5"/>
+          <line x1="900" y1="56" x2="900" y2="860" stroke="var(--line-strong)" stroke-width="1.2" stroke-dasharray="3 5"/>
+
+          <rect x="692" y="182" width="16" height="518" rx="2" fill="var(--async-soft)" stroke="var(--async)" stroke-width="1.6"/>
+
+          <line x1="88" y1="92" x2="296" y2="92" stroke="var(--ink-2)" stroke-width="1.7" marker-end="url(#a2)"/>
+          <text x="96" y="84" font-size="11.5" fill="var(--ink)">① 生成を要求（画面から、または取込側から）</text>
+
+          <line x1="304" y1="126" x2="496" y2="126" stroke="var(--ink-2)" stroke-width="1.6" marker-end="url(#a2)"/>
+          <text x="312" y="118" font-size="11.5" fill="var(--ink)">② 結果レコードを「生成待機中」で積む（作成時刻＝基準時刻）</text>
+
+          <line x1="304" y1="158" x2="496" y2="158" stroke="var(--ink-2)" stroke-width="1.6" marker-end="url(#a2)"/>
+          <text x="312" y="150" font-size="11.5" fill="var(--ink)">③「生成中」の件数を数える</text>
+
+          <line x1="304" y1="192" x2="688" y2="192" stroke="var(--async)" stroke-width="2.2" marker-end="url(#a2a)"/>
+          <text x="312" y="184" font-size="11.5" fill="var(--async)">④ 上限（仮 10 件）未満なら Invoke。処理対象は指定しない</text>
+
+          <line x1="296" y1="224" x2="92" y2="224" stroke="var(--ink-2)" stroke-width="1.4" stroke-dasharray="5 4" marker-end="url(#a2)"/>
+          <text x="292" y="216" text-anchor="end" font-size="11.5" fill="var(--ink-2)">⑤ 受付完了を即返す</text>
+
+          <!-- 外側ループ -->
+          <rect x="258" y="250" width="674" height="450" rx="4" fill="none" stroke="var(--async)" stroke-width="1.3" stroke-dasharray="4 4"/>
+          <rect x="258" y="250" width="196" height="19" rx="3" fill="var(--async)"/>
+          <text x="266" y="264" font-family="var(--font-mono)" font-size="10" fill="var(--surface)">LOOP 引き取れる仕事がある限り</text>
+
+          <line x1="688" y1="292" x2="308" y2="292" stroke="var(--accent)" stroke-width="2.2" marker-end="url(#a2p)"/>
+          <text x="684" y="284" text-anchor="end" font-size="11.5" fill="var(--accent)">⑥ 次の仕事はあるか</text>
+
+          <line x1="304" y1="324" x2="496" y2="324" stroke="var(--ink-2)" stroke-width="1.6" marker-end="url(#a2)"/>
+          <text x="312" y="316" font-size="11.5" fill="var(--ink)">⑦ 古い順に1件、楽観的排他制御で「生成中」へ</text>
+          <text x="312" y="342" font-family="var(--font-mono)" font-size="10.5" fill="var(--ink-3)">更新に失敗したら別のレコードで再試行</text>
+
+          <line x1="308" y1="370" x2="688" y2="370" stroke="var(--accent)" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#a2p)"/>
+          <text x="316" y="362" font-size="11.5" fill="var(--accent)">⑧ 帳票ID ＋ 生成に要る文脈を返す</text>
+
+          <!-- 内側ループ -->
+          <rect x="272" y="394" width="624" height="176" rx="4" fill="none" stroke="var(--accent)" stroke-width="1.2" stroke-dasharray="4 4"/>
+          <rect x="272" y="394" width="196" height="19" rx="3" fill="var(--accent)"/>
+          <text x="280" y="408" font-family="var(--font-mono)" font-size="10" fill="var(--surface)">LOOP エリアごと（基準時刻で固定）</text>
+
+          <line x1="688" y1="440" x2="308" y2="440" stroke="var(--accent)" stroke-width="2.2" marker-end="url(#a2p)"/>
+          <text x="684" y="432" text-anchor="end" font-size="11.5" fill="var(--accent)">⑨ データを要求（帳票ID・カーソル・仮 100 件）</text>
+
+          <line x1="304" y1="472" x2="496" y2="472" stroke="var(--ink-2)" stroke-width="1.6" marker-end="url(#a2)"/>
+          <text x="312" y="464" font-size="11.5" fill="var(--ink)">⑩ 基準時刻時点の有効レコードだけ返す</text>
+
+          <path d="M708,498 H768 V520 H712" fill="none" stroke="var(--ink-2)" stroke-width="1.6" marker-end="url(#a2)"/>
+          <text x="778" y="512" font-size="11.5" fill="var(--ink)">⑪ Chromium → PDF</text>
+
+          <line x1="688" y1="552" x2="308" y2="552" stroke="var(--accent)" stroke-width="2.2" marker-end="url(#a2p)"/>
+          <text x="684" y="544" text-anchor="end" font-size="11.5" fill="var(--accent)">⑫ 生成済み枚数を更新（進捗と心拍を兼ねる）</text>
+
+          <line x1="708" y1="604" x2="896" y2="604" stroke="var(--async)" stroke-width="2.2" marker-end="url(#a2a)"/>
+          <text x="716" y="596" font-size="11.5" fill="var(--async)">⑬ ZIP にまとめて保存</text>
+
+          <line x1="688" y1="640" x2="308" y2="640" stroke="var(--accent)" stroke-width="2.2" marker-end="url(#a2p)"/>
+          <text x="684" y="632" text-anchor="end" font-size="11.5" fill="var(--accent)">⑭ 完了 Mutation（保存先・ファイル名・サイズ）</text>
+
+          <line x1="304" y1="674" x2="496" y2="674" stroke="var(--ink-2)" stroke-width="1.6" marker-end="url(#a2)"/>
+          <text x="312" y="666" font-size="11.5" fill="var(--ink)">⑮「完了」に更新（以降の書き戻しは通らない）</text>
+
+          <text x="266" y="722" font-size="11.5" fill="var(--async)">⑥ で引き取れるレコードが無ければ「仕事なし」が返り、ワーカーは終了する</text>
+
+          <line x1="88" y1="788" x2="296" y2="788" stroke="var(--ink-2)" stroke-width="1.4" stroke-dasharray="5 4" marker-end="url(#a2)"/>
+          <text x="96" y="762" font-size="11.5" fill="var(--ink-2)">⑯ 状態をポーリング（完了していない間のみ）</text>
+          <text x="96" y="780" font-family="var(--font-mono)" font-size="10.5" fill="var(--ink-2)">→ 未完了: 状態 ＋ 生成済み枚数 ／ 完了: 状態 ＋ 保存先・ファイル名・サイズ</text>
+
+          <line x1="88" y1="824" x2="296" y2="824" stroke="var(--ink-2)" stroke-width="1.7" marker-end="url(#a2)"/>
+          <text x="96" y="816" font-size="11.5" fill="var(--ink)">⑰ 押下時にダウンロード URL を要求 → 期限付き URL</text>
+
+          <line x1="88" y1="856" x2="896" y2="856" stroke="var(--ink-2)" stroke-width="1.7" marker-end="url(#a2)"/>
+          <text x="96" y="848" font-size="11.5" fill="var(--ink)">⑱ S3 から直接ダウンロード</text>
+        </svg>
+      </div>
+      <figcaption>
+        <strong>&#9315; では処理対象を指定しません。</strong>ワーカーは&#9317;で自分の仕事を探し、無くなれば終了します。
+        <br>
+        <strong>&#9323; が二役です。</strong>生成済み枚数が進捗であり、同時に生きている目印。更新が1分途切れた「生成中」は時間切れと判定します。
+        <br>
+        <strong>&#9313;で積んだ行の作成時刻が基準時刻です。</strong>&#9319;でワーカーへ渡り、&#9320;〜&#9323;はその時点のデータだけを見ます。
+      </figcaption>
+    </figure>
+  </section>
+
+  <!-- ============ 引き取りの仕組み ============ -->
+  <section>
+    <h2>3. 多重生成と無尽蔵な並列化を防ぐ</h2>
+
+    <p>
+      ワーカーは<strong>対象を指定されずに起動し、自分で仕事を探します</strong>。仕事は「生成待機中」で積まれ、
+      引き取られて「生成中」になります。これで3つの心配が片付きます。
+    </p>
+
+    <div class="callout">
+      <ul>
+        <li><strong>勝手な起動。</strong>
+          「生成待機中」を積めるのは api-core だけ。不正に起動されても何も見つからず終了します</li>
+        <li><strong>多重生成。</strong>
+          引き取りは楽観的排他制御なので勝つのは1つだけ。再試行があっても同じ帳票は作られません</li>
+        <li><strong>無尽蔵な並列化。</strong>
+          起動してよいのは「生成中」が上限（仮 10 件）未満のときだけ。<strong>積むことと走らせることを分けてあるので、
+          要求がいくつ届いても走る本数は頭打ちになります。</strong>あふれた分は待機したまま残ります</li>
+      </ul>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>タイミング</th><th>やること</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="step">受付</td>
+            <td>結果レコードを「生成待機中」で作ってコミットする。<strong>この行の作成時刻が基準時刻になる</strong></td>
+          </tr>
+          <tr>
+            <td class="step">起動判定</td>
+            <td>「生成中」を数え、<strong>上限（仮 10 件）未満のときだけ</strong>起動する</td>
+          </tr>
+          <tr>
+            <td class="step">引き取り</td>
+            <td>「生成待機中」を<strong>古い順に1件</strong>選び、楽観的排他制御で「生成中」へ更新。<strong>更新に勝った1つだけ</strong>が帳票 ID と生成に要る文脈を受け取る。負けたら別のレコードで再試行</td>
+          </tr>
+          <tr>
+            <td class="step">処理中</td>
+            <td>PDF 1枚ごとに生成済み枚数を書き戻す。<strong>その行がまだ「生成中」であること</strong>を毎回確かめ、そうでなければ拒否する</td>
+          </tr>
+          <tr>
+            <td class="step">異常時</td>
+            <td><strong>更新時刻が1分以上前の「生成中」</strong>は「タイムアウトエラー」とする。件数を数えるときと引き取りのときに合わせて判定すれば、別に監視を置く必要はない</td>
+          </tr>
+          <tr>
+            <td class="step">完了</td>
+            <td>「完了」に更新する。以降は「生成中」でなくなるので書き戻しは通らない。ワーカーは「次の仕事はあるか」に戻る</td>
+          </tr>
+          <tr>
+            <td class="step">終了</td>
+            <td>引き取れるレコードが無ければ「仕事なし」が返り、ワーカーはそこで終了する</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      ワーカーに <strong>Function URL やイベントソースは付けません</strong>。入口は IAM 認証つきの起動1本だけです。
+    </p>
+  </section>
+
+  <!-- ============ 図3 インフラ ============ -->
+  <section>
+    <h2>4. インフラ配置 &mdash; ワーカーはすべて VPC の外</h2>
+
+    <figure id="fig-infra">
+      <div class="scroll">
+        <svg viewBox="0 0 960 580" role="img"
+             aria-label="インフラ配置。VPC の private subnet には api-core と PostgreSQL だけが置かれる。取込ワーカーと PDF 生成ワーカーはどちらも VPC の外にあり、API Gateway 経由で api-core を呼ぶ。PDF 生成ワーカーを起動するのは api-core のみで、成果物は S3 へ直接書き込む">
+          <defs>
+            <marker id="a3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="var(--ink-2)"/>
+            </marker>
+            <marker id="a3p" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/>
+            </marker>
+            <marker id="a3a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="var(--async)"/>
+            </marker>
+          </defs>
+
+          <rect x="150" y="22" width="796" height="506" rx="10" fill="none" stroke="var(--line)" stroke-width="1.5"/>
+          <text x="166" y="43" font-family="var(--font-mono)" font-size="11" fill="var(--ink-3)" letter-spacing="0.08em">AWS Cloud &#183; ap-northeast-1</text>
+
+          <rect x="250" y="150" width="240" height="210" rx="8" fill="var(--surface-2)" stroke="var(--line-strong)" stroke-width="1.5"/>
+          <text x="266" y="172" font-family="var(--font-mono)" font-size="11" fill="var(--ink-3)" letter-spacing="0.06em">VPC &#183; private subnet</text>
+
+          <rect x="18" y="60" width="112" height="52" rx="6" fill="var(--surface)" stroke="var(--line-strong)" stroke-width="1.5"/>
+          <text x="74" y="91" text-anchor="middle" font-size="12.5" fill="var(--ink)">管理画面</text>
+
+          <rect x="18" y="404" width="112" height="54" rx="6" fill="var(--surface)" stroke="var(--line-strong)" stroke-width="1.5"/>
+          <text x="74" y="426" text-anchor="middle" font-size="12" fill="var(--ink)">外部システム</text>
+          <text x="74" y="444" text-anchor="middle" font-family="var(--font-mono)" font-size="10" fill="var(--ink-3)">出荷指示</text>
+
+          <rect x="290" y="60" width="160" height="52" rx="6" fill="var(--surface)" stroke="var(--line-strong)" stroke-width="1.5"/>
+          <text x="370" y="91" text-anchor="middle" font-size="12.5" fill="var(--ink)">API Gateway</text>
+
+          <rect x="278" y="186" width="184" height="64" rx="6" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2"/>
+          <text x="370" y="212" text-anchor="middle" font-size="12.5" fill="var(--ink)">api-core</text>
+          <text x="370" y="232" text-anchor="middle" font-family="var(--font-mono)" font-size="10" fill="var(--ink-2)">業務データの読み書き</text>
+
+          <rect x="278" y="284" width="184" height="54" rx="6" fill="var(--surface)" stroke="var(--line-strong)" stroke-width="1.5"/>
+          <text x="370" y="307" text-anchor="middle" font-size="12.5" fill="var(--ink)">PostgreSQL</text>
+          <text x="370" y="325" text-anchor="middle" font-family="var(--font-mono)" font-size="10" fill="var(--ink-3)">t_report_files ほか</text>
+
+          <rect x="650" y="176" width="220" height="76" rx="6" fill="var(--async-soft)" stroke="var(--async)" stroke-width="2"/>
+          <text x="760" y="202" text-anchor="middle" font-size="12.5" fill="var(--ink)">PDF生成ワーカー</text>
+          <text x="760" y="221" text-anchor="middle" font-family="var(--font-mono)" font-size="10" fill="var(--async)">VPC 外 &#183; DB 接続なし</text>
+          <text x="760" y="238" text-anchor="middle" font-family="var(--font-mono)" font-size="10" fill="var(--ink-3)">Chromium ＋ テンプレート</text>
+
+          <rect x="650" y="286" width="220" height="54" rx="6" fill="var(--async-soft)" stroke="var(--async)" stroke-width="2"/>
+          <text x="760" y="309" text-anchor="middle" font-size="12.5" fill="var(--ink)">帳票 S3 バケット</text>
+          <text x="760" y="327" text-anchor="middle" font-family="var(--font-mono)" font-size="10" fill="var(--ink-3)">PDF / ZIP</text>
+
+          <rect x="650" y="392" width="220" height="72" rx="6" fill="var(--surface)" stroke="var(--ink-3)" stroke-width="1.5" stroke-dasharray="5 4"/>
+          <text x="760" y="416" text-anchor="middle" font-size="12.5" fill="var(--ink)">取込ワーカー</text>
+          <text x="760" y="435" text-anchor="middle" font-family="var(--font-mono)" font-size="10" fill="var(--ink-3)">VPC 外 &#183; DB 接続なし</text>
+          <text x="760" y="452" text-anchor="middle" font-family="var(--font-mono)" font-size="10" fill="var(--ink-3)">別スコープ</text>
+
+          <rect x="350" y="404" width="180" height="54" rx="6" fill="var(--surface)" stroke="var(--line-strong)" stroke-width="1.5"/>
+          <text x="440" y="427" text-anchor="middle" font-size="12.5" fill="var(--ink)">連携用 S3</text>
+          <text x="440" y="445" text-anchor="middle" font-family="var(--font-mono)" font-size="10" fill="var(--ink-3)">取込ファイル</text>
+
+          <line x1="130" y1="86" x2="286" y2="86" stroke="var(--ink-2)" stroke-width="1.7" marker-end="url(#a3)"/>
+          <text x="208" y="78" text-anchor="middle" font-family="var(--font-mono)" font-size="10" fill="var(--ink-2)">Cognito JWT</text>
+
+          <line x1="370" y1="112" x2="370" y2="182" stroke="var(--ink-2)" stroke-width="1.7" marker-end="url(#a3)"/>
+          <text x="382" y="152" font-family="var(--font-mono)" font-size="10.5" fill="var(--ink-2)">GraphQL</text>
+
+          <line x1="370" y1="250" x2="370" y2="280" stroke="var(--ink-2)" stroke-width="1.7" marker-end="url(#a3)"/>
+          <text x="382" y="272" font-family="var(--font-mono)" font-size="10.5" fill="var(--ink-2)">Prisma</text>
+
+          <line x1="462" y1="208" x2="646" y2="208" stroke="var(--async)" stroke-width="2.6" marker-end="url(#a3a)"/>
+          <text x="554" y="200" text-anchor="middle" font-size="11.5" fill="var(--async)">非同期 Invoke</text>
+
+          <path d="M650,190 H570 V96 H454" fill="none" stroke="var(--accent)" stroke-width="2.2" marker-end="url(#a3p)"/>
+          <text x="582" y="148" font-family="var(--font-mono)" font-size="10.5" fill="var(--accent)">x-pw-api-key</text>
+
+          <path d="M870,410 H906 V80 H454" fill="none" stroke="var(--accent)" stroke-width="2.2" marker-end="url(#a3p)"/>
+          <text x="690" y="70" text-anchor="middle" font-size="11.5" fill="var(--accent)">配送データ登録 → 生成を要求</text>
+          <text x="760" y="382" text-anchor="middle" font-family="var(--font-mono)" font-size="10.5" fill="var(--accent)">x-pw-api-key</text>
+
+          <line x1="760" y1="252" x2="760" y2="282" stroke="var(--async)" stroke-width="2.2" marker-end="url(#a3a)"/>
+          <text x="772" y="274" font-family="var(--font-mono)" font-size="10.5" fill="var(--async)">PutObject</text>
+
+          <line x1="130" y1="431" x2="346" y2="431" stroke="var(--ink-2)" stroke-width="1.7" marker-end="url(#a3)"/>
+          <text x="238" y="423" text-anchor="middle" font-size="11.5" fill="var(--ink-2)">出荷指示データを置く</text>
+
+          <line x1="530" y1="431" x2="646" y2="431" stroke="var(--ink-2)" stroke-width="1.7" marker-end="url(#a3)"/>
+          <text x="588" y="423" text-anchor="middle" font-size="11" fill="var(--ink-3)">読み取り</text>
+
+          <text x="18" y="562" font-size="12" fill="var(--accent)">
+            VPC の中にいるのは api-core と DB だけ。ワーカーは DB 接続を持たないので、ENI・NAT・VPC エンドポイントを考えなくてよい
+          </text>
+        </svg>
+      </div>
+      <figcaption>
+        <strong>VPC の中は api-core と PostgreSQL だけ。</strong>ワーカーは DB 接続を持たないので外に置けます。
+        <code>execute-api</code> の Interface VPC エンドポイント（有料）も NAT も不要です。
+        <br>
+        <strong>起動する矢印は1本だけ</strong>（緑）。取込ワーカーは自分で起動せず、受付に要求を出します（破線＝別スコープ）。
+      </figcaption>
+    </figure>
+  </section>
+
+  <!-- ============ API 住み分け ============ -->
+  <section>
+    <h2>5. API の住み分け</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>区分</th><th>認証</th><th>API</th><th>性質</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>画面用</td>
+            <td class="res">Cognito JWT<br>AuthzGuard</td>
+            <td class="res">生成の要求<br>状態＋進捗＋保存先の取得<br>ダウンロード URL の発行<br>通知一覧</td>
+            <td>すべて短時間。主キーか索引済みの検索のみで完結する</td>
+          </tr>
+          <tr>
+            <td>内部用<br>（PDF生成）</td>
+            <td class="res">x-pw-api-key</td>
+            <td class="res">仕事の引き取り<br>配送データのページ取得<br>生成済み枚数の更新<br>完了の書き戻し</td>
+            <td>引き取りは楽観的排他制御を伴う短い更新。ページ取得は <strong>仮 100 件</strong>で刻むので1回あたりは軽い</td>
+          </tr>
+          <tr>
+            <td>取込側へ<br>提供する分</td>
+            <td class="res">x-pw-api-key</td>
+            <td class="res">配送データの検証<br>配送データの書き込み<br>生成の要求<br>状態の確認</td>
+            <td>検証と書き込みを別の API に分ける。<strong>書き込み時にも検証を通す</strong>（下記）。取込そのもの（ファイルの解析）は別スコープ</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>操作の一覧</h3>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>画面から</th><th>渡すもの</th><th>返るもの</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="res">requestReportGeneration</td>
+            <td>帳票種別・デポ・印字4つ（再発行／カートリッジ／訪問日付／配送完了日）。絞るなら対象日か配送ID</td>
+            <td>受け付けた帳票の行（<strong>生成待機中</strong>）</td>
+          </tr>
+          <tr>
+            <td class="res">reportFileGenerationStatuses</td>
+            <td>帳票IDの配列（<strong>最大100</strong>）</td>
+            <td>状態と生成済み枚数。完了なら保存先・ファイル名・サイズ、エラーなら理由</td>
+          </tr>
+          <tr>
+            <td class="res">reportFileDownloadUrl</td>
+            <td>帳票ID</td>
+            <td>期限付きURL・ファイル名・期限。<strong>押されたときだけ呼ぶ</strong></td>
+          </tr>
+          <tr>
+            <td class="res">batchLogs</td>
+            <td>絞り込みとページ</td>
+            <td>通知の一覧（帳票ファイルは関連として付く）</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>ワーカーから（内部）</th><th>渡すもの</th><th>返るもの</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="res">claimReportGeneration</td>
+            <td><strong>引数なし</strong>（対象を指定しない）</td>
+            <td>帳票ID・種別・ファイル名・デポ・印字と定義側パラメータ。<strong>仕事が無ければ空</strong></td>
+          </tr>
+          <tr>
+            <td class="res">reportGenerationPage</td>
+            <td>帳票ID・カーソル（初回はなし）・件数</td>
+            <td>行・次のカーソル・続きの有無</td>
+          </tr>
+          <tr>
+            <td class="res">updateReportGenerationProgress</td>
+            <td>帳票ID・足す枚数</td>
+            <td>成否</td>
+          </tr>
+          <tr>
+            <td class="res">completeReportGeneration</td>
+            <td>帳票ID・保存先・ファイル名・サイズ</td>
+            <td>成否</td>
+          </tr>
+          <tr>
+            <td class="res">failReportGeneration</td>
+            <td>帳票ID・理由</td>
+            <td>成否</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>取込から（内部）</th><th>渡すもの</th><th>返るもの</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="res">validateInboundRecords</td>
+            <td>取込定義のキーとファイルの参照</td>
+            <td>検証結果（<strong>書き込まない</strong>）</td>
+          </tr>
+          <tr>
+            <td class="res">commitInboundFile</td>
+            <td>同じ入力</td>
+            <td>書き込み結果（<strong>中で必ず再検証する</strong>）</td>
+          </tr>
+          <tr>
+            <td class="res">requestReportGenerationInternal</td>
+            <td>画面と同じ入力</td>
+            <td>帳票ID（受付と起動判定は画面経路と共用）</td>
+          </tr>
+          <tr>
+            <td class="res">inboundFileStatus</td>
+            <td>取込ログID</td>
+            <td>取込の状態と件数</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      書き込み系（進捗・完了・失敗）が見るのは<strong>「その帳票がまだ生成中か」だけ</strong>です。帳票IDのほかに資格を表す値は渡しません。
+      ページ取得が返す行は<strong>JSON 文字列</strong>です。帳票ごとに形が違うため、型を固定していません。
+    </p>
+    <p>
+      内部 API キーの仕組みは既にあります（<code>ApiKeyAuthGuard</code>。<code>svc-pre-token-generator</code> が使用中）。
+      その前例に揃え、キーはシステム内で1つ。
+    </p>
+
+    <h3>取込側の検証と書き込みは分ける</h3>
+    <p>
+      取込側は検証専用の API を通してから書き込みます。<strong>書き込み時にも同じ検証を通す</strong>のは、
+      1行でも失敗したら全件登録しない扱いを成立させるためです。検証を飛ばす抜け道も塞げます。
+    </p>
+  </section>
+
+  <!-- ============ テーブル ============ -->
+  <section>
+    <h2>6. データの持ち方</h2>
+
+    <p>
+      帳票1件の一生（受付 &rarr; 引き取り &rarr; 生成中 &rarr; 完了／失敗）は <code>t_report_files</code> の1行で表せます。
+      状態遷移が<strong>1行の更新</strong>で済むので、楽観的排他制御（&sect;3）がそのまま効きます。
+    </p>
+
+    <h3>t_report_files &mdash; 帳票1件の状態</h3>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>列</th><th>型</th><th>役割</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="res">id</td>
+            <td class="res">UUID<br>PK</td>
+            <td>帳票 ID。画面のポーリングも内部 API の照合もこの値を軸にする</td>
+          </tr>
+          <tr>
+            <td class="res">report_type_code</td>
+            <td class="res">TEXT<br>NOT NULL</td>
+            <td>帳票種別。<strong>どの帳票定義を使うかのキー</strong>で、成果物が ZIP か単体 PDF かもこれで決まる（下記）</td>
+          </tr>
+          <tr>
+            <td class="res">file_name</td>
+            <td class="res">TEXT<br>NOT NULL</td>
+            <td>成果物のファイル名。<strong>受付時に確定</strong>させる（生成側で決めない）</td>
+          </tr>
+          <tr>
+            <td class="res">generation_status_code</td>
+            <td class="res">TEXT<br>NOT NULL</td>
+            <td>状態。<strong>PENDING</strong>（待機中）／ CREATING（生成中）／ CREATED（完了）／ ERROR（エラー）。待機中が引き取り方式の追加分</td>
+          </tr>
+          <tr>
+            <td class="res">generated_count</td>
+            <td class="res">INTEGER<br>NOT NULL / 既定 0</td>
+            <td>生成済み枚数。進捗表示と心拍を兼ねる（&sect;2 &#9323;）</td>
+          </tr>
+          <tr>
+            <td class="res">object_key</td>
+            <td class="res">TEXT</td>
+            <td>S3 のオブジェクトキー。期限付き URL 発行の入力</td>
+          </tr>
+          <tr>
+            <td class="res">file_size</td>
+            <td class="res">INTEGER</td>
+            <td>成果物のバイト数。<strong>ポーリングのたびに S3 へ問い合わせないための保存値</strong></td>
+          </tr>
+          <tr>
+            <td class="res">uploaded_at</td>
+            <td class="res">TIMESTAMPTZ(6)</td>
+            <td><strong>成果物を置き場へ上げ終えた時刻。</strong>保存期限の起点で、ここからの経過が期限を超えた帳票は
+              ダウンロードを渡さない（&sect;10）。完了前と、期限の考えが無かった頃の行は NULL</td>
+          </tr>
+          <tr>
+            <td class="res">file_link</td>
+            <td class="res">TEXT</td>
+            <td>恒久ダウンロード URL。<strong>都度発行方式にしたため受付時点では存在せず、NULL 可</strong></td>
+          </tr>
+          <tr>
+            <td class="res">depot_id</td>
+            <td class="res">UUID<br>NOT NULL<br>&rarr; m_depots</td>
+            <td><strong>対象デポ。1ファイルには同一デポ分しか入らない</strong>（帳票の中身はそのデポが配送する品物の情報だから）。一覧の絞り込みと、自デポのみ許可する権限判定の軸でもある</td>
+          </tr>
+          <tr>
+            <td class="res">generation_params</td>
+            <td class="res">JSONB</td>
+            <td>生成パラメータ（再発行印字・カートリッジ印字・訪問日付印字・配送完了日印字、および対象日・配送 ID）。帳票種別ごとに項目が変わるため列にしない。検索軸ではないので索引も張らない</td>
+          </tr>
+          <tr>
+            <td class="res">error_detail</td>
+            <td class="res">TEXT</td>
+            <td>失敗理由。一覧のツールチップに出す。生成側が失敗した瞬間に書くので、タイムアウトを待たずに理由が分かる</td>
+          </tr>
+          <tr>
+            <td class="res">downloaded_by</td>
+            <td class="res">UUID<br>&rarr; m_users</td>
+            <td>ダウンロードした人。未ダウンロードは NULL</td>
+          </tr>
+          <tr>
+            <td class="res">downloaded_at</td>
+            <td class="res">TIMESTAMPTZ(6)</td>
+            <td>ダウンロード日時。<strong>NULL であることが一覧の「未読」表示の根拠</strong>になる</td>
+          </tr>
+          <tr>
+            <td class="res">version</td>
+            <td class="res">BIGINT<br>NOT NULL / 既定 0</td>
+            <td>排他制御カウンタ。<strong>引き取りの勝敗はこの列で決まる</strong></td>
+          </tr>
+          <tr>
+            <td class="res">deleted_at</td>
+            <td class="res">TIMESTAMP(3)</td>
+            <td>論理削除。全テーブル共通。件数を数えるときは必ず NULL 条件を付ける</td>
+          </tr>
+          <tr>
+            <td class="res">created_at / created_by<br>updated_at / updated_by</td>
+            <td class="res">TIMESTAMPTZ(6)<br>UUID</td>
+            <td>監査列。全テーブル共通。<strong>created_at が基準時刻を兼ねる</strong>（受付時刻そのもの。以降のデータ取得をこの時点に固定する &sect;2 &#9313;〜&#9315;）。<strong>updated_at はタイムアウト判定の軸を兼ねる</strong>（生成中で1分以上前なら時間切れ）</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>索引は引き取りとタイムアウトのために張る</h3>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>索引</th><th>何のために</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="res">(generation_status_code, created_at)</td>
+            <td><strong>引き取り。</strong>「待機中を古い順に1件」を1回の走査で取る（&sect;2 &#9318;）</td>
+          </tr>
+          <tr>
+            <td class="res">(generation_status_code, updated_at)</td>
+            <td><strong>タイムアウト判定。</strong>「生成中で、更新が1分以上前」を拾う（&sect;3 異常時）</td>
+          </tr>
+          <tr>
+            <td class="res">(depot_id)</td>
+            <td>デポでの絞り込みと権限判定</td>
+          </tr>
+          <tr>
+            <td class="res">(created_at)</td>
+            <td>一覧の既定の並び順</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      状態だけの単一列索引は<strong>置きません</strong>。引き取りもタイムアウトも「状態で絞ってから時刻で並べる」動きなので、
+      複合にしないと並べ替えが残ります。
+    </p>
+
+    <h3>成果物が ZIP か単体 PDF かは帳票定義が決める</h3>
+
+    <p>
+      <strong>PDF が中身の単位</strong>で、<strong>ZIP は束ねる入れ物</strong>です。
+      <code>report_type_code</code> から帳票定義を引き、その定義が持つ<strong>出力の型ひとつ</strong>で分岐します。
+      テーブルに「ZIP かどうか」の列は持ちません。
+    </p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>出力の型</th><th>成果物</th><th>使う経路</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="res">zip</td>
+            <td>エリアごとに PDF を作り、デポ単位で1つの ZIP にまとめる</td>
+            <td><strong>取込完了後の一括生成。</strong>デポ単位で1ファイル</td>
+          </tr>
+          <tr>
+            <td class="res">single-pdf</td>
+            <td>PDF を1ファイルそのまま出す</td>
+            <td><strong>画面からの指示書再発行。</strong>配送1件でもデポは決まる（配送 &rarr; エリア &rarr; デポはどちらも必須）</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>この機能のためだけではないテーブル</h3>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>テーブル</th><th>この機能での役割</th><th>加えた変更</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="step">t_deliveries</td>
+            <td>帳票に印字する<strong>元データ</strong>。ワーカーがページに刻んで読む</td>
+            <td class="res">索引 (area_id, created_at) を1本追加。<strong>列は変えない</strong></td>
+          </tr>
+          <tr>
+            <td class="step">m_depots</td>
+            <td>デポ。ZIP の帰属先であり、権限スコープ（自デポのみ）の判定軸</td>
+            <td class="res">帳票ファイルへの関連を追加（列の増減なし）</td>
+          </tr>
+          <tr>
+            <td class="step">m_users</td>
+            <td>ダウンロードした人</td>
+            <td class="res">変更なし</td>
+          </tr>
+          <tr>
+            <td class="step">m_shippers</td>
+            <td>通知の対象荷主</td>
+            <td class="res">変更なし</td>
+          </tr>
+          <tr>
+            <td class="step">m_areas</td>
+            <td>ZIP 内の PDF を分ける単位。デポとの結び付けもここを経由する</td>
+            <td class="res">変更なし</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      配送からデポへは<strong>直接つながっていません</strong>（配送 &rarr; エリア &rarr; デポの2段）。
+      ワーカーの絞り込みがこの2段をたどるため、索引はエリア側に張っています。
+    </p>
+
+  </section>
+
+  <!-- ============ 画面出力 ============ -->
+  <section>
+    <h2>7. 画面はどう見せるか</h2>
+
+    <h3>t_batch_logs &mdash; 画面に出す通知1件</h3>
+
+    <p>
+      帳票の生成が終わるとこの行が1件増えます。一覧に見えているのは <code>t_report_files</code> ではなく<strong>こちら</strong>で、
+      帳票ファイルは関連として引きます。帳票を伴わない通知も同じ一覧に載ります。
+    </p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>列</th><th>型</th><th>役割</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="res">id</td><td class="res">UUID / PK</td><td>通知 ID</td></tr>
+          <tr><td class="res">batch_type_code</td><td class="res">TEXT<br>NOT NULL</td><td>種別。ファイルインポート／ファイルアップロード／帳票作成</td></tr>
+          <tr><td class="res">content</td><td class="res">TEXT<br>NOT NULL</td><td>通知内容の本文（自由文）</td></tr>
+          <tr>
+            <td class="res">report_file_id</td>
+            <td class="res">UUID<br>&rarr; t_report_files</td>
+            <td>帳票ファイル。<strong>帳票を伴わない通知では NULL</strong></td>
+          </tr>
+          <tr>
+            <td class="res">depot_id</td>
+            <td class="res">UUID<br>&rarr; m_depots</td>
+            <td>対象デポ。<strong>帳票ファイルが添付されない通知ではデポが決まらないため NULL 可</strong></td>
+          </tr>
+          <tr>
+            <td class="res">shipper_id</td>
+            <td class="res">UUID<br>&rarr; m_shippers</td>
+            <td>対象の荷主。同上の理由で NULL 可</td>
+          </tr>
+          <tr><td class="res">version / deleted_at<br>created_* / updated_*</td><td class="res">&mdash;</td><td>全テーブル共通</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      索引は <code>(depot_id)</code>・<code>(shipper_id)</code>・<code>(created_at)</code> の3本。絞り込みと既定の並び順のためです。
+    </p>
+
+    <h3>未完了があるときだけ状態を取りに行く</h3>
+
+    <p>
+      一覧を丸ごと取り直すのは重いので、<strong>状態だけを返す専用の API</strong>を分けています。
+      未完了（待機中・生成中）の行が1件でもあれば<strong>5秒ごと</strong>にその行の状態だけを取り、全部が終われば止まります。
+      常時ポーリングにはしません。
+    </p>
+
+    <p>
+      これとは別に、一覧そのものを<strong>60秒ごと</strong>に取り直します。取込や他の人が作った<strong>新しい行</strong>は
+      状態の取得では拾えないためです。監視できるのは表示中のページの行（<strong>最大100件</strong>）です。
+    </p>
+
+    <h3>行の見え方</h3>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>状態</th><th>操作列</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="step">待機中</td><td>文言だけ（押せるものは出さない）</td></tr>
+          <tr><td class="step">生成中</td><td>文言だけ</td></tr>
+          <tr><td class="step">完了</td><td><strong>ダウンロードのボタン</strong></td></tr>
+          <tr><td class="step">エラー</td><td>文言＋<strong>マウスを乗せると理由</strong></td></tr>
+          <tr><td class="step">完了（保存期限切れ）</td><td><strong>「保存期限切れ」の文言だけ</strong>（リンクを外してグレー表示。押せるものは出さない）</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      <strong>未読・既読はダウンロード済みかどうか</strong>です（帳票作成の行で、まだ誰も落としていなければ未読）。
+      ダウンロードは<strong>押した瞬間に URL を発行し直す</strong>ので、一覧を眺めているだけでは発行されません。
+    </p>
+
+    <h3>指示書再発行は押下で保存まで終わる</h3>
+
+    <p>
+      生成は非同期のままで、<strong>完成を待つのは画面側</strong>です。同期の生成 API は持ちません。
+    </p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>観点</th><th>決めたこと</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="step">待ち方</td><td>1秒ごとに状態を見て、出来たら保存する（上限60秒）。1件は押下から約2〜3秒。複数デポは §13 のとおりボタンを押させる</td></tr>
+          <tr><td class="step">見せ方</td><td>ボタンをスピナーにする。複数デポのときだけ <code>(2/3)</code> の進捗を出す</td></tr>
+          <tr><td class="step">保存の形</td><td>期限付き URL に <code>attachment</code> を付ける。付けないと PDF はタブ表示になり保存されない</td></tr>
+          <tr><td class="step">待機中の離脱</td><td>再読み込み・タブを閉じる操作は<strong>引き止める</strong>（文言はブラウザ任せで指定できない）。アプリ内の画面遷移は<strong>引き止めない</strong>（保存は完走する）</td></tr>
+          <tr><td class="step">保存できなかった分</td><td>件数を添えて<strong>帳票作成通知へ誘導</strong>する。生成そのものは残っているので取り直せる</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ 失敗したとき ============ -->
+  <section>
+    <h2>8. 失敗したときに何が起きるか</h2>
+
+    <p>
+      生成は裏で走るので、失敗しても画面は知りません。<strong>結果は必ずレコードに残し、画面と通知の両方から気づける</strong>ようにします。
+    </p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>起きたこと</th><th>どうなるか</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="step">生成の途中で失敗した</td>
+            <td>その場で<strong>理由を書いて</strong>「エラー」にする。時間切れを待たないので、原因がすぐ分かる</td>
+          </tr>
+          <tr>
+            <td class="step">対象データが1件も無い</td>
+            <td>空の ZIP を作らず「エラー」に倒す。<strong>中身の無いファイルを配らない</strong></td>
+          </tr>
+          <tr>
+            <td class="step">ワーカーが黙って止まった</td>
+            <td>更新が1分途切れたものを<strong>時間切れ</strong>として「エラー」にする。別に監視は置かず、受付と引き取りのついでに判定する</td>
+          </tr>
+          <tr>
+            <td class="step">ワーカーの起動に失敗した</td>
+            <td><strong>受付は成功させる。</strong>仕事は「生成待機中」で積まれたまま残る。<strong>画面起点なら</strong>、
+              画面を開いたときと60秒ごとの再取得のときに、待機中があって生成中が無ければ起動する</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      取込ワーカー側で起動に失敗したときの扱いは<strong>取込基盤側の責務</strong>です（完了まで見届けるか、利用者へ知らせるか）。
+    </p>
+
+    <h3>利用者から見えるもの</h3>
+
+    <p>
+      一覧では「エラー」の行になり、理由はマウスを乗せると出ます（&sect;7）。あわせて<strong>通知基盤へも飛ぶ</strong>ので、
+      画面を見ていない人も気づけます。
+    </p>
+
+  </section>
+
+  <!-- ============ やり直し ============ -->
+  <section>
+    <h2>9. やり直しについて</h2>
+
+    <p>
+      いまできるのは<strong>画面で対象を選び直して再発行すること</strong>だけです。帳票作成通知の一覧に
+      「この帳票を作り直す」操作はなく、失敗した行もそのまま残って別の行が増えます。
+      <strong>この扱いも含めて、まだ詰めていません。</strong>
+    </p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>問い</th><th>背景</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>作り直したものを<strong>「更新分」として区別して見せるか</strong></td>
+            <td>代引き額が修正された配送について配送指示書を再作成し、デポ単位で<strong>「更新分の配送指示書」として掲載</strong>する記載がある（FE012 の未反映更新点・<strong>要確認</strong>のまま）。いまは同じ見え方の行が増えるだけで、どれが最新か画面から分からない</td>
+          </tr>
+          <tr>
+            <td><strong>古い行をどう扱うか</strong>（残す／消す／並びを下げる）</td>
+            <td>やり直すほど行が増える。保管期限を過ぎたファイルは置き場側で消えるが、<strong>行は残る</strong>（&sect;10）</td>
+          </tr>
+          <tr>
+            <td>エリア洗替のときの再出力は<strong>誰が起点か</strong>（自動／手動）</td>
+            <td>洗替でエリアが再割当されると ZIP の分かれ方も変わるため、<strong>同じタイミングで帳票を再出力する</strong>運用が想定されている。起点の記載はない</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      商品ショート時に水源を振替えて依頼指示書を再作成する運用も挙がっていますが、<strong>フェーズ2以降</strong>として確認済みです。
+    </p>
+  </section>
+
+  <!-- ============ 見える範囲 ============ -->
+  <section>
+    <h2>10. 誰が何を見られるか</h2>
+
+    <p>
+      配送指示書には<strong>受取人の氏名・住所・電話番号</strong>が載ります。仕組みが回りくどく見える箇所は、たいていこれが理由です。
+    </p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>場面</th><th>備え</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="step">ダウンロード</td>
+            <td><strong>期限付きの URL を押した瞬間に発行し直す。</strong>URL を保存しておいて後から開くことはできない。一覧を眺めているだけでは発行されない</td>
+          </tr>
+          <tr>
+            <td class="step">一覧・状態の確認</td>
+            <td><strong>自デポの帳票しか返さない。</strong>他デポの帳票は「無い」ものとして扱い、存在も知らせない</td>
+          </tr>
+          <tr>
+            <td class="step">ワーカーへのデータ受け渡し</td>
+            <td>ワーカーは DB を持たない。配送データは<strong>引き取った帳票の分だけ</strong>を api-core から受け取る</td>
+          </tr>
+          <tr>
+            <td class="step">保管</td>
+            <td>置き場は<strong>帳票専用</strong>のバケット。業務ファイルとも、外部の担当者が触る連携用の置き場とも分ける</td>
+          </tr>
+          <tr>
+            <td class="step">期限切れ</td>
+            <td><strong>保存期限は既定 5 日</strong>（環境変数で変えられる）。<strong>上げ終えた時刻からの経過</strong>で判定し、
+              過ぎた帳票は一覧・ドロワーとも「ダウンロード」を<strong>「保存期限切れ」にして非活性</strong>にする。
+              あわせて<strong>期限付き URL の発行も断る</strong>ので、古い画面から押しても渡らない。
+              ファイル自体を消すのは置き場側の設定の役目で、<strong>行は残る</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </section>
+
+  <!-- ============ 帳票の足し方 ============ -->
+  <section>
+    <h2>11. 新しい帳票を足す</h2>
+
+    <p>
+      帳票1種類につき、<strong>帳票種別コードを1つ増やし、定義を2つ</strong>書きます。
+      定義は<strong>データを集める側</strong>（api-core）と<strong>描く側</strong>（ワーカー）に分かれます（プロセスが別なので）。
+      <strong>両方をその帳票種別コードで結び付けます。</strong>
+    </p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>どちら</th><th>決めること</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="step">データを集める側</td>
+            <td><strong>成果物のファイル名</strong>／受け取る印字パラメータ／<strong>1ページ分をどう取るか</strong>（基準時刻より前の有効なレコードを、カーソルで刻んで返す）</td>
+          </tr>
+          <tr>
+            <td class="step">描く側</td>
+            <td><strong>成果物の形</strong>（ZIP か単体 PDF か。ZIP なら何で分けて何という名前にするか）／<strong>並び順</strong>／1行を1ページの HTML にする書き方／外枠テンプレートとフォントの場所</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      あとは<strong>帳票種別コードの一覧と、定義の登録一覧2本</strong>にそれぞれ1行足すだけ。
+      受付から保存・ダウンロードまでの流れは変わりません。
+    </p>
+
+    <div class="callout">
+      <ul>
+        <li><strong>生成の仕組みに帳票ごとの分岐を入れないこと。</strong>
+          書いた時点で足すだけでは済まなくなります。様式の違いは<strong>すべて定義側で表現します</strong></li>
+        <li><strong>デポは帳票種別によらず必須です。</strong>
+          中身が配送情報でない帳票でも、ファイルは1デポに属します（&sect;6）</li>
+        <li><strong>描く側から DB を触らないこと。</strong>
+          足りないデータがあれば、集める側で取ってから渡します</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ 論点 ============ -->
+  <section>
+    <h2>12. 実測値で調整すること</h2>
+
+    <p>
+      いまの値はすべて仮置きです。<strong>実測は基盤が AWS 上にできてから</strong>行います。
+      ローカルは1台のパソコンの上で動いており、並列時のメモリも DB の負荷も本番と違うためです。
+    </p>
+
+    <h3>先に測るのは3つ</h3>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>測るもの</th><th>測り方</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="step">A. 1帳票あたりの所要時間</td>
+            <td>実データ規模のデポ1件で、受付から完了までの時間。<strong>エリア数・配送件数と合わせて記録する</strong>（件数に比例するのか、それ以外が支配的なのかを見るため）</td>
+          </tr>
+          <tr>
+            <td class="step">B. 1帳票あたりのメモリ</td>
+            <td>ワーカー実行時の最大使用量。ヘッドレスブラウザを積むので、ここが1件あたりの重さを決める</td>
+          </tr>
+          <tr>
+            <td class="step">C. 1ページ取得の応答時間とサイズ</td>
+            <td>件数を変えながら、api-core が返すまでの時間と応答の大きさ</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>そこから設定値を出す</h3>
+
+    <p>
+      3つは独立ではありません。<strong>1ページの件数を大きくすると1回の取得が重くなり、小さくすると回数が増えて所要時間が伸びます。</strong>順に決めます。
+    </p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>決める順</th><th>設定値</th><th>導き方</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="step">1</td>
+            <td><strong>1ページの件数</strong>（仮 100）</td>
+            <td><strong>C</strong> から、1回の取得がゲートウェイの応答上限に収まる最大の件数を取り、<strong>余裕を見て下げる</strong>。ここが他の2つの前提になる</td>
+          </tr>
+          <tr>
+            <td class="step">2</td>
+            <td><strong>ワーカーの実行時間の上限</strong></td>
+            <td><strong>A</strong>（最大のデポ）が収まること。1帳票 ＝「取得の回数 × 1回の時間 ＋ 描画 ＋ ZIP化 ＋ 保存」。<strong>収まらなければ、エリア単位へ刻む改修を検討する</strong>（&sect;2 の構造は変えずに済む）</td>
+          </tr>
+          <tr>
+            <td class="step">3</td>
+            <td><strong>並列数の上限</strong>（仮 10）</td>
+            <td><strong>B</strong> × 並列数が実行基盤の割り当てに収まり、かつ同時に走る取得（並列数 × 毎秒の取得回数）を DB が受けきれること。<strong>DB 側が先に頭打ちになるはず</strong>なので、そちらから決める</td>
+          </tr>
+          <tr>
+            <td class="step">4</td>
+            <td><strong>時間切れの閾値</strong>（仮 1分）</td>
+            <td><strong>正常時の更新間隔の最大値</strong>（＝1枚あたりの生成時間の最大）に余裕を掛ける。短すぎると動いている処理を打ち切り、長すぎると異常の検出が遅れる</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      件数とは別に守る性質があります。<strong>「生成時刻 ＋ 主キー」の複合キー</strong>で並べ、必ず一意の順序が返ること。
+      同時刻でも主キーで決着するので、ページ境界でレコードが飛びません。
+    </p>
+
+    <div class="callout open">
+      <ul>
+        <li><strong>目標時刻から逆算する視点も要ります。</strong>
+          取込完了後に全デポ分が揃うまでの時間には業務上の目標があります。
+          <strong>デポ数 &divide; 並列数 &times; 1帳票の所要時間</strong>が収まらなければ、並列数を上げるか1帳票を軽くするかの判断です</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ 未決の論点 ============ -->
+  <section>
+    <h2>13. 複数選択がデポをまたいだとき</h2>
+
+    <p>
+      一覧のデポ絞り込みは任意なので、複数デポの配送をまたいで選べます。ただし
+      <strong>「自デポのみ」の権限の人に他デポの情報が渡ってはいけません（MUST）。</strong>
+      したがって<strong>1ファイルに入れてよいのは同一デポ分だけ</strong>です。
+    </p>
+
+    <h3>またげるのは全社を見る立場の人だけ</h3>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>ロール</th><th>チェックボックス</th><th>再発行</th><th>またげるか</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="step">デポ運行管理者（2種）</td>
+            <td>あり</td><td>あり</td>
+            <td>不可（自デポのみ）</td>
+          </tr>
+          <tr>
+            <td class="step">物流本部 Lv.2 / Lv.3</td>
+            <td class="res">なし</td><td>あり</td>
+            <td>不可（複数選択できない）</td>
+          </tr>
+          <tr class="mark">
+            <td class="step">物流本部 Lv.1 / Lv.4<br>システム管理者</td>
+            <td>あり</td><td>あり</td>
+            <td><strong>ここだけ可</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>デポごとに分けて出力する</h3>
+
+    <p>
+      またいで選んだときは、<strong>画面側がデポごとにまとめ直し、デポの数だけ要求を出します</strong>
+      （東京3件・名古屋2件なら要求2回・ファイル2つ）。
+    </p>
+
+    <h3>またいだときは自動で落とさない</h3>
+
+    <p>
+      複数のファイルを自動で撃つと、2本目からブラウザの<strong>複数ダウンロードの許可</strong>を求められます
+      （判定基準は時間の間隔ではなく、ユーザー操作から続いているかどうか）。
+      またいだときは自動保存をやめ、<strong>完成した順にデポ名のボタンを出して押させます</strong>。
+      押した分はボタンが消えます。1デポなら成果物は1つなので、従来どおり自動で保存します。
+    </p>
+
+    <h3>1回の要求で選べる件数</h3>
+
+    <p>
+      件数はそのまま PDF のページ数になり、生成時間に直結します（配送IDを入れる JSONB 側には実質の制限がありません）。
+      <strong>1回の要求は300件まで</strong>で、超えた場合は上限を文言で伝え、1件も受け付けません。
+    </p>
+
+  </section>
+
+  <footer>
+    実装済み。AWS への実デプロイは未実施のため、ワーカーの容量は実測値ではなく近似値。<br>
+    ファイル取込そのものの仕様は別スコープのため、本書では api-core が提供する API の境界までを扱う。<br>
+    前例として参照した既存の仕組み: libs/nestjs-graphql-auth（ApiKeyAuthGuard）／
+    projects/svc-pre-token-generator（内部 API 呼び出し）
+  </footer>
+
+</div>
+
+</body></html>

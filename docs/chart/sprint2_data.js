@@ -16,7 +16,8 @@ const SPRINT2_DATA = {
     "2026-07-21": { "ev": 43.2, "ac": 42.9 },
     "2026-07-29": { "ev": 136.9, "ac": 126.5 },
     "2026-08-05": { "ev": 215.2, "ac": 188.9 },
-    "2026-08-12": { "ev": 255.0, "ac": 224.1 }
+    "2026-08-12": { "ev": 255.0, "ac": 224.1 },
+    "2026-08-19": { "ev": 288.7, "ac": 272.1 }
   },
   // 予定休（人員別）。その人員の営業日から除外し、当該人員のタスクを後ろ倒しする。
   leaves: {
@@ -54,6 +55,7 @@ const SPRINT2_DATA = {
     // ───────── その他工数（変更管理で割り込んだ作業・人員1・PW-229と並行）─────────
     { name: "マスタ整理(水源/出荷元廃止→指示書記号)", base: "other", person: 1, group: "その他工数", code: "O1", owner: "両", deps: [], asis: 28.8, plan: 13.7, tobe: 13.66, status: "完了", progress: 1, desc: "変更管理対象の仕様変更（水源マスタ・出荷元マスタ廃止→指示書記号）。計画外の割り込み。追加392行／削除2,464行で削除が主体。仕様が3周変わり13.66hのうち3.25h(24%)が捨て工数、成果物に残ったのは実質6.3h。工程別ではテスト実施が5.79h(42.4%)で最大。asisは削除重み0.25で換算1,008行÷35行/h=28.8h。" },
     { name: "デバッグエージェント実装", base: "other", person: 1, group: "その他工数", code: "O1", owner: "両", deps: [], asis: 12.0, plan: 12.0, tobe: 12.0, status: "完了", progress: 1, desc: "変更管理対象の仕様変更（水源マスタ・出荷元マスタ廃止→指示書記号）。計画外の割り込み。追加392行／削除2,464行で削除が主体。仕様が3周変わり13.66hのうち3.25h(24%)が捨て工数、成果物に残ったのは実質6.3h。工程別ではテスト実施が5.79h(42.4%)で最大。asisは削除重み0.25で換算1,008行÷35行/h=28.8h。" },
+    { name: "設計エージェント実装", base: "other", person: 1, group: "その他工数", code: "O1", owner: "両", deps: [], asis: 12.0, plan: 12.0, tobe: 16.0, status: "完了", progress: 1, desc: "" },
     // 仕様精査(認可)は当初1本(plan 28.8h)を SP1/SP2（上流実測10.7hを2等分）・SP3（画面適用）・SP4（API適用）の4本に分解。合計 plan/asis 28.8h は元と一致。
     { name: "仕様精査(画面適用)",   base: "auth", person: 1, group: "仕様精査",   code: "SP3",  owner: "両", deps: ["仕様精査(認可)②権限モデル整理～PM合意"], asis: 3.0, plan: 3.0, tobe: 3.0, status: "完了", progress: 1, desc: "画面適用（admin 21ルート＋driver 22ルート）に向けた仕様精査。要素ガードの粒度・SCREEN操作キーの割り当て・メニュー出し分けの範囲・KSL/配送員のロール差の確定。計画3.0hで完了。" },
     { name: "画面適用:admin共通", base: "auth", person: 1, group: "適用",      code: "IF1", owner: "FE", deps: ["Edge middlewareアクセス判定(admin)", "仕様精査(画面適用)"], asis: 19.1, plan: 3.5, tobe: 3.5, status: "完了", progress: 1, desc: "main-menu 約20リーフをcan()フィルタ＋RootLayout配線（21ルート）。URL単位の可否はU3で完了しているのでメニュー出し分けが主。計画どおり3.5hで完了。" },
@@ -103,16 +105,16 @@ const SPRINT2_DATA = {
     { name: "状況/通知テーブル", base: "report", person: 1, group: "基盤", code: "R0", owner: "DB", deps: [],                                    asis: 15.3, plan: 2.8, tobe: 2.8, status: "完了", progress: 1, desc: "生成状況テーブル（生成中/完了/エラー＋成果物URL）と帳票作成通知テーブルのスキーマ／seed。" },
     { name: "帳票生成エンジン", base: "report", person: 1, group: "基盤", code: "R1", owner: "BE", deps: [],                                    asis: 30.5, plan: 5.6, tobe: 5.6, status: "完了", progress: 1, desc: "PDF帳票（配送指示書）生成コア。テンプレート→データ差込→PDF化。" },
     { name: "非同期ジョブ基盤", base: "report", person: 1, group: "基盤", code: "R2", owner: "BE", deps: ["帳票生成エンジン", "状況/通知テーブル"], asis: 26.7, plan: 4.9, tobe: 4.9, status: "完了", progress: 1, desc: "非同期生成ジョブの実行枠＋生成状況更新（生成中→完了/エラー）＋S3への成果物アップロード。" },
-    { name: "生成/状況API",     base: "report", person: 1, group: "基盤", code: "R3", owner: "BE", deps: ["非同期ジョブ基盤"],                   asis: 22.9, plan: 4.2, tobe: 0, status: "予定", progress: 0, desc: "生成リクエスト受付mutation＋状況確認query（ポーリング用・完了時はダウンロードURLを返却）。" },
-    { name: "画面出力連携(FE)", base: "report", person: 1, group: "適用", code: "R4", owner: "FE", deps: ["生成/状況API"],                     asis: 19.1, plan: 3.5, tobe: 0, status: "予定", progress: 0, desc: "画面から生成リクエスト→定期ポーリングで状況確認→完了はURLからDL・エラーは画面表示（DLなし）。" },
-    { name: "デポ別一括生成",   base: "report", person: 1, group: "適用", code: "R5", owner: "BE", deps: ["非同期ジョブ基盤", "出荷指示取込"],   asis: 26.7, plan: 4.9, tobe: 0, status: "予定", progress: 0, desc: "出荷指示取込後、デポごとに生成開始→各デポ非同期生成→S3アップロード→生成状況更新→帳票作成通知テーブル更新。" },
-    { name: "帳票E2E",          base: "report", person: 1, group: "E2E", code: "R6", owner: "両", deps: ["画面出力連携(FE)", "デポ別一括生成"],   asis: 11.4, plan: 2.1, tobe: 0, status: "予定", progress: 0, desc: "画面出力（生成→ポーリング→DL）とデポ別一括生成（取込→デポ別→通知）をそれぞれ1本通すE2E。" },
-    { name: "テスト設計・実施(帳票)", base: "report", person: 1, group: "テスト", code: "QA4", owner: "両", deps: ["帳票E2E"], asis: 24.0, plan: 4.4, tobe: 0, status: "予定", progress: 0, desc: "④実装系25.9hに対するテスト仕様設計＋テスト実施＋デグレチェック範囲確認。暫定係数0.168＝PW-229実測。デポ別並列生成の検証が主。" },
-    { name: "PR・レビュー対応(帳票)", base: "report", person: 1, group: "PR", code: "PR4", owner: "両", deps: [], asis: 14.2, plan: 2.6, tobe: 0, status: "予定", progress: 0, desc: "④実装系25.9hに対するPR本文作成＋レビュー指摘対応。暫定係数0.102＝PW-229実測。" },
+    { name: "生成/状況API",     base: "report", person: 1, group: "基盤", code: "R3", owner: "BE", deps: ["非同期ジョブ基盤"],                   asis: 22.9, plan: 4.2, tobe: 6.2, status: "完了", progress: 1, desc: "生成リクエスト受付mutation＋状況確認query（ポーリング用・完了時はダウンロードURLを返却）。" },
+    { name: "画面出力連携(FE)", base: "report", person: 1, group: "適用", code: "R4", owner: "FE", deps: ["生成/状況API"],                     asis: 19.1, plan: 3.5, tobe: 5.2, status: "完了", progress: 1, desc: "画面から生成リクエスト→定期ポーリングで状況確認→完了はURLからDL・エラーは画面表示（DLなし）。" },
+    { name: "デポ別一括生成",   base: "report", person: 1, group: "適用", code: "R5", owner: "BE", deps: ["非同期ジョブ基盤", "出荷指示取込"],   asis: 26.7, plan: 4.9, tobe: 7.2, status: "完了", progress: 1, desc: "出荷指示取込後、デポごとに生成開始→各デポ非同期生成→S3アップロード→生成状況更新→帳票作成通知テーブル更新。" },
+    { name: "帳票E2E",          base: "report", person: 1, group: "E2E", code: "R6", owner: "両", deps: ["画面出力連携(FE)", "デポ別一括生成"],   asis: 11.4, plan: 2.1, tobe: 3.1, status: "完了", progress: 1, desc: "画面出力（生成→ポーリング→DL）とデポ別一括生成（取込→デポ別→通知）をそれぞれ1本通すE2E。" },
+    { name: "テスト設計・実施(帳票)", base: "report", person: 1, group: "テスト", code: "QA4", owner: "両", deps: ["帳票E2E"], asis: 24.0, plan: 4.4, tobe: 6.5, status: "完了", progress: 1, desc: "④実装系25.9hに対するテスト仕様設計＋テスト実施＋デグレチェック範囲確認。暫定係数0.168＝PW-229実測。デポ別並列生成の検証が主。" },
+    { name: "PR・レビュー対応(帳票)", base: "report", person: 1, group: "PR", code: "PR4", owner: "両", deps: [], asis: 14.2, plan: 2.6, tobe: 3.8, status: "完了", progress: 1, desc: "④実装系25.9hに対するPR本文作成＋レビュー指摘対応。暫定係数0.102＝PW-229実測。" },
 
     // ───────── 予備工数 ─────────
-    { name: "予備工数1",        base: "reserve", person: 1, group: "予備工数", code: "R1",  owner: "両", deps: [], asis: 9.6, plan: 1.6, tobe: 0, status: "予定", progress: 0, desc: "人員1（①認証認可）の残キャパ。手戻り・追加調査・レビュー対応・仕様確認の往復などの予備枠。" },
-    { name: "予備工数2",        base: "reserve", person: 2, group: "予備工数", code: "R2",  owner: "両", deps: [], asis: 3.4, plan: 11.4, tobe: 10.93, status: "着手中", progress: 0.51, desc: "人員2（②SMS／③ファイル連携／④帳票出力）の残キャパ。手戻り・追加調査・レビュー対応・仕様確認の往復、横断タスク（先出し確認フォロー・G1合意往復×3基盤・KSL/IVR追跡・workitems2反映）などの予備枠。※うち3.0hはAIインプット整備として項目化。実消化=担当者PR/チケット確認・レビュー対応・チケット修正手順書作成。／PW-252（データモデル設計反映＝変更対応）実測9.18h(band人稼働)を計上。plan3.4hを大幅超過＝予備が変更対応で消費された状態。" },
+    { name: "予備工数1",        base: "reserve", person: 1, group: "予備工数", code: "R1",  owner: "両", deps: [], asis: 11.6, plan: 11.6, tobe: 0, status: "予定", progress: 0, desc: "人員1（①認証認可）の残キャパ。手戻り・追加調査・レビュー対応・仕様確認の往復などの予備枠。" },
+    { name: "予備工数2",        base: "reserve", person: 2, group: "予備工数", code: "R2",  owner: "両", deps: [], asis: 11.4, plan: 11.4, tobe: 10.93, status: "着手中", progress: 0.51, desc: "人員2（②SMS／③ファイル連携／④帳票出力）の残キャパ。手戻り・追加調査・レビュー対応・仕様確認の往復、横断タスク（先出し確認フォロー・G1合意往復×3基盤・KSL/IVR追跡・workitems2反映）などの予備枠。※うち3.0hはAIインプット整備として項目化。実消化=担当者PR/チケット確認・レビュー対応・チケット修正手順書作成。／PW-252（データモデル設計反映＝変更対応）実測9.18h(band人稼働)を計上。plan3.4hを大幅超過＝予備が変更対応で消費された状態。" },
     // ───────── ⑤ IVR連携（後発・スコープ外。7/31に調査/チケット化のみ実施） ─────────
     { name: "IVR連携(IF007/API01-04・調査/チケット化)", base: "ivr", person: 2, group: "仕様精査", code: "IV1", owner: "両", deps: [], asis: 1.43, plan: 1.43, tobe: 1.43, status: "着手中", progress: 0.5, desc: "IF007（IVR予約上限送信IF）・API01-04のスコープ確認とチケット化・仕様精査（7/31実施）。コールフロー本体は他社担当、当社範囲はAPI01-04。SMS要件FIX後の後発対応で今スプリントは調査/起票のみ（スコープ外）。band実測1.43h(人稼働)を記録。" },
   ],

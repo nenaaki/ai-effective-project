@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>経路は誰が決めるか</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+  :root {
+    --ground:#f5f7f7; --surface:#ffffff; --surface-alt:#eaefee;
+    --ink:#16201f; --ink-soft:#4d5c5a; --ink-faint:#7c8a88;
+    --rule:#d3dcdb; --rule-strong:#b4c2c0;
+    --accent:#0d6b68; --accent-soft:#d9ecea;
+    --crit:#9d2f2a;  --crit-soft:#f7e2e0;
+    --ok:#2c6a45;    --ok-soft:#dcece2;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:#0f1414; --surface:#171d1d; --surface-alt:#1e2626;
+      --ink:#e6ecea; --ink-soft:#a7b5b2; --ink-faint:#7d8b89;
+      --rule:#2b3534; --rule-strong:#3d4948;
+      --accent:#5cc3bd; --accent-soft:#16302f;
+      --crit:#e58a83;  --crit-soft:#301b1a;
+      --ok:#7ec49b;    --ok-soft:#17281f;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground:#0f1414; --surface:#171d1d; --surface-alt:#1e2626;
+    --ink:#e6ecea; --ink-soft:#a7b5b2; --ink-faint:#7d8b89;
+    --rule:#2b3534; --rule-strong:#3d4948;
+    --accent:#5cc3bd; --accent-soft:#16302f;
+    --crit:#e58a83;  --crit-soft:#301b1a;
+    --ok:#7ec49b;    --ok-soft:#17281f;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-snap-type: y mandatory; }
+  body {
+    margin: 0; background: var(--ground); color: var(--ink);
+    font-family: "Zen Kaku Gothic New","Hiragino Kaku Gothic ProN","Yu Gothic",system-ui,sans-serif;
+    line-height: 1.7; -webkit-font-smoothing: antialiased;
+  }
+
+  .slide {
+    scroll-snap-align: start;
+    min-height: 100vh; display: flex; flex-direction: column; justify-content: center;
+    padding: 52px clamp(26px, 5.5vw, 84px) 68px;
+    border-bottom: 1px solid var(--rule); position: relative;
+  }
+  .inner { width: 100%; max-width: 1010px; margin: 0 auto; display: flex; flex-direction: column; gap: 26px; }
+
+  .eyebrow {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 11.5px; letter-spacing: .2em; text-transform: uppercase; color: var(--accent);
+    display: flex; align-items: center; gap: 14px;
+  }
+  .eyebrow::after { content:""; flex:1; height:1px; background: var(--rule-strong); }
+
+  h1 {
+    font-family: "Shippori Mincho","Hiragino Mincho ProN",serif; font-weight: 700;
+    font-size: clamp(27px, 4.2vw, 46px); line-height: 1.32; margin: 0; text-wrap: balance;
+  }
+
+  .pageno {
+    position: absolute; right: clamp(26px,5.5vw,84px); bottom: 28px;
+    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 12px; color: var(--ink-faint);
+    font-variant-numeric: tabular-nums; letter-spacing: .08em;
+  }
+
+  figure { margin: 0; }
+  svg { display: block; width: 100%; height: auto; color: var(--ink); }
+  svg text { fill: currentColor; font-family: "Zen Kaku Gothic New","Hiragino Kaku Gothic ProN",system-ui,sans-serif; }
+  .t-b { font-size: 14px; font-weight: 700; }
+  .t-m { font-size: 12.5px; }
+  .t-s { font-size: 11.5px; fill: var(--ink-soft); }
+  .t-f { font-size: 11px; fill: var(--ink-faint); }
+  .t-c { font-size: 12.5px; fill: var(--crit); font-weight: 700; }
+  .t-o { font-size: 12.5px; fill: var(--ok); font-weight: 700; }
+  .t-a { font-size: 12.5px; fill: var(--accent); font-weight: 700; }
+  .bx  { fill: var(--surface); stroke: currentColor; stroke-width: 1.3; }
+  .bxa { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.6; }
+  .bxc { fill: var(--crit-soft); stroke: var(--crit); stroke-width: 1.5; }
+  .bxcd{ fill: var(--crit-soft); stroke: var(--crit); stroke-width: 1.6; stroke-dasharray: 6 4; }
+  .bxo { fill: var(--ok-soft); stroke: var(--ok); stroke-width: 1.5; }
+  .bxn { fill: var(--surface-alt); stroke: var(--rule-strong); stroke-width: 1; }
+  .ln  { stroke: currentColor; stroke-width: 1.4; fill: none; }
+  .lna { stroke: var(--accent); stroke-width: 1.8; fill: none; }
+  .lnc { stroke: var(--crit); stroke-width: 1.8; fill: none; }
+  .lno { stroke: var(--ok); stroke-width: 1.8; fill: none; }
+  .lnf { stroke: var(--ink-faint); stroke-width: 1.3; fill: none; stroke-dasharray: 5 4; }
+  .brk { stroke: var(--accent); stroke-width: 1.4; fill: none; }
+  .divi{ stroke: var(--rule-strong); stroke-width: 1; }
+  .dot { fill: var(--surface); stroke: currentColor; stroke-width: 1.6; }
+  .dota{ fill: var(--accent); stroke: none; }
+  .doto{ fill: var(--ok); stroke: none; }
+  #ar polygon  { fill: currentColor; }
+  #arA polygon { fill: var(--accent); }
+  #arC polygon { fill: var(--crit); }
+  #arO polygon { fill: var(--ok); }
+  #arF polygon { fill: var(--ink-faint); }
+
+  .probs { display: grid; grid-template-columns: repeat(3,1fr); gap: 1px; background: var(--rule);
+    border: 1px solid var(--rule); border-radius: 7px; overflow: hidden; }
+  .prob { background: var(--surface); padding: 14px 16px; display: flex; flex-direction: column; gap: 5px; }
+  .prob .n { font-family:"IBM Plex Mono",ui-monospace,monospace; font-size: 11px; color: var(--crit); }
+  .prob .h { font-size: clamp(13.5px,1.4vw,15.5px); font-weight: 700; line-height: 1.45; }
+  .prob .s { font-size: 11.5px; color: var(--ink-faint); line-height: 1.5; }
+  .prob .chip { align-self: flex-start; margin-top: 3px; font-family:"IBM Plex Mono",ui-monospace,monospace;
+    font-size: 10.5px; letter-spacing: .06em; color: var(--accent); background: var(--accent-soft);
+    padding: 2px 8px; border-radius: 3px; }
+  .caps { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px,1fr)); gap: 14px 26px; }
+  .cap { display: grid; grid-template-columns: 22px 1fr; gap: 10px; align-items: start; }
+  .cap .i {
+    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 11px;
+    color: var(--accent); margin-top: 2px;
+  }
+  .cap p { margin: 0; font-size: clamp(13px,1.35vw,15px); line-height: 1.65; }
+  .cap b { font-weight: 700; }
+
+  .punch {
+    border-left: 4px solid var(--accent); background: var(--accent-soft);
+    padding: 15px 22px; border-radius: 0 5px 5px 0;
+    font-size: clamp(15px,1.8vw,20px); font-weight: 700; line-height: 1.55; text-wrap: balance;
+  }
+  .linkrow { display:flex; flex-wrap:wrap; align-items:baseline; gap:6px 14px; margin:0; }
+  a.lnk { display:inline-block; font-weight:700; font-size:clamp(13.5px,1.4vw,15.5px); color:var(--accent);
+    text-decoration:none; border-bottom:2px solid var(--accent); padding-bottom:2px; }
+  a.lnk:hover { background:var(--accent-soft); }
+  a.lnk:focus-visible { outline:2px solid var(--accent); outline-offset:3px; border-radius:2px; }
+  .linknote { font-size:12px; color:var(--ink-faint); }
+
+  @media (max-width: 700px) {
+    html { scroll-snap-type: none; }
+    .slide { min-height: auto; padding: 44px 20px 56px; }
+    .caps { grid-template-columns: 1fr; }
+    .probs { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ 1 ============ -->
+<section class="slide">
+  <div class="inner">
+    <div class="eyebrow">事象 ／ PW-225 帳票生成基盤</div>
+    <h1>テストは全部通った。<br>気づけたのは、偶然だった。</h1>
+
+    <figure>
+      <svg viewBox="0 0 940 250" role="img" aria-label="実装は1日で完了しテストも全通過したが、構造の誤りはPR本文の1行を人が読んで質問したことでしか発見されなかった">
+        <defs>
+          <marker id="ar"  viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><polygon points="0,1 9,5 0,9"/></marker>
+          <marker id="arA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><polygon points="0,1 9,5 0,9"/></marker>
+          <marker id="arC" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><polygon points="0,1 9,5 0,9"/></marker>
+          <marker id="arO" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><polygon points="0,1 9,5 0,9"/></marker>
+          <marker id="arF" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><polygon points="0,1 9,5 0,9"/></marker>
+        </defs>
+
+        <text class="t-f" x="40"  y="26">1 日目</text>
+        <text class="t-f" x="560" y="26">3 日目</text>
+        <line class="divi" x1="510" y1="16" x2="510" y2="200" stroke-dasharray="4 4"/>
+
+        <line class="ln" x1="40" y1="96" x2="470" y2="96"/>
+        <line class="lna" x1="550" y1="96" x2="900" y2="96" marker-end="url(#arA)"/>
+
+        <circle class="dot" cx="70"  cy="96" r="5"/>
+        <circle class="dot" cx="200" cy="96" r="5"/>
+        <circle class="dot" cx="330" cy="96" r="5"/>
+        <circle class="doto" cx="450" cy="96" r="6"/>
+        <circle class="dota" cx="580" cy="96" r="7"/>
+        <circle class="dota" cx="720" cy="96" r="5"/>
+        <circle class="dota" cx="860" cy="96" r="5"/>
+
+        <text class="t-m" x="70"  y="80" text-anchor="middle">依頼</text>
+        <text class="t-m" x="200" y="80" text-anchor="middle">実装開始</text>
+        <text class="t-f" x="200" y="122" text-anchor="middle">依頼から 48 分</text>
+        <text class="t-m" x="330" y="80" text-anchor="middle">完成</text>
+        <text class="t-f" x="330" y="122" text-anchor="middle">4 層・132 ファイル</text>
+        <text class="t-o" x="450" y="80" text-anchor="middle">テスト 414 件 全通過</text>
+        <text class="t-f" x="450" y="122" text-anchor="middle">レビューも通過・バグ 0</text>
+
+        <text class="t-a" x="580" y="72" text-anchor="middle">人が PR の 1 行を読む</text>
+        <text class="t-f" x="580" y="122" text-anchor="middle">「369MiB？なぜ」</text>
+        <text class="t-a" x="720" y="80" text-anchor="middle">図を描かせる</text>
+        <text class="t-f" x="720" y="122" text-anchor="middle">13 分で誤りに到達</text>
+        <text class="t-a" x="860" y="80" text-anchor="middle">作り直し</text>
+        <text class="t-f" x="860" y="122" text-anchor="middle">手戻り 約 2 日</text>
+
+        <path class="lnf" d="M450 106 V180 H760" marker-end="url(#arF)"/>
+        <text class="t-f" x="466" y="200">誰も聞かなければ、この線をたどって本番へ</text>
+      </svg>
+    </figure>
+
+    <div class="punch">誤っていたのは、入力でも出力でもない。その間の「経路」だった。</div>
+  </div>
+  <div class="pageno">1 / 4</div>
+</section>
+
+<!-- ============ 2 ============ -->
+<section class="slide">
+  <div class="inner">
+    <div class="eyebrow">構造 ／ なぜ誰も気づかなかったか</div>
+    <h1>経路は、誰も見ていない区間にある。</h1>
+
+    <figure>
+      <svg viewBox="0 0 940 350" role="img" aria-label="正本もテストも入力と出力しか見ておらず、その間の経路は誰にも観測されない。正本の一文にAIがDBからの3文字を足していた">
+        <text class="t-a" x="470" y="24" text-anchor="middle">正本（チケット・要件）が決めるのは、ここだけ</text>
+        <path class="brk" d="M70 52 V38 H260 V52"/>
+        <path class="brk" d="M680 52 V38 H870 V52"/>
+
+        <rect class="bx"  x="70"  y="96" width="190" height="62" rx="5"/>
+        <text class="t-b" x="165" y="124" text-anchor="middle">入力</text>
+        <text class="t-s" x="165" y="144" text-anchor="middle">何を渡すか</text>
+
+        <rect class="bxcd" x="350" y="88" width="240" height="78" rx="5"/>
+        <text class="t-c" x="470" y="118" text-anchor="middle">経路</text>
+        <text class="t-s" x="470" y="138" text-anchor="middle">どこを通って処理するか</text>
+        <text class="t-s" x="470" y="156" text-anchor="middle">＝ 実装側が必ず補う</text>
+
+        <rect class="bx"  x="680" y="96" width="190" height="62" rx="5"/>
+        <text class="t-b" x="775" y="124" text-anchor="middle">出力</text>
+        <text class="t-s" x="775" y="144" text-anchor="middle">何が出れば正解か</text>
+
+        <g class="ln" marker-end="url(#ar)">
+          <line x1="260" y1="127" x2="344" y2="127"/>
+          <line x1="590" y1="127" x2="674" y2="127"/>
+        </g>
+
+        <text class="t-c" x="470" y="192" text-anchor="middle">誰も見ていない</text>
+        <path class="brk" d="M70 212 V226 H260 V212"/>
+        <path class="brk" d="M680 212 V226 H870 V212"/>
+        <text class="t-a" x="470" y="244" text-anchor="middle">テストが見るのも、ここだけ</text>
+
+        <line class="divi" x1="70" y1="272" x2="870" y2="272"/>
+        <text class="t-s" x="70" y="300">正本に書いてあったこと</text>
+        <rect class="bxn" x="300" y="284" width="290" height="26" rx="4"/>
+        <text class="t-m" x="445" y="302" text-anchor="middle">「対象データを取得する」</text>
+
+        <text class="t-s" x="70" y="332">AI が読んだこと</text>
+        <rect class="bxc" x="300" y="316" width="290" height="26" rx="4"/>
+        <text class="t-m" x="445" y="334" text-anchor="middle">「DB から 対象データを取得する」</text>
+        <text class="t-c" x="606" y="334">← 足した 3 文字が、以後の前提になった</text>
+      </svg>
+    </figure>
+
+    <div class="caps">
+      <div class="cap"><span class="i">01</span><p><b>正本が経路を書かないのは、設計を委ねているから。</b>良い設計を求めるほど、経路は白紙になる。</p></div>
+      <div class="cap"><span class="i">02</span><p><b>テストも入力と出力を見る。</b>だから 414 件が全部通った。<b>経路だけが誰にも観測されない。</b></p></div>
+    </div>
+  </div>
+  <div class="pageno">2 / 4</div>
+</section>
+
+<!-- ============ 3 ============ -->
+<section class="slide">
+  <div class="inner">
+    <div class="eyebrow">対策 1 ／ エージェントに何を持たせたか</div>
+    <h1>無数の穴を塞ぐより、2 案から選ぶ。</h1>
+
+    <div class="probs">
+      <div class="prob"><span class="n">問題 ①</span><span class="h">何の疑いもなく</span><span class="s">選んだという自覚がない。だから案が 1 つしか出ない</span><span class="chip">対策 1 で塞ぐ</span></div>
+      <div class="prob"><span class="n">問題 ②</span><span class="h">誰にも相談せず</span><span class="s">外の目が一度も入らない</span><span class="chip">対策 2 で塞ぐ</span></div>
+      <div class="prob"><span class="n">問題 ③</span><span class="h">提出し、かつ採用した</span><span class="s">提案者と決裁者が同じ。だからレビューが成立しない</span><span class="chip">対策 2 で塞ぐ</span></div>
+    </div>
+
+    <figure>
+      <svg viewBox="0 0 940 300" role="img" aria-label="既に持ち主がいるものへ新しい処理から触るときは、直結を増やす案と持ち主を通す案の2つを必ず並べる">
+        <rect class="bxa" x="20" y="112" width="230" height="76" rx="6"/>
+        <text class="t-a" x="135" y="140" text-anchor="middle">既に持ち主がいるものへ</text>
+        <text class="t-a" x="135" y="158" text-anchor="middle">新しい処理から触るか？</text>
+        <text class="t-f" x="135" y="176" text-anchor="middle">DB・ファイル置き場・外部システム</text>
+        <text class="t-f" x="135" y="100" text-anchor="middle">この事実で自動的に発火する</text>
+
+        <path class="lna" d="M250 140 H300 V70 H330" marker-end="url(#arA)"/>
+        <path class="lna" d="M250 160 H300 V236 H330" marker-end="url(#arA)"/>
+
+        <text class="t-c" x="340" y="36">案 1　直結を増やす</text>
+        <rect class="bxn" x="340" y="52" width="96" height="34" rx="4"/>
+        <text class="t-s" x="388" y="74" text-anchor="middle">新しい処理</text>
+        <rect class="bxn" x="340" y="98" width="96" height="30" rx="4"/>
+        <text class="t-s" x="388" y="118" text-anchor="middle">今ある処理</text>
+        <rect class="bxc" x="560" y="66" width="90" height="52" rx="4"/>
+        <text class="t-b" x="605" y="97" text-anchor="middle">データ</text>
+        <path class="lnc" d="M436 69 H554" marker-end="url(#arC)"/>
+        <path class="lnc" d="M436 113 H554" marker-end="url(#arC)"/>
+        <text class="t-c" x="670" y="86">経路 2 本</text>
+        <text class="t-f" x="670" y="106">壊れたとき、どちらから壊れたか分からない</text>
+
+        <text class="t-o" x="340" y="200">案 2　持ち主を通す</text>
+        <rect class="bxn" x="340" y="216" width="96" height="34" rx="4"/>
+        <text class="t-s" x="388" y="238" text-anchor="middle">新しい処理</text>
+        <rect class="bxn" x="452" y="216" width="96" height="34" rx="4"/>
+        <text class="t-s" x="500" y="238" text-anchor="middle">持ち主</text>
+        <rect class="bxo" x="560" y="207" width="90" height="52" rx="4"/>
+        <text class="t-b" x="605" y="238" text-anchor="middle">データ</text>
+        <path class="lno" d="M436 233 H446" marker-end="url(#arO)"/>
+        <path class="lno" d="M548 233 H554" marker-end="url(#arO)"/>
+        <text class="t-o" x="670" y="228">経路 1 本</text>
+        <text class="t-f" x="670" y="248">見せる範囲も狭くて済む</text>
+      </svg>
+    </figure>
+
+    <div class="caps">
+      <div class="cap"><span class="i">01</span><p><b>発火が客観的。</b>「迷ったら考える」では、迷わなかった今回は動かない。</p></div>
+      <div class="cap"><span class="i">02</span><p><b>原則は決まっている。</b>運用上のデメリット・リスクが多い方を廃案にする。<b>廃案にした理由を記録して積み上げる。</b></p></div>
+      <div class="cap"><span class="i">03</span><p><b>導入前</b> — 発覚したあと、人との 4 回の問答でようやく真意に到達した。<br><b>導入後</b> — 運用時のデメリットを、事前に潰す舵取りになる。</p></div>
+    </div>
+  </div>
+  <div class="pageno">3 / 4</div>
+</section>
+
+<!-- ============ 4 ============ -->
+<section class="slide">
+  <div class="inner">
+    <div class="eyebrow">対策 2 ／ 設計図を提出物にする</div>
+    <h1>CRUD より複雑なものは、<br>設計図を出してから作る。</h1>
+
+    <figure>
+      <svg viewBox="0 0 940 280" role="img" aria-label="処理の単位が1つなら図は不要、2つ以上なら図を1枚描いてエンジニアへ提出してから実装する">
+        <rect class="bxn" x="20" y="112" width="150" height="46" rx="5"/>
+        <text class="t-b" x="95" y="140" text-anchor="middle">作るもの</text>
+
+        <path class="ln" d="M170 135 H236" marker-end="url(#ar)"/>
+        <rect class="bxa" x="236" y="106" width="168" height="58" rx="6"/>
+        <text class="t-a" x="320" y="130" text-anchor="middle">処理の単位は</text>
+        <text class="t-a" x="320" y="150" text-anchor="middle">いくつか？</text>
+
+        <path class="lnf" d="M404 122 H470 V62 H520" marker-end="url(#arF)"/>
+        <text class="t-f" x="424" y="54">1 つ</text>
+        <rect class="bxn" x="520" y="42" width="200" height="40" rx="5"/>
+        <text class="t-s" x="620" y="67" text-anchor="middle">図は不要（通常の画面）</text>
+        <text class="t-f" x="736" y="67">登録・一覧・編集など</text>
+
+        <path class="lna" d="M404 148 H470 V206 H520" marker-end="url(#arA)"/>
+        <text class="t-a" x="424" y="198">2 つ以上</text>
+        <rect class="bxa" x="520" y="186" width="150" height="40" rx="5"/>
+        <text class="t-a" x="595" y="211" text-anchor="middle">設計図を 1 枚</text>
+        <path class="lna" d="M670 206 H706" marker-end="url(#arA)"/>
+        <rect class="bxo" x="706" y="186" width="130" height="40" rx="5"/>
+        <text class="t-o" x="771" y="211" text-anchor="middle">エンジニアへ提出</text>
+        <path class="lno" d="M771 226 V256" marker-end="url(#arO)"/>
+        <text class="t-o" x="790" y="252">それから実装</text>
+        <text class="t-a" x="706" y="176">採った案と、採らなかった案を並べて出す</text>
+        <text class="t-f" x="706" y="160">＝ 決めるのは受け取った側になる</text>
+
+        <text class="t-s" x="520" y="252">載せるのは 3 つだけ ─</text>
+        <text class="t-f" x="520" y="270">誰が何に触るか ／ どこが境界か ／ 処理の単位はいくつか</text>
+      </svg>
+    </figure>
+
+    <div class="caps">
+      <div class="cap"><span class="i">01</span><p><b>「提出物」であることが本体。</b>自己点検は省いても誰も気づかないが、提出物は無ければ気づかれる。<b>承認を増やさずに見る人が 1 人増える。</b></p></div>
+      <div class="cap"><span class="i">02</span><p><b>受け手のいない記録は残らない。</b>AI の判断根拠を報告末尾に書く運用は、実測で <b>63 件中 3 件</b>しか残らなかった。</p></div>
+      <div class="cap"><span class="i">03</span><p><b>2 案を並べて出す。</b>1 枚だけ出すと「これで決めました」の報告になる。<b>並べて出せば、決裁が受け取った側へ移る</b>（対策 1 で 2 案は既に立っている）。</p></div>
+    </div>
+  </div>
+  <div class="pageno">4 / 4</div>
+</section>
+
+<!-- ============ Appendix 1 ============ -->
+<section class="slide">
+  <div class="inner">
+    <div class="eyebrow">Appendix 1 ／ 進め方の見直し</div>
+    <h1>基盤は、作る前に AI と合意する。</h1>
+
+    <figure>
+      <svg viewBox="0 0 940 250" role="img" aria-label="相談なしで実装した1回目は作り直しになり、先に4時間相談した2回目は同じ規模を一晩で指摘ゼロで終えた">
+        <text class="t-b" x="20" y="44">1 回目　相談なし</text>
+        <rect class="bxn" x="230" y="26" width="180" height="34" rx="4"/>
+        <text class="t-s" x="320" y="48" text-anchor="middle">実装 1 日</text>
+        <rect class="bxc" x="414" y="26" width="360" height="34" rx="4"/>
+        <text class="t-c" x="594" y="48" text-anchor="middle">作り直し　約 2 日</text>
+        <text class="t-f" x="230" y="80">着手前の合意はゼロ。AI が書いた前提を人が読まないまま実装へ</text>
+
+        <line class="divi" x1="20" y1="106" x2="920" y2="106"/>
+
+        <text class="t-b" x="20" y="146">2 回目　先に相談</text>
+        <rect class="bxa" x="230" y="128" width="120" height="34" rx="4"/>
+        <text class="t-a" x="290" y="150" text-anchor="middle">相談 4 時間</text>
+        <rect class="bxo" x="354" y="128" width="150" height="34" rx="4"/>
+        <text class="t-o" x="429" y="150" text-anchor="middle">実装 一晩</text>
+        <text class="t-o" x="520" y="150">同じ規模で、レビュー 3 周 指摘ゼロ</text>
+        <text class="t-f" x="230" y="182">決定 26 項目を根拠つきで確定してから着手</text>
+
+        <path class="lna" d="M290 196 V216 H600" marker-end="url(#arA)"/>
+        <text class="t-a" x="614" y="220">この 4 時間で、2 日の手戻りが消えた</text>
+      </svg>
+    </figure>
+
+    <div class="caps">
+      <div class="cap"><span class="i">01</span><p><b>合意するのは「経路と分け方」。</b>何を作るかはチケットにある。決まっていないのは、どこを通すか。</p></div>
+      <div class="cap"><span class="i">02</span><p><b>やり方は図を描かせて指摘する。</b>文章だと話が一直線に進み、矛盾が見えない。</p></div>
+      <div class="cap"><span class="i">03</span><p><b>AI が実装前に「知りたいこと」を設計書に書き出す。</b>それを人と壁打ちしながら、設計を確定させていく。</p></div>
+    </div>
+
+    <p class="linkrow"><a class="lnk" href="problem_ex_12_design.html" target="_blank" rel="noopener">そのとき使った設計図を見る →</a><span class="linknote">2026-08-17 の協議で描いたもの。これを見た 13 分後に、作り直しの判断へ届いた</span></p>
+  </div>
+  <div class="pageno">Appendix 1 / 2</div>
+</section>
+
+<!-- ============ Appendix 2 ============ -->
+<section class="slide">
+  <div class="inner">
+    <div class="eyebrow">Appendix 2 ／ 大きな開発の分け方</div>
+    <h1>大きさで割らない。決定で割る。</h1>
+
+    <figure>
+      <svg viewBox="0 0 940 250" role="img" aria-label="作業で割ると境界の決定がどのタスクにも属さない。決定を先に閉じてから割ると境界に未確定が残らない">
+        <line class="divi" x1="470" y1="8" x2="470" y2="242"/>
+
+        <text class="t-b" x="20" y="26">作業で割る（1 回目）</text>
+        <rect class="bxn" x="140" y="48" width="180" height="32" rx="4"/>
+        <text class="t-s" x="230" y="69" text-anchor="middle">やることを 4 つに分ける</text>
+        <g class="bxn">
+          <rect x="20"  y="116" width="98" height="32" rx="4"/>
+          <rect x="128" y="116" width="98" height="32" rx="4"/>
+          <rect x="236" y="116" width="98" height="32" rx="4"/>
+          <rect x="344" y="116" width="86" height="32" rx="4"/>
+        </g>
+        <text class="t-s" x="69"  y="137" text-anchor="middle">DB</text>
+        <text class="t-s" x="177" y="137" text-anchor="middle">API</text>
+        <text class="t-s" x="285" y="137" text-anchor="middle">インフラ</text>
+        <text class="t-s" x="387" y="137" text-anchor="middle">画面</text>
+        <g class="ln" marker-end="url(#ar)">
+          <path d="M200 80 V100 H69 V114"/>
+          <path d="M218 80 V100 H177 V114"/>
+          <path d="M242 80 V100 H285 V114"/>
+          <path d="M260 80 V100 H387 V114"/>
+        </g>
+        <rect class="bxcd" x="115" y="182" width="220" height="36" rx="4"/>
+        <text class="t-c" x="225" y="205" text-anchor="middle">どこを通すか</text>
+        <text class="t-f" x="225" y="238" text-anchor="middle">どのタスクにも属さず、担当者が独断で埋めた</text>
+
+        <text class="t-b" x="500" y="26">決定で割る（2 回目）</text>
+        <rect class="bxa" x="560" y="48" width="260" height="32" rx="4"/>
+        <text class="t-a" x="690" y="69" text-anchor="middle">先に「どこを通すか」を決め切る</text>
+        <g class="bxn">
+          <rect x="500" y="116" width="98" height="32" rx="4"/>
+          <rect x="608" y="116" width="98" height="32" rx="4"/>
+          <rect x="716" y="116" width="98" height="32" rx="4"/>
+          <rect x="824" y="116" width="96" height="32" rx="4"/>
+        </g>
+        <text class="t-s" x="549" y="137" text-anchor="middle">DB</text>
+        <text class="t-s" x="657" y="137" text-anchor="middle">API</text>
+        <text class="t-s" x="765" y="137" text-anchor="middle">インフラ</text>
+        <text class="t-s" x="872" y="137" text-anchor="middle">画面</text>
+        <g class="lna" marker-end="url(#arA)">
+          <path d="M650 80 V100 H549 V114"/>
+          <path d="M672 80 V100 H657 V114"/>
+          <path d="M706 80 V100 H765 V114"/>
+          <path d="M728 80 V100 H872 V114"/>
+        </g>
+        <text class="t-a" x="500" y="196">境界に決まっていないものが残らない</text>
+        <text class="t-o" x="500" y="220">同じ規模を一晩で完了。指摘ゼロ</text>
+      </svg>
+    </figure>
+
+    <div class="caps">
+      <div class="cap"><span class="i">01</span><p><b>人の分け方は「全体像を共有している」前提。</b>朝会や雑談で境界がそろう。<b>AI にはその経路がない。</b></p></div>
+      <div class="cap"><span class="i">02</span><p><b>落ちるのはいつも境界。</b>今回は「処理をどこに置くか」。誰の担当にも書かれていなかった。</p></div>
+      <div class="cap"><span class="i">03</span><p><b>大きさは原因ではない。</b>小さく刻むより、決定を先に閉じる方が効く。</p></div>
+    </div>
+  </div>
+  <div class="pageno">Appendix 2 / 2</div>
+</section>
+
+</body>
+</html>
