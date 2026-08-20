@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>議事まとめ 2026-08-20</title>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body {
+    font-family: -apple-system, "Hiragino Kaku Gothic ProN", "Yu Gothic", system-ui, sans-serif;
+    color: #1f2937;
+    background: #fafafa;
+    padding: 12px 28px 8px;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+  .page { max-width: 1240px; margin: 0 auto; height: 100%; display: flex; flex-direction: column; }
+  h1 { font-size: 18px; margin: 0; border-bottom: 3px solid #2563eb; padding-bottom: 5px; }
+  .sub { color: #6b7280; font-size: 11.5px; margin: 5px 0 8px; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1.08fr;
+    gap: 14px;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+  }
+  .panel {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 9px 11px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: auto;
+  }
+  h2 { font-size: 12px; margin: 0 0 5px; padding-left: 8px; border-left: 3px solid #2563eb; }
+  h2.amber { border-left-color: #f59e0b; }
+  h2.indigo { border-left-color: #4f46e5; }
+  h2.green { border-left-color: #10b981; }
+
+  .items { display: flex; flex-direction: column; gap: 3px; }
+  .item {
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 10.5px;
+    line-height: 1.38;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .item .num {
+    background: #2563eb;
+    color: white;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 11px;
+    flex-shrink: 0;
+  }
+  .item.amber .num { background: #f59e0b; }
+  .item.indigo .num { background: #4f46e5; }
+  .item.green .num { background: #10b981; }
+  .item .title { font-weight: 600; color: #1f2937; }
+  .item .desc { color: #4b5563; margin-top: 1px; font-size: 10px; }
+  .item .desc a, .ref-line a { color: #2563eb; text-decoration: none; }
+  .item .desc a:hover, .ref-line a:hover { text-decoration: underline; }
+
+  .item-detail {
+    margin-top: 3px;
+    background: #f9fafb;
+    border-left: 2px solid #2563eb;
+    border-radius: 3px;
+    padding: 3px 7px;
+    font-size: 10px;
+    line-height: 1.4;
+    color: #374151;
+  }
+  .item-detail .head {
+    font-size: 9.5px;
+    font-weight: 700;
+    color: #1e40af;
+    letter-spacing: 0.04em;
+    margin-bottom: 2px;
+  }
+  .item-detail ul { margin: 0; padding-left: 15px; }
+  .item-detail li { margin: 1px 0; }
+  .item-detail.amber { border-left-color: #f59e0b; }
+  .item-detail.amber .head { color: #b45309; }
+
+  .ref-line { margin-top: 5px; font-size: 10.5px; color: #6b7280; padding-left: 4px; }
+
+  /* 下段: 決定事項（全幅・4カラム） */
+  .panel.bottom { margin-top: 9px; flex: none; overflow: visible; padding: 8px 12px 9px; }
+  .panel.bottom .decisions { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 7px; }
+  .panel.bottom .decision { padding: 5px 8px; font-size: 10px; line-height: 1.42; }
+  .panel.bottom .quote { margin-top: 6px; padding: 4px 8px; font-size: 9.5px; line-height: 1.45; }
+  .panel.bottom .notes { display: grid; grid-template-columns: 1.4fr 1fr; gap: 8px; }
+  .panel.bottom .notes .quote { margin-top: 6px; }
+  .quote.info { background: #eef2ff; border-left-color: #4f46e5; color: #312e81; }
+  .quote.info .who { color: #4338ca; }
+
+  /* 決定事項・ネクストアクション */
+  .decisions { display: flex; flex-direction: column; gap: 6px; }
+  .decision {
+    background: #ecfdf5;
+    border-left: 3px solid #10b981;
+    border-radius: 4px;
+    padding: 8px 10px;
+    font-size: 11.5px;
+    line-height: 1.55;
+  }
+  .decision .tag {
+    display: inline-block;
+    background: #10b981;
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 3px;
+    margin-right: 6px;
+    vertical-align: 1px;
+  }
+  .decision .tag.action { background: #2563eb; }
+  .decision .tag.hold { background: #9ca3af; }
+
+  /* 最終メッセージ・補足 */
+  .quote {
+    background: #fef3c7;
+    border-left: 3px solid #f59e0b;
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 10.5px;
+    line-height: 1.55;
+    color: #78350f;
+    font-style: italic;
+  }
+  .quote .who { display: block; font-style: normal; font-weight: 700; font-size: 10px; color: #b45309; margin-bottom: 2px; letter-spacing: 0.04em; }
+  .quote a { color: #b45309; font-style: normal; }
+
+  .block { margin-bottom: 7px; }
+  .block:last-child { margin-bottom: 0; }
+  .panel .block h2 { margin-bottom: 5px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>議事まとめ 2026-08-20 ― 「実装前壁打ち」の実証とUMLサブセットの標準化</h1>
+  <div class="sub">参加者: 社長・推進担当・メンバー ／ 進捗報告と設計図出力プロセスの相談。前回: <a href="minutes_2026-08-13.html">議事まとめ 2026-08-13</a>／関連: <a href="problem_ex_12.html">課題事例⑫</a>・<a href="aidd_report.html">AIDDレポート（EVM）</a>／元メモ: <a href="../../.work/2026-08-20_議事録.md">.work/2026-08-20_議事録.md</a></div>
+
+  <div class="grid">
+
+    <!-- 左: ① 進捗報告 / ② 帳票生成の事例 / ③ 他部署案件 -->
+    <div class="panel">
+      <div class="block">
+        <h2 class="indigo">① 進捗報告</h2>
+        <div class="items">
+          <div class="item indigo">
+            <span class="num">完</span>
+            <div>
+              <div class="title">帳票出力等の「出力タスク」は全て完了</div>
+              <div class="desc">ファイル連携・外部SMS連携も大部分が目処。<strong>来週中に全タスク完了見込み</strong>。</div>
+            </div>
+          </div>
+          <div class="item indigo">
+            <span class="num">遅</span>
+            <div>
+              <div class="title">EVMは若干の遅れ ― 要因はAI生成コードの難解な不具合</div>
+              <div class="desc"><strong>デバッグ・コード改善に想定以上の時間</strong>を要し、スケジュールを圧迫した。</div>
+            </div>
+          </div>
+          <div class="item indigo">
+            <span class="num">次</span>
+            <div>
+              <div class="title">来週以降：PWの中からAIDDチームが引き取れるタスクを相談</div>
+              <div class="desc">打ち合わせ<strong>前に候補をリストアップしてPMに提示</strong>し、引き取る案件を決める流れで合意。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2>② 帳票生成のデバッグ事例と「実装前壁打ち」の実証</h2>
+        <div class="items">
+          <div class="item">
+            <span class="num">事</span>
+            <div>
+              <div class="title">414件のテストを通過したのに、インフラ制限に抵触</div>
+              <div class="desc">入出力は完璧に動作したが<strong>約369MB</strong>に膨張し、Lambdaの制限を超過。インフラ構成の変更を要した。</div>
+              <div class="item-detail">
+                <div class="head">誤解の要因 ― 経路情報の欠落</div>
+                <ul>
+                  <li><strong>入出力（機能要件）は正しく理解</strong>。欠けたのは「<strong>どの経路で取得するか</strong>」という内部設計の前提。</li>
+                  <li>結果、<strong>DBから全データを一括取得</strong>する冗長なコードを生成した。</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="item">
+            <span class="num">検</span>
+            <div>
+              <div class="title">対抗策：実装前に「詳細設計のUML図」で4時間ぶつけ合う</div>
+              <div class="desc">AIに設計図を出力させ、<strong>疑問点・違和感をぶつけ合う壁打ち</strong>を実装の手前に挿入した。</div>
+            </div>
+          </div>
+          <div class="item">
+            <span class="num">果</span>
+            <div>
+              <div class="title">すり合わせ後は一発でテストを完全パス</div>
+              <div class="desc">手戻りゼロ。従来は<strong>調査1日＋作り直し1日＝2日以上</strong>。<strong>実装前に経路を合意する方が速い</strong>と実証。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2 class="green">③ 他部署案件（AGC）への支援方針</h2>
+        <div class="items">
+          <div class="item green">
+            <span class="num">判</span>
+            <div>
+              <div class="title">アセットの適用先としては「合わない」→ 助言に留める</div>
+              <div class="desc">アーキテクチャも作業内容も不適合（<strong>バグ修正・暫定運用対応が主体</strong>）。<strong>助言に留める</strong>形で先方担当と合意済み。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右: ④ 視座 / ⑤ UMLサブセット / ⑥ 教育 / ⑦ ロードマップ -->
+    <div class="panel">
+      <div class="block">
+        <h2 class="amber">④ 社長の指摘 ― エンジニアの視座（処理型思考からの脱却）</h2>
+        <div class="items">
+          <div class="item amber">
+            <span class="num">指</span>
+            <div>
+              <div class="title">「資料準備30分〜1時間、PMレビュー30分」の見積りに対し、本質を分かっていない</div>
+              <div class="desc">残り20点を引き出す質問を考える思考は<strong>枠を埋める作業ではない</strong>。定型作業と捉えた瞬間、設計思想は身につかない。</div>
+            </div>
+          </div>
+          <div class="item amber">
+            <span class="num">要</span>
+            <div>
+              <div class="title">必要なのはイマジネーション（構築後の世界観）</div>
+              <div class="desc">HOWに気を取られ、<strong>実現された後の現実の風景</strong>への想像力が不足している。</div>
+              <div class="item-detail amber">
+                <div class="head">ありありとイメージすべきこと</div>
+                <ul>
+                  <li>身近な社員が<strong>どんな資料を見て、何を検討し、PMとどう会話するか</strong>。設計思想を知らない人が運用したとき<strong>どんな考慮漏れが出るか</strong>。</li>
+                  <li>仕様が簡単に見えても<strong>仕様の把握・上流との合意こそ最大のリスク</strong>。優秀なエンジニアはここに1人で1〜2日を費やす。</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="item amber">
+            <span class="num">脳</span>
+            <div>
+              <div class="title">能力ではなく、メタ認知（一歩上の脳みそ）が課題</div>
+              <div class="desc">プレッシャーがかかると不安から<strong>「早く言われた通り終わらせる」処理型に切り替わる</strong>。自分の偏りを理解し外側から使いこなす脳を育てることが成長課題。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2>⑤ 機能カテゴリー別「UMLサブセット」の標準化</h2>
+        <div class="items">
+          <div class="item">
+            <span class="num">定</span>
+            <div>
+              <div class="title">あらゆる設計図ではなく、必要最小限の3図に固定する</div>
+              <div class="desc">学術的なUMLの全網羅は<strong>意味のない複雑化</strong>。機能カテゴリー（帳票・参照系・登録系…）ごとにAIへ事前出力させる<strong>3つのモデル図</strong>を定義・固定する。</div>
+              <div class="item-detail">
+                <div class="head">帳票出力の場合の3大観点</div>
+                <ul>
+                  <li><strong>データ取得経路</strong>（どのテーブルのどこから／データフロー・シーケンス）</li>
+                  <li><strong>出力時の画面データ構造</strong>　／　<strong>時間軸に沿った処理</strong>（タイムライン）</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="item">
+            <span class="num">効</span>
+            <div>
+              <div class="title">開発前に人間がチェック＝作り方の思想を100%コントロール</div>
+              <div class="desc">「動作はするがインフラ制限に引っかかる」ような<strong>不適切な実装を未然に排除</strong>できる。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- 下段: 決定事項・アクションアイテム -->
+  <div class="panel bottom">
+    <h2>決定事項・アクションアイテム</h2>
+    <div class="decisions">
+      <div class="decision"><span class="tag">決定</span><strong>UMLサブセット（3つのモデル図）を機能カテゴリーごとに定義・固定</strong> — 帳票出力は「データ取得経路／画面データ構造／タイムライン」。開発前に人間がチェックするプロセスを確立する。</div>
+      <div class="decision"><span class="tag action">アクション</span><strong>来週の全タスク完了後、PMに引き取り可能なタスクを相談</strong> — 打ち合わせ前に候補をリストアップして提示し、引き取る案件を決定する。</div>
+      <div class="decision"><span class="tag action">アクション</span><strong>「質問プロセス」の考え方をもう一段ブラッシュアップ</strong> — 一度で答えを出そうとせず、個別に1〜2回の壁打ちの時間を設定して納得感のある落としどころを固める。</div>
+      <div class="decision"><span class="tag">決定</span><strong>他部署案件は分類・ジャッジしてから対応</strong> — AGCはアセット提供せず助言に留める。今後の相談も「やるべき案件か」を明確に判定してから動く。</div>
+    </div>
+    <div class="notes">
+      <div class="quote">
+        <span class="who">社長からの総括的メッセージ</span>
+        「日本のSI業界は未だに<strong>手を動かす原始的な作業</strong>に終始している。我々はAI駆動開発を武器にこのビジネスモデルを完全に脱却し、エンジニアを『<strong>設計の正しさを監査・承認する高度なクリエイター</strong>』へと引き上げる。この変化を先導することが、我々の進むべき道だ」。
+      </div>
+      <div class="quote info">
+        <span class="who">⑥ 教育の転換と年末に向けたロードマップ</span>
+教育は「書き手」から<strong>「AI出力の設計図から矛盾や穴を見つけるレビューア」</strong>へ転換し、機能カテゴリー別に教育パッケージ化。年内はPWで帳票・参照・登録の<strong>再現性のある型（最小アセット）</strong>を固め、以降はマルチエージェント協調の自律化・<strong>自動デバッグの完全組み込み</strong>・アーキテクチャ自動監査へ。
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

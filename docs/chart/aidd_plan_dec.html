@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>12月末までの実行プラン（たたき台）</title>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body {
+    font-family: -apple-system, "Hiragino Kaku Gothic ProN", "Yu Gothic", system-ui, sans-serif;
+    color: #1f2937;
+    background: #fafafa;
+    padding: 20px 32px 14px;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+  .page { max-width: 1240px; margin: 0 auto; height: 100%; display: flex; flex-direction: column; }
+  h1 { font-size: 19px; margin: 0; border-bottom: 3px solid #2563eb; padding-bottom: 7px; letter-spacing: -0.01em; }
+  .sub { color: #6b7280; font-size: 11.5px; margin: 6px 0 10px; }
+  .sub a { color: #2563eb; text-decoration: none; }
+  .sub a:hover { text-decoration: underline; }
+
+  .panel {
+    background: white; border: 1px solid #e5e7eb; border-radius: 8px;
+    padding: 16px 18px; flex: 1; display: flex; flex-direction: column; justify-content: center; min-height: 0;
+  }
+
+  .goal {
+    background: #eef2ff; border-left: 4px solid #4f46e5; border-radius: 6px;
+    padding: 9px 14px; margin-bottom: 12px;
+  }
+  .goal .l { font-size: 9.5px; font-weight: 700; letter-spacing: 0.1em; color: #4338ca; margin-bottom: 3px; }
+  .goal .t { font-size: 12.5px; line-height: 1.6; color: #312e81; }
+  .goal .t strong { color: #1e1b4b; }
+
+  .prep {
+    display: flex; align-items: center; gap: 10px;
+    background: #fffbeb; border: 1px dashed #f59e0b; border-radius: 6px;
+    padding: 5px 12px; margin-bottom: 8px; font-size: 11px; color: #78350f; line-height: 1.4;
+  }
+  .prep .dt { font-weight: 800; color: #b45309; white-space: nowrap; font-size: 11.5px; }
+  .prep b { color: #78350f; }
+
+  .issue {
+    display: flex; align-items: flex-start; gap: 12px;
+    background: #f9fafb; border-left: 4px solid #d1d5db; border-radius: 6px;
+    padding: 9px 14px; margin: -6px 0 16px; font-size: 10.5px; color: #4b5563; line-height: 1.6;
+  }
+  .issue .dt { font-weight: 700; color: #9ca3af; white-space: nowrap; font-size: 10px; letter-spacing: 0.06em; padding-top: 2px; }
+  .issue b { color: #1f2937; }
+
+  .mrow { display: flex; align-items: center; gap: 9px; margin: 0 0 7px; }
+  .mrow .mn { font-size: 11.5px; font-weight: 700; color: #374151; background: #f3f4f6; border-radius: 4px; padding: 3px 12px; }
+  .mrow .mx { font-size: 10px; color: #9ca3af; }
+
+  .wk { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px; }
+  .chip {
+    border: 1px solid #e5e7eb; border-left: 4px solid var(--cc, #2563eb);
+    border-radius: 6px; padding: 13px 15px 15px;
+  }
+  .chip.prop { border-left-style: dashed; }
+  .chip .hd { display: flex; justify-content: space-between; align-items: baseline; }
+  .chip .d { font-size: 11px; font-weight: 800; color: var(--cc, #2563eb); }
+  .chip .tg { font-size: 8.5px; font-weight: 700; padding: 1px 5px; border-radius: 3px; background: #dbeafe; color: #1e40af; letter-spacing: 0.04em; }
+  .chip.prop .tg { background: #fef3c7; color: #b45309; }
+  .chip.open { border-style: dashed; background: #fafafa; }
+  .chip.open .n { color: #9ca3af; }
+  .chip.open .tg { background: #f3f4f6; color: #6b7280; }
+  .chip .n { font-size: 14.5px; font-weight: 700; line-height: 1.35; margin-top: 6px; }
+  .chip .s { font-size: 9.5px; color: #6b7280; line-height: 1.45; margin-top: 3px; }
+
+  .band { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 9px; }
+  .bd { border: 1px solid #e5e7eb; border-left: 4px solid var(--bc, #10b981); border-radius: 6px; padding: 13px 16px 15px; }
+  .bd .hd { display: flex; justify-content: space-between; align-items: baseline; }
+  .bd .mo { font-size: 10px; font-weight: 700; color: #9ca3af; letter-spacing: 0.08em; }
+  .bd .dt { font-size: 12px; font-weight: 800; color: var(--bc, #10b981); }
+  .bd .n { font-size: 14px; font-weight: 700; margin-top: 3px; }
+  .bd .s { font-size: 10px; color: #6b7280; line-height: 1.5; margin-top: 3px; }
+
+  .cols { display: grid; grid-template-columns: 1.15fr 1fr; gap: 12px; margin-top: auto; padding-top: 10px; }
+  .box { border: 1px solid #e5e7eb; border-radius: 7px; padding: 9px 12px; }
+  .box .h { font-size: 10px; font-weight: 700; letter-spacing: 0.06em; color: #2563eb; margin-bottom: 5px; }
+  .box.g .h { color: #6b7280; }
+  .box ul { margin: 0; padding-left: 15px; }
+  .box li { font-size: 10.5px; line-height: 1.55; color: #4b5563; }
+  .box li b { color: #1f2937; }
+  .box .flat { font-size: 10.5px; line-height: 1.6; color: #4b5563; }
+  .box .flat b { color: #1f2937; }
+
+  .memo { margin-top: 7px; font-size: 10px; line-height: 1.55; color: #9ca3af; }
+  .memo b { color: #6b7280; }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>12月末までの実行プラン（たたき台） ― CRUD以外の「設計型」をつくる＋CCT標準アーキへの組み込み</h1>
+  <div class="sub">AI駆動開発（PW案件）／ 2026-08-20 時点 ／ 日付は仮置き ／ 根拠: <a href="minutes_2026-08-20.html">議事まとめ 2026-08-20</a></div>
+
+  <div class="panel">
+
+    <div class="goal">
+      <div class="l">目標</div>
+      <div class="t"><strong>10/23 までにCRUD以外の設計型を6本完成</strong>（週1本・予備1週）。<strong>10/30</strong> にできること・できないことを整理。以降は運用スタイルを設計し、<strong>汎用型＝案件パラメーターでセットアップが終わるアセット</strong>へ。<strong>11月中に3案件で運用試験</strong>、<strong>12/18</strong> に<strong>CCT標準アーキを対象に展開</strong>する。</div>
+    </div>
+
+    <div class="prep">
+      <span class="dt">8/24 → ◆ 9/4</span>
+      <span><b>準備：設計型テンプレートの様式を決める。</b>様式が決まらないまま量産すると、各本が別々の書き方になって型として使えない。</span>
+    </div>
+
+    <div class="mrow"><span class="mn">9月</span></div>
+    <div class="wk">
+      <div class="chip" style="--cc:#2563eb">
+        <div class="hd"><span class="d">◆ 9/11</span><span class="tg">実践済み</span></div>
+        <div class="n">認証・認可基盤と適用</div>
+      </div>
+      <div class="chip" style="--cc:#2563eb">
+        <div class="hd"><span class="d">◆ 9/18</span><span class="tg">実践済み</span></div>
+        <div class="n">非同期帳票出力</div>
+      </div>
+      <div class="chip" style="--cc:#2563eb">
+        <div class="hd"><span class="d">◆ 9/25</span><span class="tg">実践済み</span></div>
+        <div class="n">外部データ取り込み／バッチ・定期実行</div>
+      </div>
+      <div class="chip" style="--cc:#2563eb">
+        <div class="hd"><span class="d">◆ 10/2</span><span class="tg">実践済み</span></div>
+        <div class="n">外部サービス連携（I/O）</div>
+      </div>
+    </div>
+
+    <div class="mrow"><span class="mn">10月</span></div>
+    <div class="wk">
+      <div class="chip prop" style="--cc:#4f46e5">
+        <div class="hd"><span class="d">◆ 10/9</span><span class="tg">提案</span></div>
+        <div class="n">操作履歴（非機能要件）</div>
+      </div>
+      <div class="chip prop" style="--cc:#4f46e5">
+        <div class="hd"><span class="d">◆ 10/16</span><span class="tg">提案</span></div>
+        <div class="n">タイムアウト・上限設計（非機能要件）</div>
+      </div>
+      <div class="chip open" style="--cc:#9ca3af">
+        <div class="hd"><span class="d">10/19 → 10/23</span><span class="tg">予備</span></div>
+        <div class="n">予備 1週</div>
+      </div>
+      <div class="chip prop" style="--cc:#6b7280">
+        <div class="hd"><span class="d">◆ 10/30</span><span class="tg">整理</span></div>
+        <div class="n">できること／できないことの整理</div>
+      </div>
+    </div>
+
+    <div class="issue">
+      <span class="dt">検討中</span>
+      <span><b>PW案件で検証できないものは、設計型から除外すべきか。</b>除外すると<b>実証済みの型だけ</b>が残るが、CCT標準アーキ向けに配る時点でPWに無い機能の型が欠ける。除外しないと<b>実案件で通っていない型</b>を混ぜて配ることになる。中間案として、型ごとに〈実証済み／未実証〉を明示して両方残す置き方もある。<b>今後の打ち合わせで詰める。</b></span>
+    </div>
+
+    <div class="mrow"><span class="mn">11月 → 12月</span></div>
+    <div class="band">
+      <div class="bd" style="--bc:#0ea5e9">
+        <div class="hd"><span class="mo">11月 前半</span><span class="dt">◆ 11/13</span></div>
+        <div class="n">案件汎用型に作り変える</div>
+      </div>
+      <div class="bd" style="--bc:#10b981">
+        <div class="hd"><span class="mo">11月 後半</span><span class="dt">◆ 11/27</span></div>
+        <div class="n">3案件でミニマムセット運用試験</div>
+      </div>
+      <div class="bd" style="--bc:#4f46e5">
+        <div class="hd"><span class="mo">12月</span><span class="dt">◆ 12/18</span></div>
+        <div class="n">CCT標準アーキ向けに展開</div>
+      </div>
+    </div>
+
+
+  </div>
+</div>
+</body>
+</html>
