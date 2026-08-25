@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>イテレーション3 開発工数比較 (AsIs / ToBe) ― 横串基盤 ①②③④⑤</title>
+<style>
+  body { font-family: "Yu Gothic UI", "Meiryo", sans-serif; margin: 0; color:#1f2937; background:#fafafa; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 22px 26px; }
+  h1 { font-size: 19px; margin: 0 0 4px; }
+  .sub { color:#6b7280; font-size: 12px; margin-bottom: 14px; }
+
+  .tabs { display:flex; gap:4px; border-bottom:2px solid #e5e7eb; margin-bottom:14px; flex-wrap:wrap; }
+  .tab { border:none; background:none; padding:8px 16px; font-size:13px; color:#6b7280; cursor:pointer; border-bottom:3px solid transparent; margin-bottom:-2px; font-family:inherit; }
+  .tab:hover { color:#1f2937; background:#f3f4f6; }
+  .tab.active { color:#1f2937; font-weight:bold; border-bottom-color:var(--ac,#2563eb); }
+  .tab.total { color:#047857; }
+  .tab.total.active { border-bottom-color:#10b981; }
+
+  .panel { display:none; }
+  .panel.active { display:block; }
+
+  .kpis { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:14px; }
+  .kpi { border:1px solid #e5e7eb; border-radius:8px; padding:8px 16px; background:#fff; }
+  .kpi .k { font-size:11px; color:#6b7280; }
+  .kpi .v { font-size:20px; font-weight:bold; }
+  .kpi.cut .v { color:#10b981; }
+  .kpi.act .v { color:#2563eb; }
+
+  table { border-collapse:collapse; width:100%; font-size:12.5px; background:#fff; }
+  th, td { border-bottom:1px solid #eef2f7; padding:5px 8px; vertical-align:middle; }
+  th { text-align:left; color:#6b7280; font-size:11px; border-bottom:2px solid #e5e7eb; }
+  td.h { text-align:right; white-space:nowrap; font-variant-numeric:tabular-nums; }
+  td.cut { text-align:right; white-space:nowrap; color:#059669; font-weight:600; }
+  tr.grp td { background:#f8fafc; font-weight:bold; color:#374151; }
+  tr.sum td { border-top:2px solid #e5e7eb; font-weight:bold; background:#f9fafb; }
+  .name { font-weight:600; }
+  .code { color:#9ca3af; font-size:10.5px; }
+  .own { display:inline-block; font-size:10px; font-weight:700; padding:0 5px; border-radius:3px; border:1px solid #cbd5e1; color:#475569; }
+  .own.BE { background:#eff6ff; color:#1d4ed8; border-color:#bfdbfe; }
+  .own.FE { background:#f0fdf4; color:#15803d; border-color:#bbf7d0; }
+  .own.DB { background:#fef3c7; color:#b45309; border-color:#fde68a; }
+  .own.両 { background:#f5f3ff; color:#7c3aed; border-color:#ddd6fe; }
+
+  /* 三段バー（AsIs / 計画 / 実績） */
+  .bars { width:100%; min-width:180px; }
+  .barrow { display:flex; align-items:center; gap:6px; margin:1px 0; }
+  .barrow .lab { flex:0 0 40px; font-size:9.5px; color:#6b7280; }
+  .track { flex:1 1 auto; background:#f1f5f9; border-radius:3px; height:10px; position:relative; }
+  .fill { height:100%; border-radius:3px; }
+  .fill.asis { background:#cbd5e1; }
+  .fill.plan { opacity:.45; }
+  .lede { font-size:12px; color:#374151; background:#eef2ff; border-left:3px solid #2563eb; border-radius:4px; padding:8px 12px; margin-bottom:12px; line-height:1.6; }
+  .legend { font-size:11px; color:#6b7280; margin:0 0 10px; }
+  .legend i { display:inline-block; width:16px; height:8px; border-radius:2px; vertical-align:middle; margin-right:4px; }
+  .note { font-size:11px; color:#6b7280; margin-top:10px; line-height:1.6; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>イテレーション3 開発工数比較 (AsIs / ToBe)</h1>
+  <div class="sub" id="sub"></div>
+  <div class="tabs" id="tabs"></div>
+  <div id="panels"></div>
+  <div class="note" id="note"></div>
+</div>
+
+<script src="iteration3_data.js"></script>
+<script>
+const D = ITERATION3_DATA;
+const HPD = D.meta.hoursPerDay;
+// ToBe計画＝plan（workitems3 と同一ソース）／ToBe実績＝tobe（完了タスクのみ）
+const r1 = n => Math.round(n*10)/10;
+const cut = (a,b) => a>0 ? Math.round((a-b)/a*100) : 0;
+const RBASES = D.bases.filter(b => b.key !== "reserve");   // 予備工数・AI改善工数は実開発比較の対象外
+const RTASKS = D.tasks.filter(t => t.base !== "reserve");
+
+document.getElementById("sub").textContent =
+  `出典: 横串基盤 ①②③④⑤ / ToBe計画＝AI駆動の計画工数（workitems3 と同一）・ToBe実績＝完了タスクの実績のみ（未完了は空欄） vs AsIs＝人力想定（概算）/ ${RTASKS.length}タスク・開始 ${D.meta.start}`;
+
+// タブ定義: 各基盤 + 合計
+const tabs = RBASES.map(b => ({ key:b.key, label:`${b.id} ${b.name}`, color:b.color }));
+tabs.push({ key:"__total__", label:"合計", color:"#10b981", total:true });
+
+// バー描画（AsIs 上 / 計画 中 / 実績 下、maxで正規化）。実績が null（未完了）は空トラック
+function barsHtml(asis, plan, tobe, max, color){
+  const w = v => max>0 ? (v/max*100) : 0;
+  const actRow = (tobe==null)
+    ? `<div class="barrow"><span class="lab">実績</span><div class="track"></div></div>`
+    : `<div class="barrow"><span class="lab">実績</span><div class="track"><div class="fill" style="width:${w(tobe)}%;background:${color}"></div></div></div>`;
+  return `<div class="bars">`+
+    `<div class="barrow"><span class="lab">AsIs</span><div class="track"><div class="fill asis" style="width:${w(asis)}%"></div></div></div>`+
+    `<div class="barrow"><span class="lab">計画</span><div class="track"><div class="fill plan" style="width:${w(plan)}%;background:${color}"></div></div></div>`+
+    actRow +
+    `</div>`;
+}
+const isDone = t => t.status === "完了";
+const LEGEND = `<div class="legend">`+
+  `<i style="background:#cbd5e1"></i>AsIs（人力想定）　`+
+  `<i style="background:#94a3b8;opacity:.45"></i>ToBe計画（AI駆動の計画工数）　`+
+  `<i style="background:#475569"></i>ToBe実績（完了タスクのみ）</div>`;
+
+const LEDE = {
+  prep:   "イテレーション3の立ち上げ工数。プランニング・AI環境整備と、イテレーション2の課題対応（spec→リポジトリの仕様反映の自動化）。AIレバレッジが効かない人の作業なので AsIs＝計画で置いている。",
+  csv:    "既存CSV出力を、イテレーション2で作った非同期帳票出力基盤（非同期ジョブ＋生成状況テーブル＋S3）へ移植。ゼロから作らないため計画工数が小さく、AsIs との差が大きく出る領域。",
+  notify: "業務イベントを1本の通知I/Fへ集約し、届け先（アプリ内／メール／SMS）はドライバーで差し替え。SMSはイテレーション2のSMSサービスI/F（IF008）を再利用するため実装を重複させない。",
+  sched:  "イテレーション2のバッチ起動基盤を汎用スケジューラへ昇格。ジョブ追加＝定義データの追加にし、実行履歴・リトライ・多重起動抑止・失敗通報を基盤側で持つ。",
+  audit:  "共通インターセプタとORM層の差分抽出で「誰が・いつ・何を・どう変えたか」を自動記録。テーブルが増えても追加実装が不要なため、AsIs（全APIに個別実装）との差が最も大きく出る。",
+  limit:  "待ち時間（セッション／API・外部連携／DB）と受付量（件数・サイズ・同時実行数・リトライ回数）の上限を決め、判定を基盤に1箇所置く。全画面・全APIへ一括適用できるためレバレッジが効く。",
+  other:  "AIエージェントの不備の調査・改修枠。イテレーション2では見積外だったため計画超過として現れた分を、今回は最初から枠として確保している。人の作業なので AsIs＝計画。",
+};
+
+function basePanel(b){
+  const ts = D.tasks.filter(t=>t.base===b.key);
+  const max = Math.max(...ts.map(t=>t.asis));
+  const tAsis = ts.reduce((a,t)=>a+t.asis,0);
+  const tPlan = ts.reduce((a,t)=>a+t.plan,0);
+  const done = ts.filter(isDone);
+  const tTobe = done.reduce((a,t)=>a+t.tobe,0);                 // 完了分の実績のみ
+  const tAsisDone = done.reduce((a,t)=>a+t.asis,0);
+  const redPlan = cut(tAsis, tPlan);                            // 削減率（計画ベース）
+  const redAct  = tAsisDone>0 ? cut(tAsisDone, tTobe) : null;   // 削減率（実績ベース・完了分）
+  const actCell = done.length ? r1(tTobe)+'h' : '—';
+  // 区分ごとにグルーピング
+  const groups = [...new Set(ts.map(t=>t.group))];
+  let rows = "";
+  groups.forEach(g=>{
+    const gts = ts.filter(t=>t.group===g);
+    rows += `<tr class="grp"><td colspan="7">${g}（${gts.length}件）</td></tr>`;
+    gts.forEach(t=>{
+      const bt = isDone(t) ? t.tobe : null;                     // 未完了は実績なし
+      rows += `<tr>`+
+        `<td><span class="name">${t.name}</span> <span class="code">${t.code}</span></td>`+
+        `<td><span class="own ${t.owner}">${t.owner}</span></td>`+
+        `<td style="width:36%">${barsHtml(t.asis, t.plan, bt, max, b.color)}</td>`+
+        `<td class="h">${t.asis.toFixed(1)}h</td>`+
+        `<td class="h">${t.plan.toFixed(1)}h</td>`+
+        `<td class="cut">${cut(t.asis, t.plan)}%</td>`+
+        `<td class="h">${bt==null?'—':r1(bt)+'h'}</td></tr>`;
+    });
+  });
+  return `<div class="panel" data-key="${b.key}" style="--ac:${b.color}">`+
+    `<div class="lede">${b.id} <b>${b.name}</b> の開発工数比較。<b>ToBe計画</b>＝AI駆動で見込む計画工数（workitems3 と同一ソース）。<b>ToBe実績</b>は完了タスクのみ表示（現在は着手前のため空欄）。AsIs は人力で通常開発した場合の想定（概算）。`+
+      `${LEDE[b.key]||""}</div>`+
+    LEGEND +
+    `<div class="kpis">`+
+      `<div class="kpi"><div class="k">AsIs（人力想定・全${ts.length}件）</div><div class="v">${tAsis.toFixed(1)}h</div></div>`+
+      `<div class="kpi act"><div class="k">ToBe計画（全${ts.length}件）</div><div class="v">${tPlan.toFixed(1)}h</div></div>`+
+      `<div class="kpi cut"><div class="k">削減率（計画）</div><div class="v">${redPlan}%</div></div>`+
+      `<div class="kpi"><div class="k">ToBe実績（完了${done.length}件）</div><div class="v">${actCell}</div></div>`+
+      `<div class="kpi cut"><div class="k">削減率（実績）</div><div class="v">${redAct==null?'—':redAct+'%'}</div></div>`+
+    `</div>`+
+    `<table><thead><tr><th>タスク（短縮名）</th><th>担当</th><th>AsIs / 計画 / 実績</th><th class="h">AsIs</th><th class="h">計画</th><th class="cut">削減</th><th class="h">実績</th></tr></thead>`+
+    `<tbody>${rows}`+
+    `<tr class="sum"><td>合計</td><td></td><td></td><td class="h">${tAsis.toFixed(1)}h</td><td class="h">${tPlan.toFixed(1)}h</td><td class="cut">${redPlan}%</td><td class="h">${actCell}</td></tr>`+
+    `</tbody></table></div>`;
+}
+
+function totalPanel(){
+  const rows = RBASES.map(b=>{
+    const ts = D.tasks.filter(t=>t.base===b.key);
+    const done = ts.filter(isDone);
+    return { b, a: ts.reduce((x,t)=>x+t.asis,0),
+             p: ts.reduce((x,t)=>x+t.plan,0),
+             bt: done.reduce((x,t)=>x+t.tobe,0),
+             aDone: done.reduce((x,t)=>x+t.asis,0),
+             n: ts.length, dn: done.length };
+  });
+  const max = Math.max(...rows.map(r=>r.a));
+  const tA = rows.reduce((x,r)=>x+r.a,0);
+  const tP = rows.reduce((x,r)=>x+r.p,0);
+  const tB = rows.reduce((x,r)=>x+r.bt,0);           // 完了分のみ
+  const tADone = rows.reduce((x,r)=>x+r.aDone,0);
+  const nAll = rows.reduce((x,r)=>x+r.n,0);
+  const dnAll = rows.reduce((x,r)=>x+r.dn,0);
+  const redPlan = cut(tA, tP);
+  const redAct = tADone>0 ? cut(tADone, tB) : null;
+  const actCell = dnAll ? r1(tB)+'h' : '—';
+  let body = "";
+  rows.forEach(r=>{
+    const bt = r.dn>0 ? r.bt : null;
+    body += `<tr>`+
+      `<td><span class="name">${r.b.id} ${r.b.name}</span> <span class="code">${r.dn}/${r.n}件完了</span></td>`+
+      `<td></td>`+
+      `<td style="width:36%">${barsHtml(r.a, r.p, bt, max, r.b.color)}</td>`+
+      `<td class="h">${r.a.toFixed(1)}h</td>`+
+      `<td class="h">${r.p.toFixed(1)}h</td>`+
+      `<td class="cut">${cut(r.a, r.p)}%</td>`+
+      `<td class="h">${bt==null?'—':r1(bt)+'h'}</td></tr>`;
+  });
+  const resv = D.tasks.filter(t=>t.base==="reserve");
+  const resvP = resv.reduce((a,t)=>a+t.plan,0);
+  return `<div class="panel" data-key="__total__" style="--ac:#10b981">`+
+    `<div class="lede">イテレーション3（横串基盤 ①②③④⑤）全体の工数比較。<b>AsIs 想定 ${tA.toFixed(1)}h → ToBe計画 ${tP.toFixed(1)}h（削減率 ${redPlan}%）</b>。`+
+      `着手前のため ToBe実績は空欄で、進むにつれ埋まる（完了 ${dnAll}/${nAll} 件）。`+
+      `イテレーション2の基盤（非同期帳票出力・SMS連携I/F・バッチ起動）への<b>移植・再利用・昇格</b>が中心なので、ゼロから作る場合より計画工数を小さく置いている。`+
+      `一方、事前工数とその他工数（AIエージェント不備の調査・改修枠）は人の作業で AI レバレッジが効かないため AsIs＝計画としており、その分だけ全体の削減率は下がる。`+
+      `予備工数・AI改善工数（計 ${resvP.toFixed(1)}h）は実開発の比較対象外として除外。</div>`+
+    LEGEND +
+    `<div class="kpis">`+
+      `<div class="kpi"><div class="k">AsIs 合計（全${nAll}件）</div><div class="v">${tA.toFixed(1)}h</div></div>`+
+      `<div class="kpi act"><div class="k">ToBe計画 合計</div><div class="v">${tP.toFixed(1)}h</div></div>`+
+      `<div class="kpi cut"><div class="k">削減率（計画）</div><div class="v">${redPlan}%</div></div>`+
+      `<div class="kpi"><div class="k">ToBe実績（完了${dnAll}件）</div><div class="v">${actCell}</div></div>`+
+      `<div class="kpi cut"><div class="k">削減率（実績）</div><div class="v">${redAct==null?'—':redAct+'%'}</div></div>`+
+    `</div>`+
+    `<table><thead><tr><th>基盤</th><th></th><th>AsIs / 計画 / 実績</th><th class="h">AsIs</th><th class="h">計画</th><th class="cut">削減</th><th class="h">実績</th></tr></thead>`+
+    `<tbody>${body}`+
+    `<tr class="sum"><td>合計</td><td></td><td></td><td class="h">${tA.toFixed(1)}h</td><td class="h">${tP.toFixed(1)}h</td><td class="cut">${redPlan}%</td><td class="h">${actCell}</td></tr>`+
+    `</tbody></table></div>`;
+}
+
+// 描画
+const tabsEl = document.getElementById("tabs"), panelsEl = document.getElementById("panels");
+tabsEl.innerHTML = tabs.map((t,i)=>`<button class="tab${t.total?" total":""}" data-key="${t.key}" style="--ac:${t.color}">${t.label}</button>`).join("");
+panelsEl.innerHTML = RBASES.map(basePanel).join("") + totalPanel();
+// 初期表示は「合計」タブ（着手前は全体像から見る）
+tabsEl.querySelector('.tab.total').classList.add('active');
+panelsEl.querySelector('.panel[data-key="__total__"]').classList.add('active');
+tabsEl.addEventListener("click", e=>{
+  const btn = e.target.closest(".tab"); if(!btn) return;
+  tabsEl.querySelectorAll(".tab").forEach(b=>b.classList.remove("active"));
+  panelsEl.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+  btn.classList.add("active");
+  panelsEl.querySelector(`.panel[data-key="${btn.dataset.key}"]`).classList.add("active");
+});
+document.getElementById("note").innerHTML =
+  "※ ToBe計画＝AI駆動の計画工数（PV／EV に使う値）。ToBe実績は完了タスク（status=完了）のみ表示・集計し、未完了は空欄（削減率（実績）も完了分のみで算出）。AsIs は人力想定の概算で、実装系タスクは計画×5.45（イテレーション2と同じ係数）。短縮名・依存・進捗・完了は「タスク管理（workitems3）」と同一ソース（iteration3_data.js）。";
+</script>
+</body>
+</html>

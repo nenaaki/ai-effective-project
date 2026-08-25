@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>設計型をどう積むか</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+  :root {
+    --ground:#f5f7f7; --surface:#ffffff; --surface-alt:#eaefee;
+    --ink:#16201f; --ink-soft:#16201f; --ink-faint:#16201f; --hint:#7c8a88;
+    --rule:#d3dcdb; --rule-strong:#b4c2c0;
+    --accent:#0d6b68; --accent-soft:#d9ecea;
+    --crit:#9d2f2a;  --crit-soft:#f7e2e0;
+    --ok:#2c6a45;    --ok-soft:#dcece2;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:#0f1414; --surface:#171d1d; --surface-alt:#1e2626;
+      --ink:#e6ecea; --ink-soft:#e6ecea; --ink-faint:#e6ecea; --hint:#7d8b89;
+      --rule:#2b3534; --rule-strong:#3d4948;
+      --accent:#5cc3bd; --accent-soft:#16302f;
+      --crit:#e58a83;  --crit-soft:#301b1a;
+      --ok:#7ec49b;    --ok-soft:#17281f;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground:#0f1414; --surface:#171d1d; --surface-alt:#1e2626;
+    --ink:#e6ecea; --ink-soft:#e6ecea; --ink-faint:#e6ecea; --hint:#7d8b89;
+    --rule:#2b3534; --rule-strong:#3d4948;
+    --accent:#5cc3bd; --accent-soft:#16302f;
+    --crit:#e58a83;  --crit-soft:#301b1a;
+    --ok:#7ec49b;    --ok-soft:#17281f;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-snap-type: y mandatory; }
+  body {
+    margin: 0; background: var(--ground); color: var(--ink);
+    font-family: "Zen Kaku Gothic New","Hiragino Kaku Gothic ProN","Yu Gothic",system-ui,sans-serif;
+    line-height: 1.7; -webkit-font-smoothing: antialiased;
+  }
+
+  .slide {
+    scroll-snap-align: start;
+    min-height: 100vh; display: flex; flex-direction: column; justify-content: center;
+    padding: 52px clamp(26px, 5.5vw, 84px) 68px;
+    border-bottom: 1px solid var(--rule); position: relative;
+  }
+  .inner { width: 100%; max-width: 1240px; margin: 0 auto; display: flex; flex-direction: column; gap: 26px; }
+
+  .eyebrow {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 11.5px; letter-spacing: .2em; text-transform: uppercase; color: var(--accent);
+    display: flex; align-items: center; gap: 14px;
+  }
+  .eyebrow::after { content:""; flex:1; height:1px; background: var(--rule-strong); }
+
+  h1 {
+    font-family: "Shippori Mincho","Hiragino Mincho ProN",serif; font-weight: 700;
+    font-size: clamp(27px, 4.2vw, 46px); line-height: 1.32; margin: 0; text-wrap: balance;
+  }
+
+  h1 .sub { font-size: 48%; font-weight: 400; letter-spacing: .02em; margin-left: .4em; }
+
+  .pageno {
+    position: absolute; right: clamp(26px,5.5vw,84px); bottom: 28px;
+    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 12px; color: var(--ink-faint);
+    font-variant-numeric: tabular-nums; letter-spacing: .08em;
+  }
+
+  figure { margin: 0; }
+  svg { display: block; width: 100%; height: auto; color: var(--ink); }
+  svg text { fill: currentColor; font-family: "Zen Kaku Gothic New","Hiragino Kaku Gothic ProN",system-ui,sans-serif; }
+  .t-b { font-size: 15.5px; font-weight: 700; }
+  .t-m { font-size: 14px; }
+  .t-s { font-size: 13px; fill: var(--ink-soft); }
+  .t-f { font-size: 12.5px; fill: var(--ink-faint); }
+  .t-c { font-size: 14px; fill: var(--crit); font-weight: 700; }
+  .t-o { font-size: 14px; fill: var(--ok); font-weight: 700; }
+  .t-a { font-size: 14px; fill: var(--accent); font-weight: 700; }
+  .t-q { font-size: 18px; fill: var(--crit); font-weight: 700; }
+  .bx  { fill: var(--surface); stroke: currentColor; stroke-width: 1.3; }
+  .bxa { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.6; }
+  .bxc { fill: var(--crit-soft); stroke: var(--crit); stroke-width: 1.5; }
+  .bxcd{ fill: var(--crit-soft); stroke: var(--crit); stroke-width: 1.6; stroke-dasharray: 6 4; }
+  .bxad{ fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 6 4; }
+  .bxo { fill: var(--ok-soft); stroke: var(--ok); stroke-width: 1.5; }
+  .bxn { fill: var(--surface-alt); stroke: var(--rule-strong); stroke-width: 1; }
+  .ln  { stroke: currentColor; stroke-width: 1.4; fill: none; }
+  .lna { stroke: var(--accent); stroke-width: 1.8; fill: none; }
+  .lnc { stroke: var(--crit); stroke-width: 1.8; fill: none; }
+  .lno { stroke: var(--ok); stroke-width: 1.8; fill: none; }
+  .lnf { stroke: var(--hint); stroke-width: 1.3; fill: none; stroke-dasharray: 5 4; }
+  .brk { stroke: var(--accent); stroke-width: 1.4; fill: none; }
+  .divi{ stroke: var(--rule-strong); stroke-width: 1; }
+  .dot { fill: var(--surface); stroke: currentColor; stroke-width: 1.6; }
+  .dota{ fill: var(--accent); stroke: none; }
+  .doto{ fill: var(--ok); stroke: none; }
+  #ar polygon  { fill: currentColor; }
+  #arA polygon { fill: var(--accent); }
+  #arC polygon { fill: var(--crit); }
+  #arO polygon { fill: var(--ok); }
+  #arF polygon { fill: var(--hint); }
+
+  .probs { display: grid; grid-template-columns: repeat(3,1fr); gap: 1px; background: var(--rule);
+    border: 1px solid var(--rule); border-radius: 7px; overflow: hidden; }
+  .prob { background: var(--surface); padding: 14px 16px; display: flex; flex-direction: column; gap: 5px; }
+  .prob .n { font-family:"IBM Plex Mono",ui-monospace,monospace; font-size: 12px; color: var(--crit); }
+  .prob .h { font-size: clamp(13.5px,1.4vw,15.5px); font-weight: 700; line-height: 1.45; }
+  .prob .s { font-size: 13px; color: var(--ink-faint); line-height: 1.55; }
+  .prob .chip { align-self: flex-start; margin-top: 3px; font-family:"IBM Plex Mono",ui-monospace,monospace;
+    font-size: 10.5px; letter-spacing: .06em; color: var(--accent); background: var(--accent-soft);
+    padding: 2px 8px; border-radius: 3px; }
+  .caps { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px,1fr)); gap: 14px 26px; }
+  .cap { display: grid; grid-template-columns: 22px 1fr; gap: 10px; align-items: start; }
+  .cap .i {
+    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 11px;
+    color: var(--accent); margin-top: 2px;
+  }
+  .cap p { margin: 0; font-size: clamp(14px,1.5vw,16.5px); line-height: 1.65; }
+  .cap b { font-weight: 700; }
+
+  .punch {
+    border-left: 4px solid var(--accent); background: var(--accent-soft);
+    padding: 15px 22px; border-radius: 0 5px 5px 0;
+    font-size: clamp(15px,1.8vw,20px); font-weight: 700; line-height: 1.55; text-wrap: balance;
+  }
+  .slide.ev .inner { gap: 18px; }
+  .slide.ev figure { max-width: min(100%, 120vh); }
+  .slide.ev.tight figure { max-width: min(100%, 105vh); }
+  .causes { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: stretch; }
+  .panel { display: flex; flex-direction: column; gap: 10px; justify-content: center;
+    border: 1px solid var(--rule-strong); border-radius: 8px; background: var(--surface); padding: 12px 16px 14px; }
+  .ptag { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 12.5px;
+    font-weight: 700; letter-spacing: .06em; color: var(--crit); }
+  .panel figure { max-width: 100%; }
+  .close { display: grid; grid-template-columns: 1.12fr .88fr; gap: 26px; align-items: center; }
+  .talk { display: flex; flex-direction: column; gap: 5px; }
+  .talk .lead { font-family:"IBM Plex Mono",ui-monospace,monospace;
+    letter-spacing: .14em; color: var(--hint); margin-bottom: 2px; font-size: 12px; }
+  .talk .row { display: flex; align-items: flex-start; gap: 9px; }
+  .talk .who { flex: 0 0 auto; margin-top: 4px; font-size: 12px; font-weight: 700;
+    padding: 1px 6px; border-radius: 3px; line-height: 1.5; }
+  .talk .who.p  { background: var(--crit-soft); color: var(--crit); }
+  .talk .who.ai { background: var(--surface-alt); color: var(--ink-soft); border: 1px solid var(--rule-strong); }
+  .talk .bub { position: relative; background: var(--surface); border: 1px solid var(--rule-strong);
+    border-radius: 4px 10px 10px 10px; padding: 4px 11px; font-size: 14.5px; line-height: 1.5; }
+  .talk .row.ai .bub { background: var(--surface-alt); }
+  .talk .row.last .bub { background: var(--accent-soft); border-color: var(--accent); font-weight: 700; }
+  .talk .bub::before, .talk .bub::after { content:""; position:absolute; top: 7px; width:0; height:0;
+    border: 6px solid transparent; border-left: 0; }
+  .talk .bub::before { left: -6px; border-right-color: var(--rule-strong); }
+  .talk .bub::after  { left: -5px; border-right-color: var(--surface); }
+  .talk .row.ai .bub::after   { border-right-color: var(--surface-alt); }
+  .talk .row.last .bub::before{ border-right-color: var(--accent); }
+  .talk .row.last .bub::after { border-right-color: var(--accent-soft); }
+  .cmp { display: flex; flex-direction: column; gap: 6px; }
+  .cmp-row { display: flex; flex-direction: column; gap: 1px;
+    border: 1px solid var(--rule-strong); border-left-width: 4px; border-radius: 4px;
+    background: var(--surface-alt); padding: 5px 11px; }
+  .cmp-row .k { font-size: 11.5px; color: var(--ink-soft); }
+  .cmp-row .v { font-size: 14px; }
+  .cmp-row.bad { background: var(--crit-soft); border-color: var(--crit); }
+  .cmp-note { margin: 2px 0 0; font-size: 12.5px; font-weight: 700; color: var(--crit); line-height: 1.5; }
+  .equiv { margin: 0; align-self: flex-start; font-size: clamp(14.5px,1.55vw,17.5px); line-height: 1.5;
+    background: var(--accent-soft); border-left: 4px solid var(--accent);
+    border-radius: 0 6px 6px 0; padding: 9px 18px; }
+  .equiv b { font-weight: 700; color: var(--accent); }
+  .equiv .tag { font-family:"IBM Plex Mono",ui-monospace,monospace; font-size: 11px; letter-spacing: .08em;
+    color: var(--ground); background: var(--accent); padding: 3px 9px; border-radius: 3px; margin-right: 12px; }
+  .gate { margin: 0; font-size: clamp(13px,1.35vw,15px); line-height: 1.6;
+    border-left: 3px solid var(--accent); padding-left: 13px; }
+  .gate b { font-weight: 700; }
+  .linkrow { display:flex; flex-wrap:wrap; align-items:baseline; gap:6px 14px; margin:0; }
+  a.lnk { display:inline-block; font-weight:700; font-size:clamp(13.5px,1.4vw,15.5px); color:var(--accent);
+    text-decoration:none; border-bottom:2px solid var(--accent); padding-bottom:2px; }
+  a.lnk:hover { background:var(--accent-soft); }
+  a.lnk:focus-visible { outline:2px solid var(--accent); outline-offset:3px; border-radius:2px; }
+  .linknote { font-size:13px; color:var(--ink-faint); }
+
+  @media (max-width: 700px) {
+    html { scroll-snap-type: none; }
+    .slide { min-height: auto; padding: 44px 20px 56px; }
+    .caps { grid-template-columns: 1fr; }
+    .probs { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<!-- ============ 1 ============ -->
+<section class="slide ev">
+  <div class="inner">
+    <div class="eyebrow">決定 ／ 2026-08-20 の議事から</div>
+    <h1>毎回ぶつけ合うのをやめる。<br>機能カテゴリごとに、型を置く。</h1>
+
+    <figure>
+      <svg viewBox="0 0 940 292" role="img" aria-label="型がない場合は実装とテスト通過の後に構造の誤りが発覚し、論点をゼロから作って4時間の壁打ちをした。型がある場合は節立てが先にあり、埋まらない節が未確定として先に人へ出る">
+        <defs>
+          <marker id="ar"  viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><polygon points="0,1 9,5 0,9"/></marker>
+          <marker id="arA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><polygon points="0,1 9,5 0,9"/></marker>
+          <marker id="arC" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><polygon points="0,1 9,5 0,9"/></marker>
+          <marker id="arO" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><polygon points="0,1 9,5 0,9"/></marker>
+        </defs>
+
+        <text class="t-c" x="16"  y="18">型なし ／ PW-225 で実際に起きた順番</text>
+        <text class="t-a" x="500" y="18">型あり ／ 8/20 に決めた形</text>
+        <line class="divi" x1="470" y1="8" x2="470" y2="288" stroke-dasharray="4 4"/>
+
+        <rect class="bx"  x="16"  y="30"  width="424" height="34" rx="4"/>
+        <text class="t-m" x="30"  y="52">実装（依頼から 48 分で着手・4 層 132 ファイル）</text>
+        <rect class="bxo" x="16"  y="76"  width="424" height="34" rx="4"/>
+        <text class="t-o" x="30"  y="98">テスト 414 件 全通過</text>
+        <rect class="bxc" x="16"  y="122" width="424" height="34" rx="4"/>
+        <text class="t-c" x="30"  y="144">構造の誤りが発覚（展開後 約369MiB・実行環境の上限超過）</text>
+        <rect class="bx"  x="16"  y="168" width="424" height="34" rx="4"/>
+        <text class="t-m" x="30"  y="190">論点をゼロから作り、4 時間ぶつけ合う</text>
+        <rect class="bxo" x="16"  y="214" width="424" height="30" rx="4"/>
+        <text class="t-o" x="30"  y="234">すり合わせ後は一発で全パス（手戻りゼロ）</text>
+        <text class="t-c" x="16"  y="268">払ったもの ― 調査 1 日 ＋ 作り直し 1 日 ＝ 2 日以上</text>
+        <text class="t-f" x="16"  y="286">この順番だと、型は「発覚したあと」にしか作れない</text>
+        <line class="lnc" x1="228" y1="64"  x2="228" y2="74"  marker-end="url(#arC)"/>
+        <line class="lnc" x1="228" y1="110" x2="228" y2="120" marker-end="url(#arC)"/>
+        <line class="lnc" x1="228" y1="156" x2="228" y2="166" marker-end="url(#arC)"/>
+        <line class="lno" x1="228" y1="202" x2="228" y2="212" marker-end="url(#arO)"/>
+
+        <rect class="bxa" x="500" y="30"  width="424" height="34" rx="4"/>
+        <text class="t-a" x="514" y="52">型（節立て）を先に置く ― カテゴリごとに固定</text>
+        <rect class="bx"  x="500" y="76"  width="424" height="34" rx="4"/>
+        <text class="t-m" x="514" y="98">AI が節を埋める（実装より前）</text>
+        <rect class="bxcd" x="500" y="122" width="424" height="34" rx="4"/>
+        <text class="t-c" x="514" y="144">埋まらなかった節 ＝ 未確定。そのまま人への問いになる</text>
+        <rect class="bx"  x="500" y="168" width="424" height="34" rx="4"/>
+        <text class="t-m" x="514" y="190">壁打ちは「残った節」だけ</text>
+        <rect class="bxo" x="500" y="214" width="424" height="30" rx="4"/>
+        <text class="t-o" x="514" y="234">実装に入る前に経路が閉じている</text>
+        <text class="t-a" x="500" y="268">狙い ― 壁打ちを速くするのではなく、論点作りを毎回やめる</text>
+        <text class="t-f" x="500" y="286">図は 3 枚に固定する（学術的な UML の全網羅はしない）</text>
+        <line class="lna" x1="712" y1="64"  x2="712" y2="74"  marker-end="url(#arA)"/>
+        <line class="lna" x1="712" y1="110" x2="712" y2="120" marker-end="url(#arA)"/>
+        <line class="lna" x1="712" y1="156" x2="712" y2="166" marker-end="url(#arA)"/>
+        <line class="lno" x1="712" y1="202" x2="712" y2="212" marker-end="url(#arO)"/>
+      </svg>
+    </figure>
+
+    <div class="caps">
+      <div class="cap"><span class="i">01</span><p><b>⑫で分かったこと。</b>正本が規定するのは入力と出力で、<b>経路はほぼ常に実装側が補う</b>。壁打ちが効くのは分かったが、論点は毎回ゼロから作っていた。</p></div>
+      <div class="cap"><span class="i">02</span><p><b>だから型を置く。</b>「何が書かれていれば設計が閉じたのか」を、機能カテゴリごとに<b>目次の形で</b>与える。落とし穴の一覧ではなく目次。</p></div>
+      <div class="cap"><span class="i">03</span><p><b>図は 3 枚だけ。</b>帳票なら <b>データ取得経路 ／ 画面データ構造 ／ タイムライン</b>。表で足りるものを図にすると、線を数える意味が薄れる。</p></div>
+    </div>
+  </div>
+  <div class="pageno">1 / 3</div>
+</section>
+
+<!-- ============ 2 ============ -->
+<section class="slide ev">
+  <div class="inner">
+    <div class="eyebrow">実装 ／ pw-dms の .claude に置いた</div>
+    <h1>最初の 1 つを作った。<span class="sub">「非同期帳票出力」の設計観点パック</span></h1>
+
+    <figure>
+      <svg viewBox="0 0 940 300" role="img" aria-label="領域非依存の設計エージェントに、非同期帳票出力の設計観点パックを差し込む構造。パックは14節の節立て・各節の決めどころ・必ず人に問う5節・前例の4つを渡す">
+        <defs>
+          <marker id="ar"  viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><polygon points="0,1 9,5 0,9"/></marker>
+          <marker id="arA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><polygon points="0,1 9,5 0,9"/></marker>
+          <marker id="arC" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><polygon points="0,1 9,5 0,9"/></marker>
+        </defs>
+
+        <!-- エージェント本体 -->
+        <rect class="bx" x="14" y="52" width="230" height="150" rx="6"/>
+        <text class="t-b" x="30" y="78">設計エージェント</text>
+        <text class="t-f" x="30" y="98">design-architect</text>
+        <line class="divi" x1="30" y1="110" x2="228" y2="110"/>
+        <text class="t-s" x="30" y="132">領域に固有ではない</text>
+        <text class="t-s" x="30" y="154">実装しない ／ spec を書かない</text>
+        <text class="t-s" x="30" y="176">自分で承認しない</text>
+        <text class="t-f" x="30" y="196">モード N（新規）／ モード R（逆引き）</text>
+
+        <!-- 差込口 -->
+        <rect class="bxa" x="252" y="112" width="16" height="30" rx="2"/>
+        <circle class="dota" cx="260" cy="121" r="2"/>
+        <circle class="dota" cx="260" cy="133" r="2"/>
+        <line class="lna" x1="268" y1="127" x2="300" y2="127" marker-end="url(#arA)"/>
+        <text class="t-f" x="252" y="106">差し込む</text>
+
+        <!-- パック -->
+        <rect class="bxa" x="304" y="52" width="622" height="150" rx="6"/>
+        <text class="t-b" x="320" y="76">設計観点パック</text>
+        <text class="t-f" x="320" y="94">.claude/skills/design-pattern-async-report</text>
+        <line class="divi" x1="320" y1="104" x2="910" y2="104"/>
+
+        <rect class="bxn" x="320" y="114" width="290" height="34" rx="4"/>
+        <text class="t-m" x="332" y="128">① 14 節の節立て</text>
+        <text class="t-f" x="332" y="143">00 設計原則 → 13 境界ケース</text>
+
+        <rect class="bxn" x="620" y="114" width="290" height="34" rx="4"/>
+        <text class="t-m" x="632" y="128">② 各節の決めどころ</text>
+        <text class="t-f" x="632" y="143">前例の値と「落とすとどうなるか」</text>
+
+        <rect class="bxc" x="320" y="154" width="290" height="34" rx="4"/>
+        <text class="t-c" x="332" y="168">③ ほぼ必ず人間に問う 5 節</text>
+        <text class="t-f" x="332" y="183">やり直し／範囲／境界／実測値／画面</text>
+
+        <rect class="bxn" x="620" y="154" width="290" height="34" rx="4"/>
+        <text class="t-m" x="632" y="168">④ 前例（実物の設計書）</text>
+        <text class="t-f" x="632" y="183">PW-259.design.html ほか</text>
+
+        <!-- 適用条件 -->
+        <text class="t-f" x="304" y="216">図は 01 入口・02 ランタイムフロー・04 インフラ配置 の 3 枚だけ。それ以外の節に図を足さない</text>
+        <text class="t-a" x="14" y="238">当たり判定 ― 3 つ揃ったときだけ使う</text>
+        <rect class="bxn" x="14" y="248" width="296" height="34" rx="4"/>
+        <text class="t-m" x="26" y="270">① ファイル成果物を作る</text>
+        <rect class="bxn" x="322" y="248" width="296" height="34" rx="4"/>
+        <text class="t-m" x="334" y="270">② 応答を待たせられない</text>
+        <rect class="bxn" x="630" y="248" width="296" height="34" rx="4"/>
+        <text class="t-m" x="642" y="270">③ 生成が受付と別の実行単位</text>
+        <text class="t-f" x="14" y="298">当たらないのに使うと、14 節の大半が払い損になる（軽い即時 CSV は当たらない）</text>
+      </svg>
+    </figure>
+
+    <div class="caps">
+      <div class="cap"><span class="i">01</span><p><b>埋まらなかった節が、そのまま未確定の一覧になる。</b>だから<b>節を消して短くしない</b>。消すと「決めた」と「決めていない」の区別が付かなくなる。</p></div>
+      <div class="cap"><span class="i">02</span><p><b>一般論で埋めさせない。</b>前例と違う条件に当たったら、なぞらず論点として上げる。<b>「作れるから足す」もしない</b>（前例では進捗列を業務が求めず、足さない判断をした）。</p></div>
+      <div class="cap"><span class="i">03</span><p><b>限界も同じ file に書いてある。</b>前例は実デプロイ未実施・実測値の節は仮値のまま・やり直しの節は前例でも未確定。<b>正解集ではなく、決めどころの目次</b>。</p></div>
+    </div>
+  </div>
+  <div class="pageno">2 / 3</div>
+</section>
+
+<!-- ============ 3 ============ -->
+<section class="slide ev">
+  <div class="inner">
+    <div class="eyebrow">検証 ／ イテレーション3（2026-09-01 〜）</div>
+    <h1>型を先に置いたら、<br>前半フェーズはどれだけ変わるか。</h1>
+
+    <figure>
+      <svg viewBox="0 0 940 286" role="img" aria-label="イテレーション3の5スコープのうちCSV出力は既存の型がそのまま当たる。残りは型を新規に作る。設計・実装・デバッグの3軸で型なしのイテレーション2を基準線に測る">
+        <defs>
+          <marker id="ar"  viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><polygon points="0,1 9,5 0,9"/></marker>
+          <marker id="arA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><polygon points="0,1 9,5 0,9"/></marker>
+          <marker id="arO" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><polygon points="0,1 9,5 0,9"/></marker>
+        </defs>
+
+        <text class="t-a" x="14" y="18">イテレーション3 のスコープ ― どの型を当てるか</text>
+        <rect class="bxo" x="14" y="28" width="330" height="34" rx="4"/>
+        <text class="t-o" x="26" y="42">① CSV出力（非同期帳票へ移植）</text>
+        <text class="t-f" x="26" y="56">作った型がそのまま当たる ＝ 最初の検証対象</text>
+        <rect class="bxad" x="14" y="70" width="330" height="26" rx="4"/>
+        <text class="t-m" x="26" y="88">② 通知基盤 ― 型を新規に作る</text>
+        <rect class="bxad" x="14" y="102" width="330" height="26" rx="4"/>
+        <text class="t-m" x="26" y="120">③ 定期実行・監視 ― 型を新規に作る</text>
+        <rect class="bxad" x="14" y="134" width="330" height="26" rx="4"/>
+        <text class="t-m" x="26" y="152">④ 監査ログ・操作履歴 ― 型を新規に作る</text>
+        <rect class="bxad" x="14" y="166" width="330" height="26" rx="4"/>
+        <text class="t-m" x="26" y="184">⑤ タイムアウト・上限設計 ― 既存の覚書が下敷き</text>
+        <rect class="bxn" x="14" y="200" width="330" height="34" rx="4"/>
+        <text class="t-s" x="26" y="214">イテレーション2 の残り（認証認可・外部連携・</text>
+        <text class="t-s" x="26" y="229">ファイル連携）は後追いで型化する</text>
+        <text class="t-f" x="14" y="256">先に型を作るのはイテレーション3。終わった分は</text>
+        <text class="t-f" x="14" y="272">実装済みなので、そのうち後から型に落とす</text>
+
+        <line class="lna" x1="352" y1="128" x2="392" y2="128" marker-end="url(#arA)"/>
+
+        <text class="t-a" x="400" y="18">測るもの ― 3 軸</text>
+        <rect class="bx" x="400" y="28" width="526" height="62" rx="5"/>
+        <text class="t-b" x="414" y="48">設計フェーズ</text>
+        <text class="t-s" x="414" y="66">14 節のうち埋まらなかった節の数 ／ 人へ出した問いの数</text>
+        <text class="t-s" x="414" y="83">設計が閉じるまでの往復回数と時間</text>
+
+        <rect class="bx" x="400" y="98" width="526" height="62" rx="5"/>
+        <text class="t-b" x="414" y="118">実装 〜 テスト</text>
+        <text class="t-s" x="414" y="136">初回でテストが全通過したか（PW-225 は全通過しても構造が誤り）</text>
+        <text class="t-s" x="414" y="153">構造が原因で作り直した件数と、そこで払った日数</text>
+
+        <rect class="bx" x="400" y="168" width="526" height="62" rx="5"/>
+        <text class="t-b" x="414" y="188">デバッグの前半</text>
+        <text class="t-s" x="414" y="206">as-is の設計図を起こすまでの時間</text>
+        <text class="t-s" x="414" y="223">真意に到達するまでの人との問答回数（PW-225 は 4 回）</text>
+
+        <text class="t-c" x="400" y="256">基準線（イテレーション2・型なしの実績）― 構造起因の作り直し 1 件で 2 日以上 ／</text>
+        <text class="t-c" x="400" y="272">論点作りを含む壁打ち 4 時間 ／ 原因到達まで問答 4 回</text>
+      </svg>
+    </figure>
+
+    <div class="caps">
+      <div class="cap"><span class="i">01</span><p><b>比較できる条件が揃っている。</b>同じ 2 名・同じ工数係数（テスト 0.168／PR 0.102）で、<b>イテ2 は型なし・イテ3 は型あり</b>で走る。EVM の実績とそのまま突き合わせられる。</p></div>
+      <div class="cap"><span class="i">02</span><p><b>①CSV出力から始める。</b>当たり判定の 3 条件を満たす唯一のスコープで、しかも移植。<b>型の再現性</b>（他人・別スコープでも効くか）をここで見る。</p></div>
+      <div class="cap"><span class="i">03</span><p><b>測るのは「精度」ではなく手戻り。</b>設計の良し悪しは測れない。<b>実装後に構造が原因で作り直した回数</b>と、そこまでに人が何回問答したかなら測れる。</p></div>
+    </div>
+
+    <p class="linkrow">
+      <a class="lnk" href="problem_ex_12.html">← 課題事例⑫ 設計プロセスを組み込む</a>
+      <span class="linknote">経路は誰が決めるか。⑬はその続きで、論点を毎回作るのをやめる話。</span>
+    </p>
+    <p class="linkrow">
+      <a class="lnk" href="workitems3.html">イテレーション3 タスク管理 →</a>
+      <span class="linknote">測定の母数になるスコープ・計画工数・EVM。</span>
+    </p>
+  </div>
+  <div class="pageno">3 / 3</div>
+</section>
+</body>
+</html>
