@@ -308,6 +308,38 @@ main{flex:1 1 auto; display:grid; grid-template-columns:minmax(340px,1fr) minmax
 .pane-hd .k{font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:11px; color:var(--accent);
   letter-spacing:.14em; opacity:.72}
 
+/* ── 02 の余白に置く「いま誰が何をしているか」 ──────────────────
+   盤の状態（run／redo のレーン）だけから毎フレーム引き直す。
+   台本に文言を持たせない ── 振り付けで戻された分もそのまま出る。 */
+.nowbar{flex:1 1 auto; min-width:0; display:flex; align-items:center; justify-content:center; gap:9px;
+  align-self:center; font-weight:400; letter-spacing:0}
+/* 誰も動いていない合間は何も出さない。枠は残すので右の「決定 N 件」は動かない */
+.nowbar.off{visibility:hidden}
+.nb-badge{flex:0 0 auto; display:inline-flex; align-items:center; gap:5px;
+  font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:10px; font-weight:700;
+  letter-spacing:.08em; padding:3px 9px; border-radius:3px; white-space:nowrap;
+  background:var(--surface-alt); color:var(--ink-faint); border:1px solid transparent;
+  transition:background .3s, color .3s, border-color .3s}
+.nb-badge::before{content:''; width:5px; height:5px; border-radius:50%; background:currentColor}
+.nb-badge.ai{background:var(--accent-soft); color:var(--accent); border-color:var(--accent)}
+.nb-badge.co{background:var(--hm-soft);     color:var(--hm);     border-color:var(--hm)}
+.nb-badge.hu{background:var(--hm-soft);     color:var(--hm);     border-color:var(--hm)}
+.nb-badge.ai::before, .nb-badge.co::before{animation:nbp 1.5s ease-in-out infinite}
+@keyframes nbp{50%{opacity:.25}}
+.nb-work{min-width:0; display:flex; align-items:center; gap:7px; overflow:hidden}
+.nb-it{flex:0 1 auto; min-width:0; display:inline-flex; align-items:center; gap:5px;
+  font-size:11.5px; color:var(--ink-soft); white-space:nowrap; overflow:hidden}
+.nb-it b{flex:0 0 auto; font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:10.5px;
+  font-weight:500; color:var(--ink)}
+.nb-it i{font-style:normal; min-width:0; overflow:hidden; text-overflow:ellipsis}
+.nb-it::before{content:''; flex:0 0 auto; width:3px; height:11px; border-radius:2px;
+  background:var(--accent)}
+.nb-it.hum{color:var(--hm)}      .nb-it.hum b{color:var(--hm)}
+.nb-it.hum::before{background:var(--hm)}
+.nb-more{flex:0 0 auto; font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:10px; color:var(--ink-faint)}
+@media (max-width:1240px){ .nb-work{display:none} }
+
 /* ── chat ── */
 .log{flex:1 1 auto; overflow-y:auto; padding:18px 18px 40px; display:flex; flex-direction:column; gap:14px; scroll-behavior:smooth}
 .msg{display:grid; grid-template-columns:52px 1fr; gap:11px; opacity:0; transform:translateY(8px); animation:rise .34s ease forwards}
@@ -542,7 +574,7 @@ footer .nb{white-space:nowrap}
   </section>
 
   <section class="pane viz">
-    <div class="pane-hd tabbed"><span class="k">02</span><div class="tabs" id="tabs"><span class="ink" id="tabink"></span></div><span style="margin-left:auto;font-weight:400" id="vizmeta"></span></div>
+    <div class="pane-hd tabbed"><span class="k">02</span><div class="tabs" id="tabs"><span class="ink" id="tabink"></span></div><div class="nowbar" id="nowbar"><span class="nb-badge" id="nbmode">待機</span><div class="nb-work" id="nbwork"></div></div><span style="flex:0 0 auto;font-weight:400" id="vizmeta"></span></div>
     <div class="viz-body">
 
       <div class="card" id="p-ticket">
@@ -702,7 +734,7 @@ const B = [
 
 {act:'着手', who:'eng', src:'s', d:3600, absent:'在席',
  panels:['p-ticket'], vt:'pm が作る作業チケット',
- chor:[[0,'st','pm','run','作成'],[0,'to','pm',40,2600]], text:
+ chor:[[0,'st','pm','run','チケットドラフト作成'],[0,'to','pm',40,2600]], text:
  '配達指示書の非同期出力処理を作り始める。'},
 
 {who:'pmai', src:'d', d:5200, ticket:5, chor:[[0,'to','pm',58,2800]], text:
@@ -718,7 +750,11 @@ const B = [
  '除外を書いておかないと、範囲が静かに広がって終わらなくなります。'},
 
 {act:'PM レビュー', who:'pm', src:'s', d:6000, ticket:19,
- chor:[[0,'st','pmok','run',''],[0,'set','pmok',0],[20,'to','pmok',100,3000],
+ /* pm 側の注記をここで「修正指示を反映」へ寄せる。次の節の差し戻しと同じ文言にして、
+    レビューから反映までを 1 つの流れとして読ませる。set で 40 に留めるのは、
+    st が起こす自動の伸びを止めて次の節の 68 へ素直に繋ぐため。 */
+ chor:[[0,'st','pm','run','修正指示を反映'],[0,'set','pm',40],
+       [0,'st','pmok','run',''],[0,'set','pmok',0],[20,'to','pmok',100,3000],
        [3200,'st','pmok','done','修正指示 3 件',0]], text:
  '内容は良い。<b>3 点だけ直してほしい。</b>'+
  '<ul><li>成果物の粒度を 1 段落として、<b>受付・処理・受け取りを分けて</b>書く</li>'+
@@ -730,17 +766,17 @@ const B = [
  '<b>3 点を反映しました。</b>'+
  '成果物を受付・処理・受け取りに分け、受入基準に失敗が分かることを追加し、除外に自動削除を明記しています。'},
 
-{who:'pm', src:'s', d:3600,
+{who:'pm', src:'s', d:3600, now:[['PM（人）','チケット承認','hum']],
  chor:[[0,'st','pm','done','作業チケット',0]], text:
  'これで良い。進めてほしい。'},
 
-{who:'ai', src:'d', d:4200,
+{who:'ai', src:'d', d:4200, now:[['pm','チケット起票']],
  panels:['p-board','p-tt'], vt:'AI が作っているもの', text:
  '<b>チケットを生成して実装を開始します。</b>'+
  '目的と受入基準が確定したので、ここから先は<b>それを満たす作り方</b>を決める工程に入ります。'},
 
 {act:'仕様を組む', who:'ai', src:'s', d:5200,
- agents:[['orch','run',''],['expl','run','並列 3 体']], text:
+ agents:[['orch','run',''],['expl','run','要件・仕様・ルール確認']], text:
  'チケットの前提・制約を踏まえてリポジトリを調べ、<b>作らないもの</b>と<b>作るもの</b>を仕分けました。'+
  '<ul><li>そのまま使える: PDF変換・バーコード・票面テンプレート・日本語フォント・S3ポート・通知ポート・生成状況テーブル・取込からのキック口</li>'+
  '<li>存在しない: ZIP化・presigned URL・Lambda handler・SST宣言・Prisma からのデータ取得</li>'+
@@ -994,7 +1030,7 @@ const AGENTS = [
   ['orch','オーケストレーター','ブリーフ確定'],
   ['expl','Explore ×3','資産の調査','orch'],   /* オーケストレーター自身の調査 */
   ['planner','planner','spec 化'],
-  ['da','design-architect','構成の検討と2案'],
+  ['da','design-architect','構成の検討'],
   ['dar','設計レビュー（人）','構成の確認と指示','da','hum'],
   ['tsd','test-spec-designer','実装前テスト設計'],
   ['db','db-architect','Prisma スキーマ'],
@@ -2671,6 +2707,68 @@ function paintPop(){
 window.addEventListener('resize', sizePop);
 sizePop();
 
+/* ── 02 の余白：いま誰が何をしているか ─────────────────────────
+   盤（run ／ redo のレーン）だけから引く。台本に文言を持たせないので、
+   振り付けで差し戻された分もそのまま出る。人のレーン（kind=hum）が
+   混じっていれば「協働」、AI だけなら「AI 任せ」。 */
+const AGMETA={};
+for(const [id,nm,role,parent,kind] of AGENTS) AGMETA[id]={nm,role,kind};
+const nbBar=document.getElementById('nowbar');
+const nbMode=document.getElementById('nbmode'), nbWork=document.getElementById('nbwork');
+const NB_MAX=2;
+let nbSig='';
+/* 盤にレーンが立たないやり取り（PM の承認など）は、その節の now で名指しする。
+   [表示名, していること, 'hum' なら人] 。apply が節ごとに入れ替えるので、
+   now を書いていない節では自動的に盤からの導出へ戻る。 */
+let nbOver=null;
+/* レーンの状態表示は「実行中 ／ 注記」。注記があればそれを、無ければ役割を出す */
+function nbNote(el,role){
+  const t=el.querySelector('.st').textContent||'';
+  const k=t.indexOf(' ／ ');
+  return k<0 ? role : t.slice(k+3);
+}
+function paintNow(){
+  let list;
+  if(nbOver){
+    list=nbOver.map((o,k)=>({id:'ov'+k, nm:o[0], note:o[1], hum:o[2]==='hum'}));
+  } else {
+    const act=[];
+    for(const [id] of AGENTS){
+      const el=agEls[id]; if(!el || !el.classList.contains('on')) continue;
+      const redo=el.classList.contains('redo');
+      if(!redo && !el.classList.contains('run')) continue;
+      /* redo（差し戻し）も稼働のうち。ただしバーの上では run と区別しない */
+      const m=AGMETA[id];
+      act.push({id, nm:m.nm, hum:m.kind==='hum', note:nbNote(el,m.role), seq:+el.dataset.seq||0});
+    }
+    /* オーケストレーターは終始 run のままなので、他が動いている間は伏せる */
+    const main=act.filter(a=>a.id!=='orch');
+    list=main.length?main:act;
+    /* 切り詰めても協働が消えないよう人のレーンを先に、あとは動いた順の新しい方から */
+    list.sort((a,b)=>(b.hum?1:0)-(a.hum?1:0) || b.seq-a.seq);
+  }
+
+  const hum=list.some(a=>a.hum), ai=list.some(a=>!a.hum);
+  const done=agEls['orch'] && agEls['orch'].classList.contains('done');
+  const mode = !list.length ? ['', done?'完了':'待機']
+             : hum && ai    ? ['co','人 ＋ AI で詰める']
+             : hum          ? ['hu','人が見ている']
+                            : ['ai','AI 任せ'];
+
+  /* 中身が変わったときだけ書き換える（毎フレーム DOM を触らない） */
+  const sig=mode[1]+'|'+list.map(a=>a.id+a.note).join(',');
+  if(sig===nbSig) return;
+  nbSig=sig;
+  /* レーンが 1 本も無く、まだ終わってもいない合間は伏せる ── 「待機」は読む値が無い */
+  nbBar.classList.toggle('off', !list.length && !done);
+  nbMode.className='nb-badge'+(mode[0]?' '+mode[0]:'');
+  nbMode.textContent=mode[1];
+  const show=list.slice(0,NB_MAX);
+  nbWork.innerHTML = show.map(a=>
+      '<span class="nb-it'+(a.hum?' hum':'')+'">'+
+      '<b>'+a.nm+'</b><i>'+a.note+'</i></span>').join('')
+    + (list.length>show.length ? '<span class="nb-more">＋'+(list.length-show.length)+'</span>' : '');
+}
 function paintHeader(){
   const run=[...boardEl.children].filter(x=>x.classList.contains('run')).length;
   const el=elapsedMin();
@@ -2680,7 +2778,7 @@ function paintHeader(){
 }
 (function headerLoop(){
   document.getElementById('tlfill').style.width=(progressBeats()/B.length*100)+'%';
-  paintHeader(); paintPop();
+  paintHeader(); paintNow(); paintPop();
   if(humanOn) layoutTl();                       /* 軸が広がるのに合わせて AI 帯を縮める */
   paintHuman(); paintAiSegs(); requestAnimationFrame(headerLoop); })();
 function maybeFinishOrch(){
@@ -2732,10 +2830,12 @@ function snapFull(id){
   })(t0);
 }
 const agDone=new Set();
+let agSeq=0;                    /* 状態が動いた順。02 の余白では新しいレーンから見せる */
 function fmtMin(m){ return m>=60 ? Math.floor(m/60)+'時間'+Math.round(m%60)+'分' : m.toFixed(1)+'分'; }
 function setAgent(id,st,note,min){
   const e=agEls[id]; if(!e)return;
   e.className='ag'+(e.dataset.parent?' sub':'')+(e.dataset.kind?' '+e.dataset.kind:'')+' on '+st;
+  e.dataset.seq=String(++agSeq);
   if(e.style.display==='none' && !e.dataset.folded){ e.style.display='grid'; e.style.animation='rise .35s ease'; }
   if(id==='orch'){
     if(st==='run'){ if(orchOwn===0) rampOrchOwn(); startOrchLoop(); }
@@ -3104,7 +3204,7 @@ function reset(){
   modsEl.querySelectorAll('.mod').forEach(d=>{d.classList.remove('on');
     d.querySelector('b').style.width='0'; d.querySelector('.val').style.left='0';});
   {const w=document.getElementById('modwait'); if(w) w.style.display='';}
-  tabReset();
+  tabReset(); nbSig=''; nbOver=null;
   showPanels(['p-ticket'],'pm が作る作業チケット');
   sizePop();
   document.getElementById('absent').textContent=''; 
@@ -3130,6 +3230,7 @@ function fastForward(n){
 const agTimers=[];
 function clearAgTimers(){ while(agTimers.length) clearTimeout(agTimers.pop()); }
 function apply(b,silent){
+  nbOver = b.now || null;             /* 02 のバーの名指し。書いていない節では盤から導出へ戻る */
   if(b.panels) showPanels(b.panels, b.vt);
   if(b.agents) b.agents.forEach(a=>{
     const dly=a[4];
