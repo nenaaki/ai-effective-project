@@ -48,56 +48,76 @@
   <div class="col">
     <h2>ドキュメント・課題事例</h2>
     <details class="grp" open>
+      <summary>イテレーション3</summary>
+      <ul class="links">
+        <li><details class="item" open>
+          <summary>イテレーション3 タスク管理（横串基盤 ①②③④⑤）</summary>
+          <div class="body"><div class="desc">9/1開始。予実カレンダー・作業一覧・EVM・スコープの4タブ。</div>
+          <a class="path" href="workitems3.html">workitems3.html →</a></div>
+        </details></li>
+        <li><details class="item" open>
+          <summary>イテレーション3 開発工数比較（AsIs / ToBe）</summary>
+          <div class="body"><div class="desc">AsIs／ToBe計画／ToBe実績の工数比較。基盤別＋合計タブ。</div>
+          <a class="path" href="aidd_report3.html">aidd_report3.html →</a></div>
+        </details></li>
+        <li><details class="item issue">
+          <summary>課題事例⑬: AIエージェントの設計型構築（⑫の続き）</summary>
+          <div class="body"><div class="desc">機能カテゴリごとに設計の型を置く。非同期帳票出力の型を実装し、イテレーション3で効果を測る。</div>
+          <a class="path" href="problem_ex_13.html">problem_ex_13.html →</a></div>
+        </details></li>
+      </ul>
+    </details>
+    <details class="grp" open>
       <summary>イテレーション2</summary>
       <ul class="links">
         <li><details class="item" open>
           <summary>イテレーション2 タスク管理（基盤設計 ①②③④）</summary>
-          <div class="body"><div class="desc">7/14開始のイテレーション2。基盤設計（①認証認可 / ②外部連携(SMS/IVR) / ③ファイル連携(取込/送信) / ④帳票出力(PDF生成)）のタスク一覧・ガント・バーンダウン。各タスクに短縮和名を付与。</div>
+          <div class="body"><div class="desc">7/14開始。作業一覧・カレンダー・EVM・スコープの4タブ。</div>
           <a class="path" href="workitems2.html">workitems2.html →</a></div>
         </details></li>
         <li><details class="item" open>
           <summary>イテレーション2 開発工数比較（AsIs / ToBe）</summary>
-          <div class="body"><div class="desc">基盤設計 ①②③④ のタスク単位 AsIs（人力想定）vs ToBe（AI駆動見込み・バッファ40%込み）比較。①②③④＋合計タブ、削減率つき。</div>
+          <div class="body"><div class="desc">AsIs vs ToBe（実績）の工数比較。基盤別＋合計タブ。</div>
           <a class="path" href="aidd_report2.html">aidd_report2.html →</a></div>
         </details></li>
         <li><details class="item issue">
           <summary>課題事例⑦: サンプリングレビューの内部統制化検討</summary>
-          <div class="body"><div class="desc">入口・出口を業務の言葉で握れているかを着手前にサンプリング確認する工程統制。方向性／具体的な回答／具体的な設問（壁打ちで具体化）の3タブ。</div>
+          <div class="body"><div class="desc">着手前に入口・出口の合意をサンプリング確認する工程統制。</div>
           <a class="path" href="problem_ex_7.html">problem_ex_7.html →</a></div>
         </details></li>
         <li><details class="item issue">
           <summary>課題事例⑨: データモデル修正が既存オーケストレーションで対応できない（大量コンテキストの責務分割）</summary>
-          <div class="body"><div class="desc">CRUD段階は影響が局所的で1チケット規模のオーケストレーションで対応できたが、画面実装が増えデータモデル修正の波及が拡大。1チケット規模向けの整備を大量コンテキストへ流用し、各エージェントの責務を分割できず破綻。対応＝エージェント構成は変えず、オーケストレーション（タスク分解・並列）のみをスキルで定義し、タスク種別ごとに使い分け・頻発パターンは専用スキル化。</div>
+          <div class="body"><div class="desc">大量コンテキストでオーケストレーションが破綻。責務分割で対応。</div>
           <a class="path" href="problem_ex_9.html">problem_ex_9.html →</a></div>
         </details></li>
         <li><details class="item consulted">
           <summary><span class="badge">相談済み</span>課題事例④: 品質管理プロセスと承認権限（シナリオ／作業チケットの進め方）</summary>
-          <div class="body"><div class="desc">議題③の整理。PMがシナリオ確認チケット（親）を先に起票→作業チケットのスコープとシナリオ上の作用を合意→実装→PMが完了承認→子が揃ったら親で通し確認。運送業シナリオ（持出・配送完了）を例に、承認は2階層・異常系の取捨はPM判断・チケット間の受け渡しを実装前に握る、を具体化</div>
+          <div class="body"><div class="desc">シナリオ確認チケット（親）と作業チケット（子）の2階層承認。</div>
           <a class="path" href="problem_ex_4.html">problem_ex_4.html →</a></div>
         </details></li>
         <li><details class="item consulted">
           <summary><span class="badge">相談済み</span>課題事例⑥: AIの「最後の2%」修正の属人性（クローズ → ⑧へ移譲）</summary>
-          <div class="body"><div class="desc">AIが98%作った後の残り2%を100%にする工程の属人性。「30分かかる」と「人が直すと壊れる」は同じ現象の裏表で、指示の3点セット（場所・あるべき姿・証拠）が欠けるとAIは全体を探索し契約を誤解して壊す。属人性の正体はAI側でなく人間の指示スキル（暗黙知）。熟練者の型を抽出＝①動かして気づく②通り道を遡る(画面→API→DB→データ)③指示/詰問④違和感を言語化。打ち手は【抑止】と【対応】の<b>両輪</b>（2%はゼロにできない前提）。抑止＝②③をAIに肩代わり＝実装AIが「画面項目→table.column→実データ?」を自己申告し、レビューAIがPrismaスキーマ(SSOT)・実APIと敵対的検証、DB非依拠の仮値は有罪推定で却下・出所不明なら停止し率直に報告。対応＝すり抜けた2%（契約誤り/振る舞い/違和感）を出口検収で検知し、3点セットで速く壊さず直す→<b>修正後に経路報告を再実行</b>して抑止ゲートを各修正にも巻くループ／社長案「別AIに分離」は30分が続いた時の脱出弁として吸収。人に残るのは①習慣と④違和感のみ（完璧にはならない）<br><b>【クローズ】</b>以降の検討は<b>課題事例⑧</b>に移譲。⑥の「デバッグの改善」ループはセッションログから誤解を抽出して積む前提だったが、⑧では<b>AIの自己申告は事後作話になりうる</b>ため、再現テストで裏取りした因果だけを積む方針に改めている。</div>
+          <div class="body"><div class="desc">AIが98%作った後の「2%」修正の属人性。⑧へ移譲してクローズ。</div>
           <a class="path" href="problem_ex_6.html">problem_ex_6.html →</a></div>
         </details></li>
         <li><details class="item consulted">
           <summary><span class="badge">相談済み</span>課題事例⑧: デバッグ（残り2%）の逆方向探索 — 遡れる場所へ問題を移す（⑥から継承）</summary>
-          <div class="body"><div class="desc">7/30 MTG「逆方向の探索」の具体化。<b>前提の置き換え</b>＝AIの内部は原理的に遡れない（順伝播は非可逆な情報圧縮／IF-THEN的な離散の分岐点が存在しない／アテンション可視化・メカニスティック可解釈性・Causal Tracing はモデル内部の活性値にアクセスできる立場の技術でAPI越しの我々には使えない）。帰結として「なぜそう判断したか」への回答は<b>事後作話</b>であり、セッションログをそのまま積むと検証不能な情報が増える。一方コードとテストは決定論的で完全に遡行可能なので、説明変数を<b>外部に取り出せるものだけ</b>（入力コンテキスト／実装前に明文化させた前提・仕様解釈／git diff／テストケース／実行結果）に定義し直す。肝は「AIが置いた前提を実装<b>前</b>に外に出させる」こと。<b>手法の翻訳</b>＝内部解析の3手法をプロセスに移植＝①反実仮想（「なぜそうしたか」でなく「入力のどこが変われば結果が変わるか」を問う＝問い方テンプレートの核）②介入実験＝仕様記述を抜く/変える/足して再生成し「AIの誤解」か「仕様の欠陥」かを割る③差分の二分探索＝変更を分割適用して真因の物理的位置を特定（AIの推測を介さないため最も信頼でき自動化価値が最大）。切り分けの第一手は<b>再現性そのものを診断に使う</b>（毎回同じ間違い＝仕様の欠陥／毎回違う＝指示が曖昧・情報不足）。<b>運用</b>＝ナレッジベースは再現テストが「落ちた→直った」で裏取りした（症状→真因→修正）のみ蓄積し、修正前に<b>失敗する再現テストを書かせる</b>のを前提条件にする（テストが真偽判定を担う＝AIの説明の正しさに依存しない）。着手順＝①反実仮想型テンプレート②再現性チェック③再現テスト先行の明文化④差分二分探索の自動化。要点は「AIの中は遡れない。だから遡れる場所（コード・テスト・差分）に問題を移してから遡る」。</div>
+          <div class="body"><div class="desc">AIの内部は遡れない。コード・テスト・差分へ問題を移して遡る。</div>
           <a class="path" href="problem_ex_8.html">problem_ex_8.html →</a></div>
         </details></li>
         <li><details class="item consulted">
           <summary><span class="badge">相談済み</span>課題事例⑩: A社案件へのAI駆動開発の展開 — 社内展開／顧客開示の線引き</summary>
-          <div class="body"><div class="desc">A社（大手製造業）は「AIで業務改善」をゴールに掲げ、CCTは①AIで開発の費用・期間圧縮②AIでの業務改善の提案を求められている。社内担当経由でAI駆動開発の展開を依頼され、方針は共有済み。相談＝展開の条件・進め方の指定と、①社内（A社担当チーム）へ展開する内容／②顧客へ開示してよい情報の線引き整理（内製化を視野に入れる顧客のため）。</div>
+          <div class="body"><div class="desc">A社案件への展開。社内展開と顧客開示の線引き。</div>
           <a class="path" href="problem_ex_10.html">problem_ex_10.html →</a></div>
         </details></li>
         <li><details class="item consulted">
           <summary><span class="badge">相談済み</span>課題事例⑪: デバッガーエージェント</summary>
-          <div class="body"><div class="desc">症状と原因の間を担当する debugger エージェントの仕様。従来 tester と engineer の間で往復していた「症状は出たが原因が分からない」区間を、再現→観測→因果の確定という決定論的な1回の探索に置き換える。位置づけ（担当範囲／実行・来歴・外的要因の3軸／一時変更が許される唯一のエージェントという権限）と、工程（環境ゲート→問診→ゆらぎの原因の切り分け→層の bisect）、および出口（渡す先の振り分け・打ち切り基準・やってはいけないこと）を10ページで説明。効いているのは通してはいけない3つのゲート（環境／再現／因果）と、engineer に渡さず業務論点として人へ返す出口。稼働実績は3件で、うち1件は直前のマージを疑えず誤診し自ら訂正（環境ゲートはこの誤診から追加）。→ ／ ← でページを送る。</div>
+          <div class="body"><div class="desc">デバッガーエージェントの機能分解と実装方針。</div>
           <a class="path" href="problem_ex_11.html">problem_ex_11.html →</a></div>
         </details></li>
         <li><details class="item consulted">
           <summary><span class="badge">相談済み</span>課題事例⑫：設計プロセスを組み込む。（⑪デバッグの課題の続き）</summary>
-          <div class="body"><div class="desc">実装1日・4層132ファイル・テスト414件全通過・レビュー通過・バグ0。それでも構造は誤っていた。誤っていたのは入力でも出力でもなく<b>その間の「経路」</b>で、気づけたのはPR本文の1行（「369MiB？なぜ」）を人が読んで質問したから。正本（チケット・要件）が決めるのは入力と出力だけ、テストが見るのも入力と出力だけ＝<b>経路は誰にも観測されない</b>。正本の「対象データを取得する」にAIが「DBから」の3文字を足し、それが以後の前提になった。原因を3つに分解＝①何の疑いもなく（選んだ自覚がないので案が1つしか出ない）②誰にも相談せず③提出者と決裁者が同じ。<b>対策1</b>＝「既に持ち主がいるものへ新しい処理から触るか？」という客観的な事実で発火させ、直結を増やす案／持ち主を通す案の<b>2案を必ず並べる</b>（運用デメリットが多い方を廃案にし、廃案理由を積む）。<b>対策2</b>＝処理の単位が2つ以上なら<b>設計図1枚をエンジニアへの提出物</b>にしてから実装（自己点検は省いても気づかれないが提出物は無ければ気づかれる／2案を並べて出せば決裁が受け手へ移る）。Appendix＝①基盤は作る前にAIと合意する（相談4時間→実装一晩・レビュー3周指摘ゼロ。1回目は相談なしで作り直し約2日）②大きさで割らず<b>決定で割る</b>（作業で割ると「どこを通すか」がどのタスクにも属さない）。設計図の実物は <b>problem_ex_12_design.html</b>（Appendix 1 からリンク）。</div>
+          <div class="body"><div class="desc">設計プロセスの組み込み（⑪の続き）。</div>
           <a class="path" href="problem_ex_12.html">problem_ex_12.html →</a></div>
         </details></li>
       </ul>
@@ -107,32 +127,32 @@
       <ul class="links">
         <li><details class="item" open>
           <summary>プロジェクト管理</summary>
-          <div class="body"><div class="desc">タスク管理・進捗管理・マイルストーン</div>
+          <div class="body"><div class="desc">イテレーション1のタスク管理。</div>
           <a class="path" href="workitems.html">workitems.html →</a></div>
         </details></li>
         <li><details class="item" open>
           <summary>AI駆動開発実施レポート</summary>
-          <div class="body"><div class="desc">AI駆動開発の試行結果・フロー上の問題点のまとめ　新規: デポマスタ、ユーザーマスタ、エリアマスタ</div>
+          <div class="body"><div class="desc">イテレーション1のAI駆動開発 実施レポート。</div>
           <a class="path" href="aidd_report.html">aidd_report.html →</a></div>
         </details></li>
         <li><details class="item consulted">
           <summary><span class="badge">相談済み</span>課題事例①: 要件不明確時のフロー（PW-120 デポマスタ）</summary>
-          <div class="body"><div class="desc">業務判断が不明・要件不足を planner が検知した際の確認導線が未整備。エスカレーション／管理チャネル統一の結論と PW での運用まで</div>
+          <div class="body"><div class="desc">要件不明確時の確認フロー（PW-120 デポマスタ）。</div>
           <a class="path" href="problem_ex_1.html">problem_ex_1.html →</a></div>
         </details></li>
         <li><details class="item consulted">
           <summary><span class="badge">相談済み</span>課題事例①': 不明点の確認フロー運用で見えた課題と切り分け方針（PW-122 エリアマスタ等）</summary>
-          <div class="body"><div class="desc">課題①で整備したPM層への確認フローを実運用。出た不明点が「即答困難（顧客確認）／AI駆動の対象外（業務ロジック・外部連携）／資料で網羅定義（Validation等）」と3種類混在し整理に時間。別チケットで切り分ける方針の確認まで</div>
+          <div class="body"><div class="desc">確認フロー運用で見えた課題と切り分け方針（PW-122 等）。</div>
           <a class="path" href="problem_ex_3.html">problem_ex_3.html →</a></div>
         </details></li>
         <li><details class="item consulted">
           <summary><span class="badge">相談済み</span>課題事例②: モックと同一の画面が作られないケース（PW-123 ユーザマスタ）</summary>
-          <div class="body"><div class="desc">mock と実装でレイアウト（grid 横並び vs 縦リスト）が乖離する課題。UI における AI 活用方針（実用性優先）の結論と PW での運用まで</div>
+          <div class="body"><div class="desc">モックと同一の画面が作られないケース（PW-123 ユーザマスタ）。</div>
           <a class="path" href="problem_ex_2.html">problem_ex_2.html →</a></div>
         </details></li>
         <li><details class="item consulted">
           <summary><span class="badge">継続改善</span>課題事例⑤: Yes/No で答えるだけの確認フロー（下駄）を整備（PW-190/191/194）</summary>
-          <div class="body"><div class="desc">AIの問いかけが「どうしますか？」の曖昧な形だと実装者が指示を一から書く必要があり、複雑な権限仕様では新人が判断困難。従来フロー（起票→AIオーケストレーション→不明点一覧・レビュー）の起票時に、AIが確定案＋6要素付きでYes/No確認する「下駄」を追加ノードとして整備。工数削減・ガードレール化・自律化への準備が目的。実例（PW-190のAskUserQuestion実物1問）に提案6要素・7カテゴリを矢印とノードで対応づけて解説</div>
+          <div class="body"><div class="desc">Yes/No で答えるだけの確認フロー（下駄）の整備。</div>
           <a class="path" href="problem_ex_5.html">problem_ex_5.html →</a></div>
         </details></li>
       </ul>
@@ -143,77 +163,77 @@
     <ul class="links">
       <li><details class="item" open>
         <summary>議事まとめ 2026-08-20（「実装前壁打ち」の実証 / UMLサブセットの標準化）</summary>
-        <div class="body"><div class="desc">進捗報告と設計図出力プロセスの相談（社長・推進担当・メンバー）。①進捗＝出力タスクは全完了、連携も来週完了見込み。EVMの遅れはAI生成コードの難解なバグ対応が要因。②帳票生成で414テスト通過も約369MBでLambda制限を超過。原因は「データ取得経路」の前提情報の欠落。実装前にUML図で4時間壁打ちしたところ一発でテスト完全パスし、従来2日以上の手戻りが消えた。③社長の指摘＝処理型思考を脱し「構築後の世界観」を想像せよ。④機能カテゴリーごとにAIへ事前出力させるUMLサブセット（帳票＝データ取得経路／画面データ構造／タイムライン）を定義・固定する。⑤教育は「書き手」から「AI出力を読み解くレビューア」へ転換。年内はPWで最小アセットの型を固める。</div>
+        <div class="body">
         <a class="path" href="minutes_2026-08-20.html">minutes_2026-08-20.html →</a></div>
       </details></li>
       <li><details class="item">
         <summary>議事まとめ 2026-08-13（デバッガーエージェントの機能分解 / 「原因調査」戦略）</summary>
-        <div class="body"><div class="desc">進捗報告とデバッガーエージェント方針の相談（社長・推進担当）。①進捗＝認証・認可は完了、PDF生成を引き取り順調。②現状報告＝判定エージェントを間に挟み、実装の筋／層のバイセクト／来歴の3軸で調査。③社長の指摘＝「原因調査」「修正指示」「修正の実行」を完全分離し、後ろ2つは変更要求の反映と同一なのでデバッグではない。④原因調査は「要求事項の不備」と「実現方法の選定ミス」に二分し、要求情報側から潰す。</div>
+        <div class="body">
         <a class="path" href="minutes_2026-08-13.html">minutes_2026-08-13.html →</a></div>
       </details></li>
       <li><details class="item">
         <summary>議事まとめ 2026-08-06（視座向上「残り20点」 / デバッグ逆方向探索の実装方針）</summary>
-        <div class="body"><div class="desc">戦略・進捗確認会議（社長・PJメンバー）。①進捗＝認証・認可基盤は1週間前倒し。データモデル修正は想定3.4に対し実測10.93と乖離。②視座向上＝到達度80点、残り20点は上位層の意図や背景という情報非対称性を自分から取りに行く姿勢。質問テンプレートを標準化。③デバッグ標準化＝目的変数（期待値とのズレ）から説明変数（過程のミス）を逆算探索。④AGC案件は選択と集中で判断。⑤頻出タスクは専用スキルに分離。</div>
+        <div class="body">
         <a class="path" href="minutes_2026-08-06.html">minutes_2026-08-06.html →</a></div>
       </details></li>
       <li><details class="item">
         <summary>議事まとめ 2026-07-30（デバッグの「逆方向探索」標準化 / レビュー・テストの役割分担）</summary>
-        <div class="body"><div class="desc">プロセス標準化・品質管理MTG（社長・PJメンバー）。①デバッグ標準化＝「原因の特定」と「原因の除去」を分離し、セッションログを吐かせて逆算探索させる。到達点は「テストケースを出すだけで自己進化するアプリ」。②サンプリングレビュー＝入口を業務課題の問いに転換し、過程と出口を往復して異常系の漏れを炙り出す。③テスト戦略＝単機能はAI駆動、結合は専門家がロジックを言語化、総合テストは人間の判断領域。</div>
+        <div class="body">
         <a class="path" href="minutes_2026-07-30.html">minutes_2026-07-30.html →</a></div>
       </details></li>
       <li><details class="item">
         <summary>議事まとめ 2026-07-22（入口・出口の視座向上 / デバッグ（残り2%）の標準化）</summary>
-        <div class="body"><div class="desc">戦略的プロセス刷新会議（社長・PJメンバー）。①入口・出口チェックのプロセス化＝入口で「その機能が必要な業務背景」を自分の言葉で答えさせ、出口で正常系・異常系・条件分岐のパターンを実装前に具体化する。チームリーダー／PMの2階層＋リスクベースのサンプリングで運用。②デバッグ（残り2%）の標準化＝テストケースの先行明文化を前提に「原因の特定」→「原因の除去」を両方が丸になるまで繰り返す。</div>
+        <div class="body">
         <a class="path" href="minutes_2026-07-22.html">minutes_2026-07-22.html →</a></div>
       </details></li>
       <li><details class="item">
         <summary>会話メモ 2026-07-16（AIの「最後の2%」修正の属人性 → 課題化）</summary>
-        <div class="body"><div class="desc">インプット品質の話（品質を高める＝要件理解が大事）から「完璧なものは出ないのか」に発展。困りごと＝AIが98%作った成果物の残り2%を100%に仕上げる工程。人が直すとAIの認識構造とズレて壊れる（特にカプセル化メソッド内）ため、AIに指示して直させるが1回30分かかる。社長「誰もが困ることだから課題にせよ」。提案＝「98%担当AI」と「2%担当AI」を分ける／時間がかかる背景は過学習傾向（実際はコンテキスト増大の可能性）なので別AIに依頼。ネクストアクション＝この仕上げ領域が得意なメンバーに相談し課題として取り組む。→ 成果は 課題事例⑥（problem_ex_6.html）へ展開。</div>
+        <div class="body">
         <a class="path" href="minutes_2026-07-16.html">minutes_2026-07-16.html →</a></div>
       </details></li>
       <li><details class="item" open>
         <summary>議題と議事録まとめ 2026-07-15（議題 / 議事録まとめは会議後に追記）</summary>
-        <div class="body"><div class="desc">7/9の決定・持ち越し論点から前方展開した議題。①イテレーション2立ち上がり状況（基盤設計①②③④・workitems2/aidd_report2）②外部連携＝相手方仕様の裏取りと「総合テストファースト」の実践 ③イテレーション1残タスク（簿録化ToDo）の消化方針 ④品質管理プロセス（2段階合意）とYes/No下駄の運用状況。議事録まとめ（議論サマリ・決定事項）は会議後に追記。</div>
+        <div class="body">
         <a class="path" href="minutes_2026-07-15.html">minutes_2026-07-15.html →</a></div>
       </details></li>
       <li><details class="item">
         <summary>議題と議事録まとめ 2026-07-09（議題 / アクション・決定事項は後日追記）</summary>
-        <div class="body"><div class="desc">本日の議題は、①イテレーション1の閉め方（仕様が固まり切らず暫定実装が残る部分は実装範囲・懸念点を整理し来週以降BPへ引き継ぎ可、作り込むべき理由があれば継続も可とのPM打診）②イテレーション2のタスク選定（workitems2）③品質管理プロセスと「承認権限」の明確化 ④Yes/No確認ロジック。アクションアイテム・決定事項まとめは欄のみ用意（後日追記）</div>
+        <div class="body">
         <a class="path" href="minutes_2026-07-09.html">minutes_2026-07-09.html →</a></div>
       </details></li>
       <li><details class="item">
         <summary>2026-07-09 ラップアップ（チーム共有）</summary>
-        <div class="body"><div class="desc">本日の要点を4タブで共有。KPI（予実−約10h・イテレーション1完了は週明け月曜へ）と5つの決定・方針を起点に、品質を担保する「PM→担当者→AI の一本の開発フロー」を全アークで図示（入口で出口＝検収条件を決め→実装→出口で同じ条件を検証するブックエンド。Yes/No認識合わせ2箇所【整備済み・緑】＋入口の出口先行合意・出口のブラックボックス確認【今後整備・アンバー】を色分け）。外部連携の本質リスク＝相手方仕様の正しさと総合テストファースト、イテレーション運用（イテレーション1は引き継がず簿録化／イテレーション2は4基盤選定）も整理。</div>
+        <div class="body">
         <a class="path" href="wrapup_2026-07-09.html">wrapup_2026-07-09.html →</a></div>
       </details></li>
       <li><details class="item">
         <summary>議題と議事録まとめ 2026-07-02（議題 / アクション・決定事項は後日追記）</summary>
-        <div class="body"><div class="desc">本日の議題は、6/25 決定事項の「フロー」（着手前にPMと「I／P／O」枠組みを合意する工程を開発プロセス図の最前段に追加）と「権限」（フロー図に「誰が作業し、誰が承認するか」を明示）を1件に統合し、前回指摘を受けて修正した ai-08 スライドで結果を共有。アクションアイテム・決定事項まとめは欄のみ用意（後日追記）</div>
+        <div class="body">
         <a class="path" href="minutes_2026-07-02.html">minutes_2026-07-02.html →</a></div>
       </details></li>
       <li><details class="item">
         <summary>議題と議事録まとめ 2026-06-25（議題 / アクション・決定事項は後日追記）</summary>
-        <div class="body"><div class="desc">本日の議題は、6/18 アクションアイテム①〜③（変更管理・仕様変更のプロセス定義・チェック基準検討・変更チェック具体化）の進捗共有と、④報告スライドの森→木→森構成の確認。今後のアクションアイテム・決定事項まとめは欄のみ用意（後日追記）</div>
+        <div class="body">
         <a class="path" href="minutes_2026-06-25.html">minutes_2026-06-25.html →</a></div>
       </details></li>
       <li><details class="item">
         <summary>議事まとめ 2026-06-18（変更管理 / チェック基準ファースト / 報告スライド構成）</summary>
-        <div class="body"><div class="desc">社長MTGで合意したアクション（正常系の変更管理・仕様変更のプロセス定義・影響範囲のチェック基準検討・変更チェックの具体化試行・スライドの森→木→森構成への修正・全社会議での共有検討）と決定事項（AIに影響範囲/要テスト範囲を出力させ確認をもって品質OK・予実前倒し・チェック基準ファースト）。録音不可のため記憶から再構成</div>
+        <div class="body">
         <a class="path" href="minutes_2026-06-18.html">minutes_2026-06-18.html →</a></div>
       </details></li>
       <li><details class="item">
         <summary>議事まとめ 2026-06-10（今後のアクション / 決定事項 / 相談事項）</summary>
-        <div class="body"><div class="desc">社長MTGで合意したアクション（As-Is/To-Be比較資料・テスト設計フレームワーク修正・WBS更新・他チームへの情報共有）と決定事項（EVM進捗・テスト観点の納品品質への再定義・粒度維持・情報共有ストーリーライン）、6/22の画面実装完了マイルストーン。他部署・他チームからの情報共有依頼への対応方針の相談事項・依頼メッセージ（例: 他部署の方）も併載</div>
+        <div class="body">
         <a class="path" href="minutes_2026-06-10.html">minutes_2026-06-10.html →</a></div>
       </details></li>
       <li><details class="item">
         <summary>議事まとめ 2026-06-03（今後のアクション / 決定事項）</summary>
-        <div class="body"><div class="desc">社長MTGで確定したアクション（試行錯誤の可視化・EVM / タスク運用・簿外排除 / 課題管理・プッシュ型）、決定事項、6/8の標準化フェーズ移行マイルストーン</div>
+        <div class="body">
         <a class="path" href="minutes_2026-06-03.html">minutes_2026-06-03.html →</a></div>
       </details></li>
       <li><details class="item">
         <summary>議事まとめ 2026-05-28（今後のアクション / 決定事項）</summary>
-        <div class="body"><div class="desc">定例で確定したアクションアイテム（進捗管理・指標 / 効果測定・標準化）、決定事項、全体総括</div>
+        <div class="body">
         <a class="path" href="minutes_2026-05-28.html">minutes_2026-05-28.html →</a></div>
       </details></li>
     </ul>

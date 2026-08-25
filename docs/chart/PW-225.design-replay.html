@@ -61,7 +61,8 @@ header{
 }
 .hd-l{display:flex; flex-direction:column; gap:2px; flex:1 1 340px; min-width:280px}
 .eyebrow{font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:10.5px; letter-spacing:.17em; text-transform:uppercase; color:var(--accent)}
-h1{font-family:"Shippori Mincho","Hiragino Mincho ProN",serif; font-weight:700; font-size:23px; line-height:1.3; margin:0}
+h1{font-family:"Shippori Mincho","Hiragino Mincho ProN",serif; font-weight:700; font-size:23px; line-height:1.3; margin:0; display:flex; align-items:baseline; gap:12px; flex-wrap:wrap}
+h1 .scope{font-family:inherit; font-weight:700; font-size:16px; line-height:1.35; color:var(--exec); letter-spacing:.01em}
 .sub{color:var(--ink-soft); font-size:12px; line-height:1.55}
 .sub b{color:var(--ink)}
 
@@ -487,10 +488,18 @@ footer .nb{white-space:nowrap}
 .pop{display:flex; flex-direction:column}
 /* AsIs であることを一目で分かるようにする。ここが弱いと
    モニターの中身を AI の作業だと取り違えられる。 */
-.pop-h{flex:0 0 auto; display:flex; align-items:center; gap:8px;
+.pop-h{flex:0 0 auto; display:flex; align-items:center; gap:8px; white-space:nowrap;
   padding:8px 13px; font-size:13.5px; font-weight:700; letter-spacing:.07em;
   color:var(--hm); background:var(--hm-soft); border-bottom:1px solid var(--rule)}
 .pop-h::before{content:''; flex:0 0 auto; width:4px; height:15px; border-radius:2px; background:var(--hm)}
+.pop-big{
+  margin-left:auto; flex:0 0 auto; font-family:inherit; font-size:10.5px; font-weight:700;
+  letter-spacing:.06em; color:var(--hm); background:transparent;
+  border:1px solid var(--hm); border-radius:4px; padding:3px 8px;
+  cursor:pointer; opacity:.72; transition:opacity .15s ease, background-color .15s ease;
+}
+.pop-big:hover{opacity:1}
+.pop-big.on{background:var(--hm); color:var(--surface); opacity:1}
 .pop-stage{flex:1 1 auto; min-height:0}          /* 中央は空けておく（画像・アニメーション用） */
 .pop-foot{flex:0 0 auto; display:flex; align-items:flex-end; justify-content:space-between;
   gap:10px; padding:0 13px 9px}
@@ -539,13 +548,12 @@ footer .nb{white-space:nowrap}
 <header>
   <div class="hd-l">
     <div class="eyebrow">Spec-driven development</div>
-    <h1>AI 駆動開発の AsIs - ToBe</h1>
+    <h1>AI 駆動開発の AsIs - ToBe<span class="scope">非同期帳票出力（インフラ-DB-非同期処理-各種サービス-API-画面実装）一式</span></h1>
     </div>
   </div>
   <div class="ctl">
     <button class="pri" id="play">▶ 再生</button>
-    <label class="chk"><input type="checkbox" id="hmtl"> AsIs（人力）を表示</label>
-    <label class="chk"><input type="checkbox" id="bigpop"> 大きく表示</label>
+    <input type="checkbox" id="hmtl" hidden>
     <button id="theme" title="配色">◐</button>
     <button id="reset">最初から</button>
   </div>
@@ -641,7 +649,7 @@ footer .nb{white-space:nowrap}
   <div class="res-b" id="res-tobe"><div class="res-in"><span class="res-l">ToBe ／ AI 駆動</span><span class="res-v" id="res-tobe-v"></span></div></div>
 </div>
 <div class="pop" id="pop" title="クリックで最小化 ／ 元に戻す">
-  <div class="pop-h">AsIs ／ 人力で進めた場合</div>
+  <div class="pop-h">AsIs ／ 人力で進めた場合<button type="button" class="pop-big" id="bigpop" aria-pressed="false" title="大きく表示">拡大</button></div>
   <div class="pop-stage" id="popstage"></div>
   <div class="pop-foot">
     <div class="pop-l">
@@ -1400,8 +1408,7 @@ function startHumanRun(){
   showResult('tobe');
   const cb=document.getElementById('hmtl');
   if(!cb.checked){ cb.checked=true; setHuman(true); }
-  const bg=document.getElementById('bigpop');
-  if(!bg.checked){ bg.checked=true; sizePop(); }
+  if(!bigOn) setBig(true);
   /* 等速だと中盤が退屈になるので、全体を滑らかに加速→減速させる。
      1 日 = HUMAN_MS_PER_DAY は「平均の速さ」で、中盤は 3 倍速く、両端はゆっくり動く。 */
   const span=Math.max(0, HUMAN_TOTAL-TOTAL_MIN);
@@ -1512,6 +1519,15 @@ document.getElementById('hmtl').onchange=e=>setHuman(e.target.checked);
    右下は経過を「D日 HH:MM」で出す（1 日 = HOURS_PER_DAY 時間の稼働として換算）。 */
 const HOURS_PER_DAY=8;
 const popEl=document.getElementById('pop'), popClock=document.getElementById('popclock');
+/* 「大きく表示」はポップアップ右上のトグル。状態はここで持つ */
+const bigBtn=document.getElementById('bigpop');
+let bigOn=false;
+function setBig(v){
+  bigOn=!!v;
+  bigBtn.classList.toggle('on', bigOn);
+  bigBtn.setAttribute('aria-pressed', bigOn?'true':'false');
+  sizePop();
+}
 /* 結果の表示 ── ToBe が終わった時点と、AsIs が終わった時点で出す。
    ここだけは締めの一言なので、時計表記ではなく読み下せる形にする */
 function hhmmJa(m){
@@ -1530,7 +1546,7 @@ function clearResult(){
 function sizePop(){
   if(popEl.classList.contains('min')){ popEl.style.height='30px'; popEl.style.width='168px'; monSig=null; return; }
   let h, w;
-  if(document.getElementById('bigpop').checked){
+  if(bigOn){
     /* タイムラインの直下まで使い切る（下 14px・タイムラインとの間 10px）。
        4:3 に縛ると幅の上限で頭打ちになり、下に 300px 余っていた。 */
     const tl=document.querySelector('.tl').getBoundingClientRect();
@@ -1543,7 +1559,7 @@ function sizePop(){
   popEl.style.height=h+'px'; popEl.style.width=w+'px';
   monSig=null;                                  /* 縦横比が変わるので描き直させる */
 }
-document.getElementById('bigpop').onchange=sizePop;
+bigBtn.onclick=e=>{ e.stopPropagation(); setBig(!bigOn); };   /* ポップアップ本体の最小化と競合させない */
 popEl.addEventListener('click', ()=>{ popEl.classList.toggle('min'); sizePop(); });
 /* 「X日 HH:MM」。時は 2 桁固定（帯の左右で列が揃うように） */
 function dHM(m){
@@ -1968,8 +1984,7 @@ function drawLines(text, p, opt){
    通常サイズはテクスチャを 5.0 倍に縮小するため、分割すると細部が潰れる。
    拡大時は 1.8 倍なので、ツリー・タブ・ターミナル・ステータスバーが読める。 */
 function isBig(){
-  const cb=document.getElementById('bigpop');
-  return !!(cb && cb.checked) && !popEl.classList.contains('min');
+  return bigOn && !popEl.classList.contains('min');
 }
 /* ── トークン単位の色分け ────────────────────────────
    行頭の単語だけで色を決めると行まるごと1色になり「作り物」に見える。
@@ -3200,7 +3215,7 @@ function reset(){
   buildForm(); clearHl();
   stopAllRamps(); stopOrch(); clearAgTimers(); clearChor(); stopExec(); resetElapsed(); ticketReset();
   stopHumanRun(); clearResult();
-  {const bg=document.getElementById('bigpop'); if(bg.checked){ bg.checked=false; }}
+  if(bigOn) setBig(false);
   {const cb=document.getElementById('hmtl'); if(cb.checked){ cb.checked=false; setHuman(false); }}
   execMode=false; execN=0; setTestTitle('テスト設計'); techEl.classList.remove('exec');
   document.getElementById('p-tests').classList.remove('exec');
