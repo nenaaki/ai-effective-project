@@ -36,7 +36,7 @@ const ITERATION3_DATA = {
     { name: "仕様反映の自動化(spec→リポジトリ)", base: "prep", person: 2, group: "事前工数", code: "P3", owner: "両", deps: [], asis: 7.2, plan: 7.2, tobe: 0, status: "予定", progress: 0, desc: "イテレーション2の課題対応。リポジトリ内の仕様反映が手作業で手戻りの原因になっていたため、spec からリポジトリへの反映を自動化する（AIインプットの正本を常に最新に保つ）。" },
 
     // ───────── ① CSV出力（既存CSV出力を非同期帳票出力基盤へ移植）─────────
-    { name: "仕様精査(CSV出力)～PM合意", base: "csv", person: 1, group: "仕様精査", code: "SP1", owner: "両", deps: [], asis: 10.8, plan: 7.2, tobe: 0, status: "予定", progress: 0, desc: "既存CSV出力の棚卸し（対象一覧・列定義・文字コード・改行・件数上限）と、非同期帳票出力基盤へ寄せる際の論点整理〜PM合意。" },
+    { name: "仕様精査(CSV出力)～PM合意", base: "csv", person: 1, group: "仕様精査", code: "SP1", owner: "両", deps: [], asis: 21.6, plan: 14.4, tobe: 0, status: "予定", progress: 0, desc: "既存CSV出力の棚卸し（対象一覧・列定義・文字コード・改行・件数上限）と、非同期帳票出力基盤へ寄せる際の論点整理〜PM合意。" },
     { name: "CSV出力定義基盤", base: "csv", person: 1, group: "基盤", code: "C1", owner: "BE", deps: ["仕様精査(CSV出力)～PM合意"], asis: 22.9, plan: 4.2, tobe: 0, status: "予定", progress: 0, desc: "「定義1個＝1CSV」の出力定義型（列・並び・書式・文字コード）。イテレーション2のファイル定義基盤と同じ考え方を出力側へ適用。" },
     { name: "CSV生成エンジン(非同期基盤へ移植)", base: "csv", person: 1, group: "基盤", code: "C2", owner: "BE", deps: ["CSV出力定義基盤"], asis: 30.5, plan: 5.6, tobe: 0, status: "予定", progress: 0, desc: "PDF帳票と同じ非同期ジョブ基盤・生成状況テーブル・S3成果物の上にCSV生成を載せる。同期・その場生成をやめ、大量件数でもタイムアウトしない構造へ。" },
     { name: "生成/状況API拡張(CSV)", base: "csv", person: 1, group: "基盤", code: "C3", owner: "BE", deps: ["CSV生成エンジン(非同期基盤へ移植)"], asis: 15.3, plan: 2.8, tobe: 0, status: "予定", progress: 0, desc: "既存の生成/状況APIをCSV種別へ拡張（生成リクエスト・状況ポーリング・DL URL発行）。帳票と同一I/Fで扱う。" },
@@ -47,7 +47,7 @@ const ITERATION3_DATA = {
     { name: "PR・レビュー対応(CSV)", base: "csv", person: 1, group: "PR", code: "PR1", owner: "両", deps: [], asis: 12.5, plan: 2.3, tobe: 0, status: "予定", progress: 0, desc: "①実装系22.4hに対するPR本文作成＋レビュー指摘対応。係数0.102＝イテレーション2実測。" },
 
     // ───────── ② 通知基盤（アプリ内通知＋既存SMS連携I/Fの再利用）─────────
-    { name: "仕様精査(通知基盤)～PM合意", base: "notify", person: 2, group: "仕様精査", code: "SP2", owner: "両", deps: [], asis: 10.8, plan: 7.2, tobe: 0, status: "予定", progress: 0, desc: "通知の種別・宛先（ロール／デポ／個人）・チャネル（アプリ内・メール・SMS）・既読管理・再送方針の整理〜PM合意。業務イベントの棚卸しを含む。" },
+    { name: "仕様精査(通知基盤)～PM合意", base: "notify", person: 2, group: "仕様精査", code: "SP2", owner: "両", deps: [], asis: 21.6, plan: 14.4, tobe: 0, status: "予定", progress: 0, desc: "通知の種別・宛先（ロール／デポ／個人）・チャネル（アプリ内・メール・SMS）・既読管理・再送方針の整理〜PM合意。業務イベントの棚卸しを含む。" },
     { name: "通知テーブル・種別マスタ", base: "notify", person: 2, group: "基盤", code: "N1", owner: "DB", deps: ["仕様精査(通知基盤)～PM合意"], asis: 15.3, plan: 2.8, tobe: 0, status: "予定", progress: 0, desc: "通知本体・宛先・既読状態・種別マスタのテーブル設計。帳票の生成状況/通知テーブルを一般化して通知の正本にする。" },
     { name: "通知サービス・API", base: "notify", person: 2, group: "基盤", code: "N2", owner: "BE", deps: ["通知テーブル・種別マスタ"], asis: 30.5, plan: 5.6, tobe: 0, status: "予定", progress: 0, desc: "発行・一覧取得・既読更新・未読件数のBEサービス＋GraphQL。業務コードからは「通知を出す」1本の呼び出しで済む形にする。" },
     { name: "配信チャネル抽象(アプリ内/メール/SMS)", base: "notify", person: 2, group: "基盤", code: "N3", owner: "BE", deps: ["通知サービス・API"], asis: 22.9, plan: 4.2, tobe: 0, status: "予定", progress: 0, desc: "チャネルをドライバーとして差し替え可能に。SMSはイテレーション2のSMSサービスI/F（IF008）をそのまま再利用し、実装を重複させない。" },
@@ -58,7 +58,7 @@ const ITERATION3_DATA = {
     { name: "PR・レビュー対応(通知基盤)", base: "notify", person: 2, group: "PR", code: "PR2", owner: "両", deps: [], asis: 13.1, plan: 2.4, tobe: 0, status: "予定", progress: 0, desc: "②実装系23.1hに対するPR本文作成＋レビュー指摘対応。係数0.102。" },
 
     // ───────── ③ 定期実行・監視基盤（イテレーション2のバッチ起動基盤を昇格）─────────
-    { name: "仕様精査(定期実行・監視)～PM合意", base: "sched", person: 2, group: "仕様精査", code: "SP3", owner: "両", deps: [], asis: 10.8, plan: 7.2, tobe: 0, status: "予定", progress: 0, desc: "対象ジョブの棚卸し（取込・送信・帳票一括・集計）と、スケジュール定義・リトライ・多重起動・監視/通報の方針整理〜PM合意。" },
+    { name: "仕様精査(定期実行・監視)～PM合意", base: "sched", person: 2, group: "仕様精査", code: "SP3", owner: "両", deps: [], asis: 21.6, plan: 14.4, tobe: 0, status: "予定", progress: 0, desc: "対象ジョブの棚卸し（取込・送信・帳票一括・集計）と、スケジュール定義・リトライ・多重起動・監視/通報の方針整理〜PM合意。" },
     { name: "スケジューラ基盤(定義・起動)", base: "sched", person: 2, group: "基盤", code: "S1", owner: "BE", deps: ["仕様精査(定期実行・監視)～PM合意"], asis: 26.7, plan: 4.9, tobe: 0, status: "予定", progress: 0, desc: "「ジョブ定義＝データ」でスケジュール（cron式・有効/無効・引数）を管理し、時刻起動する基盤。イテレーション2のバッチ起動基盤を汎用化。" },
     { name: "ジョブ実行履歴・状態管理", base: "sched", person: 2, group: "基盤", code: "S2", owner: "DB", deps: ["スケジューラ基盤(定義・起動)"], asis: 19.1, plan: 3.5, tobe: 0, status: "予定", progress: 0, desc: "実行履歴テーブル（開始/終了・結果・件数・エラー内容）。帳票の生成状況テーブルと同じ「状態を持つ」構造をジョブへ適用。" },
     { name: "リトライ・多重起動抑止", base: "sched", person: 2, group: "基盤", code: "S3", owner: "BE", deps: ["ジョブ実行履歴・状態管理"], asis: 15.3, plan: 2.8, tobe: 0, status: "予定", progress: 0, desc: "失敗時の再実行ポリシー（回数・間隔）と、同一ジョブの同時実行防止（実行中フラグ）。リトライ回数の上限は⑤の上限設計と揃える。" },
@@ -70,7 +70,7 @@ const ITERATION3_DATA = {
     { name: "PR・レビュー対応(定期実行・監視)", base: "sched", person: 2, group: "PR", code: "PR3", owner: "両", deps: [], asis: 13.6, plan: 2.5, tobe: 0, status: "予定", progress: 0, desc: "③実装系24.5hに対するPR本文作成＋レビュー指摘対応。係数0.102。" },
 
     // ───────── ④ 監査ログ・操作履歴 ─────────
-    { name: "仕様精査(監査ログ)～PM合意", base: "audit", person: 1, group: "仕様精査", code: "SP4", owner: "両", deps: [], asis: 10.8, plan: 7.2, tobe: 0, status: "予定", progress: 0, desc: "記録対象（誰が・いつ・どの画面/APIで・何を・どう変えた）・保持期間・閲覧権限・個人情報の扱いの整理〜PM合意。" },
+    { name: "仕様精査(監査ログ)～PM合意", base: "audit", person: 1, group: "仕様精査", code: "SP4", owner: "両", deps: [], asis: 21.6, plan: 14.4, tobe: 0, status: "予定", progress: 0, desc: "記録対象（誰が・いつ・どの画面/APIで・何を・どう変えた）・保持期間・閲覧権限・個人情報の扱いの整理〜PM合意。" },
     { name: "監査ログテーブル設計", base: "audit", person: 1, group: "基盤", code: "D1", owner: "DB", deps: ["仕様精査(監査ログ)～PM合意"], asis: 15.3, plan: 2.8, tobe: 0, status: "予定", progress: 0, desc: "操作ログ（アクセス／操作）と変更差分ログ（前後値）を分けて設計。件数が伸びる前提でインデックス・分割を決める。" },
     { name: "記録インターセプタ(BE共通)", base: "audit", person: 1, group: "基盤", code: "D2", owner: "BE", deps: ["監査ログテーブル設計"], asis: 22.9, plan: 4.2, tobe: 0, status: "予定", progress: 0, desc: "全APIを横串で通る共通インターセプタで操作を自動記録。認証・認可のユーザー情報／権限対象カタログを流用し、業務コードに記録処理を書かせない。" },
     { name: "変更差分記録(ORM共通)", base: "audit", person: 1, group: "基盤", code: "D3", owner: "BE", deps: ["記録インターセプタ(BE共通)"], asis: 22.9, plan: 4.2, tobe: 0, status: "予定", progress: 0, desc: "ORM層で更新前後の差分を自動抽出して記録。テーブル追加時に追加実装が要らない形（データ型駆動）にする。" },
@@ -81,7 +81,7 @@ const ITERATION3_DATA = {
     { name: "PR・レビュー対応(監査ログ)", base: "audit", person: 1, group: "PR", code: "PR4", owner: "両", deps: [], asis: 10.9, plan: 2.0, tobe: 0, status: "予定", progress: 0, desc: "④実装系19.6hに対するPR本文作成＋レビュー指摘対応。係数0.102。" },
 
     // ───────── ⑤ タイムアウト・上限設計（仕様精査は人員2、実装以降はレーン均衡のため人員1）─────────
-    { name: "仕様精査(タイムアウト・上限)～PM合意", base: "limit", person: 2, group: "仕様精査", code: "SP5", owner: "両", deps: [], asis: 10.8, plan: 7.2, tobe: 0, status: "予定", progress: 0, desc: "「どこまで待つか・どこまで受け付けるか」を数字で決めて合意する。セッション／API／DBのタイムアウト値、一覧・出力の件数上限、ファイルサイズ上限、同時実行数、リトライ回数の上限。全画面・全APIに影響するため先に確定させる。" },
+    { name: "仕様精査(タイムアウト・上限)～PM合意", base: "limit", person: 2, group: "仕様精査", code: "SP5", owner: "両", deps: [], asis: 21.6, plan: 14.4, tobe: 0, status: "予定", progress: 0, desc: "「どこまで待つか・どこまで受け付けるか」を数字で決めて合意する。セッション／API／DBのタイムアウト値、一覧・出力の件数上限、ファイルサイズ上限、同時実行数、リトライ回数の上限。全画面・全APIに影響するため先に確定させる。" },
     { name: "セッションタイムアウト(FE/BE)", base: "limit", person: 1, group: "基盤", code: "T1", owner: "両", deps: ["仕様精査(タイムアウト・上限)～PM合意"], asis: 15.3, plan: 2.8, tobe: 0, status: "予定", progress: 0, desc: "無操作タイムアウト・トークン失効時の再認証導線。イテレーション2の認証・認可（Cognito/JWT）の上に載せる。" },
     { name: "API/DBタイムアウト・リトライ上限", base: "limit", person: 1, group: "基盤", code: "T2", owner: "BE", deps: ["仕様精査(タイムアウト・上限)～PM合意"], asis: 15.3, plan: 2.8, tobe: 0, status: "予定", progress: 0, desc: "API・外部連携・DBの各タイムアウト値と再試行回数の上限を共通実装。上限を超える重い処理は非同期（①）へ寄せる判断基準も明文化する。" },
     { name: "一覧・検索の件数上限/ページング", base: "limit", person: 1, group: "基盤", code: "T3", owner: "BE", deps: ["API/DBタイムアウト・リトライ上限"], asis: 22.9, plan: 4.2, tobe: 0, status: "予定", progress: 0, desc: "全一覧・検索APIに取得件数上限とページングを共通適用。データ型駆動で一括適用し、無制限の全件取得を構造的に作れないようにする。" },

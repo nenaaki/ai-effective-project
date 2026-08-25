@@ -11,9 +11,9 @@
     background: #fafafa;
     padding: 14px 32px 12px;
     box-sizing: border-box;
-    overflow: hidden;
+    overflow-y: auto;
   }
-  .page { max-width: 1240px; margin: 0 auto; height: 100%; display: flex; flex-direction: column; }
+  .page { max-width: 1240px; margin: 0 auto; min-height: 100%; display: flex; flex-direction: column; }
   h1 { font-size: 19px; margin: 0; border-bottom: 3px solid #2563eb; padding-bottom: 5px; letter-spacing: -0.01em; }
   .sub { color: #6b7280; font-size: 11.5px; margin: 5px 0 8px; }
   .sub a { color: #2563eb; text-decoration: none; }
@@ -21,14 +21,14 @@
 
   .panel {
     background: white; border: 1px solid #e5e7eb; border-radius: 8px;
-    padding: 13px 16px; flex: 1; display: flex; flex-direction: column; min-height: 0;
+    padding: 13px 16px; flex: 1; display: flex; flex-direction: column;
   }
 
   .goal {
     background: #eef2ff; border-left: 4px solid #4f46e5; border-radius: 6px;
-    padding: 9px 14px; margin-bottom: 10px;
+    padding: 9px 14px; margin-bottom: 9px;
   }
-  .goal .l { font-size: 9.5px; font-weight: 700; letter-spacing: 0.1em; color: #4338ca; margin-bottom: 3px; }
+  .goal .l { font-size: 9.5px; font-weight: 700; letter-spacing: 0.1em; color: #4338ca; margin-bottom: 4px; }
   .goal .t { font-size: 12.5px; line-height: 1.6; color: #312e81; }
   .goal .t strong { color: #1e1b4b; }
 
@@ -41,32 +41,41 @@
   .prep b { color: #78350f; }
 
   .issue {
-    display: flex; align-items: flex-start; gap: 12px;
+    display: flex; align-items: center; gap: 12px;
     background: #f9fafb; border-left: 4px solid #d1d5db; border-radius: 6px;
-    padding: 8px 14px; margin: -3px 0 11px; font-size: 10.5px; color: #4b5563; line-height: 1.6;
+    padding: 7px 14px; margin: -1px 0 10px; font-size: 10.5px; color: #4b5563; line-height: 1.55;
   }
-  .issue .dt { font-weight: 700; color: #9ca3af; white-space: nowrap; font-size: 10px; letter-spacing: 0.06em; padding-top: 2px; }
+  .issue .dt { font-weight: 700; color: #9ca3af; white-space: nowrap; font-size: 10px; letter-spacing: 0.06em; }
   .issue b { color: #1f2937; }
 
-  .mrow { display: flex; align-items: center; gap: 9px; margin: 0 0 5px; }
+  .mrow { display: flex; align-items: baseline; gap: 9px; margin: 0 0 5px; }
   .mrow .mn { font-size: 11.5px; font-weight: 700; color: #374151; background: #f3f4f6; border-radius: 4px; padding: 3px 12px; }
   .mrow .mx { font-size: 10px; color: #9ca3af; }
 
   .wk { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 9px; }
+  .wk.two { grid-template-columns: 1fr 1fr; }
+  .wk.three { grid-template-columns: 1fr 1fr 1fr; }
   .chip {
     border: 1px solid #e5e7eb; border-left: 4px solid var(--cc, #2563eb);
-    border-radius: 6px; padding: 10px 13px 12px;
+    border-radius: 6px; padding: 9px 13px 11px;
   }
   .chip.prop { border-left-style: dashed; }
   .chip .hd { display: flex; justify-content: space-between; align-items: baseline; }
   .chip .d { font-size: 11px; font-weight: 800; color: var(--cc, #2563eb); }
   .chip .tg { font-size: 8.5px; font-weight: 700; padding: 1px 5px; border-radius: 3px; background: #dbeafe; color: #1e40af; letter-spacing: 0.04em; }
   .chip.prop .tg { background: #fef3c7; color: #b45309; }
-  .chip.open { border-style: dashed; background: #fafafa; }
-  .chip.open .n { color: #9ca3af; }
-  .chip.open .tg { background: #f3f4f6; color: #6b7280; }
-  .chip .n { font-size: 14.5px; font-weight: 700; line-height: 1.35; margin-top: 6px; }
-  .chip .s { font-size: 9.5px; color: #6b7280; line-height: 1.45; margin-top: 3px; }
+  .chip .n { font-size: 14px; font-weight: 700; line-height: 1.35; margin-top: 5px; }
+  .chip .s { font-size: 10px; color: #6b7280; line-height: 1.5; margin-top: 4px; }
+  .chip .s b { color: #374151; }
+
+  .kv { display: grid; grid-template-columns: auto 1fr; gap: 3px 9px; margin-top: 6px; }
+  .kv dt {
+    font-size: 8.5px; font-weight: 700; color: #fff; background: var(--cc, #2563eb);
+    border-radius: 3px; padding: 1px 5px; height: fit-content; margin-top: 1px;
+    letter-spacing: 0.04em; white-space: nowrap; opacity: 0.75;
+  }
+  .kv dd { margin: 0; font-size: 10px; color: #4b5563; line-height: 1.5; }
+  .kv dd b { color: #1f2937; }
 
   .band { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 9px; }
   .bd { border: 1px solid #e5e7eb; border-left: 4px solid var(--bc, #10b981); border-radius: 6px; padding: 10px 14px 12px; }
@@ -74,93 +83,77 @@
   .bd .mo { font-size: 10px; font-weight: 700; color: #9ca3af; letter-spacing: 0.08em; }
   .bd .dt { font-size: 12px; font-weight: 800; color: var(--bc, #10b981); }
   .bd .n { font-size: 14px; font-weight: 700; margin-top: 3px; }
-  .bd .s { font-size: 10px; color: #6b7280; line-height: 1.5; margin-top: 3px; }
 
-  .cols { display: grid; grid-template-columns: 1.15fr 1fr; gap: 12px; margin-top: auto; padding-top: 10px; }
-  .box { border: 1px solid #e5e7eb; border-radius: 7px; padding: 9px 12px; }
-  .box .h { font-size: 10px; font-weight: 700; letter-spacing: 0.06em; color: #2563eb; margin-bottom: 5px; }
-  .box.g .h { color: #6b7280; }
-  .box ul { margin: 0; padding-left: 15px; }
-  .box li { font-size: 10.5px; line-height: 1.55; color: #4b5563; }
-  .box li b { color: #1f2937; }
-  .box .flat { font-size: 10.5px; line-height: 1.6; color: #4b5563; }
-  .box .flat b { color: #1f2937; }
-
-  .memo { margin-top: 7px; font-size: 10px; line-height: 1.55; color: #9ca3af; }
+  .memo { margin-top: auto; padding-top: 8px; font-size: 10px; line-height: 1.55; color: #9ca3af; }
   .memo b { color: #6b7280; }
 </style>
 </head>
 <body>
 <div class="page">
-  <h1>12月末までの実行プラン（たたき台） ― CRUD以外の「設計型」をつくる＋CCT標準アーキへの組み込み</h1>
-  <div class="sub">AI駆動開発（PW案件）／ 2026-08-20 時点 ／ 日付は仮置き ／ 根拠: <a href="minutes_2026-08-20.html">議事まとめ 2026-08-20</a></div>
+  <h1>12月末までの実行プラン（たたき台） ― プロモーション先行 ＋ AI駆動設計プラグイン</h1>
+  <div class="sub">AI駆動開発（PW案件）／ 2026-08-21 時点 ／ 日付は仮置き ／ 根拠: <a href="minutes_2026-08-20.html">議事まとめ 2026-08-20</a> ・ 8/21 打ち合わせ（企画ものの計画へ全面更新）</div>
 
   <div class="panel">
 
     <div class="goal">
       <div class="l">目標</div>
-      <div class="t"><strong>10/23 までにCRUD以外の設計型を7本完成</strong>（週1本）。<strong>10/30</strong> にできること・できないことを整理。以降は運用スタイルを設計し、<strong>汎用型＝案件パラメーターでセットアップが終わるアセット</strong>へ。<strong>11月中にPW以外の案件で運用試験</strong>、<strong>12/18</strong> に<strong>CCT標準アーキを対象に展開</strong>する。</div>
+      <div class="t"><strong>9月＝プロモーション制作</strong>（ものづくりを半分に削り、伝える側へ振り分け）＋<strong>設計プラグインの実証試験</strong>を並行。<strong>10月＝実証結果に基づく制作</strong>。<strong>11月＝CCT標準アーキ汎用化とPW以外での運用試験</strong>。<strong>12/18 展開</strong>。</div>
     </div>
 
     <div class="prep">
       <span class="dt">8/24 → ◆ 9/4</span>
-      <span><b>準備：設計型テンプレートの様式を決める。</b>様式が決まらないまま量産すると、各本が別々の書き方になって型として使えない。</span>
+      <span><b>準備：設計型テンプレートの様式を決める。</b>様式が決まらないまま量産すると型として使えない。実証試験もこの様式が前提。</span>
     </div>
 
-    <div class="mrow"><span class="mn">9月</span></div>
-    <div class="wk">
+    <div class="mrow"><span class="mn">9月</span><span class="mx">プロモーション制作を主軸に、プラグイン実証を並行</span></div>
+    <div class="wk two">
       <div class="chip" style="--cc:#2563eb">
-        <div class="hd"><span class="d">◆ 9/11</span><span class="tg">実践済み</span></div>
-        <div class="n">認証・認可基盤と適用</div>
+        <div class="hd"><span class="d">9月 通期</span><span class="tg">主軸</span></div>
+        <div class="n">プロモーションの制作</div>
+        <dl class="kv">
+          <dt>形式</dt><dd>AsIs / ToBe <b>左右比較の短尺コマーシャル</b>（未完成部分はポンチ絵で代替）</dd>
+          <dt>数値</dt><dd><b>「何分 vs 何千分＝何百倍」</b>で生産性差を切り出す</dd>
+          <dt>題材</dt><dd><b>非同期帳票出力／認証・認可基盤</b>（どこにでもある × N個作る）</dd>
+          <dt>基準</dt><dd>インパクト先行・種明かし後。<b>社外に見せられる水準</b></dd>
+        </dl>
       </div>
-      <div class="chip" style="--cc:#2563eb">
-        <div class="hd"><span class="d">◆ 9/18</span><span class="tg">実践済み</span></div>
-        <div class="n">非同期帳票出力</div>
-      </div>
-      <div class="chip" style="--cc:#2563eb">
-        <div class="hd"><span class="d">◆ 9/25</span><span class="tg">実践済み</span></div>
-        <div class="n">外部データ取り込み／バッチ・定期実行</div>
-      </div>
-      <div class="chip" style="--cc:#2563eb">
-        <div class="hd"><span class="d">◆ 10/2</span><span class="tg">実践済み</span></div>
-        <div class="n">外部サービス連携（I/O）</div>
+      <div class="chip" style="--cc:#4f46e5">
+        <div class="hd"><span class="d">◆ 9月中</span><span class="tg">並行</span></div>
+        <div class="n">AI駆動設計プラグインの実証試験</div>
+        <dl class="kv">
+          <dt>目的</dt><dd>設計型が <b>Claude Code のプラグイン</b>として成立するか</dd>
+          <dt>対象</dt><dd><b>実践済みの4型</b>（認証・認可／非同期帳票／外部取り込み・バッチ／外部連携）</dd>
+          <dt>判定</dt><dd><b>エンジニアとAIがすり合わせできる形</b>になるか</dd>
+          <dt>出口</dt><dd>10月の制作判断のインプット</dd>
+        </dl>
       </div>
     </div>
 
-    <div class="mrow"><span class="mn">10月</span></div>
-    <div class="wk">
-      <div class="chip prop" style="--cc:#4f46e5">
-        <div class="hd"><span class="d">◆ 10/9</span><span class="tg">提案</span></div>
-        <div class="n">操作履歴（非機能要件）</div>
+    <div class="mrow"><span class="mn">10月</span><span class="mx">実証結果に基づく制作</span></div>
+    <div class="wk three">
+      <div class="chip" style="--cc:#4f46e5">
+        <div class="hd"><span class="d">10月 前半</span><span class="tg">制作</span></div>
+        <div class="n">設計プラグインの制作</div>
+        <div class="s">実証で通った範囲から着手。<b>通らない部分は様式側に戻して直す。</b></div>
       </div>
       <div class="chip prop" style="--cc:#4f46e5">
-        <div class="hd"><span class="d">◆ 10/16</span><span class="tg">提案</span></div>
-        <div class="n">タイムアウト・上限設計（非機能要件）</div>
+        <div class="hd"><span class="d">10月 後半</span><span class="tg">拡充</span></div>
+        <div class="n">対象領域の拡充</div>
+        <div class="s">操作履歴／タイムアウト・上限（非機能）、定期実行・タスク監視（インフラ）、ステートマシン（候補）</div>
       </div>
-      <div class="chip prop" style="--cc:#4f46e5">
-        <div class="hd"><span class="d">◆ 10/23</span><span class="tg">提案</span></div>
-        <div class="n">定期実行・タスク監視基盤（インフラ）</div>
-      </div>
-      <div class="chip prop" style="--cc:#6b7280">
+      <div class="chip" style="--cc:#6b7280">
         <div class="hd"><span class="d">◆ 10/30</span><span class="tg">整理</span></div>
         <div class="n">できること／できないことの整理</div>
+        <div class="s">11月の汎用化に渡す<b>対応範囲を確定</b>させる。</div>
       </div>
     </div>
 
     <div class="issue">
       <span class="dt">検討中</span>
-      <span><b>PW案件で検証できないものは、設計型から除外すべきか。</b>除外すると<b>実証済みの型だけ</b>が残るが、CCT標準アーキ向けに配る時点でPWに無い機能の型が欠ける。除外しないと<b>実案件で通っていない型</b>を混ぜて配ることになる。中間案として、型ごとに〈実証済み／未実証〉を明示して両方残す置き方もある。<b>今後の打ち合わせで詰める。</b></span>
+      <span><b>PW案件で検証できない型を除外するか。</b>除外すれば実証済みだけが残るが配布時に欠ける。残せば未実証の型を混ぜることになる。中間案＝<b>型ごとに〈実証済み／未実証〉を明示して両方残す</b>。次回打ち合わせで詰める。</span>
     </div>
 
-    <div class="mrow"><span class="mn">他のタスク候補枠</span></div>
-    <div class="wk">
-      <div class="chip open" style="--cc:#9ca3af">
-        <div class="hd"><span class="d">枠未定</span><span class="tg">候補</span></div>
-        <div class="n">ステートマシン基盤</div>
-      </div>
-    </div>
-
-    <div class="mrow"><span class="mn">11月 → 12月</span></div>
+    <div class="mrow"><span class="mn">11月 → 12月</span><span class="mx">変更なし</span></div>
     <div class="band">
       <div class="bd" style="--bc:#0ea5e9">
         <div class="hd"><span class="mo">11月 前半</span><span class="dt">◆ 11/13</span></div>
@@ -175,6 +168,8 @@
         <div class="n">CCT標準アーキ向けに展開</div>
       </div>
     </div>
+
+    <div class="memo"><b>前提：</b>PW案件の作業は継続。<b>リソースは固定値として計画しない</b> ― プロモーションで熱狂を作り、増員を前提にスケールさせる。</div>
 
   </div>
 </div>
