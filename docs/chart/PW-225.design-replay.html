@@ -1512,11 +1512,16 @@ document.getElementById('hmtl').onchange=e=>setHuman(e.target.checked);
    右下は経過を「D日 HH:MM」で出す（1 日 = HOURS_PER_DAY 時間の稼働として換算）。 */
 const HOURS_PER_DAY=8;
 const popEl=document.getElementById('pop'), popClock=document.getElementById('popclock');
-/* 結果の表示 ── ToBe が終わった時点と、AsIs が終わった時点で出す */
+/* 結果の表示 ── ToBe が終わった時点と、AsIs が終わった時点で出す。
+   ここだけは締めの一言なので、時計表記ではなく読み下せる形にする */
+function hhmmJa(m){
+  const t=Math.round(m), h=Math.floor(t/60), mi=t%60;
+  return (h?h+'時間':'')+(mi||!h?mi+'分':'');
+}
 function showResult(k){
   const el=document.getElementById('res-'+k); if(!el || el.classList.contains('on')) return;
   document.getElementById('res-'+k+'-v').textContent =
-    k==='tobe' ? hhmm(TOTAL_MIN) : (HUMAN_TOTAL/60/HOURS_PER_DAY).toFixed(1)+'人日';
+    k==='tobe' ? hhmmJa(TOTAL_MIN) : (HUMAN_TOTAL/60/HOURS_PER_DAY).toFixed(1)+'日';
   el.classList.add('on');
 }
 function clearResult(){
