@@ -225,6 +225,13 @@ label.chk{font-size:12px; color:var(--ink-soft); display:inline-flex; align-item
 .tlh-lb{color:var(--hm)} .tl-lb{color:var(--accent)}
 .tlh-lb i,.tl-lb i{display:block; font-style:normal; font-size:9px; letter-spacing:.02em; color:var(--ink-faint)}
 .tlh-track{position:absolute; left:70px; right:88px; top:14px; height:18px}
+/* AsIs 行と ToBe 行のあいだの日目盛り。tlh の下端の余白（32〜46px）に置くので、
+   AsIs を出したときだけ現れ、全体の縦幅は増えない。 */
+.tlh-days{position:absolute; left:70px; right:88px; top:32px; height:14px}
+.tlh-day{position:absolute; top:0; transform:translateX(-50%); text-align:center}
+.tlh-day i{display:block; width:1px; height:4px; margin:0 auto; background:var(--rule-strong)}
+.tlh-day span{display:block; font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:8.5px; line-height:1.1; color:var(--ink-faint); letter-spacing:.02em; white-space:nowrap}
 .tlh-segs{position:absolute; left:0; top:0; bottom:0; display:flex}   /* 幅は中身なり。右へはみ出す。
    gap は使わない ── 隙間が幅に加算されて塗りと右端がずれるため、仕切りは各区画の枠線で出す */
 .tlh-seg{position:relative; height:100%; border-radius:2px; overflow:hidden; min-width:0;
@@ -276,24 +283,30 @@ main{flex:1 1 auto; display:grid; grid-template-columns:minmax(340px,1fr) minmax
 #p-board.float.mini .board{display:none}
 #p-board.float h3::after{content:'クリックで畳む'; margin-left:auto; font-weight:400; font-size:9.5px; color:var(--ink-faint)}
 #p-board.float.mini h3::after{content:'クリックで開く'}
+/* AI 側であることを一目で分かるようにする。
+   左下の AsIs（人力）の見出しと同じ強さで、色だけ AI 側にする。 */
 .pane-hd{
-  flex:0 0 auto; padding:9px 18px; border-bottom:1px solid var(--rule); background:var(--surface);
-  display:flex; align-items:center; gap:10px; font-size:11.5px; letter-spacing:.06em; color:var(--ink-soft); font-weight:700;
+  flex:0 0 auto; padding:8px 18px; border-bottom:1px solid var(--rule); background:var(--accent-soft);
+  display:flex; align-items:center; gap:9px; font-size:13.5px; letter-spacing:.07em;
+  color:var(--accent); font-weight:700;
 }
-.pane-hd.tabbed{padding:0 18px; gap:14px; align-items:stretch}
+.pane-hd::before{content:''; flex:0 0 auto; align-self:center;
+  width:4px; height:15px; border-radius:2px; background:var(--accent)}
+.pane-hd.tabbed{padding:0 18px; gap:12px; align-items:stretch}
 .pane-hd.tabbed .k{align-self:center}
 .tabs{position:relative; display:flex; gap:2px; align-items:stretch}
 .tabs button{
   background:none; border:none; border-radius:0; padding:11px 13px 12px; margin:0;
-  font:inherit; font-size:11.5px; letter-spacing:.04em; color:var(--ink-faint); cursor:pointer;
+  font:inherit; font-size:12px; letter-spacing:.04em; color:var(--ink-soft); cursor:pointer;
   animation:tabin .32s ease backwards; white-space:nowrap;
 }
-.tabs button:hover{color:var(--ink-soft); background:none}
+.tabs button:hover{color:var(--ink); background:none}
 .tabs button[aria-selected="true"]{color:var(--accent); font-weight:700}
 .tabs .ink{position:absolute; bottom:0; left:0; width:0; height:2px; background:var(--accent);
   transition:left .34s cubic-bezier(.2,.8,.2,1), width .34s cubic-bezier(.2,.8,.2,1)}
 @keyframes tabin{from{opacity:0; transform:translateY(-5px)}}
-.pane-hd .k{font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:10.5px; color:var(--accent); letter-spacing:.14em}
+.pane-hd .k{font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:11px; color:var(--accent);
+  letter-spacing:.14em; opacity:.72}
 
 /* ── chat ── */
 .log{flex:1 1 auto; overflow-y:auto; padding:18px 18px 40px; display:flex; flex-direction:column; gap:14px; scroll-behavior:smooth}
@@ -440,7 +453,12 @@ footer .nb{white-space:nowrap}
 :root[data-theme="light"] .pop{box-shadow:0 14px 34px rgba(20,40,40,.18)}
 .pop-body{position:absolute; inset:0 0 26px 0; display:grid; place-items:center}
 .pop{display:flex; flex-direction:column}
-.pop-h{flex:0 0 auto; padding:9px 13px 0; font-size:10.5px; letter-spacing:.09em; color:var(--ink-faint)}
+/* AsIs であることを一目で分かるようにする。ここが弱いと
+   モニターの中身を AI の作業だと取り違えられる。 */
+.pop-h{flex:0 0 auto; display:flex; align-items:center; gap:8px;
+  padding:8px 13px; font-size:13.5px; font-weight:700; letter-spacing:.07em;
+  color:var(--hm); background:var(--hm-soft); border-bottom:1px solid var(--rule)}
+.pop-h::before{content:''; flex:0 0 auto; width:4px; height:15px; border-radius:2px; background:var(--hm)}
 .pop-stage{flex:1 1 auto; min-height:0}          /* 中央は空けておく（画像・アニメーション用） */
 .pop-foot{flex:0 0 auto; display:flex; align-items:flex-end; justify-content:space-between;
   gap:10px; padding:0 13px 9px}
@@ -453,10 +471,15 @@ footer .nb{white-space:nowrap}
 /* 結果の表示（画面の右半分） */
 #res-asis .res-l{color:var(--hm)}
 #res-asis .res-v{color:var(--hm)}
-.pop-now{position:relative; height:34px; overflow:hidden}
+.pop-nowrow{display:flex; align-items:center; gap:7px}
+.pop-badge{flex:0 0 auto; font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:10px; font-weight:700; letter-spacing:.08em; line-height:1;
+  color:var(--hm); border:1px solid var(--hm); border-radius:3px;
+  padding:3px 6px; white-space:nowrap}
+.pop-now{position:relative; flex:1 1 auto; min-width:0; height:24px; overflow:hidden}
 .pop-now .ph{
   position:absolute; left:0; top:0; white-space:nowrap;
-  font-family:"Shippori Mincho","Hiragino Mincho ProN",serif; font-size:26px; font-weight:700;
+  font-family:"Shippori Mincho","Hiragino Mincho ProN",serif; font-size:17px; font-weight:700;
   color:var(--hm); line-height:1.3; will-change:transform,opacity;
 }
 .pop-sub{font-size:11px; color:var(--ink-soft); line-height:1.5; margin-top:2px}
@@ -499,6 +522,7 @@ footer .nb{white-space:nowrap}
 <div class="tlh" id="tlh">
   <span class="tlh-lb">AsIs<i>人力</i></span>
   <div class="tlh-track" id="tlhtrack"></div>
+  <div class="tlh-days" id="tlhdays"></div>
   <span class="tl-t1" id="tlhend"></span>
 </div>
 <div class="tl">
@@ -589,7 +613,10 @@ footer .nb{white-space:nowrap}
   <div class="pop-stage" id="popstage"></div>
   <div class="pop-foot">
     <div class="pop-l">
-      <div class="pop-now" id="popnow"></div>
+      <div class="pop-nowrow">
+        <span class="pop-badge">人力</span>
+        <div class="pop-now" id="popnow"></div>
+      </div>
       <div class="pop-sub" id="popsub"></div>
     </div>
     <div class="pop-clock" id="popclock"></div>
@@ -1370,6 +1397,14 @@ function buildHuman(){
   const f=document.createElement('div'); f.className='tlh-fill'; f.id='tlhfill';
   tlhTrack.appendChild(f);                       /* track の中に置く。tlh は height:0 で畳むため */
   document.getElementById('tlhend').textContent=dHM(HUMAN_TOTAL);
+  /* 日の目盛り。位置は軸の伸縮に合わせて paintHuman で置き直す */
+  const dz=document.getElementById('tlhdays'); dz.innerHTML='';
+  for(let d=1; d*HOURS_PER_DAY*60<=HUMAN_TOTAL; d++){
+    const e=document.createElement('div'); e.className='tlh-day';
+    e.dataset.m=d*HOURS_PER_DAY*60;
+    e.innerHTML='<i></i><span>'+d+'日</span>';
+    dz.appendChild(e);
+  }
 }
 /* いま人間がいるフェーズ（経過を人力の軸に当てる） */
 function humanPhase(m){
@@ -1407,11 +1442,12 @@ function setHuman(on){
   if(humanSeq){ clearTimeout(humanSeq); humanSeq=null; }
   if(on){
     tl.classList.add('compact');                                  /* まず体裁を切り替える */
-    humanSeq=setTimeout(()=>{ layoutTl(); humanSeq=null; }, 340);  /* それから縮める */
+    humanSeq=setTimeout(()=>{ layoutTl(); sizePop(); humanSeq=null; }, 340);  /* それから縮める */
   }else{
     layoutTl();                                                   /* まず広げる */
-    humanSeq=setTimeout(()=>{ tl.classList.remove('compact'); humanSeq=null; }, 640);
+    humanSeq=setTimeout(()=>{ tl.classList.remove('compact'); sizePop(); humanSeq=null; }, 640);
   }
+  sizePop();          /* AsIs 行のぶんタイムラインの下端が動く */
 }
 window.addEventListener('resize', layoutTl);
 /* 区画の帯に AI 側の進捗を出す（縮んでいる間も進みが見えるように） */
@@ -1426,6 +1462,11 @@ function paintHuman(){
   /* 区画は軸の範囲に合わせて伸縮する。範囲外は track の overflow で切れる */
   for(const d of tlhTrack.querySelectorAll('.tlh-seg')) d.style.width=(+d.dataset.m/ax*w)+'px';
   f.style.width=(Math.min(1, humanElapsed()/ax)*w)+'px';
+  for(const e of document.querySelectorAll('.tlh-day')){
+    const m=+e.dataset.m;
+    e.style.display = m<=ax ? '' : 'none';     /* 軸の外に出るものは出さない */
+    e.style.left=(m/ax*100)+'%';
+  }
   document.getElementById('tlhend').textContent=dHM(ax);
 }
 document.getElementById('hmtl').onchange=e=>setHuman(e.target.checked);
@@ -1447,17 +1488,18 @@ function clearResult(){
 }
 function sizePop(){
   if(popEl.classList.contains('min')){ popEl.style.height='30px'; popEl.style.width='168px'; monSig=null; return; }
-  let h;
+  let h, w;
   if(document.getElementById('bigpop').checked){
-    /* タイムラインの下端まで伸ばす（下マージン 14px・上に 10px の余白） */
+    /* タイムラインの直下まで使い切る（下 14px・タイムラインとの間 10px）。
+       4:3 に縛ると幅の上限で頭打ちになり、下に 300px 余っていた。 */
     const tl=document.querySelector('.tl').getBoundingClientRect();
     h=Math.max(160, Math.round(window.innerHeight - 14 - (tl.bottom + 10)));
-    const wmax=Math.round(window.innerWidth*0.48);      /* 右半分は結果の表示に空けておく */
-    if(h*4/3 > wmax) h=Math.round(wmax*3/4);
+    w=Math.min(Math.round(window.innerWidth*0.48), Math.round(h*4/3));  /* 右半分は結果の表示に空ける */
   }else{
     h=Math.round(window.innerHeight*0.30);
+    w=Math.round(h*4/3);
   }
-  popEl.style.height=h+'px'; popEl.style.width=Math.round(h*4/3)+'px';
+  popEl.style.height=h+'px'; popEl.style.width=w+'px';
   monSig=null;                                  /* 縦横比が変わるので描き直させる */
 }
 document.getElementById('bigpop').onchange=sizePop;
@@ -1988,29 +2030,30 @@ function colorFor(c){
 }
 function drawTree(Rc, tree){
   mx.fillStyle=cssv('--surface-sunk'); mx.fillRect(Rc.x,Rc.y,Rc.w,Rc.h);
-  mx.font='600 20px "Zen Kaku Gothic New",sans-serif'; mx.textBaseline='middle';
+  mx.font='600 '+Math.round(FS*0.84)+'px "Zen Kaku Gothic New",sans-serif'; mx.textBaseline='middle';
   mx.fillStyle=cssv('--ink-faint'); mx.fillText('エクスプローラー', Rc.x+26, Rc.y+30);
+  const RH=Math.round(FS*1.62);
   let y=Rc.y+76;
   for(const [d,name,kind] of tree){
     if(y>Rc.y+Rc.h-20) break;
     if(kind==='active'){
-      mx.fillStyle=cssv('--surface-alt'); mx.fillRect(Rc.x,y-17,Rc.w-2,34);
-      mx.fillStyle=cssv('--hm');         mx.fillRect(Rc.x,y-17,4,34);
+      mx.fillStyle=cssv('--surface-alt'); mx.fillRect(Rc.x,y-RH/2,Rc.w-2,RH);
+      mx.fillStyle=cssv('--hm');         mx.fillRect(Rc.x,y-RH/2,4,RH);
     }
-    mx.font='400 19px "IBM Plex Mono",monospace'; mx.textBaseline='middle';
+    mx.font='400 '+Math.round(FS*0.83)+'px "IBM Plex Mono",monospace'; mx.textBaseline='middle';
     mx.fillStyle = kind==='dir' ? cssv('--ink-faint')
                  : kind==='active' ? cssv('--ink') : cssv('--ink-soft');
     const tx0=Rc.x+24+d*18, room=Rc.x+Rc.w-14-tx0;
     let lbl=(kind==='dir'?'▾ ':'   ')+name;
     while(lbl.length>4 && mx.measureText(lbl+'…').width>room) lbl=lbl.slice(0,-1);
     mx.fillText(lbl+(lbl.length<(kind==='dir'?2:3)+name.length?'…':''), tx0, y);
-    y+=34;
+    y+=RH;
   }
   mx.fillStyle=cssv('--rule'); mx.fillRect(Rc.x+Rc.w-2,Rc.y,2,Rc.h);
 }
 function drawTabs(Rc, tabs, active){
   mx.fillStyle=cssv('--surface-sunk'); mx.fillRect(Rc.x,Rc.y,Rc.w,Rc.h);
-  mx.font='400 22px "IBM Plex Mono",monospace'; mx.textBaseline='middle';
+  mx.font='400 '+Math.round(FS*0.9)+'px "IBM Plex Mono",monospace'; mx.textBaseline='middle';
   let x=Rc.x;
   for(const t of tabs){
     const w=mx.measureText(t).width+56, on=(t===active);
@@ -2029,9 +2072,10 @@ function drawTabs(Rc, tabs, active){
 function drawTerm(Rc, text, p){
   mx.fillStyle=cssv('--surface-sunk'); mx.fillRect(Rc.x,Rc.y,Rc.w,Rc.h);
   mx.fillStyle=cssv('--rule');         mx.fillRect(Rc.x,Rc.y,Rc.w,2);
-  mx.font='600 19px "Zen Kaku Gothic New",sans-serif'; mx.textBaseline='middle';
+  mx.font='600 '+Math.round(FS*0.8)+'px "Zen Kaku Gothic New",sans-serif'; mx.textBaseline='middle';
   mx.fillStyle=cssv('--ink-faint'); mx.fillText('ターミナル', Rc.x+22, Rc.y+26);
-  drawLines(text, p, {rect:{x:Rc.x,y:Rc.y+42,w:Rc.w,h:Rc.h-42}, fs:21, lh:30, pad:16,
+  drawLines(text, p, {rect:{x:Rc.x,y:Rc.y+42,w:Rc.w,h:Rc.h-42},
+    fs:Math.round(FS*0.86), lh:Math.round(FS*1.24), pad:16,
     color:L=> /PASS|問題なし|を適用|を生成|Ready|Compiled/.test(L) ? cssv('--ok')
             : /error|FAIL|failed/.test(L)                        ? cssv('--crit')
             : /^\$/.test(L.trim())                               ? cssv('--accent')
@@ -2041,7 +2085,7 @@ function drawStatus(Rc, c, p){
   mx.fillStyle=cssv('--hm'); mx.globalAlpha=0.16; mx.fillRect(Rc.x,Rc.y,Rc.w,Rc.h); mx.globalAlpha=1;
   mx.fillStyle=cssv('--rule'); mx.fillRect(Rc.x,Rc.y,Rc.w,1);
   const y=Rc.y+Rc.h/2;
-  mx.font='400 21px "IBM Plex Mono",monospace'; mx.textBaseline='middle';
+  mx.font='400 '+Math.round(FS*0.86)+'px "IBM Plex Mono",monospace'; mx.textBaseline='middle';
   mx.fillStyle=cssv('--ink-soft'); mx.fillText('f/PW-225', Rc.x+24, y);
   /* エラー・警告はコードを書いているときだけ出す（設計図やログには出さない） */
   if(c.kind==='code'){
@@ -2236,9 +2280,13 @@ function drawScreenPreview(Rc, p){
     });
   });
 }
+let FS=24;                     /* 編集領域の文字。枠の幅から決める（drawShell で設定） */
 function drawShell(c, p){
   if(c.shell==='browser') return drawBrowserShell(c, p);
-  const SB=Math.round(CW*0.25), TH=58, ST=46, top=66, bot=CH-ST;
+  const SB=Math.round(CW*0.25);
+  /* 桁数を約 58 に保つ。枠が縦長になると幅が減るので、そのぶん文字も詰める */
+  FS=Math.max(18, Math.min(26, Math.round((CW-SB)/(0.6*58))));
+  const TH=Math.round(FS*2.42), ST=Math.round(FS*1.92), top=66, bot=CH-ST;
   drawTree({x:0,y:top,w:SB,h:bot-top}, c.tree||[]);
   drawTabs({x:SB,y:top,w:CW-SB,h:TH}, c.tabs||[c.title], c.title);
   const by=top+TH, bh=bot-by, ex=SB, ew=CW-SB;
@@ -2252,12 +2300,12 @@ function drawShell(c, p){
     else if(c.kind==='spec')           drawSpec(ed, p);
     else if(c.preview==='screen'){                    /* 左にコード・右に作っている画面 */
       const lw=Math.round(ed.w*0.53);
-      drawLines(c.src(), p, {rect:{x:ed.x,y:ed.y,w:lw,h:ed.h}, fs:22, lh:32, pad:18,
-        gutter:true, tok:'ts'});
+      drawLines(c.src(), p, {rect:{x:ed.x,y:ed.y,w:lw,h:ed.h},
+        fs:Math.max(16,FS-2), lh:Math.round((FS-2)*1.45), pad:18, gutter:true, tok:'ts'});
       mx.fillStyle=cssv('--rule'); mx.fillRect(ed.x+lw,ed.y,2,ed.h);
       drawScreenPreview({x:ed.x+lw+2,y:ed.y,w:ed.w-lw-2,h:ed.h}, p);
     }
-    else drawLines(c.src(), p, {rect:ed, fs:24, lh:34, pad:20, gutter:true,
+    else drawLines(c.src(), p, {rect:ed, fs:FS, lh:Math.round(FS*1.42), pad:20, gutter:true,
       tok:c.kind==='code'?'ts':null, color:colorFor(c)});
     if(th) drawTerm({x:ed.x,y:ed.y+ed.h,w:ed.w,h:th}, c.term(), p);
   }
@@ -2516,7 +2564,7 @@ function drawSplit(Rc, text, p, kind){
   const lw=Math.round(Rc.w*(kind==='md' ? 0.47 : 0.38));
   const L={x:Rc.x,y:Rc.y,w:lw,h:Rc.h}, P={x:Rc.x+lw+2,y:Rc.y,w:Rc.w-lw-2,h:Rc.h};
   mx.fillStyle=cssv('--surface'); mx.fillRect(L.x,L.y,L.w,L.h);
-  const fs=21;
+  const fs=Math.max(16, FS-3);
   drawLines(text, p, {rect:L, fs:fs, lh:Math.round(fs*1.45), pad:16, gutter:true,
     tok: (kind==='seq'||kind==='mod') ? 'puml' : null,
     color:L2=> /^(#|##)/.test(L2.trim()) ? cssv('--accent')
@@ -3095,9 +3143,11 @@ function apply(b,silent){
   if(b.chor) runChor(b.chor, silent);
   if(b.sizes!==undefined) setMods(b.sizes);
   if(b.absent!==undefined){
-    /* 席を外した時点の経過を添える（「不在」だけでは、いつからか分からない） */
+    /* 席を外した時点を添える（「不在」だけでは、いつからか分からない）。
+       時刻は AI_ABSENT_AT（＝設計レビューの終わり）から出す。
+       そのときの経過を読むと、台本の進み具合しだいで値がずれる。 */
     const e=document.getElementById('absent'), away=/不在/.test(b.absent);
-    e.textContent = away ? '人：'+hhmm(elapsedMin())+' から不在' : '人：在席';
+    e.textContent = away ? '人：'+hhmm(AI_ABSENT_AT)+' から不在' : '人：在席';
     e.className='absent '+(away?'no':'yes');}
   if(b.stage) setStage(b.stage, 1000/Math.max(1,speed*0.7));
   if(b.form) b.form.forEach(f=>setForm(f[0],f[1],f[2]));
