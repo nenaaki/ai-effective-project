@@ -843,9 +843,15 @@ function copyEvmSnap(btn){
     <div style="color:#94a3b8; margin-top:6px;">この行を sprint2_data.js の <b>evmSnapshots</b> に貼り付けて週次スナップショットを記録（週1回）。progress／tobe（実績）を最新化してから算出すること。</div>
   </div>`;
   const memo = `<div style="margin-top:12px; font-size:12px; border:1px solid #fcd34d; background:#fffbeb; border-radius:6px; padding:9px 11px; max-width:660px;">
-    <div style="font-weight:700; color:#92400e; margin-bottom:5px;">8/30 メモ</div>
+    <div style="font-weight:700; color:#92400e; margin-bottom:5px;">8/26 メモ</div>
     <ul style="margin:0; padding-left:18px; line-height:1.7; color:#334155;">
-      <li>AIエージェントの実装のバグ対応にかなりの時間を要した（エージェントの改善作業を含む）。</li>
+      <li>先週からイテレーション３の準備をしている。</li>
+      <li>工数の計算について、改善が見られたが以下の課題も浮き彫りになった。
+        <ul style="margin:2px 0 0; padding-left:16px;">
+          <li>AIエージェントの不備の調査改修のための工数は予め見積もっておく必要がある</li>
+          <li>リポジトリ内の仕様反映が手作業だったため、手戻りの原因となりがち（自動化したい）</li>
+        </ul>
+      </li>
     </ul>
   </div>`;
   document.getElementById("evm").innerHTML =
