@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>スプリント2 タスク管理（基盤設計 ①②③④）</title>
+<title>イテレーション2 タスク管理（基盤設計 ①②③④）</title>
 <style>
   body { font-family: "Yu Gothic UI", "Meiryo", sans-serif; margin: 24px; color:#222; line-height:1.5; max-width: 1880px; }
   h1 { font-size: 20px; margin: 0 0 4px; }
@@ -129,7 +129,7 @@
 </style>
 </head>
 <body>
-  <h1>スプリント2 タスク管理 ― 基盤設計 ①認証認可 / ②外部連携 / ③ファイル連携 / ④帳票出力</h1>
+  <h1>イテレーション2 タスク管理 ― 基盤設計 ①認証認可 / ②外部連携 / ③ファイル連携 / ④帳票出力</h1>
   <div class="sub" id="sub"></div>
 
   <div class="tabs">
@@ -149,7 +149,7 @@
         </div>
         <div style="display:flex;gap:10px;align-items:flex-start;">
           <span style="flex:0 0 22px;height:22px;border-radius:50%;background:#10b981;color:#fff;font-weight:bold;font-size:12px;display:flex;align-items:center;justify-content:center;">2</span>
-          <div><b style="color:#14532d;font-size:13.5px;">「データ型×CRUD（スプリント1のスコープ）」に1要素を加えることで作れる基盤</b><div style="font-size:12px;color:#4b5563;margin-top:2px;">スプリント1で確認した"型を渡せばAIが縦串を量産できる"土台に、要件分析を経た「仕様・設計」を1つ加えて作る。</div></div>
+          <div><b style="color:#14532d;font-size:13.5px;">「データ型×CRUD（イテレーション1のスコープ）」に1要素を加えることで作れる基盤</b><div style="font-size:12px;color:#4b5563;margin-top:2px;">イテレーション1で確認した"型を渡せばAIが縦串を量産できる"土台に、要件分析を経た「仕様・設計」を1つ加えて作る。</div></div>
         </div>
       </div>
     </div>
@@ -531,7 +531,7 @@ D.bases.forEach(b => [1,2].forEach(p => { if (D.tasks.some(t=>personOf(t)===p &&
   const totAsis = sumBase.reduce((a,s)=>a+s.asis,0);
   const totBuf  = sumBase.reduce((a,s)=>a+s.buf,0);
   document.getElementById("sub").textContent =
-    `スプリント2 / 開始 ${D.meta.start}（火）/ ${D.tasks.length}タスク / 計画 ${r1(totBuf)}h（≈ ${r1(totBuf/HPD)}人日）/ AsIs想定 ${r1(totAsis)}h`;
+    `イテレーション2 / 開始 ${D.meta.start}（火）/ ${D.tasks.length}タスク / 計画 ${r1(totBuf)}h（≈ ${r1(totBuf/HPD)}人日）/ AsIs想定 ${r1(totAsis)}h`;
   let html = "";
   sumBase.forEach((s,i)=>{
     html += `<div class="card" style="border-left:4px solid ${s.b.color}"><div class="k">${s.b.id} ${s.b.name}</div>`+

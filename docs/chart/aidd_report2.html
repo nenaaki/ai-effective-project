@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>スプリント2 開発工数比較 (AsIs / ToBe) ― 基盤設計 ①②③④</title>
+<title>イテレーション2 開発工数比較 (AsIs / ToBe) ― 基盤設計 ①②③④</title>
 <style>
   body { font-family: "Yu Gothic UI", "Meiryo", sans-serif; margin: 0; color:#1f2937; background:#fafafa; }
   .wrap { max-width: 1100px; margin: 0 auto; padding: 22px 26px; }
@@ -53,7 +53,7 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>スプリント2 開発工数比較 (AsIs / ToBe)</h1>
+  <h1>イテレーション2 開発工数比較 (AsIs / ToBe)</h1>
   <div class="sub" id="sub"></div>
   <div class="tabs" id="tabs"></div>
   <div id="panels"></div>
@@ -164,7 +164,7 @@ function totalPanel(){
       `<td class="cut">${bt==null?'—':cut(r.aDone, r.bt)+'%'}</td></tr>`;
   });
   return `<div class="panel" data-key="__total__" style="--ac:#10b981">`+
-    `<div class="lede">スプリント2（基盤設計 ①②③④）全体の工数比較。<b>ToBe は完了タスクの実績のみ集計</b>（現状 完了 ${dnAll}/${nAll} 件）。<b>AsIs 想定 ${tA.toFixed(1)}h</b>。着手が進むにつれ ToBe（実績）と削減率が埋まる。CRUD 画面（78%前後）より削減率が低めになりやすいのは、基盤構築と 189オペレーション級の横展開が実装レバレッジの効きにくい領域を含むため。</div>`+
+    `<div class="lede">イテレーション2（基盤設計 ①②③④）全体の工数比較。<b>ToBe は完了タスクの実績のみ集計</b>（現状 完了 ${dnAll}/${nAll} 件）。<b>AsIs 想定 ${tA.toFixed(1)}h</b>。着手が進むにつれ ToBe（実績）と削減率が埋まる。CRUD 画面（78%前後）より削減率が低めになりやすいのは、基盤構築と 189オペレーション級の横展開が実装レバレッジの効きにくい領域を含むため。</div>`+
     `<div class="kpis">`+
       `<div class="kpi"><div class="k">AsIs 合計（全${nAll}件）</div><div class="v">${tA.toFixed(1)}h</div></div>`+
       `<div class="kpi"><div class="k">ToBe 合計（実績・完了${dnAll}件）</div><div class="v">${tBCell}</div></div>`+

@@ -38,8 +38,8 @@ const SPRINT2_DATA = {
   ],
   tasks: [
     // ───────── 事前工数 ─────────
-    { name: "プランニング①・AI整備", base: "prep", person: 1, group: "事前工数", code: "P1", owner: "両", deps: [], asis: 7.2, plan: 7.2, tobe: 7.2, status: "完了", progress: 1, desc: "人員1：スプリント2初日の事前工数。プランニング（タスク分解・段取り・論点整理）＋AI環境整備（エージェント／worktree 等の準備）。" },
-    { name: "プランニング②・AI整備", base: "prep", person: 2, group: "事前工数", code: "P2", owner: "両", deps: [], asis: 7.2, plan: 7.2, tobe: 7.2, status: "完了", progress: 1, desc: "人員2：スプリント2初日の事前工数。プランニング（タスク分解・段取り・論点整理）＋AI環境整備（エージェント／worktree 等の準備）。" },
+    { name: "プランニング①・AI整備", base: "prep", person: 1, group: "事前工数", code: "P1", owner: "両", deps: [], asis: 7.2, plan: 7.2, tobe: 7.2, status: "完了", progress: 1, desc: "人員1：イテレーション2初日の事前工数。プランニング（タスク分解・段取り・論点整理）＋AI環境整備（エージェント／worktree 等の準備）。" },
+    { name: "プランニング②・AI整備", base: "prep", person: 2, group: "事前工数", code: "P2", owner: "両", deps: [], asis: 7.2, plan: 7.2, tobe: 7.2, status: "完了", progress: 1, desc: "人員2：イテレーション2初日の事前工数。プランニング（タスク分解・段取り・論点整理）＋AI環境整備（エージェント／worktree 等の準備）。" },
     { name: "方法論・管理の事前整備", base: "prep", person: 2, group: "事前工数", code: "P3", owner: "両", deps: [], asis: 5.0, plan: 5.0, tobe: 5.0, status: "完了", progress: 1, desc: "人員2：イテレーション2の事前整備（方法論・管理）。ミッションたたき台作成／レビュープロセス検討（壁打ち・資料化）／2%修正課題の整理。" },
     { name: "AIインプット整備(正本/設計集約)", base: "prep", person: 2, group: "事前工数", code: "P4", owner: "両", deps: [], asis: 3.0, plan: 3.0, tobe: 3.0, status: "完了", progress: 1, desc: "人員2：イテレーション2着手の前段階。古くなっていたAI向けインプット資料を整備（正本データ抽出・SMS/帳票向け設計情報の集約）。仕様の不明点解消の精度を上げるための調整。予備工数2から3.0hを項目化。" },
     // ───────── ① 認証・認可 ─────────
@@ -79,7 +79,7 @@ const SPRINT2_DATA = {
     // ───────── ③ ファイル連携（S3＋Transfer Family の SFTP 前提。人員2はこの③から着手＝③→②→④）─────────
     { name: "仕様精査(ファイル連携)～PM合意", base: "file", person: 2, group: "仕様精査", code: "SP", owner: "両", deps: [], asis: 10.8, plan: 7.2, tobe: 2.51, status: "完了", progress: 1, desc: "出荷指示取込・出荷実績送信の精査と論点整理（ファイル定義・バリデーション正本・文字コード・部分失敗ポリシー・冪等・スケジュール起動・SFTP/S3授受の前提）。ファイル連携チケット修正〜PR〜PM案内（PM承認）を含む。" },
     { name: "仕様精査(SMS連携)～PM合意", base:"export", person:2, group:"仕様精査", code:"SP", owner:"両", deps:[], asis:10.8, plan:14.4, tobe:2.18, status:"完了", progress:1, desc:"SMS連携の精査と論点整理（機能I/F粒度・ドライバー化方針・再送/冪等・文面テンプレ・接続情報/環境変数の未確定欄）。SMS設計情報確認・親チケット起票（PM承認）着手を含む。実装より仕様精査に時間を投下し今日まで継続中（高品質インプットで実装を圧縮）。IVRは後発（要件FIX後・今回スコープ外）。" },
-    { name: "仕様精査(帳票)～PM合意",   base: "report", person: 2, group: "仕様精査", code: "SP", owner: "両", deps: [], asis: 10.8, plan: 7.2, tobe: 2.82, status: "完了", progress: 1, desc: "画面出力／取込出力の精査と論点整理（非同期生成方式・生成状況テーブル・S3成果物・ポーリング/通知テーブル・エラー扱い・デポ別並列）。帳票設計情報確認・親チケット起票（PM承認）着手を含む。RP021/RP022は含否がG1論点＝今回除外・次スプリント。" },
+    { name: "仕様精査(帳票)～PM合意",   base: "report", person: 2, group: "仕様精査", code: "SP", owner: "両", deps: [], asis: 10.8, plan: 7.2, tobe: 2.82, status: "完了", progress: 1, desc: "画面出力／取込出力の精査と論点整理（非同期生成方式・生成状況テーブル・S3成果物・ポーリング/通知テーブル・エラー扱い・デポ別並列）。帳票設計情報確認・親チケット起票（PM承認）着手を含む。RP021/RP022は含否がG1論点＝今回除外・次イテレーション。" },
     { name: "S3/SFTP基盤",     base: "file", person: 2, group: "基盤", code: "F0", owner: "BE", deps: [],                                     asis: 22.9, plan: 4.2, tobe: 5.24, status: "完了", progress: 1, desc: "S3バケット＋Transfer Family による SFTP アクセス整備（各基幹システム担当者がファイル送受信）。AWS側整備でAI駆動範囲外の手作業を含む。／PW-210-2（AWS環境・IaC現状把握0.78h＋方式決定と実装・dev反映/復旧・DBマイグレーション・PR更新 稼働4.46h＝8/18-19実測）計5.24hを計上。経過時間は12.4hでサブエージェント待ちを含むため稼働分で計上。" },
     { name: "ファイル授受基盤", base: "file", person: 2, group: "基盤", code: "F1", owner: "BE", deps: ["S3/SFTP基盤"],                        asis: 19.1, plan: 3.5, tobe: 2.5, status: "完了", progress: 1, desc: "S3 get/put＋退避・リネームのファイル授受アダプタ。取込ファイル取得／実績ファイル配置の共通経路。" },
     { name: "ファイル定義基盤", base: "file", person: 2, group: "基盤", code: "F2", owner: "BE", deps: [],                                     asis: 26.7, plan: 4.9, tobe: 2.5, status: "完了", progress: 1, desc: "取込/生成の「定義型」基盤（列マッピング・型・バリデーション）。既存エクスポート定義基盤と対称。定義1個＝1帳票。" },
@@ -118,7 +118,7 @@ const SPRINT2_DATA = {
     { name: "予備工数1",        base: "reserve", person: 1, group: "予備工数", code: "R1",  owner: "両", deps: [], asis: 11.6, plan: 11.6, tobe: 0, status: "予定", progress: 0, desc: "人員1（①認証認可）の残キャパ。手戻り・追加調査・レビュー対応・仕様確認の往復などの予備枠。" },
     { name: "予備工数2",        base: "reserve", person: 2, group: "予備工数", code: "R2",  owner: "両", deps: [], asis: 11.4, plan: 11.4, tobe: 10.93, status: "着手中", progress: 0.51, desc: "人員2（②SMS／③ファイル連携／④帳票出力）の残キャパ。手戻り・追加調査・レビュー対応・仕様確認の往復、横断タスク（先出し確認フォロー・G1合意往復×3基盤・KSL/IVR追跡・workitems2反映）などの予備枠。※うち3.0hはAIインプット整備として項目化。実消化=担当者PR/チケット確認・レビュー対応・チケット修正手順書作成。／PW-252（データモデル設計反映＝変更対応）実測9.18h(band人稼働)を計上。plan3.4hを大幅超過＝予備が変更対応で消費された状態。" },
     // ───────── ⑤ IVR連携（後発・スコープ外。7/31に調査/チケット化のみ実施） ─────────
-    { name: "IVR連携(IF007/API01-04・調査/チケット化)", base: "ivr", person: 2, group: "仕様精査", code: "IV1", owner: "両", deps: [], asis: 1.43, plan: 1.43, tobe: 1.43, status: "着手中", progress: 0.5, desc: "IF007（IVR予約上限送信IF）・API01-04のスコープ確認とチケット化・仕様精査（7/31実施）。コールフロー本体は他社担当、当社範囲はAPI01-04。SMS要件FIX後の後発対応で今スプリントは調査/起票のみ（スコープ外）。band実測1.43h(人稼働)を記録。" },
+    { name: "IVR連携(IF007/API01-04・調査/チケット化)", base: "ivr", person: 2, group: "仕様精査", code: "IV1", owner: "両", deps: [], asis: 1.43, plan: 1.43, tobe: 1.43, status: "着手中", progress: 0.5, desc: "IF007（IVR予約上限送信IF）・API01-04のスコープ確認とチケット化・仕様精査（7/31実施）。コールフロー本体は他社担当、当社範囲はAPI01-04。SMS要件FIX後の後発対応で今イテレーションは調査/起票のみ（スコープ外）。band実測1.43h(人稼働)を記録。" },
   ],
 };
 
