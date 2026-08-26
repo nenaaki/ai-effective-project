@@ -20,7 +20,7 @@ const SPRINT2_DATA = {
     "2026-08-05": { "ev": 215.2, "ac": 188.9 },
     "2026-08-12": { "ev": 255.0, "ac": 224.1 },
     "2026-08-19": { "ev": 300.4, "ac": 282.0 },
-    "2026-08-26": { "ev": 306.2, "ac": 305.6 }
+    "2026-08-26": { "ev": 306.2, "ac": 300.0 }
   },
   // 予定休（人員別）。終日休はその人員の営業日から除外し、当該人員のタスクを後ろ倒しする。
   //   終日休 = "2026-08-12" ／ 半休 = "2026-08-12:0.5"（末尾の数値＝休む割合。0.25 等も可）。
@@ -80,8 +80,8 @@ const SPRINT2_DATA = {
     { name: "PR・レビュー対応(認可)", base: "auth", person: 1, group: "PR", code: "PR1", owner: "両", deps: [], asis: 26.7, plan: 4.9, tobe: 4.9, status: "完了", progress: 1, desc: "①のうち【テスト/PR未実施】の実装系47.6hに対するPR本文作成＋レビュー指摘対応。計画4.9hどおり4.9hで完了。暫定係数0.102＝PW-229実測（pr-writer 5.7分＋reviewer 24.9分）。" },
 
     // ───────── ③ ファイル連携（S3＋Transfer Family の SFTP 前提。人員2はこの③から着手＝③→②→④）─────────
-    { name: "仕様精査(ファイル連携)～PM合意", base: "file", person: 2, group: "仕様精査", code: "SP", owner: "両", deps: [], asis: 10.8, plan: 7.2, tobe: 5.51, status: "完了", progress: 1, desc: "出荷指示取込・出荷実績送信の精査と論点整理（ファイル定義・バリデーション正本・文字コード・部分失敗ポリシー・冪等・スケジュール起動・SFTP/S3授受の前提）。ファイル連携チケット修正〜PR〜PM案内（PM承認）を含む。／住所分割の調査対応3.0hを加算（実績申告。8/24のセッションログ由来は0.78hだが、ログ外の検討を含む実績で計上）。" },
-    { name: "仕様精査(SMS連携)～PM合意", base:"export", person:2, group:"仕様精査", code:"SP", owner:"両", deps:[], asis:10.8, plan:14.4, tobe:5.18, status:"完了", progress:1, desc:"SMS連携の精査と論点整理（機能I/F粒度・ドライバー化方針・再送/冪等・文面テンプレ・接続情報/環境変数の未確定欄）。SMS設計情報確認・親チケット起票（PM承認）着手を含む。実装より仕様精査に時間を投下し今日まで継続中（高品質インプットで実装を圧縮）。IVRは後発（要件FIX後・今回スコープ外）。／送信文言の文字数（短縮URL・70文字制約）の調査対応3.0hを加算（実績申告）。" },
+    { name: "仕様精査(ファイル連携)～PM合意", base: "file", person: 2, group: "仕様精査", code: "SP", owner: "両", deps: [], asis: 10.8, plan: 7.2, tobe: 4.51, status: "完了", progress: 1, desc: "出荷指示取込・出荷実績送信の精査と論点整理（ファイル定義・バリデーション正本・文字コード・部分失敗ポリシー・冪等・スケジュール起動・SFTP/S3授受の前提）。ファイル連携チケット修正〜PR〜PM案内（PM承認）を含む。／住所分割の調査対応2.0hを加算（実績申告。8/24のセッションログ由来は0.78h。対象期間の実稼働が4日間だったため当初申告3.0hから調整）。" },
+    { name: "仕様精査(SMS連携)～PM合意", base:"export", person:2, group:"仕様精査", code:"SP", owner:"両", deps:[], asis:10.8, plan:14.4, tobe:4.18, status:"完了", progress:1, desc:"SMS連携の精査と論点整理（機能I/F粒度・ドライバー化方針・再送/冪等・文面テンプレ・接続情報/環境変数の未確定欄）。SMS設計情報確認・親チケット起票（PM承認）着手を含む。実装より仕様精査に時間を投下し今日まで継続中（高品質インプットで実装を圧縮）。IVRは後発（要件FIX後・今回スコープ外）。／送信文言の文字数（短縮URL・70文字制約）の調査対応2.0hを加算（実績申告。対象期間の実稼働が4日間だったため当初申告3.0hから調整）。" },
     { name: "仕様精査(帳票)～PM合意",   base: "report", person: 2, group: "仕様精査", code: "SP", owner: "両", deps: [], asis: 10.8, plan: 7.2, tobe: 2.82, status: "完了", progress: 1, desc: "画面出力／取込出力の精査と論点整理（非同期生成方式・生成状況テーブル・S3成果物・ポーリング/通知テーブル・エラー扱い・デポ別並列）。帳票設計情報確認・親チケット起票（PM承認）着手を含む。RP021/RP022は含否がG1論点＝今回除外・次イテレーション。" },
     { name: "S3/SFTP基盤",     base: "file", person: 2, group: "基盤", code: "F0", owner: "BE", deps: [],                                     asis: 22.9, plan: 4.2, tobe: 9.86, status: "完了", progress: 1, desc: "S3バケット＋Transfer Family による SFTP アクセス整備（各基幹システム担当者がファイル送受信）。AWS側整備でAI駆動範囲外の手作業を含む。／PW-210-2（AWS環境・IaC現状把握0.78h＋方式決定と実装・dev反映/復旧・DBマイグレーション・PR更新 稼働4.46h＝8/18-19実測）計5.24hを計上。経過時間は12.4hでサブエージェント待ちを含むため稼働分で計上。／8/20-8/26分（PW-210 ファイル連携基盤のAWS反映：EventBridge/Transfer Family の課金・構成確認、devのLambda失敗〈DATABASE_URL未設定〉の修正・S3投入と実行確認、PR作成）4.62hを加算（band AI稼働）。" },
     { name: "ファイル授受基盤", base: "file", person: 2, group: "基盤", code: "F1", owner: "BE", deps: ["S3/SFTP基盤"],                        asis: 19.1, plan: 3.5, tobe: 2.5, status: "完了", progress: 1, desc: "S3 get/put＋退避・リネームのファイル授受アダプタ。取込ファイル取得／実績ファイル配置の共通経路。" },
@@ -100,7 +100,7 @@ const SPRINT2_DATA = {
     // ───────── ② 外部連携（SMS）※実装以降(L1-L5/QA2/PR2)はレーン均衡のため人員1が担当。仕様精査は人員2が継続し spec を渡す ─────────
     { name:"SMS連携I/F定義", base:"export", person:1, group:"基盤", code:"L1", owner:"BE", deps:[], asis:8.7, plan:1.6, tobe:0.8, status:"完了", progress:1, desc:"使いたい機能を機能軸のサービスI/Fに契約化（配信/配信結果取得/結果通知）。実ベンダーアクセスはドライバーに閉じる。仕様精査を厚くした分、実装は圧縮。" },
     { name:"SMSモックドライバー", base:"export", person:1, group:"基盤", code:"L2", owner:"BE", deps:["SMS連携I/F定義"], asis:10.9, plan:2.0, tobe:1.0, status:"完了", progress:1, desc:"アクリート実サービス⇔エミュレーターをドライバーで差替（環境変数切替・成功/失敗/遅延の応答パターン）。SoftBank番号は開通後。" },
-    { name:"SMSサービス・API(IF008)", base:"export", person:1, group:"基盤", code:"L3", owner:"BE", deps:["SMS連携I/F定義","SMSモックドライバー"], asis:13.1, plan:2.4, tobe:12.02, status:"完了", progress:1, desc:"IF008の利用機能（配信・配信結果取得・結果通知）を束ねるBEサービス＋GraphQL。103pから機能選定。／PW-226（配信結果Webhook・SMS送信エラー挙動）実測+1.61h加算（band人稼働）。／8/20-8/26分（SMS送信インフラ〈AWS〉の方針合意・リソース検討、短縮URL/70文字前提の実装、デプロイ直前までの完了確認）8.8hを加算（実績申告。セッションログ由来は3.58hだが、サブエージェント実行がログに残らず20分超の空白で帯ごと落ちるため実績で計上）。" },
+    { name:"SMSサービス・API(IF008)", base:"export", person:1, group:"基盤", code:"L3", owner:"BE", deps:["SMS連携I/F定義","SMSモックドライバー"], asis:13.1, plan:2.4, tobe:8.42, status:"完了", progress:1, desc:"IF008の利用機能（配信・配信結果取得・結果通知）を束ねるBEサービス＋GraphQL。103pから機能選定。／PW-226（配信結果Webhook・SMS送信エラー挙動）実測+1.61h加算（band人稼働）。／8/20-8/26分（SMS送信インフラ〈AWS〉の方針合意・リソース検討、短縮URL/70文字前提の実装、デプロイ直前までの完了確認）5.2hを加算（実績申告。セッションログ由来は3.58h＝ログ実測2.48h＋サブエージェント欠落分1.10h。当初8.8hで計上したが、対象期間の実稼働が4日間で計上合計が総稼働に近づきすぎたため調整）。" },
     { name:"文面テンプレ適用", base:"export", person:1, group:"適用", code:"L4", owner:"BE", deps:["SMSサービス・API(IF008)"], asis:8.7, plan:1.6, tobe:0, status:"予定", progress:0, desc:"業務イベント（配送遅延・ご不在）に既存文面テンプレを適用してSMS送信。既存送信経路を再利用（重複回避）。" },
     { name:"FE036 遅延SMS送信画面", base:"export", person:1, group:"適用", code:"L5", owner:"FE", deps:["SMSサービス・API(IF008)"], asis:10.9, plan:2.0, tobe:0, status:"予定", progress:0, desc:"遅延SMSの手動送信UI（対象選択→文面確認→送信→配信結果表示）。" },
     { name:"テスト設計・実施(SMS)", base:"export", person:1, group:"テスト", code:"QA2", owner:"両", deps:["FE036 遅延SMS送信画面"], asis:8.7, plan:1.6, tobe:0.6, status:"着手中", progress:0.4, desc:"②実装系9.6hに対するテスト仕様設計＋テスト実施。暫定係数0.168＝PW-229実測。SMS E2Eは開通申請待ちのため後発（スコープ外）。" },
