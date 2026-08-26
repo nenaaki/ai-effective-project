@@ -26,6 +26,7 @@ const ITERATION3_DATA = {
     { key: "sched",   id: "③", name: "定期実行・監視(バッチ)",    color: "#0891b2" },
     { key: "audit",   id: "④", name: "監査ログ・操作履歴",        color: "#2563eb" },
     { key: "limit",   id: "⑤", name: "タイムアウト・上限設計",    color: "#db2777" },
+    { key: "ivr",     id: "⑥", name: "IVR連携(持ち越し)",         color: "#c026d3" },
     { key: "other",   id: "他", name: "その他工数",               color: "#94a3b8" },
     { key: "reserve", id: "予", name: "予備工数",                 color: "#64748b" },
   ],
@@ -90,6 +91,15 @@ const ITERATION3_DATA = {
     { name: "テスト設計・実施(タイムアウト・上限)", base: "limit", person: 1, group: "テスト", code: "QA5", owner: "両", deps: ["出力件数・ファイルサイズ上限", "上限超過時UI・エラー共通化"], asis: 14.7, plan: 2.7, tobe: 0, status: "予定", progress: 0, desc: "⑤実装系16.1hに対するテスト仕様設計＋テスト実施（上限ちょうど／上限超過／タイムアウトの境界値テストを含む）。係数0.168。" },
     { name: "PR・レビュー対応(タイムアウト・上限)", base: "limit", person: 1, group: "PR", code: "PR5", owner: "両", deps: [], asis: 8.7, plan: 1.6, tobe: 0, status: "予定", progress: 0, desc: "⑤実装系16.1hに対するPR本文作成＋レビュー指摘対応。係数0.102。" },
 
+
+    // ───────── ⑥ IVR連携（イテレーション2からの持ち越し。設計まで完了・実装以降が残作業）─────────
+    { name: "設計差分確認・タスク化(IVR)", base: "ivr", person: 2, group: "仕様精査", code: "IV1", owner: "両", deps: [], asis: 5.4, plan: 3.6, tobe: 0, status: "予定", progress: 0, desc: "イテレーション2で設計まで完了済み（IF007・API01〜04）。着手前に設計と現行実装の差分を確認してタスク化する。仕様精査は済んでいるため0.5日。" },
+    { name: "IVRドライバー追加(外部連携基盤)", base: "ivr", person: 1, group: "基盤", code: "V1", owner: "BE", deps: ["設計差分確認・タスク化(IVR)"], asis: 15.3, plan: 2.8, tobe: 0, status: "予定", progress: 0, desc: "外部サービス連携の土台（機能I/F＋ドライバー差し替え＋開発用エミュレーター）はイテレーション2のSMS連携で構築済み。IVRベンダー向けドライバー（接続・認証・エラー変換）だけを追加し、共通部分は作り直さない。" },
+    { name: "IVR受付API実装(API01〜04)", base: "ivr", person: 1, group: "適用", code: "V2", owner: "BE", deps: ["IVRドライバー追加(外部連携基盤)"], asis: 30.5, plan: 5.6, tobe: 0, status: "予定", progress: 0, desc: "IVR特有の実装の中核。コールフロー本体は他社担当で、当社範囲は電話自動応答から呼ばれるAPI01〜04（再配達の受付可否判定・登録）。設計書どおりに実装する。" },
+    { name: "IF007 予約上限送信(当社→IVR)", base: "ivr", person: 1, group: "適用", code: "V3", owner: "BE", deps: ["IVR受付API実装(API01〜04)"], asis: 15.3, plan: 2.8, tobe: 0, status: "予定", progress: 0, desc: "IVR予約上限送信IF（IF007）。日次の受付可能枠をIVR側へ送信する。③定期実行・監視基盤のジョブ定義として載せ、失敗は②通知基盤へ通報する。" },
+    { name: "IVR E2E(エミュレーター)", base: "ivr", person: 1, group: "E2E", code: "V4", owner: "両", deps: ["IF007 予約上限送信(当社→IVR)"], asis: 11.4, plan: 2.1, tobe: 0, status: "予定", progress: 0, desc: "SMS連携で作った開発用エミュレーターをIVR向けに使い、着信→受付→登録→上限送信までを通す。受付上限到達・対象なし・エラーの3系統を確認。" },
+    { name: "テスト設計・実施(IVR)", base: "ivr", person: 1, group: "テスト", code: "QA6", owner: "両", deps: ["IVR E2E(エミュレーター)"], asis: 12.2, plan: 2.2, tobe: 0, status: "予定", progress: 0, desc: "⑥実装系13.3hに対するテスト仕様設計＋テスト実施。係数0.168。" },
+    { name: "PR・レビュー対応(IVR)", base: "ivr", person: 1, group: "PR", code: "PR6", owner: "両", deps: [], asis: 7.4, plan: 1.4, tobe: 0, status: "予定", progress: 0, desc: "⑥実装系13.3hに対するPR本文作成＋レビュー指摘対応。係数0.102。" },
     // ───────── その他工数（イテレーション2の反省を反映した先取り枠）─────────
     { name: "AIエージェント不備 調査・改修枠①", base: "other", person: 1, group: "その他工数", code: "O1", owner: "両", deps: [], asis: 10.0, plan: 10.0, tobe: 0, status: "予定", progress: 0, desc: "イテレーション2の課題対応。エージェントの不備の調査・改修は毎回発生するため、実績（デバッグ／設計エージェント計28h）を踏まえ人員1分を予め見積もる。" },
     { name: "AIエージェント不備 調査・改修枠②", base: "other", person: 2, group: "その他工数", code: "O2", owner: "両", deps: [], asis: 10.0, plan: 10.0, tobe: 0, status: "予定", progress: 0, desc: "同上・人員2分。イテレーション2では見積外だったため実績が計画超過として現れた。今回は枠として明示する。" },
