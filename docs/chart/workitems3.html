@@ -129,7 +129,7 @@
 </style>
 </head>
 <body>
-  <h1>イテレーション3 タスク管理 ― ①CSV出力(非同期帳票へ移植) / ②通知基盤 / ③定期実行・監視 / ④監査ログ・操作履歴 / ⑤タイムアウト・上限設計 / ⑥IVR連携(持ち越し)</h1>
+  <h1>イテレーション3 タスク管理 ― ①CSV出力(非同期帳票へ移植) / ②通知基盤 / <s style="color:#9ca3af;font-weight:normal;">③定期実行・監視</s> / ④監査ログ・操作履歴 / <s style="color:#9ca3af;font-weight:normal;">⑤タイムアウト・上限設計</s> / ⑥IVR連携(持ち越し) / ⑦メッセージ基盤</h1>
   <div class="sub" id="sub"></div>
 
   <div class="tabs">
@@ -141,14 +141,18 @@
 
   <div id="tab-criteria" class="tab-panel">
     <div class="crit-lead">
-      <div style="font-size:13.5px;font-weight:bold;color:#065f46;margin-bottom:10px;">スコープ選定基準 ― 次の2点で選ぶ</div>
+      <div style="font-size:13.5px;font-weight:bold;color:#065f46;margin-bottom:10px;">スコープ選定基準 ― 次の3点で選ぶ（1が最優先）</div>
       <div style="display:flex;flex-direction:column;gap:10px;">
         <div style="display:flex;gap:10px;align-items:flex-start;">
-          <span style="flex:0 0 22px;height:22px;border-radius:50%;background:#10b981;color:#fff;font-weight:bold;font-size:12px;display:flex;align-items:center;justify-content:center;">1</span>
-          <div><b style="color:#14532d;font-size:13.5px;">全機能に横串で効く非機能基盤（後から入れると全画面・全APIの手戻りになる）</b><div style="font-size:12px;color:#4b5563;margin-top:2px;">通知・監査ログ・タイムアウト／上限は、個別機能を作り込んだ後に足すと全箇所の作り直しになる。個別機能の量産に先んじて土台として置く。</div></div>
+          <span style="flex:0 0 22px;height:22px;border-radius:50%;background:#059669;color:#fff;font-weight:bold;font-size:12px;display:flex;align-items:center;justify-content:center;">1</span>
+          <div><b style="color:#14532d;font-size:13.5px;">他プロジェクトへ横展開できる汎用パーツか（展開性の価値）</b><span style="margin-left:6px;font-size:10.5px;font-weight:700;color:#fff;background:#059669;border-radius:10px;padding:1px 8px;vertical-align:1.5px;">最優先</span><div style="font-size:12px;color:#4b5563;margin-top:2px;">チームから上がってきた要望を受動的に並べない。PWで作る予定のものの中から、<b>他案件への貢献度が最も高いパーツを能動的につまみ上げる</b>。狙い目は、複数人で作ると出し方のルールや一貫性が漏れて小さなバグになりがちな<b>「みんなが間違える共通機能」</b>（メッセージ管理・共通バリデーション・一貫したエラー通知）。<span style="color:#9ca3af">― 2026-08-26 MTG で追加</span></div></div>
         </div>
         <div style="display:flex;gap:10px;align-items:flex-start;">
           <span style="flex:0 0 22px;height:22px;border-radius:50%;background:#10b981;color:#fff;font-weight:bold;font-size:12px;display:flex;align-items:center;justify-content:center;">2</span>
+          <div><b style="color:#14532d;font-size:13.5px;">全機能に横串で効く非機能基盤（後から入れると全画面・全APIの手戻りになる）</b><div style="font-size:12px;color:#4b5563;margin-top:2px;">通知・監査ログ・メッセージは、個別機能を作り込んだ後に足すと全箇所の作り直しになる。個別機能の量産に先んじて土台として置く。</div></div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:flex-start;">
+          <span style="flex:0 0 22px;height:22px;border-radius:50%;background:#10b981;color:#fff;font-weight:bold;font-size:12px;display:flex;align-items:center;justify-content:center;">3</span>
           <div><b style="color:#14532d;font-size:13.5px;">イテレーション2で作った基盤に1要素を加えて作れるもの</b><div style="font-size:12px;color:#4b5563;margin-top:2px;">非同期帳票出力・SMS連携I/F・バッチ起動基盤という「できた土台」の上に載せる。ゼロから作らず、移植・再利用・昇格で範囲を広げる。</div></div>
         </div>
       </div>
@@ -157,11 +161,13 @@
       <b>選んだスコープ</b>：
       <span style="display:inline-block;padding:2px 10px;border-radius:12px;color:#fff;font-weight:700;font-size:11px;margin-right:6px;background:#d97706">① CSV出力（非同期帳票へ移植）</span>
       <span style="display:inline-block;padding:2px 10px;border-radius:12px;color:#fff;font-weight:700;font-size:11px;margin-right:6px;background:#7c3aed">② 通知基盤</span>
-      <span style="display:inline-block;padding:2px 10px;border-radius:12px;color:#fff;font-weight:700;font-size:11px;margin-right:6px;background:#0891b2">③ 定期実行・監視（バッチ）</span>
+      <span style="display:inline-block;padding:2px 10px;border-radius:12px;color:#fff;font-weight:700;font-size:11px;margin-right:6px;background:#9ca3af;opacity:.55;text-decoration:line-through;">③ 定期実行・監視（バッチ）</span>
       <span style="display:inline-block;padding:2px 10px;border-radius:12px;color:#fff;font-weight:700;font-size:11px;margin-right:6px;background:#2563eb">④ 監査ログ・操作履歴</span>
-      <span style="display:inline-block;padding:2px 10px;border-radius:12px;color:#fff;font-weight:700;font-size:11px;background:#db2777">⑤ タイムアウト・上限設計</span>
+      <span style="display:inline-block;padding:2px 10px;border-radius:12px;color:#fff;font-weight:700;font-size:11px;background:#9ca3af;opacity:.55;text-decoration:line-through;">⑤ タイムアウト・上限設計</span>
+      <span style="display:inline-block;padding:2px 10px;border-radius:12px;color:#fff;font-weight:700;font-size:11px;margin-left:6px;background:#0891b2">⑦ メッセージ基盤</span>
     </div>
     <div style="margin:6px 0 4px;font-size:11.5px;color:#6b7280;">
+      ※ <s style="color:#9ca3af">③ 定期実行・監視</s>・<s style="color:#9ca3af">⑤ タイムアウト・上限設計</s> は基準1（展開性）で見直した結果、<b>今回スコープから除外</b>。<br>
       ※ <b style="color:#a21caf">⑥ IVR連携</b> はイテレーション2からの<b>持ち越し</b>（仕様が直前まで来ず設計までで終了）。選定基準の対象外で、残りは実装以降のみ。
     </div>
 
@@ -303,7 +309,8 @@
     </div>
 
     <div style="margin-top:20px;">
-      <div style="font-size:13.5px;font-weight:bold;margin-bottom:2px;">③ 定期実行・監視基盤 ― ジョブ定義＝データ。履歴・リトライ・失敗通報まで基盤で持つ</div>
+      <div style="font-size:13.5px;font-weight:bold;margin-bottom:2px;color:#6b7280;"><s>③ 定期実行・監視基盤 ― ジョブ定義＝データ。履歴・リトライ・失敗通報まで基盤で持つ</s><span style="margin-left:8px;font-size:10.5px;font-weight:700;color:#fff;background:#6b7280;border-radius:10px;padding:1px 8px;vertical-align:1.5px;">スコープから除外</span></div>
+      <div style="opacity:.38;filter:grayscale(1);">
       <div style="display:inline-block;font-size:11px;font-weight:700;color:#0e7490;background:#ecfeff;border:1px solid #a5f3fc;border-radius:6px;padding:2px 8px;margin-bottom:7px;">イテレーション2のバッチ起動基盤 ＋ スケジュール定義型×実行履歴（状態管理）×監視</div>
       <div style="font-size:11.5px;color:#6b7280;margin-bottom:8px;">イテレーション2の<b>バッチ起動基盤</b>を汎用スケジューラへ昇格。<b>ジョブ追加＝定義データの追加</b>にし、<b>実行履歴・リトライ・多重起動抑止</b>を基盤側で持つ。失敗は<b>②通知</b>へ通報して目視監視をやめる。</div>
       <svg width="980" height="246" viewBox="0 0 980 246" style="max-width:100%;height:auto;font-family:inherit">
@@ -374,6 +381,7 @@
 
         <text x="490" y="234" text-anchor="middle" font-size="10" font-weight="700" fill="#0e7490">ジョブが増えても「定義データ1行」。履歴・リトライ・監視は基盤が面倒を見る</text>
       </svg>
+      </div>
     </div>
 
     <div style="margin-top:20px;">
@@ -444,7 +452,8 @@
     </div>
 
     <div style="margin-top:20px;">
-      <div style="font-size:13.5px;font-weight:bold;margin-bottom:2px;">⑤ タイムアウト・上限設計 ― 「どこまで待つか・どこまで受け付けるか」を数字で決める</div>
+      <div style="font-size:13.5px;font-weight:bold;margin-bottom:2px;color:#6b7280;"><s>⑤ タイムアウト・上限設計 ― 「どこまで待つか・どこまで受け付けるか」を数字で決める</s><span style="margin-left:8px;font-size:10.5px;font-weight:700;color:#fff;background:#6b7280;border-radius:10px;padding:1px 8px;vertical-align:1.5px;">スコープから除外</span></div>
+      <div style="opacity:.38;filter:grayscale(1);">
       <div style="display:inline-block;font-size:11px;font-weight:700;color:#9d174d;background:#fdf2f8;border:1px solid #fbcfe8;border-radius:6px;padding:2px 8px;margin-bottom:7px;">データ型×CRUD ＋ 共通の上限値（件数・サイズ・回数・時間）×共通の超過メッセージ</div>
       <div style="font-size:11.5px;color:#6b7280;margin-bottom:8px;">待ち時間は<b>セッション／API・外部連携／DBの3層</b>、受付量は<b>件数・サイズ・同時実行数・リトライ回数</b>で上限を決める。<b>上限は基盤側に1箇所</b>で持ち、超過時は<b>共通メッセージ</b>。全画面・全APIに効くため<b>仕様精査を先に確定</b>させる。</div>
       <svg width="980" height="244" viewBox="0 0 980 244" style="max-width:100%;height:auto;font-family:inherit">
@@ -512,6 +521,87 @@
         <line x1="718" y1="132" x2="746" y2="142" stroke="#dc2626" stroke-width="1.6" marker-end="url(#l5ng)"/>
 
         <text x="490" y="238" text-anchor="middle" font-size="10" font-weight="700" fill="#9d174d">上限が決まっていないと「重い画面が落ちる」まで気づけない。数字を先に決め、判定を基盤に1箇所置く</text>
+      </svg>
+      </div>
+    </div>
+
+    <div style="margin-top:20px;">
+      <div style="font-size:13.5px;font-weight:bold;margin-bottom:2px;">⑦ メッセージ基盤 ― 文言をコードから剥がし、あらゆるエラー・警告を1本の経路でユーザーへ届ける</div>
+      <div style="display:inline-block;font-size:11px;font-weight:700;color:#0e7490;background:#ecfeff;border:1px solid #67e8f9;border-radius:6px;padding:2px 8px;margin-bottom:7px;">メッセージ定義（正本1本）× ビルド時カタログ同梱 ＋ APIエラーのID化 ＋ FE共通表示部品</div>
+      <div style="font-size:11.5px;color:#6b7280;margin-bottom:8px;">画面のValidation・APIのValidation・APIエラー・サービス障害を<b>同じ形（ID＋引数）</b>に揃え、表示は<b>共通部品1本</b>に寄せる。正本は<b>リポジトリ内の定義ファイル1本</b>とし、<b>ビルド時にFE/BE双方へライブラリとして同梱</b>する。<b>取得APIは作らない</b> ― サーバーが落ちている時こそメッセージが要るため、サーバーへ取りに行く構造にしない。</div>
+      <svg width="980" height="242" viewBox="0 0 980 242" style="max-width:100%;height:auto;font-family:inherit">
+        <defs>
+          <marker id="m7arr" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#0891b2"/></marker>
+          <marker id="m7gy" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#94a3b8"/></marker>
+        </defs>
+
+        <!-- AsIs -->
+        <rect x="10" y="26" width="330" height="202" rx="8" fill="#fff" stroke="#e5e7eb"/>
+        <rect x="22" y="14" width="112" height="20" rx="10" fill="#fef2f2" stroke="#fecaca"/>
+        <text x="78" y="28" text-anchor="middle" font-size="11" font-weight="700" fill="#dc2626">AsIs（現状）</text>
+        <g font-size="9.5" fill="#475569" text-anchor="middle">
+          <rect x="26" y="50" width="140" height="34" rx="6" fill="#f8fafc" stroke="#cbd5e1"/><text x="96" y="63">画面のValidation</text><text x="96" y="76" fill="#94a3b8">画面ごとに文言べた書き</text>
+          <rect x="184" y="50" width="140" height="34" rx="6" fill="#f8fafc" stroke="#cbd5e1"/><text x="254" y="63">APIのValidation</text><text x="254" y="76" fill="#94a3b8">別文言・別構造で返る</text>
+          <rect x="26" y="92" width="140" height="34" rx="6" fill="#f8fafc" stroke="#cbd5e1"/><text x="96" y="105">APIエラー</text><text x="96" y="118" fill="#94a3b8">拾う場所が実装者次第</text>
+          <rect x="184" y="92" width="140" height="34" rx="6" fill="#fef2f2" stroke="#fca5a5"/><text x="254" y="105" fill="#dc2626">サービス障害</text><text x="254" y="118" fill="#dc2626">生の例外がそのまま露出</text>
+        </g>
+        <g font-size="10.5" fill="#dc2626">
+          <text x="28" y="152">✕ 同じ違反でも画面ごとに違う文言</text>
+          <text x="28" y="172">✕ 文言修正が全画面の再修正になる</text>
+          <text x="28" y="192">✕ 出し方（トースト/インライン）が不統一</text>
+          <text x="28" y="212">✕ PMの力量で品質差が出る＝あるある</text>
+        </g>
+
+        <!-- 集約の矢印 -->
+        <line x1="346" y1="128" x2="392" y2="128" stroke="#0891b2" stroke-width="3" marker-end="url(#m7arr)"/>
+        <text x="369" y="116" text-anchor="middle" font-size="10" font-weight="700" fill="#0891b2">集約</text>
+
+        <!-- ToBe -->
+        <rect x="400" y="26" width="570" height="202" rx="8" fill="#f8feff" stroke="#67e8f9"/>
+        <rect x="412" y="14" width="212" height="20" rx="10" fill="#cffafe" stroke="#0891b2"/>
+        <text x="518" y="28" text-anchor="middle" font-size="11" font-weight="700" fill="#0e7490">ToBe（ライブラリとして同梱する）</text>
+        <rect x="740" y="14" width="230" height="20" rx="10" fill="#fef2f2" stroke="#fca5a5"/>
+        <text x="855" y="28" text-anchor="middle" font-size="9" font-weight="700" fill="#dc2626">✕ 取得APIにしない ― 障害時に文言が引けない</text>
+
+        <g font-size="9.5" fill="#0e7490" text-anchor="middle">
+          <rect x="412" y="54" width="138" height="62" rx="6" fill="#ecfeff" stroke="#67e8f9"/>
+          <text x="481" y="72" font-weight="700" font-size="10">メッセージ定義（正本）</text>
+          <text x="481" y="88">リポジトリ内の1ファイル</text>
+          <text x="481" y="104" font-size="8.5" fill="#0891b2">ID＋種別＋本文「{0}は{1}以下」</text>
+
+          <rect x="572" y="44" width="170" height="48" rx="6" fill="#cffafe" stroke="#0891b2"/>
+          <text x="657" y="60" font-weight="700">BE：APIエラー抽出</text>
+          <text x="657" y="74" font-size="9">検証／業務／外部障害／例外</text>
+          <text x="657" y="86" font-size="8.5" fill="#0e7490">→ ID＋引数だけを返す（本文なし）</text>
+
+          <rect x="572" y="110" width="170" height="48" rx="6" fill="#cffafe" stroke="#0891b2"/>
+          <text x="657" y="126" font-weight="700">FE：同梱カタログ</text>
+          <text x="657" y="140" font-size="9">ID＋引数 → 本文を解決</text>
+          <text x="657" y="152" font-size="8.5" fill="#0e7490">サーバーに問い合わせない</text>
+
+          <rect x="772" y="56" width="186" height="92" rx="6" fill="#fff" stroke="#67e8f9"/>
+          <text x="865" y="72" font-weight="700" font-size="10">FE共通表示部品</text>
+          <rect x="782" y="80" width="166" height="19" rx="4" fill="#ecfeff" stroke="#a5f3fc"/><text x="865" y="93" font-size="9">インライン（項目の横）</text>
+          <rect x="782" y="103" width="166" height="19" rx="4" fill="#ecfeff" stroke="#a5f3fc"/><text x="865" y="116" font-size="9">トースト（画面上部）</text>
+          <rect x="782" y="126" width="166" height="19" rx="4" fill="#ecfeff" stroke="#a5f3fc"/><text x="865" y="139" font-size="9">ダイアログ（確認）</text>
+        </g>
+        <g stroke="#0891b2" stroke-width="1.6" fill="none">
+          <line x1="552" y1="76" x2="570" y2="66" marker-end="url(#m7arr)"/>
+          <line x1="552" y1="96" x2="570" y2="124" marker-end="url(#m7arr)"/>
+          <line x1="657" y1="94" x2="657" y2="108" stroke-dasharray="4 3" marker-end="url(#m7arr)"/>
+          <line x1="744" y1="132" x2="770" y2="112" marker-end="url(#m7arr)"/>
+        </g>
+        <text x="481" y="130" text-anchor="middle" font-size="8.5" fill="#0891b2">ビルド時に生成し、FE／BE双方へ同梱</text>
+        <text x="664" y="105" font-size="8" fill="#0891b2">ID＋引数</text>
+        <g font-size="10.5" fill="#15803d">
+          <text x="412" y="176">✓ サーバー停止・通信断でもFE単体で文言を出せる</text>
+          <text x="412" y="194">✓ 引数の個数不一致・未定義IDはコンパイル時に落ちる</text>
+          <text x="412" y="212">✓ 文言は正本1ファイル＝全画面に一括で効く</text>
+        </g>
+        <g font-size="10" fill="#15803d">
+          <text x="742" y="194">✓ ログにメッセージIDが残る</text>
+          <text x="742" y="212">✓ 他案件へそのまま横展開できる</text>
+        </g>
       </svg>
     </div>
   </div>
@@ -756,7 +846,7 @@ const laneRows = {1:1, 2:1};
   document.getElementById("gantt").innerHTML = html;
   const leaveSummary = [1,2].map(p=>{ const ls=[...LEAVE[p].entries()].sort((a,b)=>a[0]<b[0]?-1:1); return ls.length ? `人員${p}: ${ls.map(([s,off])=>{const d=parse(s);return `${d.getUTCMonth()+1}/${d.getUTCDate()}${off<1?'(半)':''}`;}).join('・')}` : null; }).filter(Boolean).join(' ／ ');
   document.getElementById("gnote").textContent =
-    `1行＝1週間（平日 月〜金のみ・土日非表示）。人員2名のレーン（担当は person で設定・現状 人員1=①④⑤⑥実装、人員2=②③＋⑤⑥仕様精査）。タスクは作業日数分の幅（1日単位・端数切り上げ）で複数日にまたがり、同時進行は段組み表示。週またぎは「…」で継続。祝日（例 9/21〜9/23）は作業なし。${leaveSummary?`予定休 → ${leaveSummary}（終日休は当該人員のタスクを翌営業日へ後ろ倒し。(半)＝半休はその日の工数だけ 0.5 人日に減る）。`:''}色は基盤（①アンバー/②紫/③シアン/④青/⑤ピンク/⑥赤紫・予備=グレー）。完了タスクは緑＋✓で表示。全${numWeeks}週。`;
+    `1行＝1週間（平日 月〜金のみ・土日非表示）。人員2名のレーン（担当は person で設定・現状 人員1=①④⑥実装、人員2=②⑦＋⑥仕様精査）。タスクは作業日数分の幅（1日単位・端数切り上げ）で複数日にまたがり、同時進行は段組み表示。週またぎは「…」で継続。祝日（例 9/21〜9/23）は作業なし。${leaveSummary?`予定休 → ${leaveSummary}（終日休は当該人員のタスクを翌営業日へ後ろ倒し。(半)＝半休はその日の工数だけ 0.5 人日に減る）。`:''}色は基盤（①アンバー/②紫/④青/⑥赤紫/⑦シアン・予備=グレー）。完了タスクは緑＋✓で表示。全${numWeeks}週。`;
 })();
 
 // ---- バーンダウン（計画・SVG）----
