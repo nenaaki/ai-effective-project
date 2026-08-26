@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>議事まとめ 2026-08-26</title>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body {
+    font-family: -apple-system, "Hiragino Kaku Gothic ProN", "Yu Gothic", system-ui, sans-serif;
+    color: #1f2937;
+    background: #fafafa;
+    padding: 12px 28px 6px;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+  .page { max-width: 1240px; margin: 0 auto; height: 100%; display: flex; flex-direction: column; }
+  h1 { font-size: 18px; margin: 0; border-bottom: 3px solid #2563eb; padding-bottom: 5px; }
+  .sub { color: #6b7280; font-size: 11.5px; margin: 5px 0 8px; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1.08fr;
+    gap: 14px;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+  }
+  .panel {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 9px 11px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: auto;
+  }
+  h2 { font-size: 12px; margin: 0 0 5px; padding-left: 8px; border-left: 3px solid #2563eb; }
+  h2.amber { border-left-color: #f59e0b; }
+  h2.indigo { border-left-color: #4f46e5; }
+  h2.green { border-left-color: #10b981; }
+
+  .items { display: flex; flex-direction: column; gap: 3px; }
+  .item {
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 10.5px;
+    line-height: 1.38;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .item .num {
+    background: #2563eb;
+    color: white;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 11px;
+    flex-shrink: 0;
+  }
+  .item.amber .num { background: #f59e0b; }
+  .item.indigo .num { background: #4f46e5; }
+  .item.green .num { background: #10b981; }
+  .item .title { font-weight: 600; color: #1f2937; }
+  .item .desc { color: #4b5563; margin-top: 1px; font-size: 10px; }
+  .item .desc a, .ref-line a { color: #2563eb; text-decoration: none; }
+  .item .desc a:hover, .ref-line a:hover { text-decoration: underline; }
+
+  .item-detail {
+    margin-top: 3px;
+    background: #f9fafb;
+    border-left: 2px solid #2563eb;
+    border-radius: 3px;
+    padding: 3px 7px;
+    font-size: 10px;
+    line-height: 1.4;
+    color: #374151;
+  }
+  .item-detail .head {
+    font-size: 9.5px;
+    font-weight: 700;
+    color: #1e40af;
+    letter-spacing: 0.04em;
+    margin-bottom: 2px;
+  }
+  .item-detail ul { margin: 0; padding-left: 15px; }
+  .item-detail li { margin: 1px 0; }
+  .item-detail.amber { border-left-color: #f59e0b; }
+  .item-detail.amber .head { color: #b45309; }
+
+  .ref-line { margin-top: 5px; font-size: 10.5px; color: #6b7280; padding-left: 4px; }
+
+  /* 下段: 決定事項（全幅・4カラム） */
+  .panel.bottom { margin-top: 7px; flex: none; overflow: visible; padding: 8px 12px 9px; }
+  .panel.bottom .decisions { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 7px; }
+  .panel.bottom .decision { padding: 5px 8px; font-size: 10px; line-height: 1.42; }
+  .panel.bottom .quote { margin-top: 6px; padding: 4px 8px; font-size: 9.5px; line-height: 1.45; }
+  .panel.bottom .notes { display: grid; grid-template-columns: 1.4fr 1fr; gap: 8px; }
+  .panel.bottom .notes .quote { margin-top: 6px; }
+  .quote.info { background: #eef2ff; border-left-color: #4f46e5; color: #312e81; }
+  .quote.info .who { color: #4338ca; }
+
+  /* 決定事項・ネクストアクション */
+  .decisions { display: flex; flex-direction: column; gap: 6px; }
+  .decision {
+    background: #ecfdf5;
+    border-left: 3px solid #10b981;
+    border-radius: 4px;
+    padding: 8px 10px;
+    font-size: 11.5px;
+    line-height: 1.55;
+  }
+  .decision .tag {
+    display: inline-block;
+    background: #10b981;
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 3px;
+    margin-right: 6px;
+    vertical-align: 1px;
+  }
+  .decision .tag.action { background: #2563eb; }
+  .decision .tag.hold { background: #9ca3af; }
+
+  /* 最終メッセージ・補足 */
+  .quote {
+    background: #fef3c7;
+    border-left: 3px solid #f59e0b;
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 10.5px;
+    line-height: 1.55;
+    color: #78350f;
+    font-style: italic;
+  }
+  .quote .who { display: block; font-style: normal; font-weight: 700; font-size: 10px; color: #b45309; margin-bottom: 2px; letter-spacing: 0.04em; }
+  .quote a { color: #b45309; font-style: normal; }
+
+  .block { margin-bottom: 6px; }
+  .block:last-child { margin-bottom: 0; }
+  .panel .block h2 { margin-bottom: 5px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>議事まとめ 2026-08-26 ― タスク選定の「物差し」と、リバース＆リファクタリング駆動</h1>
+  <div class="sub">参加者: 金子社長・礼貴・水野 ／ 14:26〜 定期MTG。前回: <a href="minutes_2026-08-20.html">議事まとめ 2026-08-20</a>／関連: <a href="workitems2.html">イテレーション2</a>・<a href="workitems3.html">イテレーション3 タスク管理</a>／元メモ: <a href="../../.work/2026-08-26_議事録_定期MTG.md">.work/2026-08-26_議事録_定期MTG.md</a></div>
+
+  <div class="grid">
+
+    <!-- 左: ① 進捗報告 / ② イテ3計画 / ③ 選定基準へのフィードバック -->
+    <div class="panel">
+      <div class="block">
+        <h2 class="indigo">① イテレーション2 の進捗報告と残作業</h2>
+        <div class="items">
+          <div class="item indigo">
+            <span class="num">完</span>
+            <div>
+              <div class="title">EVM上は残りわずか ― 今週一杯で完了、スケジュール通りの見込み</div>
+              <div class="desc">残りは<strong>軽微な仕様検討</strong>が数件と<strong>AWS実デプロイ検証の検討漏れ（未着手）</strong>。デバッグ系とあわせて今週中に詰める。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2>② イテレーション3 の計画と見積もりの是正（当初案）</h2>
+        <div class="items">
+          <div class="item">
+            <span class="num">案</span>
+            <div>
+              <div class="title">PWチームと相談し、優先順をつけた5タスクを提示</div>
+              <div class="desc">①CSV機能の共通基盤移植／②通知基盤／③定期バッチの管理・監視／④監査ログ／⑤タイムアウト・上限の全体最適設計。<strong>仕様精査〜PM承認〜実装〜テスト込みで10月第1週エンド完了</strong>の見立て。</div>
+            </div>
+          </div>
+          <div class="item">
+            <span class="num">是</span>
+            <div>
+              <div class="title">イテレーション2の教訓を見積もりへ反映</div>
+              <div class="item-detail">
+                <ul>
+                  <li><strong>仕様精査バッファの確保</strong> ― 「仕様精査からPM合意まで」が短すぎたため、各タスク<strong>2日間</strong>を確実に確保する設計へ。</li>
+                  <li><strong>AIエージェント改善工数の予算化</strong> ― 動作不具合の放置でバグ修正が遅れた反省から<strong>1人20時間</strong>を計画に組み込み。</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2 class="amber">③ 社長の指摘 ― タスク選定に「全体最適の物差し」を持て</h2>
+        <div class="items">
+          <div class="item amber">
+            <span class="num">指</span>
+            <div>
+              <div class="title">チームから上がってきた要望を、ただ受動的に並べるべきではない</div>
+              <div class="desc">最優先の物差しは<strong>他プロジェクトへ横展開できる汎用的なパーツか（展開性の価値）</strong>。PWで作る予定のものの中から<strong>貢献度が最も高いパーツを能動的につまみ上げる</strong>のが、研究開発費を預かる本プロジェクトの競技ルール。</div>
+            </div>
+          </div>
+          <div class="item amber">
+            <span class="num">前</span>
+            <div>
+              <div class="title">「100点以外はゼロ点」の開発とAIの不適合性</div>
+              <div class="desc">AIは<strong>勝手な暗黙の前提を置いて柔軟性を担保する</strong>。<strong>固有性が高いビジネスロジックに突っ込むのは非効率</strong>。</div>
+            </div>
+          </div>
+          <div class="item amber">
+            <span class="num">狙</span>
+            <div>
+              <div class="title">狙うべきは「手はかからないが、みんなが間違える共通機能」</div>
+              <div class="desc">優先順位は<strong>必要度（汎用性）／エンジニア工数／AI駆動との相性</strong>の3軸。例：<strong>メッセージID／マスタ管理・共通バリデーション・一貫したエラー通知</strong>。<strong>PMの力量で品質差が出やすく</strong>、後から全画面を再修正する大改修が頻発する領域。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右: ④ 順方向の限界と逆方向 / ⑤ WBS二分化・ドキュメント再定義 -->
+    <div class="panel">
+      <div class="block">
+        <h2>④ フロントフォワード（順方向）の限界と、バックワードへの転換</h2>
+        <div class="items">
+          <div class="item">
+            <span class="num">限</span>
+            <div>
+              <div class="title">「厳密な型を事前に学習させ、一発で綺麗な設計書とコードを出す」は構造上すぐ頭打ち</div>
+              <div class="item-detail">
+                <div class="head">水野氏らの提案に対する社長の指摘 ― 情報爆発の罠</div>
+                <ul>
+                  <li>単純な機能なら最低限の情報で100点が出るが、高度化するほど<strong>手前で人間が与える前提条件・例外ルールが幾何級数的に増大</strong>する。</li>
+                  <li>前提が増えるほど<strong>微細な重複・論理矛盾</strong>が潜み、AIは<strong>矛盾を真に受けて</strong>おかしな設計・バグを生む。</li>
+                  <li>順方向のみでは<strong>人間の運用能力を超え</strong>、適用できる複雑さの限界が早く来る。</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="item">
+            <span class="num">転</span>
+            <div>
+              <div class="title">「作らせてからリバースする」＝リファクタリング支援駆動</div>
+              <div class="desc">まず<strong>仮</strong>で作らせ照合試験を強引にクリアさせる → 動作を担保した上で<strong>実装コードから設計（UML・絵）をAI自身に逆算</strong>させる → 人間がレビューして矛盾やインフラ制約超過を指摘 → <strong>AIがリファクタリング</strong>。このループを回す。</div>
+            </div>
+          </div>
+          <div class="item">
+            <span class="num">価</span>
+            <div>
+              <div class="title">既存システムへの汎用性 ― 実務は新規5%・エンハンス95%</div>
+              <div class="desc">既存には必ずソースコードがある。<strong>コードから設計・仕様をリバースし、人間と壁打ちしながら安全に修正する技術</strong>こそ、実務で最も汎用性が高く商業的価値のあるAI駆動モデルになる。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2 class="green">⑤ 組織展開の前提 ― WBSの二分化と、中間ドキュメントの再定義</h2>
+        <div class="items">
+          <div class="item green">
+            <span class="num">W</span>
+            <div>
+              <div class="title">WBSの1行に「人間が手でやる作業」と「AI駆動でやる作業」を混ぜない</div>
+              <div class="desc">混在すると進捗管理が困難になり、現場は混乱して<strong>「AI駆動は使いにくい」という反発</strong>を招く。<strong>パーツが完全に用意できているものだけAIで置き換え、それ以外は今まで通り人間が作る</strong>ルールの徹底で、部長陣から現場へシンプルに統制を効かせられる。</div>
+            </div>
+          </div>
+          <div class="item green">
+            <span class="num">D</span>
+            <div>
+              <div class="title">中間ドキュメントは「人へのバトン」から「AIへのインプット」へ</div>
+              <div class="desc">従来は人間から人間へ作業を引き継ぐバトンだった。AI駆動では<strong>人間が確認した設計・意図を、次工程のAIに正しく解釈・実行させるインプット</strong>へ変わる。どのタイミング・形式で受け渡すかという<strong>プロセスのデザイン</strong>が重要になる。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 下段: 決定事項・アクションアイテム -->
+  <div class="panel bottom">
+    <h2>決定事項・アクションアイテム</h2>
+    <div class="decisions">
+      <div class="decision"><span class="tag action">アクション</span><strong>イテレーション3のタスクリストを再選定</strong> — 横展開できる汎用共通機能（バリデーション・メッセージ管理・エラー通知等）の優先順位を上げ、タスク構成を再調整する。</div>
+      <div class="decision"><span class="tag action">アクション</span><strong>WBSを完全に二分化した工程管理表を作成</strong> — PW案件の現場と調整し、人間が手でやるタスクとAI駆動チームが代行するタスクを1行単位で分離する。</div>
+      <div class="decision"><span class="tag action">アクション</span><strong>リバース＆リファクタリングプロセスを設計</strong> — 実装コードから設計モデル図を出力させ、レビューを介してリファクタリングを支援するエージェントの検証準備を進める。</div>
+      <div class="decision"><span class="tag">決定</span><strong>スキル作成は適材適所で判断</strong> — すべてを厳密にパターン化するとスキル作成だけで破綻する。複雑になりそうなタスクは<strong>あえて事前のスキル作成を後回し</strong>にする。</div>
+    </div>
+    <div class="quote info">
+      <span class="who">9月〜10月の主要課題 ― 順方向×逆方向のハイブリッド</span>
+フロントフォワードで押し切れる<strong>シンプルなタスクは予定通り</strong>進め、後回しにした<strong>複雑なタスク</strong>には「まず作らせる → 設計図をリバース → 人間がフェアにレビュー → リファクタリング」の流れをイテレーションループへ実験的に組み込む。この<strong>ハイブリッドプロセスの確立</strong>を9〜10月の主要課題と位置づけた。
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
