@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>サンプリングレビューの内部統制化検討</title>
+<title>エンジニアレビュープロセスの内部統制化検討</title>
 <style>
   html, body { margin: 0; padding: 0; height: 100%; }
   body {
@@ -35,6 +35,117 @@
 
   .tab-content { display: none; flex: 1; min-height: 0; }
   .tab-content.active { display: flex; }
+
+  /* 最上位タブ（旧検討・実測 / 整理・質問） */
+  .tabs--top { gap: 6px; border-bottom: 2px solid #2563eb; margin-bottom: 7px; }
+  .tabs--top .tab { font-size: 13px; font-weight: 700; padding: 5px 20px; border-radius: 7px 7px 0 0; }
+  .tabs--top .tab.active { background: #2563eb; border-color: #2563eb; color: #fff; }
+  .tabs--top .tab:not(.active) { background: #f3f4f6; border-color: #e5e7eb; color: #6b7280; }
+
+  /* 2階層目タブ（旧検討・実測の中身） */
+  .old-wrap { flex: 1; min-height: 0; display: flex; flex-direction: column; width: 100%; }
+  .tabs--sub { gap: 3px; margin-bottom: 7px; flex-shrink: 0; }
+  .tab2 { padding: 5px 12px; background: transparent; border: 1px solid transparent; border-bottom: none; border-radius: 6px 6px 0 0; cursor: pointer; font-size: 12px; font-family: inherit; color: #6b7280; margin-bottom: -1px; }
+  .tab2:hover { color: #1f2937; }
+  .tab2.active { background: white; border-color: #e5e7eb; color: #2563eb; font-weight: 600; }
+  .tab2-content { display: none; flex: 1; min-height: 0; }
+  .tab2-content.active { display: flex; }
+
+  /* 整理・質問（未記入） */
+  .organize-wrap { flex: 1; min-height: 0; display: flex; width: 100%; }
+  .organize-empty { flex: 1; display: flex; align-items: center; justify-content: center; border: 1px dashed #d1d5db; border-radius: 8px; background: #fafafa; color: #9ca3af; font-size: 13px; }
+  .organize-wrap { flex-direction: column; gap: 7px; }
+  .org-goal { flex-shrink: 0; display: flex; gap: 10px; align-items: flex-start; background: #ecfdf5; border: 1px solid #a7f3d0; border-left: 4px solid #047857; border-radius: 6px; padding: 5px 12px; }
+  .org-goal .og-k { flex-shrink: 0; background: #047857; color: #fff; font-size: 10.5px; font-weight: 700; padding: 3px 10px; border-radius: 4px; }
+  .org-goal .og-b { font-size: 11.6px; line-height: 1.6; color: #1f2937; }
+  .org-goal .og-b b { color: #047857; }
+  .org-goal .og-d { color: #6b7280; font-size: 10px; }
+  .org-fig { flex-shrink: 0; background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 3px 10px; display: flex; align-items: center; }
+  .org-fig svg { width: 100%; height: auto; display: block; }
+  .org-pre { flex-shrink: 0; display: flex; gap: 10px; align-items: center; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 5px 12px; }
+  .org-pre .op-k { flex-shrink: 0; background: #6b7280; color: #fff; font-size: 10.5px; font-weight: 700; padding: 3px 10px; border-radius: 4px; }
+  .org-pre .op-l div { font-size: 11.2px; line-height: 1.5; color: #374151; }
+  .org-pre .op-l b { color: #111827; }
+  .org-sec { flex-shrink: 0; background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 6px 13px; }
+  .org-sec .os-h { font-size: 12.5px; font-weight: 700; border-left: 3px solid #2563eb; padding-left: 8px; color: #1d4ed8; margin-bottom: 4px; }
+  .org-sec.mgmt .os-h { border-left-color: #4338ca; color: #4338ca; }
+  .org-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .org-sec .g-h { font-size: 11.2px; font-weight: 700; color: #4b5563; margin-bottom: 1px; }
+  .org-sec ul { margin: 0 0 0 2px; padding-left: 15px; }
+  .org-sec li { font-size: 11px; line-height: 1.45; color: #374151; }
+  .org-sec .li-ex { display: block; font-size: 10px; line-height: 1.4; color: #6b7280; }
+  .org-sec .os-sub { font-size: 10.8px; font-weight: 400; color: #6b7280; margin-left: 6px; }
+  .org-sec .os-note { font-size: 10.3px; line-height: 1.45; color: #6b7280; padding-left: 15px; }
+  .org-q { flex-shrink: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .oq { border-radius: 8px; padding: 9px 13px; border: 1px solid; }
+  .oq-head { display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 700; }
+  .oq-n { flex-shrink: 0; color: #fff; font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 4px; }
+  .oq-badge { margin-left: auto; flex-shrink: 0; font-size: 9.5px; font-weight: 700; padding: 2px 9px; border-radius: 3px; }
+  .oq-b { margin-top: 5px; font-size: 11.2px; line-height: 1.55; color: #374151; }
+  .oq--now { background: #eef2ff; border-color: #4338ca; border-width: 2px; }
+  .oq--now .oq-head { color: #4338ca; }
+  .oq--now .oq-n { background: #4338ca; }
+  .oq--now .oq-badge { background: #4338ca; color: #fff; }
+  .oq--now .oq-b b { color: #4338ca; }
+  .oq--later { background: #f9fafb; border-color: #e5e7eb; }
+  .oq--later .oq-head { color: #6b7280; }
+  .oq--later .oq-n { background: #9ca3af; }
+  .oq--later .oq-badge.later { background: #e5e7eb; color: #6b7280; }
+  .oq--later .oq-b { color: #6b7280; }
+  .oq--later .oq-b b { color: #4b5563; }
+
+  /* 具体的な設問案（カテゴリ別カード） */
+  #tab-qdraft .qd-body { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 9px; padding-right: 4px; }
+  #tab-qdraft .qd-part-h { display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 700; color: #1f2937; margin-bottom: 4px; }
+  #tab-qdraft .qd-part-h::after { content: ""; flex: 1; height: 1px; background: #e5e7eb; }
+  #tab-qdraft .qd-part-n { flex-shrink: 0; background: #1f2937; color: #fff; font-size: 10px; font-weight: 700; padding: 2px 9px; border-radius: 4px; }
+  #tab-qdraft .qd-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; align-items: start; }
+  #tab-qdraft .qd-grid--1 { grid-template-columns: 1fr; }
+  #tab-qdraft .qd-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 6px 11px 7px; display: flex; flex-direction: column; min-height: 0; }
+  #tab-qdraft .qd-h { display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 700; color: #1d4ed8; border-left: 3px solid #2563eb; padding-left: 7px; margin-bottom: 4px; }
+  #tab-qdraft .qd-n { flex-shrink: 0; background: #2563eb; color: #fff; font-size: 9.5px; font-weight: 700; padding: 2px 7px; border-radius: 3px; }
+  #tab-qdraft .qd-sub { font-size: 10px; font-weight: 400; color: #6b7280; }
+  #tab-qdraft ol.qd-q { margin: 0; padding-left: 19px; }
+  #tab-qdraft ol.qd-q li { font-size: 10.8px; line-height: 1.5; color: #374151; margin-bottom: 2px; }
+  #tab-qdraft .qd-card--gate { background: #fbfbff; border-color: #c7d2fe; }
+  #tab-qdraft .qd-card--gate .qd-h { color: #4338ca; border-left-color: #4338ca; }
+  #tab-qdraft .qd-card--gate .qd-n { background: #4338ca; }
+  #tab-qdraft .qd-card--nfr .qd-h { color: #92400e; border-left-color: #f59e0b; }
+  #tab-qdraft .qd-card--nfr .qd-n { background: #f59e0b; }
+  #tab-qdraft .qd-card--test .qd-h { color: #047857; border-left-color: #047857; }
+  #tab-qdraft .qd-card--test .qd-n { background: #047857; }
+  #tab-qdraft .qd-vtabs { flex-shrink: 0; display: flex; gap: 5px; align-items: center; }
+  #tab-qdraft .qd-vtab { font-family: inherit; font-size: 11px; font-weight: 700; padding: 3px 12px; border-radius: 5px; border: 1px solid #e5e7eb; background: #f3f4f6; color: #6b7280; cursor: pointer; }
+  #tab-qdraft .qd-vtab.active { background: #1f2937; border-color: #1f2937; color: #fff; }
+  #tab-qdraft .qd-ver { display: none; flex: 1; min-height: 0; }
+  #tab-qdraft .qd-ver.active { display: flex; flex-direction: column; min-height: 0; }
+  #tab-qdraft .qd-cond { display: flex; align-items: center; gap: 5px; font-size: 9.6px; line-height: 1.4; color: #6b7280; }
+  #tab-qdraft .qd-cond-k { flex-shrink: 0; background: #9ca3af; color: #fff; font-size: 8.5px; font-weight: 700; padding: 1px 5px; border-radius: 3px; }
+  #tab-qdraft .qd-group { border-left: 2px solid #d1d5db; border-radius: 0 5px 5px 0; background: #fafafa; padding: 3px 0 3px 7px; margin: 3px 0; }
+  #tab-qdraft .qd-group .qd-cond { margin-bottom: 2px; }
+  /* タブ内容全体（フロー図・バージョンタブ含む）をスクロール対象にする */
+  #tab-qdraft .organize-wrap { overflow-y: auto; padding-right: 4px; }
+  #tab-qdraft .qd-ver { flex: 0 0 auto; min-height: auto; }
+  #tab-qdraft .qd-ver.active { min-height: auto; }
+  #tab-qdraft .qd-body { flex: 0 0 auto; min-height: auto; overflow: visible; padding-right: 0; }
+  #tab-qdraft ol.qd-q li.qd-why { list-style: none; margin-left: 10px; margin-top: 1px; color: #92400e; }
+  #tab-qdraft .qd-why-n { font-weight: 700; color: #b45309; margin-right: 4px; }
+  #tab-qdraft .qd-why-k { background: #f59e0b; color: #fff; font-size: 9px; font-weight: 700; padding: 1px 6px; border-radius: 3px; margin-right: 5px; }
+  /* 後段: ペルソナ別タブ */
+  #tab-qdraft .qd-ptabs { display: flex; gap: 6px; align-items: center; margin: 1px 0 7px; }
+  #tab-qdraft .qd-ptab { font-family: inherit; font-size: 10.5px; font-weight: 700; padding: 3px 12px; border-radius: 999px; border: 1px solid #d1d5db; background: #fff; color: #6b7280; cursor: pointer; }
+  #tab-qdraft .qd-ptab.active { background: #2563eb; border-color: #2563eb; color: #fff; }
+  #tab-qdraft .qd-ptab-r { font-weight: 400; opacity: .8; margin-left: 5px; }
+  #tab-qdraft .qd-persona { display: none; }
+  #tab-qdraft .qd-persona.active { display: block; }
+  #tab-qdraft .qd-todo { font-size: 11px; color: #9ca3af; background: #f9fafb; border: 1px dashed #d1d5db; border-radius: 8px; padding: 18px; text-align: center; }
+  #tab-qdraft .qd-callout { margin-top: 7px; background: #ecfdf5; border: 1px solid #047857; border-radius: 6px; padding: 7px 11px; font-size: 11.5px; font-weight: 700; color: #047857; }
+  #tab-qdraft .qd-link { color: #1d4ed8; font-weight: 700; text-decoration: underline; cursor: pointer; }
+  #tab-qdraft .qd-askbox { margin-top: 6px; background: #fafafa; border: 1px solid #e5e7eb; border-radius: 6px; padding: 3px 10px 4px; }
+  #tab-qdraft .qd-askbox-h { font-size: 9.5px; font-weight: 700; color: #9ca3af; cursor: pointer; }
+  #tab-qdraft .qd-askbox[open] .qd-askbox-h { margin-bottom: 3px; }
+  #tab-qdraft ol.qd-askq { margin: 0 0 2px; padding-left: 19px; }
+  #tab-qdraft ol.qd-askq li { font-size: 10px; line-height: 1.5; color: #6b7280; }
 
   .grid {
     display: grid;
@@ -410,15 +521,15 @@
   #tab-plan .sfl-box .s { line-height: 1.4; }
   #tab-plan .sfl-box--pre { background: #f8fbff; border-style: dashed; border-color: #2563eb; }
   #tab-plan .sfl-box--pre .n { background: #2563eb; }
-  #tab-plan .sfl-box .t { font-size: 11.2px; line-height: 1.35; }
-  #tab-plan .sfl-box .s { font-size: 9.1px; margin-top: 0; line-height: 1.35; }
+  #tab-plan .sfl-box .t { font-size: 11.2px; line-height: 1.3; }
+  #tab-plan .sfl-box .s { font-size: 9.1px; margin-top: 0; line-height: 1.28; }
   #tab-plan .sfl-box--key { background: #eff6ff; border: 2px solid #2563eb; padding: 1px 11px; }
   #tab-plan .sfl-box--key .n { background: #2563eb; }
   .sfl-box .hl { color: #1d4ed8; }
   .keychip { display: inline-block; background: #2563eb; color: #fff; font-size: 8.5px; font-weight: 700; padding: 1px 7px; border-radius: 3px; margin-left: 8px; vertical-align: 1px; }
   #tab-plan .sfl-note { padding: 4px 11px; }
   #tab-plan .sfl-note .b { font-size: 10px; line-height: 1.45; }
-  #tab-plan .ipo-memo { padding: 6px 11px; font-size: 10.4px; }
+  #tab-plan .ipo-memo { padding: 5px 11px; font-size: 10.4px; }
   .plan-foot { flex-shrink: 0; display: grid; grid-template-columns: 1.35fr 1fr; gap: 10px; }
   .plan-foot--single { grid-template-columns: 1fr; }
   .plan-legend { font-size: 10.2px; color: #92400e; background: #fffbeb; border: 1px solid #fcd34d; border-radius: 6px; padding: 6px 11px; line-height: 1.5; }
@@ -475,21 +586,30 @@
 </head>
 <body>
 <div class="page">
-  <h1>サンプリングレビューの内部統制化検討</h1>
+  <h1>エンジニアレビュープロセスの内部統制化検討</h1>
   <div class="sub">レビュープロセスの内部統制化検討 / 決定事項② / 2026-07-16 社長壁打ち　—　リスクの高い機能を着手前にサンプリングし、エンジニアが「入口・出口を業務の言葉で理解しているか」を権限者が確認して証跡を残す工程統制</div>
 
-  <div class="tabs">
-    <button class="tab active" data-tab="direction">方向性</button>
-    <button class="tab" data-tab="question">具体的な設問</button>
-    <button class="tab" data-tab="names">名称案</button>
-    <button class="tab" data-tab="rec">実施記録</button>
-    <button class="tab" data-tab="revise">入口設問の変更方針</button>
-    <button class="tab" data-tab="sim">シミュレーション</button>
-    <button class="tab" data-tab="plan">現状検討に至っているプロセス</button>
+  <div class="tabs tabs--top">
+    <button class="tab" data-tab="old">旧検討・実測</button>
+    <button class="tab" data-tab="organize">整理・質問（PMの判断軸）</button>
+    <button class="tab active" data-tab="qdraft">具体的な設問案</button>
   </div>
 
+  <!-- ====================== 最上位タブ1: 旧検討・実測 ====================== -->
+  <div class="tab-content" id="tab-old">
+   <div class="old-wrap">
+    <div class="tabs tabs--sub">
+      <button class="tab2 active" data-tab2="direction">方向性</button>
+      <button class="tab2" data-tab2="question">具体的な設問</button>
+      <button class="tab2" data-tab2="names">名称案</button>
+      <button class="tab2" data-tab2="rec">実施記録</button>
+      <button class="tab2" data-tab2="revise">入口設問の変更方針</button>
+      <button class="tab2" data-tab2="sim">シミュレーション</button>
+      <button class="tab2" data-tab2="plan">現状検討に至っているプロセス</button>
+    </div>
+
   <!-- ====================== タブ1: 方向性 ====================== -->
-  <div class="tab-content active" id="tab-direction">
+  <div class="tab2-content active" id="tab-direction">
     <div class="dir-layout">
 
       <!-- 上部: プロセスの目的（分離バンド。①②が下の左右パネルに対応） -->
@@ -573,7 +693,7 @@
   </div>
 
   <!-- ====================== タブ2: 具体的な回答 ====================== -->
-  <div class="tab-content" id="tab-names">
+  <div class="tab2-content" id="tab-names">
     <div class="single-wrap">
       <div class="panel">
         <h2>プロセス名称案 — 何に軸を置くか</h2>
@@ -597,7 +717,7 @@
   </div>
 
   <!-- ====================== タブ2: 具体的な設問（I/P/O × 設問→回答） ====================== -->
-  <div class="tab-content" id="tab-question">
+  <div class="tab2-content" id="tab-question">
     <div class="ipo-layout">
 
       <!-- 冒頭の切り口メモ（1帯） -->
@@ -664,7 +784,7 @@
   </div>
 
   <!-- ====================== タブ: 実施記録（回 × 段の2階層サブタブ） ====================== -->
-  <div class="tab-content" id="tab-rec">
+  <div class="tab2-content" id="tab-rec">
     <div class="rec-wrap">
 
       <!-- 回セレクタ（新しい階層：閲覧対象を第一回/第二回で分ける） -->
@@ -880,7 +1000,7 @@
   </div>
 
   <!-- ====================== タブ: 入口設問の変更方針 ====================== -->
-  <div class="tab-content" id="tab-revise">
+  <div class="tab2-content" id="tab-revise">
     <div class="rev-layout">
 
       <div class="ipo-memo"><span class="ii-tag">背景</span>2026-08-06 社長レビューで<b>現状80点</b>。調べれば分かる情報を拾えるのは当然のラインで、<b>残り20点は上位層しか持っていない意図・背景（情報の非対称性）を自分から取りに行く姿勢</b>との指摘。これを設問の側から起こす形に改める。<b>対象は入口のみ</b>（過程・出口は現行のまま）。</div>
@@ -975,7 +1095,7 @@
   </div>
 
   <!-- ====================== タブ: シミュレーション ====================== -->
-  <div class="tab-content" id="tab-sim">
+  <div class="tab2-content" id="tab-sim">
     <div class="sim-wrap">
 
       <!-- 上部: 今までの進め方の問題 -->
@@ -1238,10 +1358,10 @@
   </div>
 
   <!-- ====================== タブ: 到達した設計 ====================== -->
-  <div class="tab-content" id="tab-plan">
+  <div class="tab2-content" id="tab-plan">
     <div class="plan-wrap">
 
-      <div class="ipo-memo"><span class="ii-tag">案A</span>目的＝エンジニアが対象機能の世界を<b>納得するまで描けている</b>状態を作る。　<b>ポイントは3つ ― ①エンジニアが「納得」するまで詰める　②レビュー会は「口頭で」説明させる（書いたものでは判定できないため）　③PM自身のレビュー品質を「マネージャーレビュー」で担保する</b>　<span style="color:#6b7280;">検討 2026-08-24 ／ 契機 2026-08-20 金子社長MTG</span></div>
+      <div class="ipo-memo"><span class="ii-tag">案A</span>目的＝対象機能の世界を<b>納得するまで描けている</b>状態を作る。　<b>ポイントは3つ ― ①「納得」するまで詰める　②レビュー会は「口頭で」説明させる　③PM自身のレビュー品質を「マネージャーレビュー」で担保する</b>　<span style="color:#6b7280;">検討 2026-08-24</span></div>
 
       <div class="sim-tabs">
         <button class="plan-tab active" data-plan="a">フローと確度</button>
@@ -1421,6 +1541,557 @@
     </div><!-- /plan-wrap -->
   </div>
 
+   </div><!-- /old-wrap -->
+  </div><!-- /tab-old -->
+
+  <!-- ====================== 最上位タブ2: 整理・質問 ====================== -->
+  <div class="tab-content" id="tab-organize">
+    <div class="organize-wrap">
+
+      <div class="org-goal">
+        <span class="og-k">プロセスの概要</span>
+        <span class="og-b">PMが特定の機能に関し、「<b>このエンジニアに任せて大丈夫か</b>」を確認するためのプロセス</span>
+      </div>
+
+      <div class="org-pre">
+        <span class="op-k">前提</span>
+        <div class="op-l">
+          <div><b>PM</b>：レビュー会の意図（エンジニアに対して機能開発を任せて大丈夫かを判断する）を連携済みを想定</div>
+          <div><b>エンジニア</b>：水野、あるいは意図を理解していないエンジニアを想定</div>
+        </div>
+      </div>
+      <div class="org-fig">
+        <svg viewBox="0 0 1258 98" role="img" aria-label="レビュー会の運用フロー5工程と、Q1が④、Q2が②に対応すること">
+          <defs>
+            <marker id="og-ah" markerUnits="userSpaceOnUse" markerWidth="13" markerHeight="11" refX="11" refY="5.5" orient="auto"><path d="M0,0 L13,5.5 L0,11 Z" fill="#6b7280"/></marker>
+            <marker id="og-ah-d" markerUnits="userSpaceOnUse" markerWidth="13" markerHeight="11" refX="11" refY="5.5" orient="auto"><path d="M0,0 L13,5.5 L0,11 Z" fill="#9ca3af"/></marker>
+          </defs>
+
+          <g font-family="inherit">
+            <rect x="188" y="2" width="348" height="28" rx="6" fill="#f9fafb" stroke="#d1d5db" stroke-width="1.5"/>
+            <rect x="198" y="8" width="26" height="16" rx="3" fill="#9ca3af"/>
+            <text x="211" y="20" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">Q2</text>
+            <text x="386" y="20" text-anchor="middle" font-size="11.5" font-weight="700" fill="#4b5563">エンジニアに投げかける具体的な設問はなにか</text>
+            <line x1="362" y1="30" x2="362" y2="40" stroke="#9ca3af" stroke-width="1.5" stroke-dasharray="3 2"/>
+
+            <rect x="652" y="2" width="372" height="28" rx="6" fill="#eef2ff" stroke="#4338ca" stroke-width="1.5"/>
+            <rect x="662" y="8" width="26" height="16" rx="3" fill="#4338ca"/>
+            <text x="675" y="20" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">Q1</text>
+            <text x="856" y="20" text-anchor="middle" font-size="11.5" font-weight="700" fill="#4338ca">PMがエンジニアが「任せても問題ない」と判断する軸はなにか</text>
+            <line x1="838" y1="30" x2="838" y2="36" stroke="#4338ca" stroke-width="1.5" stroke-dasharray="3 2"/>
+
+            <rect x="10" y="40" width="228" height="52" rx="8" fill="#f6f5f2" stroke="#e2e0da"/>
+            <text x="124" y="71" text-anchor="middle" font-size="12.5" font-weight="700" fill="#1f2937">① PMが渡す</text>
+
+            <rect x="248" y="40" width="228" height="52" rx="8" fill="#f6f5f2" stroke="#e2e0da"/>
+            <text x="362" y="71" text-anchor="middle" font-size="12.5" font-weight="700" fill="#1f2937">② エンジニアが業務を理解する</text>
+
+            <rect x="486" y="40" width="228" height="52" rx="8" fill="#f6f5f2" stroke="#e2e0da"/>
+            <text x="600" y="71" text-anchor="middle" font-size="12.5" font-weight="700" fill="#1f2937">③ 説明を用意する</text>
+
+            <rect x="724" y="36" width="228" height="60" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+            <text x="838" y="64" text-anchor="middle" font-size="12.5" font-weight="700" fill="#1d4ed8">④ レビュー会</text>
+            <text x="838" y="82" text-anchor="middle" font-size="10.5" font-weight="700" fill="#1d4ed8">「任せて大丈夫か」を判断する</text>
+
+            <rect x="962" y="40" width="228" height="52" rx="8" fill="#f6f5f2" stroke="#e2e0da"/>
+            <text x="1076" y="71" text-anchor="middle" font-size="12.5" font-weight="700" fill="#1f2937">⑤ 着手 ／ 差し戻し</text>
+
+            <line x1="240" y1="66" x2="246" y2="66" stroke="#6b7280" stroke-width="2" marker-end="url(#og-ah)"/>
+            <line x1="478" y1="66" x2="484" y2="66" stroke="#6b7280" stroke-width="2" marker-end="url(#og-ah)"/>
+            <line x1="716" y1="66" x2="722" y2="66" stroke="#6b7280" stroke-width="2" marker-end="url(#og-ah)"/>
+            <line x1="954" y1="66" x2="960" y2="66" stroke="#6b7280" stroke-width="2" marker-end="url(#og-ah)"/>
+            <line x1="1196" y1="66" x2="1246" y2="66" stroke="#9ca3af" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#og-ah-d)"/>
+          </g>
+        </svg>
+      </div>
+
+      <div class="org-sec">
+        <div class="os-h">Q1に関する下調べと整理<span class="os-sub">（AIから提供された一般論を元に、水野が納得する整理）</span></div>
+        <div class="org-cols">
+          <div>
+            <div class="g-h">▼ビジネス観点</div>
+            <ul>
+              <li>AsIsの業務についての業務課題と、誰が・いつ・なぜ・どう使うかを答えられるか<span class="li-ex">例：顧客が不在票を確認し、再配達依頼を依頼するときに、現状の再配送システムでは時間指定ができない。</span></li>
+              <li>ToBeの業務について、正常系や異常系・条件によって変わる業務が答えられるか<span class="li-ex">例：再配送依頼のシステムで時刻指定を受け付けるようにする。ただし指定された時刻が前日、3日後である場合は再配達依頼を受け付けない</span></li>
+            </ul>
+          </div>
+          <div>
+            <div class="g-h">▼エンジニア観点</div>
+            <ul>
+              <li>責務（全体の中でどの範囲）と、接点にあるものはなにか</li>
+              <li>どのように開発を進めていくのか、その順番の説明</li>
+              <li>機能開発でどういったリスクが考えられるか</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="org-sec mgmt">
+        <div class="os-h">その他の疑問</div>
+        <ul>
+          <li>期待される成果物（アウトプット）をどのように設定すべきか</li>
+        </ul>
+        <div class="os-note">※何を持って証跡とすると役に立つのか</div>
+        <ul>
+          <li>エンジニアの検討内容についての差し戻しをどこでやるべきか</li>
+        </ul>
+        <div class="os-note">※改めて検討の結果、レビューが通るのかどうかはPMによる判断になるため、PMによる差し戻しが必要かと考えております</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ====================== 最上位タブ3: 具体的な設問案 ====================== -->
+  <div class="tab-content active" id="tab-qdraft">
+    <div class="organize-wrap">
+
+      <div class="org-fig">
+        <svg viewBox="0 0 1258 98" role="img" aria-label="レビュー会の運用フロー5工程と、Q2が②、Q1が④に対応すること">
+          <defs>
+            <marker id="qd-ah" markerUnits="userSpaceOnUse" markerWidth="13" markerHeight="11" refX="11" refY="5.5" orient="auto"><path d="M0,0 L13,5.5 L0,11 Z" fill="#6b7280"/></marker>
+            <marker id="qd-ah-d" markerUnits="userSpaceOnUse" markerWidth="13" markerHeight="11" refX="11" refY="5.5" orient="auto"><path d="M0,0 L13,5.5 L0,11 Z" fill="#9ca3af"/></marker>
+          </defs>
+
+          <g font-family="inherit">
+            <rect x="188" y="2" width="348" height="28" rx="6" fill="#eef2ff" stroke="#4338ca" stroke-width="1.5"/>
+            <rect x="198" y="8" width="26" height="16" rx="3" fill="#4338ca"/>
+            <text x="211" y="20" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">Q2</text>
+            <text x="386" y="20" text-anchor="middle" font-size="11.5" font-weight="700" fill="#4338ca">エンジニアに投げかける具体的な設問はなにか</text>
+            <line x1="362" y1="30" x2="362" y2="40" stroke="#4338ca" stroke-width="1.5" stroke-dasharray="3 2"/>
+
+            <rect x="652" y="2" width="372" height="28" rx="6" fill="#f9fafb" stroke="#d1d5db" stroke-width="1.5"/>
+            <rect x="662" y="8" width="26" height="16" rx="3" fill="#9ca3af"/>
+            <text x="675" y="20" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">Q1</text>
+            <text x="856" y="20" text-anchor="middle" font-size="11.5" font-weight="700" fill="#4b5563">PMがエンジニアが「任せても問題ない」と判断する軸はなにか</text>
+            <line x1="838" y1="30" x2="838" y2="36" stroke="#9ca3af" stroke-width="1.5" stroke-dasharray="3 2"/>
+
+            <rect x="10" y="40" width="228" height="52" rx="8" fill="#f6f5f2" stroke="#e2e0da"/>
+            <text x="124" y="71" text-anchor="middle" font-size="12.5" font-weight="700" fill="#1f2937">① PMが渡す</text>
+
+            <rect x="248" y="36" width="228" height="60" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+            <text x="362" y="64" text-anchor="middle" font-size="12.5" font-weight="700" fill="#1d4ed8">② エンジニアが業務を理解する</text>
+            <text x="362" y="82" text-anchor="middle" font-size="9.5" font-weight="700" fill="#1d4ed8">質問リストに回答することでレビュー会の準備</text>
+
+            <rect x="486" y="40" width="228" height="52" rx="8" fill="#f6f5f2" stroke="#e2e0da"/>
+            <text x="600" y="71" text-anchor="middle" font-size="12.5" font-weight="700" fill="#1f2937">③ 説明を用意する</text>
+
+            <rect x="724" y="40" width="228" height="52" rx="8" fill="#f6f5f2" stroke="#e2e0da"/>
+            <text x="838" y="71" text-anchor="middle" font-size="12.5" font-weight="700" fill="#1f2937">④ レビュー会</text>
+
+            <rect x="962" y="40" width="228" height="52" rx="8" fill="#f6f5f2" stroke="#e2e0da"/>
+            <text x="1076" y="71" text-anchor="middle" font-size="12.5" font-weight="700" fill="#1f2937">⑤ 着手 ／ 差し戻し</text>
+
+            <line x1="240" y1="66" x2="246" y2="66" stroke="#6b7280" stroke-width="2" marker-end="url(#qd-ah)"/>
+            <line x1="478" y1="66" x2="484" y2="66" stroke="#6b7280" stroke-width="2" marker-end="url(#qd-ah)"/>
+            <line x1="716" y1="66" x2="722" y2="66" stroke="#6b7280" stroke-width="2" marker-end="url(#qd-ah)"/>
+            <line x1="954" y1="66" x2="960" y2="66" stroke="#6b7280" stroke-width="2" marker-end="url(#qd-ah)"/>
+            <line x1="1196" y1="66" x2="1246" y2="66" stroke="#9ca3af" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#qd-ah-d)"/>
+          </g>
+        </svg>
+      </div>
+
+      <div class="qd-vtabs">
+        <button class="qd-vtab" data-ver="1">v1 — 議事録どおりに並べた版</button>
+        <button class="qd-vtab" data-ver="2">v2 — 分岐 → 中身 → なぜ</button>
+        <button class="qd-vtab active" data-ver="3">v3 — 一つの動的フロー</button>
+      </div>
+
+      <div class="qd-ver" data-ver="1">
+      <div class="qd-body">
+
+      <div class="qd-part">
+        <div class="qd-part-h"><span class="qd-part-n">前段</span>外側 — 前工程（要件定義・基本設計）で決まっている内容を理解できているか</div>
+        <div class="qd-grid qd-grid--1">
+
+        <div class="qd-card qd-card--gate">
+          <ol class="qd-q" start="1">
+            <li>今回対象の機能はどういうものか</li>
+            <li>その機能は、どの業務・プロセスの中で利用されるものか</li>
+            <li>その業務は、どういうユーザー（どの権限）がやるのか</li>
+            <li>現状（AsIs）その業務はどう行われているか</li>
+            <li>この機能が実装されると（ToBe）どういった業務ができるようになるか</li>
+            <li>その変化でユーザーは何が嬉しいのか／この機能を作る目的をどう理解しているか</li>
+          </ol>
+        </div>
+
+        </div>
+      </div>
+
+      <div class="qd-part">
+        <div class="qd-part-h"><span class="qd-part-n">後段</span>中身 — 何をどう作るのか<span class="qd-sub">3層アーキテクチャ ＋ 非機能 ＋ テスト</span></div>
+        <div class="qd-grid">
+
+        <div class="qd-card">
+          <div class="qd-h"><span class="qd-n">①</span>プレゼンテーション層<span class="qd-sub">画面・UI</span></div>
+          <ol class="qd-q" start="7">
+            <li>対象の機能に画面の実装はあるか</li>
+            <li>作ろうとしている画面はどんな画面か</li>
+          </ol>
+        </div>
+
+        <div class="qd-card">
+          <div class="qd-h"><span class="qd-n">②</span>ロジック層<span class="qd-sub">ビジネスロジック・IF</span></div>
+          <ol class="qd-q" start="9">
+            <li>画面とロジック、外部システムとの間のIF（インターフェース）は何本あるか</li>
+            <li>それぞれのIFでは主にどんな処理を走らせようとしているか</li>
+          </ol>
+        </div>
+
+        <div class="qd-card">
+          <div class="qd-h"><span class="qd-n">③</span>データ層<span class="qd-sub">DB・テーブル設計</span></div>
+          <ol class="qd-q" start="11">
+            <li>今回の機能実装で、テーブルを新たに作る必要があるか</li>
+            <li>既存テーブルにカラムを追加する必要があるか、ある場合はどのテーブルにどんなカラムを追加するのか</li>
+          </ol>
+        </div>
+
+        <div class="qd-card qd-card--nfr">
+          <div class="qd-h"><span class="qd-n">④</span>非機能要件<span class="qd-sub">性能・設定方針</span></div>
+          <ol class="qd-q" start="13">
+            <li>画面の性能が低下する懸念点はあるか</li>
+            <li>高速化を意識する場合、処理ロジックのどこがチェックポイントになるか</li>
+            <li>バリデーション・設定値は静的な設定ファイルで持つか、アプリ側の処理で動的に制御するか</li>
+          </ol>
+        </div>
+
+        <div class="qd-card qd-card--test">
+          <div class="qd-h"><span class="qd-n">⑤</span>テスト計画・データ<span class="qd-sub">データ・手順・環境</span></div>
+          <ol class="qd-q" start="16">
+            <li>どんなテストをするのか</li>
+            <li>テストデータは顧客からもらう必要があるか、自分で作るのか</li>
+            <li>そのテストデータをどういう手順で開発環境に投入するか</li>
+            <li>テストすべきデータのボリューム（件数）はどの程度を想定しているか。利用するユーザー数や機能の重要度に応じた量になっているか</li>
+            <li>テストのためにデータ投入用の機能・ツールを作る必要はあるか</li>
+            <li>開発環境だけでなく、ステージング等の検証環境の用意は必要か</li>
+          </ol>
+        </div>
+
+        </div>
+      </div>
+
+      </div>
+      </div>
+
+      <div class="qd-ver" data-ver="2">
+      <div class="qd-body">
+
+      <div class="qd-part">
+        <div class="qd-part-h"><span class="qd-part-n">前段</span>外側 — 前工程（要件定義・基本設計）で決まっている内容を理解できているか</div>
+        <div class="qd-grid qd-grid--1">
+
+        <div class="qd-card qd-card--gate">
+          <ol class="qd-q" start="1">
+            <li>今回対象の機能はどういうものか</li>
+            <li>その機能は、どの業務・プロセスの中で利用されるものか</li>
+            <li>その業務は、どういうユーザー（どの権限）がやるのか</li>
+            <li>現状（AsIs）その業務はどう行われているか</li>
+            <li>この機能が実装されると（ToBe）どういった業務ができるようになるか</li>
+            <li>その変化でユーザーは何が嬉しいのか</li>
+          </ol>
+        </div>
+
+        </div>
+      </div>
+
+      <div class="qd-part">
+        <div class="qd-part-h"><span class="qd-part-n">後段</span>中身 — 何をどう作るのか<span class="qd-sub">分岐が設問を囲う（分岐1つに設問が複数ぶら下がる）／「なぜ」は末尾に分けて置く</span></div>
+
+        <div class="qd-ptabs">
+          <button class="qd-ptab" data-persona="senior">ベテラン<span class="qd-ptab-r">上位2割</span></button>
+          <button class="qd-ptab active" data-persona="mid">中堅<span class="qd-ptab-r">中間6割</span></button>
+          <button class="qd-ptab" data-persona="junior">駆け出し<span class="qd-ptab-r">下位2割</span></button>
+        </div>
+
+        <div class="qd-persona" data-persona="senior">
+          <div class="qd-grid qd-grid--1">
+            <div class="qd-card qd-card--gate">
+              <div class="qd-h"><span class="qd-n">方針</span>後段の設問リストは配らない<span class="qd-sub">レビューの場でPMが要点のみ確認する</span></div>
+              <ol class="qd-q">
+                <li>PMが聞くのは一言 —「今回、どうやって作ろうとしてる？」</li>
+                <li>画面のユースケース、処理の難易度の切り分け、複雑なシーケンスまで、本人が一発で網羅して説明できる</li>
+                <li>PMは聞いた上で、怪しい箇所にだけアドバイスを挟む</li>
+              </ol>
+              <div class="qd-cond"><span class="qd-cond-k">理由</span>「画面はあるか」「テスト環境はあるか」といった低解像度な設問に回答を義務付けると、「バカにしているのか」となり、プロセスそのものへの不信につながる</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="qd-persona" data-persona="junior">
+          <div class="qd-grid qd-grid--1">
+            <div class="qd-card qd-card--gate">
+              <div class="qd-h"><span class="qd-n">方針</span>先に、回答の場に立てているかをチェックする<span class="qd-sub">立てていないなら準備させず、早めにPMへ相談させる</span></div>
+              <ol class="qd-q">
+                <li>画面はどう作る？</li>
+                <li>APIは何本？</li>
+                <li>テーブルのどこに情報を置く？</li>
+                <li>非機能はどういったものがある？</li>
+              </ol>
+              <div class="qd-callout">半分以上の回答が難しい場合、PMにまずは聞きに行こう</div>
+            </div>
+          </div>
+
+          <div class="qd-grid">
+
+        <div class="qd-card">
+          <div class="qd-h"><span class="qd-n">①</span>プレゼンテーション層<span class="qd-sub">画面・UI</span></div>
+          <div class="qd-group">
+            <div class="qd-cond"><span class="qd-cond-k">分岐</span>画面の実装はあるか</div>
+            <ol class="qd-q" start="7">
+              <li>作る画面は何画面あり、それぞれどんな画面か</li>
+              <li class="qd-why"><span class="qd-why-n">7-a</span><span class="qd-why-k">なぜ</span>画面に表示する項目はそれぞれどこから取得するのか。なぜその取得元なのか</li>
+              <li value="8">権限によって表示・操作が変わる項目はあるか</li>
+              <li class="qd-why"><span class="qd-why-n">8-a</span><span class="qd-why-k">なぜ</span>なぜそこを出し分けるのか</li>
+            </ol>
+          </div>
+        </div>
+
+        <div class="qd-card">
+          <div class="qd-h"><span class="qd-n">②</span>ロジック層<span class="qd-sub">ビジネスロジック・IF</span></div>
+          <ol class="qd-q" start="9">
+            <li>画面とロジック、外部システムとの間のIF（インターフェース）は何本あるか</li>
+            <li>それぞれのIFでは主にどんな処理を走らせようとしているか</li>
+            <li class="qd-why"><span class="qd-why-n">10-a</span><span class="qd-why-k">なぜ</span>その処理を画面側／ロジック側／外部側のどこに置いたのか。他に置ける場所があったとして、なぜそこにしたのか</li>
+          </ol>
+        </div>
+
+        <div class="qd-card">
+          <div class="qd-h"><span class="qd-n">③</span>データ層<span class="qd-sub">DB・テーブル設計</span></div>
+          <div class="qd-group">
+            <div class="qd-cond"><span class="qd-cond-k">分岐</span>テーブルを新たに作る必要があるか</div>
+            <ol class="qd-q" start="11"><li>どんなテーブルを何本作るのか</li></ol>
+          </div>
+          <div class="qd-group">
+            <div class="qd-cond"><span class="qd-cond-k">分岐</span>既存テーブルへのカラム追加はあるか</div>
+            <ol class="qd-q" start="12"><li>どのテーブルに、どんなカラムを追加するのか</li></ol>
+          </div>
+          <ol class="qd-q">
+            <li class="qd-why"><span class="qd-why-n">12-a</span><span class="qd-why-k">なぜ</span>なぜそのテーブルなのか。他に置けるテーブルがあったとして、なぜそちらを選ばなかったのか</li>
+          </ol>
+        </div>
+
+        <div class="qd-card qd-card--nfr">
+          <div class="qd-h"><span class="qd-n">④</span>非機能要件<span class="qd-sub">性能・設定方針</span></div>
+          <div class="qd-group">
+            <div class="qd-cond"><span class="qd-cond-k">分岐</span>画面の性能が低下する懸念はあるか</div>
+            <ol class="qd-q" start="13">
+              <li>低下するとしたら、どの画面・どの処理で起きるのか</li>
+              <li>そこを高速化するなら、処理ロジックのどこがチェックポイントになるか</li>
+            </ol>
+          </div>
+          <ol class="qd-q" start="15">
+            <li>バリデーション・設定値は静的な設定ファイルで持つか、アプリ側の処理で動的に制御するか</li>
+            <li class="qd-why"><span class="qd-why-n">15-a</span><span class="qd-why-k">なぜ</span>なぜそちらを選んだのか</li>
+          </ol>
+        </div>
+
+        <div class="qd-card qd-card--test">
+          <div class="qd-h"><span class="qd-n">⑤</span>テスト計画・データ<span class="qd-sub">データ・手順・環境</span></div>
+          <ol class="qd-q" start="16">
+            <li>どんなテストをするのか</li>
+            <li>テストデータは顧客からもらうか、自分で作るか</li>
+            <li>そのテストデータをどういう手順で開発環境に投入するか</li>
+            <li>テストするデータの件数はどの程度か</li>
+            <li class="qd-why"><span class="qd-why-n">19-a</span><span class="qd-why-k">なぜ</span>その件数でよいと言えるのはなぜか（利用するユーザー数・機能の重要度に照らして）</li>
+          </ol>
+          <div class="qd-group">
+            <div class="qd-cond"><span class="qd-cond-k">分岐</span>投入用の機能・ツールを作る必要があるか</div>
+            <ol class="qd-q" start="20"><li>作るとしたら何を作るのか</li></ol>
+          </div>
+          <div class="qd-group">
+            <div class="qd-cond"><span class="qd-cond-k">分岐</span>開発環境のほかに検証環境（ステージング等）は必要か</div>
+            <ol class="qd-q" start="21"><li>必要ならどの環境をどこまで用意するのか</li></ol>
+          </div>
+        </div>
+
+        </div>
+        </div>
+
+        <div class="qd-persona active" data-persona="mid">
+        <div class="qd-grid">
+
+        <div class="qd-card">
+          <div class="qd-h"><span class="qd-n">①</span>プレゼンテーション層<span class="qd-sub">画面・UI</span></div>
+          <div class="qd-group">
+            <div class="qd-cond"><span class="qd-cond-k">分岐</span>画面の実装はあるか</div>
+            <ol class="qd-q" start="7">
+              <li>作る画面は何画面あり、それぞれどんな画面か</li>
+              <li class="qd-why"><span class="qd-why-n">7-a</span><span class="qd-why-k">なぜ</span>画面に表示する項目はそれぞれどこから取得するのか。なぜその取得元なのか</li>
+              <li value="8">権限によって表示・操作が変わる項目はあるか</li>
+              <li class="qd-why"><span class="qd-why-n">8-a</span><span class="qd-why-k">なぜ</span>なぜそこを出し分けるのか</li>
+            </ol>
+          </div>
+        </div>
+
+        <div class="qd-card">
+          <div class="qd-h"><span class="qd-n">②</span>ロジック層<span class="qd-sub">ビジネスロジック・IF</span></div>
+          <ol class="qd-q" start="9">
+            <li>画面とロジック、外部システムとの間のIF（インターフェース）は何本あるか</li>
+            <li>それぞれのIFでは主にどんな処理を走らせようとしているか</li>
+            <li class="qd-why"><span class="qd-why-n">10-a</span><span class="qd-why-k">なぜ</span>その処理を画面側／ロジック側／外部側のどこに置いたのか。他に置ける場所があったとして、なぜそこにしたのか</li>
+          </ol>
+        </div>
+
+        <div class="qd-card">
+          <div class="qd-h"><span class="qd-n">③</span>データ層<span class="qd-sub">DB・テーブル設計</span></div>
+          <div class="qd-group">
+            <div class="qd-cond"><span class="qd-cond-k">分岐</span>テーブルを新たに作る必要があるか</div>
+            <ol class="qd-q" start="11"><li>どんなテーブルを何本作るのか</li></ol>
+          </div>
+          <div class="qd-group">
+            <div class="qd-cond"><span class="qd-cond-k">分岐</span>既存テーブルへのカラム追加はあるか</div>
+            <ol class="qd-q" start="12"><li>どのテーブルに、どんなカラムを追加するのか</li></ol>
+          </div>
+          <ol class="qd-q">
+            <li class="qd-why"><span class="qd-why-n">12-a</span><span class="qd-why-k">なぜ</span>なぜそのテーブルなのか。他に置けるテーブルがあったとして、なぜそちらを選ばなかったのか</li>
+          </ol>
+        </div>
+
+        <div class="qd-card qd-card--nfr">
+          <div class="qd-h"><span class="qd-n">④</span>非機能要件<span class="qd-sub">性能・設定方針</span></div>
+          <div class="qd-group">
+            <div class="qd-cond"><span class="qd-cond-k">分岐</span>画面の性能が低下する懸念はあるか</div>
+            <ol class="qd-q" start="13">
+              <li>低下するとしたら、どの画面・どの処理で起きるのか</li>
+              <li>そこを高速化するなら、処理ロジックのどこがチェックポイントになるか</li>
+            </ol>
+          </div>
+          <ol class="qd-q" start="15">
+            <li>バリデーション・設定値は静的な設定ファイルで持つか、アプリ側の処理で動的に制御するか</li>
+            <li class="qd-why"><span class="qd-why-n">15-a</span><span class="qd-why-k">なぜ</span>なぜそちらを選んだのか</li>
+          </ol>
+        </div>
+
+        <div class="qd-card qd-card--test">
+          <div class="qd-h"><span class="qd-n">⑤</span>テスト計画・データ<span class="qd-sub">データ・手順・環境</span></div>
+          <ol class="qd-q" start="16">
+            <li>どんなテストをするのか</li>
+            <li>テストデータは顧客からもらうか、自分で作るか</li>
+            <li>そのテストデータをどういう手順で開発環境に投入するか</li>
+            <li>テストするデータの件数はどの程度か</li>
+            <li class="qd-why"><span class="qd-why-n">19-a</span><span class="qd-why-k">なぜ</span>その件数でよいと言えるのはなぜか（利用するユーザー数・機能の重要度に照らして）</li>
+          </ol>
+          <div class="qd-group">
+            <div class="qd-cond"><span class="qd-cond-k">分岐</span>投入用の機能・ツールを作る必要があるか</div>
+            <ol class="qd-q" start="20"><li>作るとしたら何を作るのか</li></ol>
+          </div>
+          <div class="qd-group">
+            <div class="qd-cond"><span class="qd-cond-k">分岐</span>開発環境のほかに検証環境（ステージング等）は必要か</div>
+            <ol class="qd-q" start="21"><li>必要ならどの環境をどこまで用意するのか</li></ol>
+          </div>
+        </div>
+
+        </div>
+        </div>
+      </div>
+
+      </div>
+      </div>
+
+      <div class="qd-ver active" data-ver="3">
+      <div class="qd-body">
+
+      <div class="qd-part">
+        <div class="qd-part-h"><span class="qd-part-n">v3</span>前段・後段を1本の動的フローで表す<span class="qd-sub">層で配り分けず、AIとの対話で分岐させる／想定 1日程度</span></div>
+
+        <div class="org-fig" style="margin-bottom: 7px">
+          <svg viewBox="0 0 1258 326" role="img" aria-label="前段の6問に答えたあと後段へ入り、入口でNoならベテラン扱いで終了、概要が甘ければPMに聞きに行くよう案内し、十分なら掘り下げ（不十分なら繰り返す）を経て出口へ至る動的分岐フロー">
+            <defs>
+              <marker id="v3-ah" markerUnits="userSpaceOnUse" markerWidth="13" markerHeight="11" refX="11" refY="5.5" orient="auto"><path d="M0,0 L13,5.5 L0,11 Z" fill="#6b7280"/></marker>
+              <marker id="v3-ah-r" markerUnits="userSpaceOnUse" markerWidth="13" markerHeight="11" refX="11" refY="5.5" orient="auto"><path d="M0,0 L13,5.5 L0,11 Z" fill="#dc2626"/></marker>
+              <marker id="v3-ah-b" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="9" refX="9" refY="4.5" orient="auto"><path d="M0,0 L11,4.5 L0,9 Z" fill="#2563eb"/></marker>
+            </defs>
+
+            <g font-family="inherit">
+              <rect x="10" y="6" width="1238" height="110" rx="10" fill="#f9fafb" stroke="#cbd5e1" stroke-width="1.5"/>
+              <rect x="22" y="16" width="42" height="18" rx="4" fill="#1f2937"/>
+              <text x="43" y="29" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">前段</text>
+
+              <rect x="76" y="14" width="1156" height="92" rx="8" fill="#fff" stroke="#cbd5e1" stroke-width="1.5"/>
+              <text x="96" y="33" font-size="10.5" font-weight="700" fill="#374151">外側 — 前工程（要件定義・基本設計）で決まっている内容を理解できているか（層を問わず全員に聞く）</text>
+              <text x="96" y="55" font-size="9.5" fill="#4b5563">① 今回対象の機能はどういうものか</text>
+              <text x="96" y="73" font-size="9.5" fill="#4b5563">② その機能は、どの業務・プロセスの中で利用されるものか</text>
+              <text x="96" y="91" font-size="9.5" fill="#4b5563">③ その業務は、どういうユーザー（どの権限）がやるのか</text>
+              <text x="666" y="55" font-size="9.5" fill="#4b5563">④ 現状（AsIs）その業務はどう行われているか</text>
+              <text x="666" y="73" font-size="9.5" fill="#4b5563">⑤ この機能が実装されると（ToBe）どういった業務ができるようになるか</text>
+              <text x="666" y="91" font-size="9.5" fill="#4b5563">⑥ その変化でユーザーは何が嬉しいのか</text>
+
+              <line x1="629" y1="116" x2="629" y2="138" stroke="#6b7280" stroke-width="1.5" marker-end="url(#v3-ah)"/>
+
+              <rect x="10" y="140" width="1238" height="180" rx="10" fill="#f9fafb" stroke="#cbd5e1" stroke-width="1.5"/>
+              <rect x="22" y="148" width="42" height="18" rx="4" fill="#1f2937"/>
+              <text x="43" y="161" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">後段</text>
+              <text x="76" y="161" font-size="10" font-weight="700" fill="#6b7280">中身 — 何をどう作るのか</text>
+
+              <rect x="22" y="170" width="272" height="76" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+              <text x="158" y="190" text-anchor="middle" font-size="12.5" font-weight="700" fill="#1d4ed8">① 入口</text>
+              <text x="158" y="209" text-anchor="middle" font-size="10" fill="#1d4ed8">AI「作り方を掘り下げますか？」</text>
+              <text x="158" y="226" text-anchor="middle" font-size="9" fill="#4b5563">この先で聞くのは、画面は何画面か・APIは何本か・</text>
+              <text x="158" y="239" text-anchor="middle" font-size="9" fill="#4b5563">テーブルはどこに置くか・非機能は何があるか の4点です</text>
+
+              <line x1="294" y1="208" x2="320" y2="208" stroke="#6b7280" stroke-width="1.5" marker-end="url(#v3-ah)"/>
+              <text x="307" y="200" text-anchor="middle" font-size="9" font-weight="700" fill="#2563eb">Yes</text>
+
+              <rect x="322" y="170" width="322" height="76" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+              <text x="483" y="190" text-anchor="middle" font-size="12.5" font-weight="700" fill="#1d4ed8">② 概要を聞く</text>
+              <text x="483" y="208" text-anchor="middle" font-size="9.5" fill="#1d4ed8">AI「対象の機能開発について、画面をどう作るか、</text>
+              <text x="483" y="222" text-anchor="middle" font-size="9.5" fill="#1d4ed8">APIは何本作るか、テーブルには何が必要か、</text>
+              <text x="483" y="236" text-anchor="middle" font-size="9.5" fill="#1d4ed8">非機能には何があるか。30分程度で書ける範囲で」</text>
+
+              <line x1="644" y1="208" x2="670" y2="208" stroke="#6b7280" stroke-width="1.5" marker-end="url(#v3-ah)"/>
+              <text x="657" y="200" text-anchor="middle" font-size="9" font-weight="700" fill="#2563eb">十分</text>
+
+              <rect x="672" y="170" width="292" height="76" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+              <text x="818" y="192" text-anchor="middle" font-size="12.5" font-weight="700" fill="#1d4ed8">③ 掘り下げ</text>
+              <text x="818" y="212" text-anchor="middle" font-size="9.5" fill="#1d4ed8">設問欄と同じ粒度まで、AIが質問して深める</text>
+              <a id="qd-goto-mid-svg" href="#" style="cursor: pointer">
+                <text x="818" y="234" text-anchor="middle" font-size="9.5" font-weight="700" fill="#1d4ed8" style="text-decoration: underline">→ 質問リストを見る（v2・中堅）</text>
+              </a>
+
+              <path d="M900,246 L900,268 L736,268 L736,250" fill="none" stroke="#2563eb" stroke-width="1.5" marker-end="url(#v3-ah-b)"/>
+              <text x="818" y="284" text-anchor="middle" font-size="9" font-weight="700" fill="#2563eb">回答が不十分なら再度掘り下げ</text>
+
+              <line x1="964" y1="208" x2="990" y2="208" stroke="#6b7280" stroke-width="1.5" marker-end="url(#v3-ah)"/>
+
+              <rect x="992" y="170" width="244" height="76" rx="8" fill="#ecfdf5" stroke="#047857" stroke-width="2"/>
+              <text x="1114" y="194" text-anchor="middle" font-size="12.5" font-weight="700" fill="#047857">出口</text>
+              <text x="1114" y="214" text-anchor="middle" font-size="9.5" fill="#047857">全問に答えるか、本人が</text>
+              <text x="1114" y="228" text-anchor="middle" font-size="9.5" fill="#047857">「もう十分検討できた」と判断</text>
+
+              <line x1="158" y1="246" x2="158" y2="264" stroke="#6b7280" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#v3-ah)"/>
+              <text x="168" y="260" font-size="9" font-weight="700" fill="#6b7280">No</text>
+
+              <rect x="22" y="266" width="272" height="44" rx="8" fill="#f3f4f6" stroke="#9ca3af" stroke-width="1.5"/>
+              <text x="158" y="286" text-anchor="middle" font-size="11.5" font-weight="700" fill="#4b5563">ベテラン扱いでここで終了</text>
+              <text x="158" y="302" text-anchor="middle" font-size="9" fill="#6b7280">誤りはPM本番レビューで気づけばよい／100%は求めない</text>
+
+              <line x1="483" y1="246" x2="483" y2="264" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#v3-ah-r)"/>
+              <text x="493" y="260" font-size="9" font-weight="700" fill="#dc2626">甘い</text>
+
+              <rect x="322" y="266" width="322" height="44" rx="8" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
+              <text x="483" y="286" text-anchor="middle" font-size="11.5" font-weight="700" fill="#991b1b">PMにまずは聞きに行くよう案内</text>
+              <text x="483" y="302" text-anchor="middle" font-size="9" fill="#991b1b">どう作ればよいかを教わってから進める</text>
+            </g>
+          </svg>
+        </div>
+
+        <div class="qd-cond"><span class="qd-cond-k">② 判定</span>30分で書かれた概要を、チケット・要件定義書・基本設計書と突き合わせる。「非機能とはどういったものがあるのか」といった前提知識の欠落もここで検知する</div>
+        <div class="qd-cond" style="margin-top: 3px"><span class="qd-cond-k">③ 掘り下げ</span>チケット・設計書に照らして関連する重要な設問だけを選び、設問欄と同じ粒度で言えるまで繰り返す</div>
+        <div class="qd-callout">判定の基準は「自信を持って答えられるか」。100%は求めず、80%答えられれば十分 — 大事なのは自分の中で世界を作れているかどうかで、その妥当性はレビュー会でチェックされる。</div>
+        <details class="qd-askbox">
+          <summary class="qd-askbox-h">確認したいこと</summary>
+          <ol class="qd-askq">
+            <li>PMがレビュー会で指摘すべき項目を、事前に渡しておくべきか</li>
+            <li>PM自体のレビュー品質をチェックする仕組みを検討すべきか</li>
+            <li>このプロセスで期待される成果物（アウトプット）をどう設定すべきか</li>
+          </ol>
+        </details>
+      </div>
+
+      </div>
+      </div>
+
+    </div>
+  </div>
 </div>
 
 <script>
@@ -1430,6 +2101,16 @@
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
       btn.classList.add('active');
       document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  // 旧検討・実測 の中の2階層目タブ
+  document.querySelectorAll('.tab2').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab2').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab2-content').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-' + btn.dataset.tab2).classList.add('active');
     });
   });
 
@@ -1463,6 +2144,41 @@
         p.classList.toggle('active', p.dataset.sim === b.dataset.sim);
       });
       document.querySelector('.sim-stage').scrollTop = 0;
+    });
+  });
+
+  // 具体的な設問案(後段): ペルソナ切替
+  document.querySelectorAll('.qd-ptab').forEach(function (b) {
+    b.addEventListener('click', function () {
+      document.querySelectorAll('.qd-ptab').forEach(function (x) { x.classList.remove('active'); });
+      b.classList.add('active');
+      document.querySelectorAll('.qd-persona').forEach(function (p) {
+        p.classList.toggle('active', p.dataset.persona === b.dataset.persona);
+      });
+    });
+  });
+
+  // 具体的な設問案(v3): 「③ 回答不十分な領域を質問」から v2・中堅の質問リストへ飛ぶ
+  document.querySelectorAll('#qd-goto-mid, #qd-goto-mid-svg').forEach(function (qdGotoMid) {
+    qdGotoMid.addEventListener('click', function (e) {
+      e.preventDefault();
+      document.querySelectorAll('.qd-vtab').forEach(function (x) { x.classList.toggle('active', x.dataset.ver === '2'); });
+      document.querySelectorAll('.qd-ver').forEach(function (v) { v.classList.toggle('active', v.dataset.ver === '2'); });
+      document.querySelectorAll('.qd-ptab').forEach(function (x) { x.classList.toggle('active', x.dataset.persona === 'mid'); });
+      document.querySelectorAll('.qd-persona').forEach(function (p) { p.classList.toggle('active', p.dataset.persona === 'mid'); });
+      var t = document.querySelector('.qd-persona[data-persona="mid"]');
+      if (t) { t.scrollIntoView({ block: 'center' }); }
+    });
+  });
+
+  // 具体的な設問案: バージョン切替
+  document.querySelectorAll('.qd-vtab').forEach(function (b) {
+    b.addEventListener('click', function () {
+      document.querySelectorAll('.qd-vtab').forEach(function (x) { x.classList.remove('active'); });
+      b.classList.add('active');
+      document.querySelectorAll('.qd-ver').forEach(function (v) {
+        v.classList.toggle('active', v.dataset.ver === b.dataset.ver);
+      });
     });
   });
 
