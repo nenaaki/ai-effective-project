@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>誤解を設計の節に変える</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+  :root {
+    --ground:#f5f7f7; --surface:#ffffff; --surface-alt:#eaefee;
+    --ink:#16201f; --ink-soft:#16201f; --ink-faint:#16201f; --hint:#7c8a88;
+    --rule:#d3dcdb; --rule-strong:#b4c2c0;
+    --accent:#0d6b68; --accent-soft:#d9ecea;
+    --crit:#9d2f2a;  --crit-soft:#f7e2e0;
+    --ok:#2c6a45;    --ok-soft:#dcece2;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:#0f1414; --surface:#171d1d; --surface-alt:#1e2626;
+      --ink:#e6ecea; --ink-soft:#e6ecea; --ink-faint:#e6ecea; --hint:#7d8b89;
+      --rule:#2b3534; --rule-strong:#3d4948;
+      --accent:#5cc3bd; --accent-soft:#16302f;
+      --crit:#e58a83;  --crit-soft:#301b1a;
+      --ok:#7ec49b;    --ok-soft:#17281f;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground:#0f1414; --surface:#171d1d; --surface-alt:#1e2626;
+    --ink:#e6ecea; --ink-soft:#e6ecea; --ink-faint:#e6ecea; --hint:#7d8b89;
+    --rule:#2b3534; --rule-strong:#3d4948;
+    --accent:#5cc3bd; --accent-soft:#16302f;
+    --crit:#e58a83;  --crit-soft:#301b1a;
+    --ok:#7ec49b;    --ok-soft:#17281f;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-snap-type: y mandatory; }
+  body {
+    margin: 0; background: var(--ground); color: var(--ink);
+    font-family: "Zen Kaku Gothic New","Hiragino Kaku Gothic ProN","Yu Gothic",system-ui,sans-serif;
+    line-height: 1.7; -webkit-font-smoothing: antialiased;
+  }
+
+  .slide {
+    scroll-snap-align: start;
+    min-height: 100vh; display: flex; flex-direction: column; justify-content: center;
+    padding: 52px clamp(26px, 5.5vw, 84px) 68px;
+    border-bottom: 1px solid var(--rule); position: relative;
+  }
+  .inner { width: 100%; max-width: 1240px; margin: 0 auto; display: flex; flex-direction: column; gap: 26px; }
+
+  .eyebrow {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 11.5px; letter-spacing: .2em; text-transform: uppercase; color: var(--accent);
+    display: flex; align-items: center; gap: 14px;
+  }
+  .eyebrow::after { content:""; flex:1; height:1px; background: var(--rule-strong); }
+
+  h1 {
+    font-family: "Shippori Mincho","Hiragino Mincho ProN",serif; font-weight: 700;
+    font-size: clamp(27px, 4.2vw, 46px); line-height: 1.32; margin: 0; text-wrap: balance;
+  }
+
+  h1 .sub { font-size: 48%; font-weight: 400; letter-spacing: .02em; margin-left: .4em; }
+
+  .pageno {
+    position: absolute; right: clamp(26px,5.5vw,84px); bottom: 28px;
+    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 12px; color: var(--ink-faint);
+    font-variant-numeric: tabular-nums; letter-spacing: .08em;
+  }
+
+  figure { margin: 0; }
+  svg { display: block; width: 100%; height: auto; color: var(--ink); }
+  svg text { fill: currentColor; font-family: "Zen Kaku Gothic New","Hiragino Kaku Gothic ProN",system-ui,sans-serif; }
+  .t-b { font-size: 15.5px; font-weight: 700; }
+  .t-m { font-size: 14px; }
+  .t-s { font-size: 13px; fill: var(--ink-soft); }
+  .t-f { font-size: 12.5px; fill: var(--ink-faint); }
+  .t-c { font-size: 14px; fill: var(--crit); font-weight: 700; }
+  .t-o { font-size: 14px; fill: var(--ok); font-weight: 700; }
+  .t-a { font-size: 14px; fill: var(--accent); font-weight: 700; }
+  .t-q { font-size: 18px; fill: var(--crit); font-weight: 700; }
+  .bx  { fill: var(--surface); stroke: currentColor; stroke-width: 1.3; }
+  .bxa { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.6; }
+  .bxc { fill: var(--crit-soft); stroke: var(--crit); stroke-width: 1.5; }
+  .bxcd{ fill: var(--crit-soft); stroke: var(--crit); stroke-width: 1.6; stroke-dasharray: 6 4; }
+  .bxad{ fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 6 4; }
+  .bxo { fill: var(--ok-soft); stroke: var(--ok); stroke-width: 1.5; }
+  .bxn { fill: var(--surface-alt); stroke: var(--rule-strong); stroke-width: 1; }
+  .ln  { stroke: currentColor; stroke-width: 1.4; fill: none; }
+  .lna { stroke: var(--accent); stroke-width: 1.8; fill: none; }
+  .lnc { stroke: var(--crit); stroke-width: 1.8; fill: none; }
+  .lno { stroke: var(--ok); stroke-width: 1.8; fill: none; }
+  .lnf { stroke: var(--hint); stroke-width: 1.3; fill: none; stroke-dasharray: 5 4; }
+  .brk { stroke: var(--accent); stroke-width: 1.4; fill: none; }
+  .divi{ stroke: var(--rule-strong); stroke-width: 1; }
+  .dot { fill: var(--surface); stroke: currentColor; stroke-width: 1.6; }
+  .dota{ fill: var(--accent); stroke: none; }
+  .doto{ fill: var(--ok); stroke: none; }
+  #ar polygon  { fill: currentColor; }
+  #arA polygon { fill: var(--accent); }
+  #arC polygon { fill: var(--crit); }
+  #arO polygon { fill: var(--ok); }
+  #arF polygon { fill: var(--hint); }
+
+  .probs { display: grid; grid-template-columns: repeat(3,1fr); gap: 1px; background: var(--rule);
+    border: 1px solid var(--rule); border-radius: 7px; overflow: hidden; }
+  .prob { background: var(--surface); padding: 14px 16px; display: flex; flex-direction: column; gap: 5px; }
+  .prob .n { font-family:"IBM Plex Mono",ui-monospace,monospace; font-size: 12px; color: var(--crit); }
+  .prob .h { font-size: clamp(13.5px,1.4vw,15.5px); font-weight: 700; line-height: 1.45; }
+  .prob .s { font-size: 13px; color: var(--ink-faint); line-height: 1.55; }
+  .prob .chip { align-self: flex-start; margin-top: 3px; font-family:"IBM Plex Mono",ui-monospace,monospace;
+    font-size: 10.5px; letter-spacing: .06em; color: var(--accent); background: var(--accent-soft);
+    padding: 2px 8px; border-radius: 3px; }
+  .caps { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px,1fr)); gap: 14px 26px; }
+  .cap { display: grid; grid-template-columns: 22px 1fr; gap: 10px; align-items: start; }
+  .cap .i {
+    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 11px;
+    color: var(--accent); margin-top: 2px;
+  }
+  .cap p { margin: 0; font-size: clamp(14px,1.5vw,16.5px); line-height: 1.65; }
+  .cap b { font-weight: 700; }
+
+  .punch {
+    border-left: 4px solid var(--accent); background: var(--accent-soft);
+    padding: 15px 22px; border-radius: 0 5px 5px 0;
+    font-size: clamp(15px,1.8vw,20px); font-weight: 700; line-height: 1.55; text-wrap: balance;
+  }
+  .slide.ev .inner { gap: 18px; }
+  .slide.ev figure { max-width: min(100%, 120vh); }
+  .slide.ev.tight figure { max-width: min(100%, 105vh); }
+  .causes { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: stretch; }
+  .panel { display: flex; flex-direction: column; gap: 10px; justify-content: center;
+    border: 1px solid var(--rule-strong); border-radius: 8px; background: var(--surface); padding: 12px 16px 14px; }
+  .ptag { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 12.5px;
+    font-weight: 700; letter-spacing: .06em; color: var(--crit); }
+  .panel figure { max-width: 100%; }
+  .close { display: grid; grid-template-columns: 1.12fr .88fr; gap: 26px; align-items: center; }
+  .talk { display: flex; flex-direction: column; gap: 5px; }
+  .talk .lead { font-family:"IBM Plex Mono",ui-monospace,monospace;
+    letter-spacing: .14em; color: var(--hint); margin-bottom: 2px; font-size: 12px; }
+  .talk .row { display: flex; align-items: flex-start; gap: 9px; }
+  .talk .who { flex: 0 0 auto; margin-top: 4px; font-size: 12px; font-weight: 700;
+    padding: 1px 6px; border-radius: 3px; line-height: 1.5; }
+  .talk .who.p  { background: var(--crit-soft); color: var(--crit); }
+  .talk .who.ai { background: var(--surface-alt); color: var(--ink-soft); border: 1px solid var(--rule-strong); }
+  .talk .bub { position: relative; background: var(--surface); border: 1px solid var(--rule-strong);
+    border-radius: 4px 10px 10px 10px; padding: 4px 11px; font-size: 14.5px; line-height: 1.5; }
+  .talk .row.ai .bub { background: var(--surface-alt); }
+  .talk .row.last .bub { background: var(--accent-soft); border-color: var(--accent); font-weight: 700; }
+  .talk .bub::before, .talk .bub::after { content:""; position:absolute; top: 7px; width:0; height:0;
+    border: 6px solid transparent; border-left: 0; }
+  .talk .bub::before { left: -6px; border-right-color: var(--rule-strong); }
+  .talk .bub::after  { left: -5px; border-right-color: var(--surface); }
+  .talk .row.ai .bub::after   { border-right-color: var(--surface-alt); }
+  .talk .row.last .bub::before{ border-right-color: var(--accent); }
+  .talk .row.last .bub::after { border-right-color: var(--accent-soft); }
+  .cmp { display: flex; flex-direction: column; gap: 6px; }
+  .cmp-row { display: flex; flex-direction: column; gap: 1px;
+    border: 1px solid var(--rule-strong); border-left-width: 4px; border-radius: 4px;
+    background: var(--surface-alt); padding: 5px 11px; }
+  .cmp-row .k { font-size: 11.5px; color: var(--ink-soft); }
+  .cmp-row .v { font-size: 14px; }
+  .cmp-row.bad { background: var(--crit-soft); border-color: var(--crit); }
+  .cmp-note { margin: 2px 0 0; font-size: 12.5px; font-weight: 700; color: var(--crit); line-height: 1.5; }
+  .equiv { margin: 0; align-self: flex-start; font-size: clamp(14.5px,1.55vw,17.5px); line-height: 1.5;
+    background: var(--accent-soft); border-left: 4px solid var(--accent);
+    border-radius: 0 6px 6px 0; padding: 9px 18px; }
+  .equiv b { font-weight: 700; color: var(--accent); }
+  .equiv .tag { font-family:"IBM Plex Mono",ui-monospace,monospace; font-size: 11px; letter-spacing: .08em;
+    color: var(--ground); background: var(--accent); padding: 3px 9px; border-radius: 3px; margin-right: 12px; }
+  .gate { margin: 0; font-size: clamp(13px,1.35vw,15px); line-height: 1.6;
+    border-left: 3px solid var(--accent); padding-left: 13px; }
+  .gate b { font-weight: 700; }
+  .linkrow { display:flex; flex-wrap:wrap; align-items:baseline; gap:6px 14px; margin:0; }
+  a.lnk { display:inline-block; font-weight:700; font-size:clamp(13.5px,1.4vw,15.5px); color:var(--accent);
+    text-decoration:none; border-bottom:2px solid var(--accent); padding-bottom:2px; }
+  a.lnk:hover { background:var(--accent-soft); }
+  a.lnk:focus-visible { outline:2px solid var(--accent); outline-offset:3px; border-radius:2px; }
+  .linknote { font-size:13px; color:var(--ink-faint); }
+
+  @media (max-width: 700px) {
+    html { scroll-snap-type: none; }
+    .slide { min-height: auto; padding: 44px 20px 56px; }
+    .caps { grid-template-columns: 1fr; }
+    .probs { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<!-- ============ 1 ============ -->
+<section class="slide ev">
+  <div class="inner">
+    <div class="eyebrow">事実 ／ PW-210 外部連携基盤（イテレーション2 ③ファイル連携）</div>
+    <h1>順方向に詰めても、<br>AI は正の実装に一致しなかった。</h1>
+
+    <figure>
+      <svg viewBox="0 0 940 306" role="img" aria-label="PW-210は往復113回の設計を経て実装したが、人の指摘で4件の撤回・修正が発生した。4件はAIの誤解と、順方向の設計書に節が無かったこととの対応で並ぶ">
+        <defs>
+          <marker id="ar"  viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><polygon points="0,1 9,5 0,9"/></marker>
+          <marker id="arA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><polygon points="0,1 9,5 0,9"/></marker>
+          <marker id="arC" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><polygon points="0,1 9,5 0,9"/></marker>
+        </defs>
+
+        <text class="t-a" x="14" y="18">順方向に詰めた ― 2026-08-27 → 08-31</text>
+
+        <rect class="bxa" x="14"  y="28" width="360" height="56" rx="5"/>
+        <text class="t-b" x="28"  y="50">設計を詰める ― 人との往復 113 回</text>
+        <text class="t-f" x="28"  y="68">IF詳細設計書を展開し、不明点は決定台帳で閉じた</text>
+
+        <rect class="bx"  x="386" y="28" width="250" height="56" rx="5"/>
+        <text class="t-b" x="400" y="50">実装 ― 121 ファイル</text>
+        <text class="t-f" x="400" y="68">「疑問は全部解いた」状態から</text>
+
+        <rect class="bxc" x="648" y="28" width="278" height="56" rx="5"/>
+        <text class="t-c" x="662" y="50">正の実装には一致しなかった</text>
+        <text class="t-f" x="662" y="68">人の指摘で撤回・修正 4 件</text>
+
+        <line class="ln"  x1="374" y1="56" x2="384" y2="56" marker-end="url(#ar)"/>
+        <line class="lnc" x1="636" y1="56" x2="646" y2="56" marker-end="url(#arC)"/>
+
+        <text class="t-c" x="14"  y="106">AI が誤解したこと（実装に現れた形）</text>
+        <text class="t-a" x="482" y="106">順方向の設計書に無かった節</text>
+        <line class="divi" x1="472" y1="96" x2="472" y2="284" stroke-dasharray="4 4"/>
+
+        <rect class="bxn" x="14"  y="114" width="452" height="38" rx="4"/>
+        <text class="t-m" x="26"  y="131">「単一列では 04 と 18 を同時に指せない」</text>
+        <text class="t-f" x="26"  y="146">→ テーブルを 1 つ増やした（5 列＋FK＋複合UNIQUE）</text>
+        <rect class="bxa" x="482" y="114" width="444" height="38" rx="4"/>
+        <text class="t-a" x="494" y="131">共通部と独自部の差を、どこに書くか</text>
+        <text class="t-f" x="494" y="146">分岐で書かず定義で書く ― 荷主ごとの差の置き場</text>
+
+        <rect class="bxn" x="14"  y="158" width="452" height="38" rx="4"/>
+        <text class="t-m" x="26"  y="175">「NULL＝指定なし」は 3 か所に入れれば足りる</text>
+        <text class="t-f" x="26"  y="190">→ 管理画面の一覧・詳細に入れ忘れ、「-」と出た</text>
+        <rect class="bxa" x="482" y="158" width="444" height="38" rx="4"/>
+        <text class="t-a" x="494" y="175">決定が効く先の一覧（適用面）</text>
+        <text class="t-f" x="494" y="190">画面・API・帳票のどこまで及ぶかを列挙する節</text>
+
+        <rect class="bxn" x="14"  y="202" width="452" height="38" rx="4"/>
+        <text class="t-m" x="26"  y="219">「同じ概念でも、層ごとに名前を付けてよい」</text>
+        <text class="t-f" x="26"  y="234">→ 応答型と DTO で型名が 8 件衝突し、CI が落ちた</text>
+        <rect class="bxa" x="482" y="202" width="444" height="38" rx="4"/>
+        <text class="t-a" x="494" y="219">概念の名前を、層をまたいで 1 つに決める</text>
+        <text class="t-f" x="494" y="234">用語と型名の対応を持つ節</text>
+
+        <rect class="bxn" x="14"  y="246" width="452" height="38" rx="4"/>
+        <text class="t-m" x="26"  y="263">「列を NULL 許容にするのはスキーマの話」</text>
+        <text class="t-f" x="26"  y="278">→ 合計処理が null で落ち、500 を返した</text>
+        <rect class="bxa" x="482" y="246" width="444" height="38" rx="4"/>
+        <text class="t-a" x="494" y="263">スキーマ変更の読み手（波及先）</text>
+        <text class="t-f" x="494" y="278">その列を読むコードを洗う節</text>
+
+        <text class="t-f" x="14" y="302">4 件はどれも人が読んで初めて言葉になった ― 逆方向に起こし直さないと、誤解は「動いているコード」の中に残る</text>
+      </svg>
+    </figure>
+
+    <div class="caps">
+      <div class="cap"><span class="i">01</span><p><b>詰め方の不足ではない。</b>往復 113 回で不明点は閉じ、AI は「全部解いた」状態から実装した。<b>それでも解釈の余地が残り、100% には届かなかった</b>。</p></div>
+      <div class="cap"><span class="i">02</span><p><b>逆方向で、誤解が言葉になった。</b>実装から起こし直すと、どこで解釈が分かれたかが <b>4 件・設計カテゴリの穴として</b>取り出せた。</p></div>
+      <div class="cap"><span class="i">03</span><p><b>正本が古いこともある。</b>だから突合には価値がある（実装が正の列 7 件）。ただ収穫は乖離そのものより、<b>乖離の理由が節の不足として名前が付いた</b>こと。</p></div>
+    </div>
+  </div>
+  <div class="pageno">1 / 3</div>
+</section>
+
+<!-- ============ 2 ============ -->
+<section class="slide ev">
+  <div class="inner">
+    <div class="eyebrow">展開 ／ 経緯で拾えたものを、仕組みで拾う</div>
+    <h1>誤解を、次の設計の節に変える。<span class="sub">リバース＆リファクタリング駆動</span></h1>
+
+    <figure>
+      <svg viewBox="0 0 940 300" role="img" aria-label="設計型から実装、実装からリバース、リバースから解釈差分の台帳、台帳から節の追加へ回り、次の設計型に戻る循環。台帳・昇格ルール・突合の常設化の3つを新しく作る">
+        <defs>
+          <marker id="ar"  viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><polygon points="0,1 9,5 0,9"/></marker>
+          <marker id="arA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><polygon points="0,1 9,5 0,9"/></marker>
+          <marker id="arC" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><polygon points="0,1 9,5 0,9"/></marker>
+        </defs>
+
+        <text class="t-a" x="14" y="18">回路 ― 実線が今あるもの、破線が作るもの</text>
+
+        <rect class="bx"  x="14"  y="28" width="164" height="72" rx="6"/>
+        <text class="t-b" x="27"  y="50">設計型（⑬）</text>
+        <text class="t-f" x="27"  y="68">機能カテゴリごとの節立て</text>
+        <text class="t-f" x="27"  y="86">前方向に閉じる</text>
+
+        <line class="ln"  x1="180" y1="64" x2="196" y2="64" marker-end="url(#ar)"/>
+
+        <rect class="bx"  x="198" y="28" width="140" height="72" rx="6"/>
+        <text class="t-b" x="211" y="50">実装</text>
+        <text class="t-f" x="211" y="68">解釈が入る</text>
+        <text class="t-f" x="211" y="86">＝誤解もここに宿る</text>
+
+        <line class="lna" x1="340" y1="64" x2="356" y2="64" marker-end="url(#arA)"/>
+
+        <rect class="bxa" x="358" y="28" width="164" height="72" rx="6"/>
+        <text class="t-b" x="371" y="50">リバース</text>
+        <text class="t-f" x="371" y="68">design-architect モード R</text>
+        <text class="t-f" x="371" y="86">as-is 図・突合表・問い</text>
+
+        <line class="lna" x1="524" y1="64" x2="540" y2="64" marker-end="url(#arA)"/>
+
+        <rect class="bxad" x="542" y="28" width="176" height="72" rx="6"/>
+        <text class="t-b" x="555" y="50">解釈差分の台帳</text>
+        <text class="t-f" x="555" y="68">AI の解釈 ／ 正 ／ 誤解の型</text>
+        <text class="t-c" x="555" y="88">作る ①</text>
+
+        <line class="lna" x1="720" y1="64" x2="736" y2="64" marker-end="url(#arA)"/>
+
+        <rect class="bxad" x="738" y="28" width="188" height="72" rx="6"/>
+        <text class="t-b" x="751" y="50">節を 1 つ足す</text>
+        <text class="t-f" x="751" y="68">⑬ の節立てを改訂する</text>
+        <text class="t-c" x="751" y="88">作る ②（昇格ルール）</text>
+
+        <path class="lna" d="M 832 100 L 832 126 L 96 126 L 96 102" marker-end="url(#arA)" stroke-dasharray="6 4"/>
+        <text class="t-a" x="380" y="122">次の設計は、増えた節から始まる</text>
+
+        <text class="t-c" x="14" y="156">作るもの ― 今回 4 件を拾えたのは、人が読んだから。読む人がいなくても同じ 4 件が出る形にする</text>
+
+        <rect class="bxn" x="14"  y="166" width="298" height="76" rx="4"/>
+        <text class="t-m" x="26"  y="184">① 解釈差分の台帳</text>
+        <text class="t-f" x="26"  y="201">1 件 1 行。AI の解釈・正・どちらが正か・</text>
+        <text class="t-f" x="26"  y="217">気づいた経路（画面／CI／突合／人）</text>
+        <text class="t-f" x="26"  y="233">既存の不明点台帳（TSV）と同じ運用に乗せる</text>
+
+        <rect class="bxn" x="322" y="166" width="298" height="76" rx="4"/>
+        <text class="t-m" x="334" y="184">② 節への昇格ルール</text>
+        <text class="t-f" x="334" y="201">同じ誤解の型が 2 件出たら、⑬ の節立てに</text>
+        <text class="t-f" x="334" y="217">1 節足す。節は消さない（決めた／未決の別が</text>
+        <text class="t-f" x="334" y="233">分からなくなる）</text>
+
+        <rect class="bxn" x="630" y="166" width="296" height="76" rx="4"/>
+        <text class="t-m" x="642" y="184">③ 突合の常設化</text>
+        <text class="t-f" x="642" y="201">正本 ↔ 実装の機械突合を CI に置く。</text>
+        <text class="t-f" x="642" y="217">検査には陽性対照を付ける（PW-210 では</text>
+        <text class="t-f" x="642" y="233">突合自体が壊れ、8/24 から 8/30 まで無音）</text>
+
+        <text class="t-f" x="14" y="258">誤解の型はすでに 4 つ見えている ― 差の置き場 ／ 決定の適用面 ／ 概念名の一元化 ／ 変更の波及先。台帳の分類はここから始める</text>
+        <text class="t-f" x="14" y="278">リバースは直させない。実装が正か正本が正かは業務判断（実装が正 7 列 ／ 正本が正 既定アクセス権）</text>
+        <text class="t-f" x="14" y="296">⑬（前方向の型）と ⑭（逆方向）は同じ節立てを共有する。片方の発見が、もう片方の入力になる形にしておく</text>
+      </svg>
+    </figure>
+
+    <div class="caps">
+      <div class="cap"><span class="i">01</span><p><b>台帳が要る。</b>「AI はこう解釈した／正はこうだった」を 1 行で残す。<b>これが節を増やす唯一の入力</b>で、今は口頭とセッションログに散っている。</p></div>
+      <div class="cap"><span class="i">02</span><p><b>昇格のルールを先に決める。</b>溜めるだけでは効かない。<b>何件出たら節を足すか</b>を決めておかないと、台帳は読まれない資料になる。</p></div>
+      <div class="cap"><span class="i">03</span><p><b>突合は常設にする。</b>止まっていても誰も気づけないのが既定。<b>CI に置いて陽性対照を付ける</b>。正本の改定はその副産物として回す。</p></div>
+    </div>
+  </div>
+  <div class="pageno">2 / 3</div>
+</section>
+
+<!-- ============ 3 ============ -->
+<section class="slide ev">
+  <div class="inner">
+    <div class="eyebrow">検証 ／ イテレーション3（2026-09-01 〜）</div>
+    <h1>効いたかどうかは、<br>節が増えたかで測る。</h1>
+
+    <figure>
+      <svg viewBox="0 0 940 272" role="img" aria-label="イテレーション2で閉じた4基盤にリバースを当て、ファイル連携PW-210から始める。抽出・昇格・再発の3軸で測り、基準線はPW-210で人の指摘により4件が出たこと">
+        <defs>
+          <marker id="ar"  viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><polygon points="0,1 9,5 0,9"/></marker>
+          <marker id="arA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><polygon points="0,1 9,5 0,9"/></marker>
+        </defs>
+
+        <text class="t-a" x="14" y="18">当てる先 ― イテレーション2 で閉じた 4 基盤（実装済み）</text>
+
+        <rect class="bxa" x="14" y="28" width="330" height="40" rx="4"/>
+        <text class="t-a" x="26" y="46">③ ファイル連携（PW-210）― 最初の対象</text>
+        <text class="t-f" x="26" y="62">順方向の実績と誤解 4 件が残っている</text>
+
+        <rect class="bxad" x="14" y="76"  width="330" height="26" rx="4"/>
+        <text class="t-m" x="26" y="94">① 認証・認可（URL 単位の判定）</text>
+        <rect class="bxad" x="14" y="108" width="330" height="26" rx="4"/>
+        <text class="t-m" x="26" y="126">② 外部連携 SMS（適用が後発で残っている）</text>
+        <rect class="bxad" x="14" y="140" width="330" height="26" rx="4"/>
+        <text class="t-m" x="26" y="158">④ 帳票出力（⑬ の設計型を作った領域）</text>
+
+        <rect class="bxn" x="14" y="174" width="330" height="44" rx="4"/>
+        <text class="t-s" x="26" y="192">イテレーション3 の新規スコープは ⑬ の設計型で</text>
+        <text class="t-s" x="26" y="208">前方向に閉じる。リバースは既存側に当てる</text>
+
+        <text class="t-f" x="14" y="238">同じ 2 名・同じ工数係数（テスト 0.168 ／ PR 0.102）なので</text>
+        <text class="t-f" x="14" y="256">EVM の実績とそのまま突き合わせられる</text>
+
+        <line class="lna" x1="352" y1="120" x2="392" y2="120" marker-end="url(#arA)"/>
+
+        <text class="t-a" x="400" y="18">測るもの ― 3 軸（基準線＝PW-210 の実測）</text>
+
+        <rect class="bx" x="400" y="28" width="526" height="62" rx="5"/>
+        <text class="t-b" x="414" y="48">抽出 ― 誤解が何件出るか</text>
+        <text class="t-s" x="414" y="66">リバースで出た解釈差分の件数 ／ 仕組みで出た割合</text>
+        <text class="t-c" x="414" y="83">基準 ― 4 件。すべて人が読んで気づいた（仕組み 0 件）</text>
+
+        <rect class="bx" x="400" y="98" width="526" height="62" rx="5"/>
+        <text class="t-b" x="414" y="118">昇格 ― 節がいくつ増えるか</text>
+        <text class="t-s" x="414" y="136">台帳から ⑬ の節立てへ昇格した節の数</text>
+        <text class="t-c" x="414" y="153">基準 ― 0。台帳が無く、4 件は資料と記憶に残っただけ</text>
+
+        <rect class="bx" x="400" y="168" width="526" height="62" rx="5"/>
+        <text class="t-b" x="414" y="188">再発 ― 同じ誤解が戻るか</text>
+        <text class="t-s" x="414" y="206">節を足した領域で、同じ型の誤解が再発した件数</text>
+        <text class="t-c" x="414" y="223">基準 ― 未計測。型で分類していないので数えられない</text>
+
+        <text class="t-f" x="400" y="248">測るのは設計の精度ではない。<tspan class="t-f" font-weight="700">同じ誤解を二度払わないか</tspan>を見る</text>
+        <text class="t-f" x="400" y="266">効かないと分かることも結果 ― ⑬（前方向）と ⑭（逆方向）のどちらが何を捕るかを分けたい</text>
+      </svg>
+    </figure>
+
+    <div class="caps">
+      <div class="cap"><span class="i">01</span><p><b>③から始める。</b>PW-210 は順方向の実績と誤解 4 件が残る唯一のスコープ。<b>同じ題材に逆方向を当てる</b>。他基盤で再現性を見る。</p></div>
+      <div class="cap"><span class="i">02</span><p><b>領域固有か共通かを分ける。</b>共通の誤解なら<b>全カテゴリの節</b>へ、固有なら<b>その領域の観点パック</b>へ入れる。振り分けも台帳の列にする。</p></div>
+      <div class="cap"><span class="i">03</span><p><b>正本の改定は副産物。</b>突合を常設にすると設計書が実装に追随する。棚卸しでは<b>個票と集約表の食い違い 26 → 0</b> まで戻せた。</p></div>
+    </div>
+
+    <p class="linkrow">
+      <a class="lnk" href="problem_ex_13.html">← 課題事例⑬ 設計型構築</a>
+      <a class="lnk" href="problem_ex_8.html">課題事例⑧ 逆方向探索 →</a>
+      <a class="lnk" href="workitems2.html">イテレーション2 タスク管理 →</a>
+      <span class="linknote">⑬は前方向に型を置く話。⑭は同じ節立てを逆方向から増やす話。</span>
+    </p>
+  </div>
+  <div class="pageno">3 / 3</div>
+</section>
+</body>
+</html>
