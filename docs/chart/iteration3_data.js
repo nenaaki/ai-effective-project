@@ -14,7 +14,7 @@ const ITERATION3_DATA = {
   holidays: ["2026-09-21", "2026-09-22", "2026-09-23", "2026-10-12", "2026-11-03", "2026-11-23"],
   // 記録日→その時点の累積 EV/AC（h）。週1回くらい追記する。（着手前＝空）
   evmSnapshots: {
-    "2026-09-02": { "ev": 12.2, "ac": 7.0 }
+    "2026-09-02": { "ev": 26.6, "ac": 21.4 }
   },
   // 予定休（人員別）。終日休はその人員の営業日から除外し、当該人員のタスクを後ろ倒しする。
   //   終日休 = "2026-09-01" ／ 半休 = "2026-09-01:0.5"（末尾の数値＝休む割合。0.25 等も可）。
@@ -34,12 +34,12 @@ const ITERATION3_DATA = {
   ],
   tasks: [
     // ───────── 事前工数 ─────────
-    { name: "プランニング①・AI整備", base: "prep", person: 1, group: "事前工数", code: "P1", owner: "両", deps: [], asis: 7.2, plan: 7.2, tobe: 0, status: "予定", progress: 0, desc: "人員1：イテレーション3初日の事前工数。プランニング（タスク分解・段取り・論点整理）＋AI環境整備（エージェント／worktree 等の準備）。" },
+    { name: "プランニング①・AI整備", base: "prep", person: 1, group: "事前工数", code: "P1", owner: "両", deps: [], asis: 7.2, plan: 7.2, tobe: 7.2, status: "完了", progress: 1, desc: "人員1：イテレーション3初日の事前工数。プランニング（タスク分解・段取り・論点整理）＋AI環境整備（エージェント／worktree 等の準備）。" },
     { name: "プランニング②・AI整備", base: "prep", person: 2, group: "事前工数", code: "P2", owner: "両", deps: [], asis: 7.2, plan: 7.2, tobe: 1.57, status: "着手中", progress: 0.2, desc: "人員2：イテレーション3初日の事前工数。プランニング（タスク分解・段取り・論点整理）＋AI環境整備（エージェント／worktree 等の準備）。／9/1-9/2分：起票候補の在庫確認・未完了チケットのステータス更新・②通知基盤/④監査ログの起票調査 1.57h（band AI稼働）。" },
     { name: "仕様反映の自動化(spec→リポジトリ)", base: "prep", person: 2, group: "事前工数", code: "P3", owner: "両", deps: [], asis: 7.2, plan: 7.2, tobe: 0, status: "予定", progress: 0, desc: "イテレーション2の課題対応。リポジトリ内の仕様反映が手作業で手戻りの原因になっていたため、spec からリポジトリへの反映を自動化する（AIインプットの正本を常に最新に保つ）。" },
 
     // ───────── ① CSV出力（既存CSV出力を非同期帳票出力基盤へ移植）─────────
-    { name: "仕様精査(CSV出力)～PM合意", base: "csv", person: 1, group: "仕様精査", code: "SP1", owner: "両", deps: [], asis: 21.6, plan: 14.4, tobe: 0, status: "予定", progress: 0, desc: "既存CSV出力の棚卸し（対象一覧・列定義・文字コード・改行・件数上限）と、非同期帳票出力基盤へ寄せる際の論点整理〜PM合意。" },
+    { name: "仕様精査(CSV出力)～PM合意", base: "csv", person: 1, group: "仕様精査", code: "SP1", owner: "両", deps: [], asis: 21.6, plan: 14.4, tobe: 7.2, status: "着手中", progress: 0.5, desc: "既存CSV出力の棚卸し（対象一覧・列定義・文字コード・改行・件数上限）と、非同期帳票出力基盤へ寄せる際の論点整理〜PM合意。" },
     { name: "CSV出力定義基盤", base: "csv", person: 1, group: "基盤", code: "C1", owner: "BE", deps: ["仕様精査(CSV出力)～PM合意"], asis: 22.9, plan: 4.2, tobe: 0, status: "予定", progress: 0, desc: "「定義1個＝1CSV」の出力定義型（列・並び・書式・文字コード）。イテレーション2のファイル定義基盤と同じ考え方を出力側へ適用。" },
     { name: "CSV生成エンジン(非同期基盤へ移植)", base: "csv", person: 1, group: "基盤", code: "C2", owner: "BE", deps: ["CSV出力定義基盤"], asis: 30.5, plan: 5.6, tobe: 0, status: "予定", progress: 0, desc: "PDF帳票と同じ非同期ジョブ基盤・生成状況テーブル・S3成果物の上にCSV生成を載せる。同期・その場生成をやめ、大量件数でもタイムアウトしない構造へ。" },
     { name: "生成/状況API拡張(CSV)", base: "csv", person: 1, group: "基盤", code: "C3", owner: "BE", deps: ["CSV生成エンジン(非同期基盤へ移植)"], asis: 15.3, plan: 2.8, tobe: 0, status: "予定", progress: 0, desc: "既存の生成/状況APIをCSV種別へ拡張（生成リクエスト・状況ポーリング・DL URL発行）。帳票と同一I/Fで扱う。" },
