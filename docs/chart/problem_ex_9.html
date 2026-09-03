@@ -242,11 +242,12 @@
 <body>
 <div class="page">
   <h1>データモデル修正が既存オーケストレーションで対応できない</h1>
-  <div class="sub">AIDD 試行で見つかった構造的課題 ／ データモデル修正作業で発見 ／ 解決策の方針あり（2026-08）</div>
+  <div class="sub">AIDD 試行で見つかった構造的課題 ／ データモデル修正作業で発見 ／ PW-281 で実運用し完了（2026-09）</div>
 
   <div class="tabs">
     <button class="tab active" data-tab="issue">課題と論点</button>
     <button class="tab" data-tab="solution">解決策</button>
+    <button class="tab" data-tab="record">実施記録</button>
   </div>
 
   <!-- ====================== タブ1: 課題と論点 ====================== -->
@@ -441,6 +442,90 @@
       </div>
       <div class="solution-band">
         <strong>ポイント：</strong>増やすのは「誰にやらせるか（エージェント）」ではなく「どう分解して並べるか（オーケストレーション）」。それをスキルとして再利用可能にする。
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================== タブ3: 実施記録 ====================== -->
+  <div class="tab-content" id="tab-record">
+    <div class="solution-wrap">
+      <h2>実施記録 — 方針を PW-281（列挙型・データモデル定義の更新）で実運用した</h2>
+      <div class="grid">
+
+        <!-- 左: 確認できた効果 -->
+        <div class="panel">
+          <div class="conclusion-premise" style="margin-bottom: 12px;">
+            <span class="tag">結果</span>
+            <div>解決策タブの方針どおりに機能した。<strong>エージェントの新設・改造は0件</strong>、オーケストレーションをスキル化しただけで進められた（4暦日・サブエージェント22本）。</div>
+          </div>
+
+          <div class="points-label">実施して確認できた効果</div>
+          <div class="points">
+            <div class="point">
+              <span class="num">1</span>
+              <div>
+                <span class="normal-flow-tag" style="background:#10b981;">実測</span>
+                <strong>並列化で速くなった。</strong>最大5本を同時に走らせ、稼働の合計6.1時間ぶんを<strong>実経過4.5時間</strong>で終えた（1.35倍）。
+              </div>
+            </div>
+            <div class="point">
+              <span class="num">2</span>
+              <div>
+                <span class="normal-flow-tag">体感</span>
+                <strong>指示の拡大解釈による手戻りが減った。</strong>担当ごとに触ってよいパスを委譲指示へ明記し、コンテキストを分けた。判断が要る箇所は指示側で対応表を固定した。
+              </div>
+            </div>
+            <div class="point">
+              <span class="num">3</span>
+              <div>
+                <span class="normal-flow-tag" style="background:#2563eb;">記録</span>
+                <strong>同じファイルを複数が触る事態が減り、テスト段階の不整合が減った。</strong>着手前に作業単位13件の触るファイルを列挙して10組へ束ねた（推測で書かず実際に検索した）。
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右: 実測 + 前提と限界 -->
+        <div class="panel">
+          <h2>実測</h2>
+          <svg viewBox="0 0 420 104" xmlns="http://www.w3.org/2000/svg" style="flex: 0 0 auto;">
+            <text x="94" y="31" text-anchor="end" font-size="11" fill="#4b5563">稼働の合計</text>
+            <rect x="100" y="14" width="310" height="26" rx="4" fill="#f3f4f6" stroke="#9ca3af" stroke-width="1.5"/>
+            <text x="110" y="32" font-size="11.5" fill="#4b5563">6.1 時間</text>
+
+            <text x="94" y="73" text-anchor="end" font-size="11" fill="#047857">実経過</text>
+            <rect x="100" y="56" width="229" height="26" rx="4" fill="#ecfdf5" stroke="#10b981" stroke-width="1.5"/>
+            <text x="110" y="74" font-size="11.5" font-weight="bold" fill="#047857">4.5 時間</text>
+
+            <line x1="329" y1="52" x2="329" y2="98" stroke="#047857" stroke-width="1" stroke-dasharray="3 3"/>
+            <line x1="410" y1="44" x2="410" y2="98" stroke="#9ca3af" stroke-width="1" stroke-dasharray="3 3"/>
+            <text x="370" y="96" text-anchor="middle" font-size="9.5" fill="#047857">1.6時間 短縮</text>
+          </svg>
+
+          <div class="conclusion" style="margin-top: 4px;">
+            <div class="conclusion-label">実測値（数え方は別紙 PW-281.implementation-record.md に記載）</div>
+            <div class="conclusion-list">
+              <div class="conclusion-item"><span class="tag">実測</span>サブエージェント22本／最大同時5本／追加1,224行（DB 164・API 687・テスト 337・画面 36）</div>
+              <div class="conclusion-item"><span class="tag" style="background:#2563eb;">記録</span>確認点24件に全件回答。計画からのずれは3点で、組の数・本数・順序は計画と一致</div>
+            </div>
+          </div>
+
+          <div class="normal-flow">
+            <div class="normal-flow-head">
+              <span class="normal-flow-tag">前提と限界</span>
+              <span class="normal-flow-title">読み手が過大に取らないための注記</span>
+            </div>
+            <div class="normal-flow-single">
+              ・1チケット・1回の運用。<strong>前回（スキル無し）との対照データは無い</strong><br>
+              ・手戻り・不整合の減少は<strong>依頼者の受け止め</strong>で、時間そのものは測っていない<br>
+              ・コードの重なりは着手前に消せたが、<strong>成果物の出力先は数え漏れ</strong>、途中で担当ごとに分けた（次回は出力先も数える）
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="solution-band">
+        <strong>ポイント：</strong>速さと手戻りの少なさを生んだのは「並列にしたこと」そのものではなく、<strong>着手前に作業単位を表にして外から検査できる形にしたこと</strong>。並列は表ができた結果として初めて安全に選べる。
       </div>
     </div>
   </div>
