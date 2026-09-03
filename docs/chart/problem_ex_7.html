@@ -41,6 +41,82 @@
   .tabs--top .tab { font-size: 13px; font-weight: 700; padding: 5px 20px; border-radius: 7px 7px 0 0; }
   .tabs--top .tab.active { background: #2563eb; border-color: #2563eb; color: #fff; }
   .tabs--top .tab:not(.active) { background: #f3f4f6; border-color: #e5e7eb; color: #6b7280; }
+  .tab.tab-hidden { display: none; }
+  .tabs--top.show-old .tab.tab-hidden { display: block; }
+  .tab-more { margin-left: 4px; padding: 4px 8px; background: transparent; border: none; border-radius: 5px; font-family: inherit; font-size: 10px; color: #cbd5e1; cursor: pointer; }
+  .tab-more:hover { background: #f3f4f6; color: #6b7280; }
+
+  /* 今日の議題 */
+  .ag-wrap { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; gap: 20px; width: 100%; max-width: 1000px; margin: 0 auto; }
+  .ag-goal { background: #eff6ff; border: 2.5px solid #2563eb; border-radius: 14px; padding: 18px 26px; }
+  .ag-goal .ag-k { display: inline-block; background: #1f2937; color: #fff; font-size: 11.5px; font-weight: 700; padding: 3px 12px; border-radius: 5px; margin-bottom: 11px; }
+  .ag-goal .ag-t { font-size: 25px; font-weight: 700; color: #1d4ed8; line-height: 1.45; }
+  .ag-h { font-size: 13px; font-weight: 700; color: #6b7280; margin-bottom: -8px; }
+  ul.ag-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 11px; }
+  ul.ag-list li { display: flex; align-items: center; gap: 15px; background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 14px 22px; font-size: 19px; font-weight: 700; color: #1f2937; }
+  ul.ag-list li .ag-n { flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%; background: #2563eb; color: #fff; font-size: 15px; display: flex; align-items: center; justify-content: center; }
+
+  /* 全体概要（ELI5・1枚の図） */
+  .ov-wrap { flex: 1; min-height: 0; display: flex; width: 100%; }
+  .ov-fig { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 8px 14px; }
+  .ov-fig svg { width: 100%; height: 100%; display: block; }
+  /* 中間ゴール1「エンジニアへの質問をつくる」 */
+  .ep-wrap { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 7px; width: 100%; }
+  .ep-fig { flex: 1 1 auto; min-height: 0; display: flex; align-items: center; justify-content: center; background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 8px 14px; }
+  .ep-fig svg { width: 100%; height: 100%; display: block; }
+  .ep-detail { display: none; flex: 0 0 auto; max-height: 46%; overflow-y: auto; background: #fff; border: 1px solid #f59e0b; border-radius: 8px; padding: 8px 14px 10px; }
+  .ep-detail.active { display: block; }
+  .ep-d-h { display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 700; color: #92400e; margin-bottom: 6px; }
+  .ep-d-h .ep-d-n { background: #f59e0b; color: #fff; font-size: 11px; padding: 2px 10px; border-radius: 999px; }
+  .ep-d-goal { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 6px; padding: 5px 11px; font-size: 12px; font-weight: 700; color: #92400e; margin-bottom: 6px; }
+  .ep-d-goal .ep-d-k { background: #92400e; color: #fff; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 4px; margin-right: 8px; }
+  .ep-d-sec { display: flex; align-items: center; gap: 8px; font-size: 11px; color: #6b7280; margin-bottom: 5px; }
+  .ep-d-sec .ep-d-k2 { background: #6b7280; color: #fff; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 4px; }
+  ul.ep-d-q { list-style: none; margin: 0; padding: 0; }
+  ul.ep-d-q li { display: flex; align-items: baseline; gap: 9px; font-size: 12.5px; line-height: 1.9; color: #1f2937; }
+  ul.ep-d-q .ep-d-lb { flex-shrink: 0; width: 52px; text-align: center; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 4px; color: #1d4ed8; font-size: 10px; font-weight: 700; }
+  .ep-todo { font-size: 11.5px; color: #9ca3af; }
+  .ep-d-h .ep-d-tmp { background: #f3f4f6; border: 1px solid #e5e7eb; color: #9ca3af; font-size: 9.5px; font-weight: 700; padding: 1px 7px; border-radius: 4px; }
+  ul.ep-d-q li.lv1 { margin-left: 22px; }
+  ul.ep-d-q li.lv2 { margin-left: 44px; }
+  ul.ep-d-q .lb-br { background: #f3f4f6; border-color: #d1d5db; color: #6b7280; }
+  ul.ep-d-q .lb-why { background: #fffbeb; border-color: #fcd34d; color: #b45309; }
+  ul.ep-d-q .lb-hit { background: #f59e0b; border-color: #f59e0b; color: #fff; }
+  #tab-engproc .ep-node { cursor: pointer; }
+  #tab-engproc .ep-node .n-box { fill: #fff; stroke: #2563eb; stroke-width: 2; }
+  #tab-engproc .ep-node .n-chip { fill: #2563eb; }
+  #tab-engproc .ep-node:hover .n-box { stroke: #f59e0b; }
+  #tab-engproc .ep-node.active .n-box { fill: #fffbeb; stroke: #f59e0b; stroke-width: 3; }
+  #tab-engproc .ep-node.active .n-chip { fill: #f59e0b; }
+  #tab-engproc .ep-node .l-box { fill: #f9fafb; stroke: #cbd5e1; stroke-width: 2; }
+  #tab-engproc .ep-node .l-chip { fill: #2563eb; }
+  #tab-engproc .ep-node:hover .l-box { stroke: #f59e0b; }
+  #tab-engproc .ep-node.active .l-box { fill: #fffbeb; stroke: #f59e0b; stroke-width: 3; }
+  #tab-engproc .ep-node.active .l-chip { fill: #f59e0b; }
+  #tab-engproc .ep-proc { cursor: pointer; }
+  #tab-engproc .ep-proc .n-box { fill: #fff; stroke: #2563eb; stroke-width: 2; }
+  #tab-engproc .ep-proc .n-chip { fill: #2563eb; }
+  #tab-engproc .ep-proc:hover .n-box { stroke: #f59e0b; }
+  #tab-engproc .ep-proc.active .n-box { fill: #fffbeb; stroke: #f59e0b; stroke-width: 3; }
+  #tab-engproc .ep-proc.active .n-chip { fill: #f59e0b; }
+  #tab-engproc .ep-sub { display: none; }
+  #tab-engproc .ep-sub.active { display: block; }
+
+  #tab-overview .ov-goal { cursor: pointer; }
+  #tab-overview .ov-goal .g-box { fill: #fff; stroke: #cbd5e1; stroke-width: 2; }
+  #tab-overview .ov-goal .g-chip { fill: #9ca3af; }
+  #tab-overview .ov-goal .g-title { fill: #6b7280; }
+  #tab-overview .ov-goal .g-sub { fill: #9ca3af; }
+  #tab-overview .ov-goal .g-arrow-off { stroke: #9ca3af; stroke-width: 2; }
+  #tab-overview .ov-goal .g-arrow-on { stroke: #f59e0b; stroke-width: 2.5; }
+  #tab-overview .ov-goal .g-arrow-on, #tab-overview .ov-goal .g-ribbon { display: none; }
+  #tab-overview .ov-goal:hover .g-box { stroke: #f59e0b; }
+  #tab-overview .ov-goal.active .g-box { fill: #fffbeb; stroke: #f59e0b; stroke-width: 3; }
+  #tab-overview .ov-goal.active .g-chip { fill: #f59e0b; }
+  #tab-overview .ov-goal.active .g-title { fill: #92400e; }
+  #tab-overview .ov-goal.active .g-sub { fill: #b45309; }
+  #tab-overview .ov-goal.active .g-arrow-off { display: none; }
+  #tab-overview .ov-goal.active .g-arrow-on, #tab-overview .ov-goal.active .g-ribbon { display: block; }
 
   /* 2階層目タブ（旧検討・実測の中身） */
   .old-wrap { flex: 1; min-height: 0; display: flex; flex-direction: column; width: 100%; }
@@ -590,9 +666,325 @@
   <div class="sub">レビュープロセスの内部統制化検討 / 決定事項② / 2026-07-16 社長壁打ち　—　リスクの高い機能を着手前にサンプリングし、エンジニアが「入口・出口を業務の言葉で理解しているか」を権限者が確認して証跡を残す工程統制</div>
 
   <div class="tabs tabs--top">
-    <button class="tab" data-tab="old">旧検討・実測</button>
-    <button class="tab" data-tab="organize">整理・質問（PMの判断軸）</button>
-    <button class="tab active" data-tab="qdraft">具体的な設問案</button>
+    <button class="tab active" data-tab="agenda">今日の議題</button>
+    <button class="tab" data-tab="overview">全体概要</button>
+    <button class="tab" data-tab="engproc">エンジニアへの質問をつくる</button>
+    <button class="tab-more" id="tab-more" title="以前の検討タブを表示">▶</button>
+    <!-- 以下3タブは ▶ を押したときだけ表示（中身は保持） -->
+    <button class="tab tab-hidden" data-tab="old">旧検討・実測</button>
+    <button class="tab tab-hidden" data-tab="organize">整理・質問（PMの判断軸）</button>
+    <button class="tab tab-hidden" data-tab="qdraft">具体的な設問案</button>
+  </div>
+
+  <!-- ====================== 最上位タブ: 今日の議題 ====================== -->
+  <div class="tab-content active" id="tab-agenda">
+   <div class="ag-wrap">
+    <div class="ag-goal">
+      <span class="ag-k">今日の目的</span>
+      <div class="ag-t">プロセス検討の進め方を決めて、可能なら第一歩の検討を進める</div>
+    </div>
+    <div class="ag-h">そのために</div>
+    <ul class="ag-list">
+      <li><span class="ag-n">1</span>中間ゴールを設定</li>
+      <li><span class="ag-n">2</span>中間ゴールの一つについて検討内容を分解</li>
+      <li><span class="ag-n">3</span>分解した内容の一つ、プレゼンテーション層について具体的な質問の検討</li>
+    </ul>
+   </div>
+  </div>
+
+  <!-- ====================== 最上位タブ0: 全体概要 ====================== -->
+  <div class="tab-content" id="tab-overview">
+   <div class="ov-wrap">
+    <div class="ov-fig">
+      <svg viewBox="0 0 1160 540" preserveAspectRatio="xMidYMid meet" role="img" aria-label="目的は、対象機能の開発をエンジニアに渡す前に、PMが「任せて大丈夫か」を見極めるレビュープロセスをつくること。そのための中間ゴールは、エンジニアへの質問をつくる・質問をどう問うかを定める・アウトプットを決めるの3つ">
+        <defs>
+          <marker id="ov-ah" markerUnits="userSpaceOnUse" markerWidth="13" markerHeight="11" refX="11" refY="5.5" orient="auto">
+            <path d="M0,0 L13,5.5 L0,11 z" fill="#9ca3af"/>
+          </marker>
+          <marker id="ov-ah-a" markerUnits="userSpaceOnUse" markerWidth="13" markerHeight="11" refX="11" refY="5.5" orient="auto">
+            <path d="M0,0 L13,5.5 L0,11 z" fill="#f59e0b"/>
+          </marker>
+        </defs>
+        <g font-family="inherit" text-anchor="middle">
+
+          <!-- 目的（目的変数 1つ） -->
+          <rect x="140" y="18" width="70" height="26" rx="5" fill="#1f2937"/>
+          <text x="175" y="37" font-size="14" font-weight="700" fill="#fff">目的</text>
+          <rect x="140" y="50" width="880" height="118" rx="14" fill="#eff6ff" stroke="#2563eb" stroke-width="2.5"/>
+          <text x="580" y="100" font-size="24" font-weight="700" fill="#1d4ed8">対象機能の開発をエンジニアに渡す前に、</text>
+          <text x="580" y="138" font-size="24" font-weight="700" fill="#1d4ed8">PMが「任せて大丈夫か」を見極めるレビュープロセスをつくる</text>
+
+          <!-- 接続 -->
+          <line x1="580" y1="168" x2="580" y2="228" stroke="#9ca3af" stroke-width="2"/>
+          <path d="M195,228 H965" fill="none" stroke="#9ca3af" stroke-width="2"/>
+
+          <!-- 中間ゴール（クリックで「今日はここ」を切り替え） -->
+
+          <g class="ov-goal active" data-goal="1">
+            <line class="g-arrow-off" x1="195" y1="228" x2="195" y2="288" marker-end="url(#ov-ah)"/>
+            <line class="g-arrow-on" x1="195" y1="228" x2="195" y2="288" marker-end="url(#ov-ah-a)"/>
+            <rect class="g-box" x="25" y="296" width="340" height="200" rx="14"/>
+            <g class="g-ribbon">
+              <rect x="45" y="283" width="104" height="26" rx="13" fill="#92400e"/>
+              <text x="97" y="301" font-size="13.5" font-weight="700" fill="#fff">今日はここ</text>
+            </g>
+            <rect class="g-chip" x="129" y="328" width="132" height="30" rx="15"/>
+            <text x="195" y="349" font-size="15" font-weight="700" fill="#fff">中間ゴール1</text>
+            <text class="g-title" x="195" y="408" font-size="20" font-weight="700">エンジニアへの質問をつくる</text>
+            <text class="g-sub" x="195" y="450" font-size="15">レビュー会までに</text>
+            <text class="g-sub" x="195" y="474" font-size="15">何を言えるようにするか</text>
+          </g>
+
+          <g class="ov-goal" data-goal="2">
+            <line class="g-arrow-off" x1="580" y1="228" x2="580" y2="288" marker-end="url(#ov-ah)"/>
+            <line class="g-arrow-on" x1="580" y1="228" x2="580" y2="288" marker-end="url(#ov-ah-a)"/>
+            <rect class="g-box" x="410" y="296" width="340" height="200" rx="14"/>
+            <g class="g-ribbon">
+              <rect x="430" y="283" width="104" height="26" rx="13" fill="#92400e"/>
+              <text x="482" y="301" font-size="13.5" font-weight="700" fill="#fff">今日はここ</text>
+            </g>
+            <rect class="g-chip" x="514" y="328" width="132" height="30" rx="15"/>
+            <text x="580" y="349" font-size="15" font-weight="700" fill="#fff">中間ゴール2</text>
+            <text class="g-title" x="580" y="408" font-size="20" font-weight="700">質問をどう問うかを定める</text>
+            <text class="g-sub" x="580" y="450" font-size="15">レビュー会で</text>
+            <text class="g-sub" x="580" y="474" font-size="15">何をどの順に確かめるか</text>
+          </g>
+
+          <g class="ov-goal" data-goal="3">
+            <line class="g-arrow-off" x1="965" y1="228" x2="965" y2="288" marker-end="url(#ov-ah)"/>
+            <line class="g-arrow-on" x1="965" y1="228" x2="965" y2="288" marker-end="url(#ov-ah-a)"/>
+            <rect class="g-box" x="795" y="296" width="340" height="200" rx="14"/>
+            <g class="g-ribbon">
+              <rect x="815" y="283" width="104" height="26" rx="13" fill="#92400e"/>
+              <text x="867" y="301" font-size="13.5" font-weight="700" fill="#fff">今日はここ</text>
+            </g>
+            <rect class="g-chip" x="899" y="328" width="132" height="30" rx="15"/>
+            <text x="965" y="349" font-size="15" font-weight="700" fill="#fff">中間ゴール3</text>
+            <text class="g-title" x="965" y="408" font-size="20" font-weight="700">アウトプットを決める</text>
+            <text class="g-sub" x="965" y="450" font-size="15">終わったときに</text>
+            <text class="g-sub" x="965" y="474" font-size="15">何が残っているか</text>
+          </g>
+
+
+        </g>
+      </svg>
+    </div>
+   </div>
+  </div>
+
+  <!-- ============ 最上位タブ: 中間ゴール1「エンジニアへの質問をつくる」 ============ -->
+  <div class="tab-content" id="tab-engproc">
+   <div class="ep-wrap">
+    <div class="ep-fig">
+      <svg viewBox="0 0 1160 350" preserveAspectRatio="xMidYMid meet" role="img" aria-label="目的は、エンジニアがレビュー会前に前工程の内容とどう作るかを説明できる状態にすること。そのために外堀の質問と中身の質問をつくり、各々をクリックすると「誰が答えるのか」と「何を答えるのか」に分かれる">
+        <defs>
+          <marker id="ep-ah" markerUnits="userSpaceOnUse" markerWidth="13" markerHeight="11" refX="11" refY="5.5" orient="auto">
+            <path d="M0,0 L13,5.5 L0,11 z" fill="#9ca3af"/>
+          </marker>
+        </defs>
+        <g font-family="inherit" text-anchor="middle">
+
+          <!-- 目的 -->
+          <rect x="140" y="12" width="70" height="26" rx="5" fill="#1f2937"/>
+          <text x="175" y="31" font-size="14" font-weight="700" fill="#fff">目的</text>
+          <rect x="140" y="44" width="880" height="100" rx="14" fill="#eff6ff" stroke="#2563eb" stroke-width="2.5"/>
+          <text x="580" y="86" font-size="22" font-weight="700" fill="#1d4ed8">エンジニアがレビュー会前に、</text>
+          <text x="580" y="118" font-size="22" font-weight="700" fill="#1d4ed8">前工程の内容・どう作るかについて説明できる状態にする</text>
+
+          <!-- 第2層: 外堀 / 中身（クリックで下を展開） -->
+          <line x1="580" y1="144" x2="580" y2="180" stroke="#9ca3af" stroke-width="2"/>
+          <path d="M350,180 H810" fill="none" stroke="#9ca3af" stroke-width="2"/>
+
+          <g class="ep-proc" data-proc="1">
+            <line x1="350" y1="180" x2="350" y2="214" stroke="#9ca3af" stroke-width="2" marker-end="url(#ep-ah)"/>
+            <rect class="n-box" x="150" y="222" width="400" height="110" rx="14"/>
+            <circle class="n-chip" cx="350" cy="252" r="17"/>
+            <text x="350" y="258" font-size="15" font-weight="700" fill="#fff">1</text>
+            <text x="350" y="294" font-size="19" font-weight="700" fill="#1f2937">外堀の質問をつくる</text>
+            <text x="350" y="318" font-size="13.5" fill="#6b7280">要件定義・基本設計で決まっていること</text>
+          </g>
+
+          <g class="ep-proc" data-proc="2">
+            <line x1="810" y1="180" x2="810" y2="214" stroke="#9ca3af" stroke-width="2" marker-end="url(#ep-ah)"/>
+            <rect class="n-box" x="610" y="222" width="400" height="110" rx="14"/>
+            <circle class="n-chip" cx="810" cy="252" r="17"/>
+            <text x="810" y="258" font-size="15" font-weight="700" fill="#fff">2</text>
+            <text x="810" y="294" font-size="19" font-weight="700" fill="#1f2937">中身の質問をつくる</text>
+            <text x="810" y="318" font-size="13.5" fill="#6b7280">何をどう作るのか（4つの層 ＋ テスト）</text>
+          </g>
+
+          <!-- 第3層: 誰が / 何を（クリックされた側だけ表示） -->
+          <g class="ep-sub" data-sub="1">
+            <line x1="350" y1="332" x2="350" y2="352" stroke="#9ca3af" stroke-width="2"/>
+            <path d="M144,352 H708" fill="none" stroke="#9ca3af" stroke-width="2"/>
+            <line x1="144" y1="352" x2="144" y2="370" stroke="#9ca3af" stroke-width="2" marker-end="url(#ep-ah)"/>
+            <line x1="708" y1="352" x2="708" y2="370" stroke="#9ca3af" stroke-width="2" marker-end="url(#ep-ah)"/>
+            <rect x="24" y="372" width="240" height="118" rx="10" fill="#f9fafb" stroke="#cbd5e1" stroke-width="1.5"/>
+            <rect x="38" y="362" width="112" height="22" rx="5" fill="#374151"/>
+            <text x="94" y="377" font-size="11" font-weight="700" fill="#fff">誰が答えるのか</text>
+            <g class="ep-node" data-node="1-who">
+              <rect class="l-box" x="38" y="398" width="212" height="76" rx="10"/>
+              <text x="144" y="430" font-size="17" font-weight="700" fill="#1f2937">層を問わず全員</text>
+              <text x="144" y="454" font-size="12.5" fill="#6b7280">ベテランも含めて同じ設問</text>
+            </g>
+            <rect x="280" y="372" width="856" height="118" rx="10" fill="#f9fafb" stroke="#cbd5e1" stroke-width="1.5"/>
+            <rect x="294" y="362" width="112" height="22" rx="5" fill="#374151"/>
+            <text x="350" y="377" font-size="11" font-weight="700" fill="#fff">何を答えるのか</text>
+            <g class="ep-node" data-node="1-what">
+              <rect class="l-box" x="294" y="398" width="828" height="76" rx="10"/>
+              <text x="708" y="430" font-size="17" font-weight="700" fill="#1f2937">前工程で決まっている内容</text>
+              <text x="708" y="454" font-size="12.5" fill="#6b7280">要件定義・基本設計</text>
+            </g>
+          </g>
+
+          <g class="ep-sub" data-sub="2">
+            <line x1="810" y1="332" x2="810" y2="352" stroke="#9ca3af" stroke-width="2"/>
+            <path d="M144,352 H810" fill="none" stroke="#9ca3af" stroke-width="2"/>
+            <line x1="144" y1="352" x2="144" y2="370" stroke="#9ca3af" stroke-width="2" marker-end="url(#ep-ah)"/>
+            <line x1="708" y1="352" x2="708" y2="370" stroke="#9ca3af" stroke-width="2" marker-end="url(#ep-ah)"/>
+            <rect x="24" y="372" width="240" height="118" rx="10" fill="#f9fafb" stroke="#cbd5e1" stroke-width="1.5"/>
+            <rect x="38" y="362" width="112" height="22" rx="5" fill="#374151"/>
+            <text x="94" y="377" font-size="11" font-weight="700" fill="#fff">誰が答えるのか</text>
+            <g class="ep-node" data-node="2-who">
+              <rect class="l-box" x="38" y="398" width="212" height="76" rx="10"/>
+              <text x="144" y="430" font-size="17" font-weight="700" fill="#1f2937">中堅が該当</text>
+              <text x="144" y="454" font-size="12.5" fill="#6b7280">ベテラン・駆け出しは別扱い</text>
+            </g>
+            <rect x="280" y="372" width="856" height="118" rx="10" fill="#f9fafb" stroke="#cbd5e1" stroke-width="1.5"/>
+            <rect x="294" y="362" width="112" height="22" rx="5" fill="#374151"/>
+            <text x="350" y="377" font-size="11" font-weight="700" fill="#fff">何を答えるのか</text>
+            <g class="ep-node" data-node="2-1">
+              <rect class="l-box" x="294" y="398" width="156" height="76" rx="10"/>
+              <rect class="l-chip" x="349" y="408" width="46" height="20" rx="10"/>
+              <text x="372" y="423" font-size="11.5" font-weight="700" fill="#fff">2-1</text>
+              <text x="372" y="452" font-size="13.5" font-weight="700" fill="#1f2937">プレゼンテーション層</text>
+            </g>
+            <g class="ep-node" data-node="2-2">
+              <rect class="l-box" x="462" y="398" width="156" height="76" rx="10"/>
+              <rect class="l-chip" x="517" y="408" width="46" height="20" rx="10"/>
+              <text x="540" y="423" font-size="11.5" font-weight="700" fill="#fff">2-2</text>
+              <text x="540" y="452" font-size="13.5" font-weight="700" fill="#1f2937">コントロール層</text>
+            </g>
+            <g class="ep-node" data-node="2-3">
+              <rect class="l-box" x="630" y="398" width="156" height="76" rx="10"/>
+              <rect class="l-chip" x="685" y="408" width="46" height="20" rx="10"/>
+              <text x="708" y="423" font-size="11.5" font-weight="700" fill="#fff">2-3</text>
+              <text x="708" y="452" font-size="13.5" font-weight="700" fill="#1f2937">データ層</text>
+            </g>
+            <g class="ep-node" data-node="2-4">
+              <rect class="l-box" x="798" y="398" width="156" height="76" rx="10"/>
+              <rect class="l-chip" x="853" y="408" width="46" height="20" rx="10"/>
+              <text x="876" y="423" font-size="11.5" font-weight="700" fill="#fff">2-4</text>
+              <text x="876" y="452" font-size="13.5" font-weight="700" fill="#1f2937">非機能</text>
+            </g>
+            <g class="ep-node" data-node="2-5">
+              <rect class="l-box" x="966" y="398" width="156" height="76" rx="10"/>
+              <rect class="l-chip" x="1021" y="408" width="46" height="20" rx="10"/>
+              <text x="1044" y="423" font-size="11.5" font-weight="700" fill="#fff">2-5</text>
+              <text x="1044" y="452" font-size="13.5" font-weight="700" fill="#1f2937">テスト</text>
+            </g>
+          </g>
+
+        </g>
+      </svg>
+    </div>
+
+    <div class="ep-detail" data-detail="1-who">
+      <div class="ep-d-h"><span class="ep-d-n">1</span>外堀 ─ 誰が答えるのか<span class="ep-d-tmp">暫定</span></div>
+      <div class="ep-d-sec"><span class="ep-d-k2">観点</span>誰が答えるのか</div>
+      <ul class="ep-d-q">
+        <li><span class="ep-d-lb lb-br">ベテラン</span>答える（前工程の理解は層を問わず全員に聞く）</li>
+        <li><span class="ep-d-lb lb-hit">中堅</span>答える</li>
+        <li><span class="ep-d-lb lb-br">駆け出し</span>答える</li>
+      </ul>
+    </div>
+
+    <div class="ep-detail" data-detail="1-what">
+      <div class="ep-d-h"><span class="ep-d-n">1</span>外堀 ─ 何を答えるのか</div>
+      <div class="ep-d-goal"><span class="ep-d-k">目的</span>前工程（要件定義・基本設計）で決まっている内容を理解できているかを確認する</div>
+      <div class="ep-d-sec"><span class="ep-d-k2">観点</span>決まっていることを、どの側面から確認するか</div>
+      <ul class="ep-d-q">
+        <li><span class="ep-d-lb">What</span>今回対象の機能はどういうものか</li>
+        <li><span class="ep-d-lb">Where</span>その機能は、どの業務・プロセスの中で利用されるものか</li>
+        <li><span class="ep-d-lb">Who</span>その業務は、どういうユーザー（どの権限）がやるのか</li>
+        <li><span class="ep-d-lb">AsIs</span>現状（AsIs）その業務はどう行われているか</li>
+        <li><span class="ep-d-lb">ToBe</span>この機能が実装されると（ToBe）どういった業務ができるようになるか</li>
+        <li><span class="ep-d-lb lb-why">Why</span>その変化でユーザーは何が嬉しいのか／この機能を作る目的をどう理解しているか</li>
+      </ul>
+    </div>
+
+    <div class="ep-detail" data-detail="2-who">
+      <div class="ep-d-h"><span class="ep-d-n">2</span>中身 ─ 誰が答えるのか<span class="ep-d-tmp">暫定</span></div>
+      <div class="ep-d-sec"><span class="ep-d-k2">観点</span>層ごとの設問に、誰が答えるのか</div>
+      <ul class="ep-d-q">
+        <li><span class="ep-d-lb lb-br">ベテラン</span>設問リストは配らない。レビューの場でPMが要点のみ確認する</li>
+        <li><span class="ep-d-lb lb-hit">中堅</span>層ごとの設問に答えてレビュー会に臨む　← 該当</li>
+        <li><span class="ep-d-lb lb-br">駆け出し</span>まず回答の場に立てているかを確認し、半分以上答えられなければPMに聞きに行く</li>
+      </ul>
+    </div>
+
+    <div class="ep-detail" data-detail="2-1">
+      <div class="ep-d-h"><span class="ep-d-n">2-1</span>プレゼンテーション層</div>
+      <div class="ep-d-goal"><span class="ep-d-k">目的</span>プレゼンテーション層（画面）について、何を作るのかを説明できるようにする</div>
+      <div class="ep-d-sec"><span class="ep-d-k2">説明変数</span></div>
+      <ul class="ep-d-q">
+        <li><span class="ep-d-lb">画面</span>この機能にはどんな画面が何枚必要で、それぞれ何をする画面か</li>
+        <li><span class="ep-d-lb">出し分け</span>それらの画面の表示内容は権限や業務状況によって変わるか</li>
+        <li><span class="ep-d-lb">操作</span>どんな操作（入力・ボタン）があり、制約と結果は何か</li>
+      </ul>
+    </div>
+
+    <div class="ep-detail" data-detail="2-2">
+      <div class="ep-d-h"><span class="ep-d-n">2-2</span>コントロール層</div>
+      <div class="ep-d-goal"><span class="ep-d-k">目的</span>コントロール層について、何を作るのかを説明できるようにする</div>
+      <div class="ep-d-sec"><span class="ep-d-k2">説明変数</span></div>
+      <ul class="ep-d-q">
+        <li><span class="ep-d-lb">API</span>この機能にはどんなAPI（IF）が必要で、それぞれ何を受け取り何を返すか</li>
+        <li><span class="ep-d-lb">処理</span>各APIは呼ばれたときにどんな処理（バリデーション・業務ロジック・外部呼び出し等）を行うか</li>
+        <li><span class="ep-d-lb">実行方式</span>その処理はどこで実行するか（リクエスト内で同期的に返すか、裏側でバッチ・非同期として動かすか）</li>
+      </ul>
+    </div>
+
+    <div class="ep-detail" data-detail="2-3">
+      <div class="ep-d-h"><span class="ep-d-n">2-3</span>データ層<span class="ep-d-tmp">暫定</span></div>
+      <div class="ep-d-sec"><span class="ep-d-k2">観点</span>DB・テーブル設計</div>
+      <ul class="ep-d-q">
+        <li><span class="ep-d-lb lb-br">分岐</span>テーブルを新たに作る必要があるか</li>
+        <li class="lv1"><span class="ep-d-lb">What</span>どんなテーブルを何本作るのか</li>
+        <li><span class="ep-d-lb lb-br">分岐</span>既存テーブルへのカラム追加はあるか</li>
+        <li class="lv1"><span class="ep-d-lb">What</span>どのテーブルに、どんなカラムを追加するのか</li>
+        <li class="lv2"><span class="ep-d-lb lb-why">Why</span>なぜそのテーブルなのか。他に置けるテーブルがあったとして、なぜそちらを選ばなかったのか</li>
+      </ul>
+    </div>
+
+    <div class="ep-detail" data-detail="2-4">
+      <div class="ep-d-h"><span class="ep-d-n">2-4</span>非機能<span class="ep-d-tmp">暫定</span></div>
+      <div class="ep-d-sec"><span class="ep-d-k2">観点</span>性能・設定方針</div>
+      <ul class="ep-d-q">
+        <li><span class="ep-d-lb lb-br">分岐</span>画面の性能が低下する懸念はあるか</li>
+        <li class="lv1"><span class="ep-d-lb">What</span>低下するとしたら、どの画面・どの処理で起きるのか</li>
+        <li class="lv1"><span class="ep-d-lb">What</span>そこを高速化するなら、処理ロジックのどこがチェックポイントになるか</li>
+        <li><span class="ep-d-lb">What</span>バリデーション・設定値は静的な設定ファイルで持つか、アプリ側の処理で動的に制御するか</li>
+        <li class="lv1"><span class="ep-d-lb lb-why">Why</span>なぜそちらを選んだのか</li>
+      </ul>
+    </div>
+
+    <div class="ep-detail" data-detail="2-5">
+      <div class="ep-d-h"><span class="ep-d-n">2-5</span>テスト<span class="ep-d-tmp">暫定</span></div>
+      <div class="ep-d-sec"><span class="ep-d-k2">観点</span>データ・手順・環境</div>
+      <ul class="ep-d-q">
+        <li><span class="ep-d-lb">What</span>どんなテストをするのか</li>
+        <li><span class="ep-d-lb">What</span>テストデータは顧客からもらうか、自分で作るか</li>
+        <li><span class="ep-d-lb">What</span>そのテストデータをどういう手順で開発環境に投入するか</li>
+        <li><span class="ep-d-lb">What</span>テストするデータの件数はどの程度か</li>
+        <li class="lv1"><span class="ep-d-lb lb-why">Why</span>その件数でよいと言えるのはなぜか（利用するユーザー数・機能の重要度に照らして）</li>
+        <li><span class="ep-d-lb lb-br">分岐</span>投入用の機能・ツールを作る必要があるか</li>
+        <li class="lv1"><span class="ep-d-lb">What</span>作るとしたら何を作るのか</li>
+        <li><span class="ep-d-lb lb-br">分岐</span>開発環境のほかに検証環境（ステージング等）は必要か</li>
+        <li class="lv1"><span class="ep-d-lb">What</span>必要ならどの環境をどこまで用意するのか</li>
+      </ul>
+    </div>
+   </div>
   </div>
 
   <!-- ====================== 最上位タブ1: 旧検討・実測 ====================== -->
@@ -1642,7 +2034,7 @@
   </div>
 
   <!-- ====================== 最上位タブ3: 具体的な設問案 ====================== -->
-  <div class="tab-content active" id="tab-qdraft">
+  <div class="tab-content" id="tab-qdraft">
     <div class="organize-wrap">
 
       <div class="org-fig">
@@ -2101,6 +2493,59 @@
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
       btn.classList.add('active');
       document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  // 以前の検討タブの開閉（▶）
+  (function () {
+    var more = document.getElementById('tab-more');
+    var tabs = more.parentNode;
+    more.addEventListener('click', function () {
+      var open = tabs.classList.toggle('show-old');
+      more.textContent = open ? '◀' : '▶';
+      more.title = open ? '以前の検討タブを隠す' : '以前の検討タブを表示';
+    });
+  })();
+
+  // 全体概要: 中間ゴールのクリックで強調を切り替え
+  document.querySelectorAll('#tab-overview .ov-goal').forEach(function (g) {
+    g.addEventListener('click', function () {
+      document.querySelectorAll('#tab-overview .ov-goal').forEach(function (x) { x.classList.remove('active'); });
+      g.classList.add('active');
+    });
+  });
+
+  // エンジニアへの質問をつくる: 工程のクリックで「誰が／何を」を展開
+  document.querySelectorAll('#tab-engproc .ep-proc').forEach(function (pr) {
+    pr.addEventListener('click', function () {
+      var open = !pr.classList.contains('active');
+      document.querySelectorAll('#tab-engproc .ep-proc').forEach(function (x) { x.classList.remove('active'); });
+      document.querySelectorAll('#tab-engproc .ep-sub').forEach(function (g) { g.classList.remove('active'); });
+      document.querySelectorAll('#tab-engproc .ep-node').forEach(function (x) { x.classList.remove('active'); });
+      document.querySelectorAll('#tab-engproc .ep-detail').forEach(function (d) { d.classList.remove('active'); });
+      var svg = document.querySelector('#tab-engproc .ep-fig svg');
+      if (open) {
+        pr.classList.add('active');
+        var g = document.querySelector('#tab-engproc .ep-sub[data-sub="' + pr.dataset.proc + '"]');
+        if (g) { g.classList.add('active'); }
+        svg.setAttribute('viewBox', '0 0 1160 540');
+      } else {
+        svg.setAttribute('viewBox', '0 0 1160 350');
+      }
+    });
+  });
+
+  // エンジニアへの質問をつくる: 「誰が／何を」のクリックで設問を開閉
+  document.querySelectorAll('#tab-engproc .ep-node').forEach(function (n) {
+    n.addEventListener('click', function () {
+      var open = !n.classList.contains('active');
+      document.querySelectorAll('#tab-engproc .ep-node').forEach(function (x) { x.classList.remove('active'); });
+      document.querySelectorAll('#tab-engproc .ep-detail').forEach(function (d) { d.classList.remove('active'); });
+      if (open) {
+        n.classList.add('active');
+        var d = document.querySelector('#tab-engproc .ep-detail[data-detail="' + n.dataset.node + '"]');
+        if (d) { d.classList.add('active'); }
+      }
     });
   });
 
