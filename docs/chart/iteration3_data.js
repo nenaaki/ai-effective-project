@@ -4,6 +4,8 @@
 // person=担当者番号（レーン割当）/ deps=依存タスク名 / desc=概要1行
 // asis=人力想定h（実装系は plan×5.45）/ plan=計画h（PV・EV）/ tobe=実績h（AC）/ status・progress=進捗
 // 配列順＝ガントのレーン着手順。deps は配列内で必ず前方を指すこと。
+// tobe の物差し: band AI稼働（セッションログの稼働分union・空白20分連結・帯はセッション単位）＋実績申告。
+//   サブエージェント実行はログ行が立たない分を取りこぼすため、AI稼働の下限として読む。
 //
 // テスト設計・実施 = 実装系plan×0.168 ／ PR・レビュー対応 = ×0.102（イテレーション2実測の暫定係数）
 //   分母は「テスト/PRがまだ済んでいない実装系plan」。実装完了で減らすとテスト枠が消えるので不可。
@@ -12,6 +14,7 @@ const ITERATION3_DATA = {
   holidays: ["2026-09-21", "2026-09-22", "2026-09-23", "2026-10-12", "2026-11-03", "2026-11-23"],
   // 記録日→その時点の累積 EV/AC（h）。週1回くらい追記する。（着手前＝空）
   evmSnapshots: {
+    "2026-09-02": { "ev": 12.2, "ac": 7.0 }
   },
   // 予定休（人員別）。終日休はその人員の営業日から除外し、当該人員のタスクを後ろ倒しする。
   //   終日休 = "2026-09-01" ／ 半休 = "2026-09-01:0.5"（末尾の数値＝休む割合。0.25 等も可）。
@@ -32,7 +35,7 @@ const ITERATION3_DATA = {
   tasks: [
     // ───────── 事前工数 ─────────
     { name: "プランニング①・AI整備", base: "prep", person: 1, group: "事前工数", code: "P1", owner: "両", deps: [], asis: 7.2, plan: 7.2, tobe: 0, status: "予定", progress: 0, desc: "人員1：イテレーション3初日の事前工数。プランニング（タスク分解・段取り・論点整理）＋AI環境整備（エージェント／worktree 等の準備）。" },
-    { name: "プランニング②・AI整備", base: "prep", person: 2, group: "事前工数", code: "P2", owner: "両", deps: [], asis: 7.2, plan: 7.2, tobe: 0, status: "予定", progress: 0, desc: "人員2：イテレーション3初日の事前工数。プランニング（タスク分解・段取り・論点整理）＋AI環境整備（エージェント／worktree 等の準備）。" },
+    { name: "プランニング②・AI整備", base: "prep", person: 2, group: "事前工数", code: "P2", owner: "両", deps: [], asis: 7.2, plan: 7.2, tobe: 1.57, status: "着手中", progress: 0.2, desc: "人員2：イテレーション3初日の事前工数。プランニング（タスク分解・段取り・論点整理）＋AI環境整備（エージェント／worktree 等の準備）。／9/1-9/2分：起票候補の在庫確認・未完了チケットのステータス更新・②通知基盤/④監査ログの起票調査 1.57h（band AI稼働）。" },
     { name: "仕様反映の自動化(spec→リポジトリ)", base: "prep", person: 2, group: "事前工数", code: "P3", owner: "両", deps: [], asis: 7.2, plan: 7.2, tobe: 0, status: "予定", progress: 0, desc: "イテレーション2の課題対応。リポジトリ内の仕様反映が手作業で手戻りの原因になっていたため、spec からリポジトリへの反映を自動化する（AIインプットの正本を常に最新に保つ）。" },
 
     // ───────── ① CSV出力（既存CSV出力を非同期帳票出力基盤へ移植）─────────
@@ -69,9 +72,9 @@ const ITERATION3_DATA = {
     { name: "PR・レビュー対応(監査ログ)", base: "audit", person: 1, group: "PR", code: "PR4", owner: "両", deps: [], asis: 10.9, plan: 2.0, tobe: 0, status: "予定", progress: 0, desc: "④実装系19.6hに対するPR本文作成＋レビュー指摘対応。係数0.102。" },
 
     // ───────── ⑥ IVR連携（イテレーション2からの持ち越し。設計まで完了・実装以降が残作業）─────────
-    { name: "設計差分確認・タスク化(IVR)", base: "ivr", person: 2, group: "仕様精査", code: "IV1", owner: "両", deps: [], asis: 5.4, plan: 3.6, tobe: 0, status: "予定", progress: 0, desc: "イテレーション2で設計まで完了済み（IF007・API01〜04）。着手前に設計と現行実装の差分を確認してタスク化する。仕様精査は済んでいるため0.5日。" },
+    { name: "設計差分確認・タスク化(IVR)", base: "ivr", person: 2, group: "仕様精査", code: "IV1", owner: "両", deps: [], asis: 5.4, plan: 3.6, tobe: 2.58, status: "完了", progress: 1, desc: "イテレーション2で設計まで完了済み（IF007・API01〜04）。着手前に設計と現行実装の差分を確認してタスク化する。仕様精査は済んでいるため0.5日。／PW-251として実施。8/28のセプテット様相談（SEPTET-22）確認〜9/2の設計・確認点回答・オーケストレーション準備まで 2.58h（band AI稼働）。実装以降（9/3分）はV1・V2へ計上する。" },
     { name: "IVRドライバー追加(外部連携基盤)", base: "ivr", person: 1, group: "基盤", code: "V1", owner: "BE", deps: ["設計差分確認・タスク化(IVR)"], asis: 15.3, plan: 2.8, tobe: 0, status: "予定", progress: 0, desc: "外部サービス連携の土台（機能I/F＋ドライバー差し替え＋開発用エミュレーター）はイテレーション2のSMS連携で構築済み。IVRベンダー向けドライバー（接続・認証・エラー変換）だけを追加し、共通部分は作り直さない。" },
-    { name: "IVR受付API実装(API01〜04)", base: "ivr", person: 1, group: "適用", code: "V2", owner: "BE", deps: ["IVRドライバー追加(外部連携基盤)"], asis: 30.5, plan: 5.6, tobe: 0, status: "予定", progress: 0, desc: "IVR特有の実装の中核。コールフロー本体は他社担当で、当社範囲は電話自動応答から呼ばれるAPI01〜04（再配達の受付可否判定・登録）。設計書どおりに実装する。" },
+    { name: "IVR受付API実装(API01〜04)", base: "ivr", person: 1, group: "適用", code: "V2", owner: "BE", deps: ["IVRドライバー追加(外部連携基盤)"], asis: 30.5, plan: 5.6, tobe: 1.30, status: "完了", progress: 1, desc: "IVR特有の実装の中核。コールフロー本体は他社担当で、当社範囲は電話自動応答から呼ばれるAPI01〜04（再配達の受付可否判定・登録）。設計書どおりに実装する。／PW-251として9/3に実装完了（4エンドポイント＋送信元IP許可リスト＋API Gateway経路＋時間区分04の追加と読み替え撤去）。1.30hは稼働時間レポート2026-08-27〜09-02 §7の見積り「09-03分 約1.3h」からの先行計上。次回レポートで二重計上しないこと。テスト設計・実施(QA6)とPR・レビュー対応(PR6)は今回据え置き。" },
     { name: "IF007 予約上限送信(当社→IVR)", base: "ivr", person: 1, group: "適用", code: "V3", owner: "BE", deps: ["IVR受付API実装(API01〜04)"], asis: 15.3, plan: 2.8, tobe: 0, status: "予定", progress: 0, desc: "IVR予約上限送信IF（IF007）。日次の受付可能枠をIVR側へ送信する。③定期実行・監視基盤のジョブ定義として載せ、失敗は②通知基盤へ通報する。" },
     { name: "IVR E2E(エミュレーター)", base: "ivr", person: 1, group: "E2E", code: "V4", owner: "両", deps: ["IF007 予約上限送信(当社→IVR)"], asis: 11.4, plan: 2.1, tobe: 0, status: "予定", progress: 0, desc: "SMS連携で作った開発用エミュレーターをIVR向けに使い、着信→受付→登録→上限送信までを通す。受付上限到達・対象なし・エラーの3系統を確認。" },
     { name: "テスト設計・実施(IVR)", base: "ivr", person: 1, group: "テスト", code: "QA6", owner: "両", deps: ["IVR E2E(エミュレーター)"], asis: 12.2, plan: 2.2, tobe: 0, status: "予定", progress: 0, desc: "⑥実装系13.3hに対するテスト仕様設計＋テスト実施。係数0.168。" },
@@ -93,7 +96,7 @@ const ITERATION3_DATA = {
 
     // ───────── 予備工数 ─────────
     { name: "予備工数1", base: "reserve", person: 1, group: "予備工数", code: "RS1", owner: "両", deps: [], asis: 20.0, plan: 20.0, tobe: 0, status: "予定", progress: 0, desc: "人員1の予備。仕様変更・割り込み・追加調査の吸収枠。" },
-    { name: "予備工数2", base: "reserve", person: 2, group: "予備工数", code: "RS2", owner: "両", deps: [], asis: 20.0, plan: 20.0, tobe: 0, status: "予定", progress: 0, desc: "人員2の予備。仕様変更・割り込み・追加調査の吸収枠。" },
+    { name: "予備工数2", base: "reserve", person: 2, group: "予備工数", code: "RS2", owner: "両", deps: [], asis: 20.0, plan: 20.0, tobe: 1.55, status: "着手中", progress: 0.08, desc: "人員2の予備。仕様変更・割り込み・追加調査の吸収枠。／9/1-9/2分 1.55h（band AI稼働）＝PW-287 緯度経度取得APIの方式選定 0.72h（イテレーション3の計画外・主要部分は9/3で次回計上）／コードレビュー・商品マスタのマスク確認など 0.53h／AWS費用（NAT Gateway課金）の確認 0.30h。" },
     { name: "AI改善工数①", base: "reserve", person: 1, group: "予備工数", code: "AI1", owner: "両", deps: [], asis: 20.0, plan: 20.0, tobe: 0, status: "予定", progress: 0, desc: "人員1：AI駆動そのものを良くするための枠。エージェント／スキル・プロンプト・インプット資料の改善、オーケストレーションの見直しなど。イテレーション2で計画外に発生した分を、今回は最初から枠として確保する。" },
     { name: "AI改善工数②", base: "reserve", person: 2, group: "予備工数", code: "AI2", owner: "両", deps: [], asis: 20.0, plan: 20.0, tobe: 0, status: "予定", progress: 0, desc: "人員2：同上。AI駆動の改善（エージェント整備・spec運用・レビュープロセス）に充てる枠。" },
   ],

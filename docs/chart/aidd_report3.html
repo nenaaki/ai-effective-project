@@ -139,7 +139,7 @@ function basePanel(b){
     });
   });
   return `<div class="panel" data-key="${b.key}" style="--ac:${b.color}">`+
-    `<div class="lede">${b.id} <b>${b.name}</b> の開発工数比較。<b>ToBe計画</b>＝AI駆動で見込む計画工数（workitems3 と同一ソース）。<b>ToBe実績</b>は完了タスクのみ表示（現在は着手前のため空欄）。AsIs は人力で通常開発した場合の想定（概算）。`+
+    `<div class="lede">${b.id} <b>${b.name}</b> の開発工数比較。<b>ToBe計画</b>＝AI駆動で見込む計画工数（workitems3 と同一ソース）。<b>ToBe実績</b>は完了タスクのみ表示（未完了は空欄）。AsIs は人力で通常開発した場合の想定（概算）。`+
       `${LEDE[b.key]||""}</div>`+
     LEGEND +
     `<div class="kpis">`+
@@ -191,7 +191,7 @@ function totalPanel(){
   const resvP = resv.reduce((a,t)=>a+t.plan,0);
   return `<div class="panel" data-key="__total__" style="--ac:#10b981">`+
     `<div class="lede">イテレーション3（横串基盤 ①②③④⑤）全体の工数比較。<b>AsIs 想定 ${tA.toFixed(1)}h → ToBe計画 ${tP.toFixed(1)}h（削減率 ${redPlan}%）</b>。`+
-      `着手前のため ToBe実績は空欄で、進むにつれ埋まる（完了 ${dnAll}/${nAll} 件）。`+
+      `ToBe実績は完了タスクのみ表示され、進むにつれ埋まる（完了 ${dnAll}/${nAll} 件）。`+
       `イテレーション2の基盤（非同期帳票出力・SMS連携I/F・バッチ起動）への<b>移植・再利用・昇格</b>が中心なので、ゼロから作る場合より計画工数を小さく置いている。`+
       `一方、事前工数とその他工数（AIエージェント不備の調査・改修枠）は人の作業で AI レバレッジが効かないため AsIs＝計画としており、その分だけ全体の削減率は下がる。`+
       `予備工数・AI改善工数（計 ${resvP.toFixed(1)}h）は実開発の比較対象外として除外。</div>`+

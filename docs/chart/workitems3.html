@@ -632,7 +632,7 @@
       <th>No.</th><th>基盤</th><th>区分</th><th>タスク（短縮名）</th><th>担当</th><th>依存</th>
       <th>予定(h)</th><th>状況</th><th>進捗</th><th>実(h)</th><th>概要</th>
     </tr></thead><tbody id="tbody"></tbody></table>
-    <div class="note">予定(h)＝AI駆動の計画工数（バッファ込み）。実(h)＝完了タスクの実績。AsIs想定＝人力実装の想定工数（実装系は計画×5.45）。イテレーション3は着手前のため実(h)は全て未記入。</div>
+    <div class="note">予定(h)＝AI駆動の計画工数（バッファ込み）。実(h)＝完了タスクの実績。AsIs想定＝人力実装の想定工数（実装系は計画×5.45）。実(h)は 2026-09-02 時点で着手済みの3件（事前工数②・IVR設計差分確認・予備工数2）のみ記入。</div>
   </div>
 
   <div id="tab-evm" class="tab-panel">
@@ -1007,7 +1007,7 @@ function copyEvmSnap(btn){
     <div style="color:#94a3b8; margin-top:6px;">この行を iteration3_data.js の <b>evmSnapshots</b> に貼り付けて週次スナップショットを記録（週1回）。progress／tobe（実績）を最新化してから算出すること。</div>
   </div>`;
   const memo = `<div style="margin-top:12px; font-size:12px; border:1px solid #fcd34d; background:#fffbeb; border-radius:6px; padding:9px 11px; max-width:660px;">
-    <div style="font-weight:700; color:#92400e; margin-bottom:5px;">イテレーション3 計画の考え方（着手前）</div>
+    <div style="font-weight:700; color:#92400e; margin-bottom:5px;">イテレーション3 計画の考え方</div>
     <ul style="margin:0; padding-left:18px; line-height:1.7; color:#334155;">
       <li>①CSV出力は<b>新規開発ではなく移植</b>。イテレーション2で作った非同期帳票出力基盤（非同期ジョブ＋生成状況テーブル＋S3）に載せ替える。</li>
       <li>②〜⑤は<b>全機能に横串で効く非機能基盤</b>。個別機能を量産した後に足すと全画面・全APIの手戻りになるため、先に置く。</li>
