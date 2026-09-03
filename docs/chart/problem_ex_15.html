@@ -17,24 +17,7 @@
   h1 { font-size: 19px; margin: 0; border-bottom: 3px solid #2563eb; padding-bottom: 6px; }
   .sub { color: #6b7280; font-size: 12px; margin: 6px 0 14px; }
 
-  .tabs { display: flex; gap: 4px; margin-bottom: 14px; border-bottom: 1px solid #e5e7eb; }
-  .tab {
-    padding: 8px 16px;
-    background: transparent;
-    border: 1px solid transparent;
-    border-bottom: none;
-    border-radius: 6px 6px 0 0;
-    cursor: pointer;
-    font-size: 13px;
-    font-family: inherit;
-    color: #6b7280;
-    margin-bottom: -1px;
-  }
-  .tab.active { background: white; border-color: #e5e7eb; color: #2563eb; font-weight: 600; }
-  .tab:hover { color: #1f2937; }
-
-  .tab-content { display: none; flex: 1; min-height: 0; }
-  .tab-content.active { display: flex; }
+  .main { display: flex; flex: 1; min-height: 0; }
 
   .grid {
     display: grid;
@@ -146,39 +129,6 @@
     border-radius: 3px; margin-right: 5px; vertical-align: 1px;
   }
 
-  /* タブ2: 案件情報 */
-  .facts { display: flex; flex-direction: column; gap: 7px; }
-  .fact {
-    display: flex; gap: 10px; align-items: flex-start;
-    border: 1px solid #e5e7eb; border-radius: 6px;
-    padding: 8px 11px; font-size: 11.5px; line-height: 1.5; background: #fff;
-  }
-  .fact .k {
-    flex-shrink: 0; width: 58px; font-weight: 700;
-    color: #1e40af; font-size: 10.5px; padding-top: 1px;
-  }
-  .source-note {
-    margin-top: 12px;
-    background: #f3f4f6; border-left: 3px solid #9ca3af; border-radius: 4px;
-    padding: 9px 12px; font-size: 11px; line-height: 1.55; color: #4b5563;
-  }
-  .source-note strong { color: #1f2937; }
-
-  /* スケジュール・目的のカード */
-  .info-card {
-    border: 1px solid #e5e7eb; border-left: 3px solid #2563eb; border-radius: 6px;
-    background: #fff; padding: 10px 13px; margin-bottom: 10px;
-  }
-  .info-card .th {
-    font-size: 12px; font-weight: 700; color: #1e40af;
-    display: flex; align-items: center; gap: 7px;
-  }
-  .info-card .tb {
-    margin-top: 7px; padding-top: 7px; border-top: 1px solid #f3f4f6;
-    font-size: 11.5px; line-height: 1.6; color: #1f2937;
-  }
-  .info-card .tb strong { color: #1f2937; }
-  #tab-case .conclusion { margin-top: 12px; }
 </style>
 </head>
 <body>
@@ -186,13 +136,7 @@
   <h1>N社案件へのAI駆動開発の関わり方（議題）</h1>
   <div class="sub">AI駆動開発の社外展開に関する議題 ／ N社案件（認証・認可） ／ 2026-09-03</div>
 
-  <div class="tabs">
-    <button class="tab active" data-tab="issue">背景と確認したいこと</button>
-    <button class="tab" data-tab="case">案件情報</button>
-  </div>
-
-  <!-- ====================== タブ1: 背景と確認したいこと ====================== -->
-  <div class="tab-content active" id="tab-issue">
+  <div class="main">
     <div class="grid">
 
       <!-- 左: 背景 -->
@@ -269,74 +213,7 @@
     </div>
   </div>
 
-  <!-- ====================== タブ2: 案件情報 ====================== -->
-  <div class="tab-content" id="tab-case">
-    <div class="grid">
-
-      <!-- 左: 現時点で聞いていること -->
-      <div class="panel">
-        <h2>案件情報 — 現時点で聞いていること</h2>
-        <div class="facts">
-          <div class="fact">
-            <span class="k">対象</span>
-            <div>N社の<strong>特定のシステム</strong></div>
-          </div>
-          <div class="fact">
-            <span class="k">開発形態</span>
-            <div><strong>新規開発</strong></div>
-          </div>
-          <div class="fact">
-            <span class="k">構成</span>
-            <div><strong>標準アーキテクチャ ベース</strong></div>
-          </div>
-          <div class="fact">
-            <span class="k">機能範囲</span>
-            <div><strong>認証・認可</strong></div>
-          </div>
-        </div>
-
-        <div class="source-note">
-          <strong>出典</strong>：相談を受けた際に聞いた内容。<strong>こちらで確認したものではない</strong>ため、精度は未検証。
-        </div>
-      </div>
-
-      <!-- 右: スケジュールと目的 -->
-      <div class="panel">
-        <h2>スケジュールと目的</h2>
-
-        <div class="info-card">
-          <div class="th">スケジュール</div>
-          <div class="tb"><strong>要件定義まで完了</strong>。これから<strong>開発を始めようとしているところ</strong>。<br><strong>今月（9月）いっぱい</strong>には、活用可能かを判断したい意向。</div>
-        </div>
-        <div class="info-card">
-          <div class="th">AI駆動開発を実施したい目的</div>
-          <div class="tb">別システムとの連携もあり<strong>設計範囲が大きい</strong>。<strong>工数の短縮を図りたい</strong>。</div>
-        </div>
-
-        <div class="conclusion">
-          <div class="conclusion-label">現時点の整理</div>
-          <div class="conclusion-list">
-            <div class="conclusion-item"><span class="tag">切り分け</span>概要の説明と、展開するかどうかの判断は分けて扱う</div>
-            <div class="conclusion-item"><span class="tag">判断は後</span>展開するかどうかは、この場では決めない</div>
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </div>
-
 </div>
 
-<script>
-  const switchTab = (target) => {
-    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-    document.querySelector(`.tab[data-tab="${target}"]`)?.classList.add('active');
-    document.getElementById('tab-' + target).classList.add('active');
-  };
-  document.querySelectorAll('.tab').forEach(btn => {
-    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
-  });
-</script>
 </body>
 </html>
