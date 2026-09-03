@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>イテレーション2 まとめ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+  :root {
+    --ground:#f5f7f7; --surface:#ffffff; --surface-alt:#eaefee;
+    --ink:#16201f; --ink-soft:#16201f; --ink-faint:#16201f; --hint:#7c8a88;
+    --rule:#d3dcdb; --rule-strong:#b4c2c0;
+    --accent:#0d6b68; --accent-soft:#d9ecea;
+    --crit:#9d2f2a;  --crit-soft:#f7e2e0;
+    --ok:#2c6a45;    --ok-soft:#dcece2;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:#0f1414; --surface:#171d1d; --surface-alt:#1e2626;
+      --ink:#e6ecea; --ink-soft:#e6ecea; --ink-faint:#e6ecea; --hint:#7d8b89;
+      --rule:#2b3534; --rule-strong:#3d4948;
+      --accent:#5cc3bd; --accent-soft:#16302f;
+      --crit:#e58a83;  --crit-soft:#301b1a;
+      --ok:#7ec49b;    --ok-soft:#17281f;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground:#0f1414; --surface:#171d1d; --surface-alt:#1e2626;
+    --ink:#e6ecea; --ink-soft:#e6ecea; --ink-faint:#e6ecea; --hint:#7d8b89;
+    --rule:#2b3534; --rule-strong:#3d4948;
+    --accent:#5cc3bd; --accent-soft:#16302f;
+    --crit:#e58a83;  --crit-soft:#301b1a;
+    --ok:#7ec49b;    --ok-soft:#17281f;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-snap-type: y mandatory; }
+  body {
+    margin: 0; background: var(--ground); color: var(--ink);
+    font-family: "Zen Kaku Gothic New","Hiragino Kaku Gothic ProN","Yu Gothic",system-ui,sans-serif;
+    line-height: 1.7; -webkit-font-smoothing: antialiased;
+  }
+
+  .slide {
+    scroll-snap-align: start;
+    min-height: 100vh; display: flex; flex-direction: column; justify-content: center;
+    padding: 52px clamp(26px, 5.5vw, 84px) 68px;
+    border-bottom: 1px solid var(--rule); position: relative;
+  }
+  .inner { width: 100%; max-width: 1240px; margin: 0 auto; display: flex; flex-direction: column; gap: 26px; }
+
+  .eyebrow {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 11.5px; letter-spacing: .2em; text-transform: uppercase; color: var(--accent);
+    display: flex; align-items: center; gap: 14px;
+  }
+  .eyebrow::after { content:""; flex:1; height:1px; background: var(--rule-strong); }
+
+  h1 {
+    font-family: "Shippori Mincho","Hiragino Mincho ProN",serif; font-weight: 700;
+    font-size: clamp(27px, 4.2vw, 46px); line-height: 1.32; margin: 0; text-wrap: balance;
+  }
+
+  h1 .sub { font-size: 48%; font-weight: 400; letter-spacing: .02em; margin-left: .4em; }
+
+  .pageno {
+    position: absolute; right: clamp(26px,5.5vw,84px); bottom: 28px;
+    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 12px; color: var(--ink-faint);
+    font-variant-numeric: tabular-nums; letter-spacing: .08em;
+  }
+
+  figure { margin: 0; }
+  svg { display: block; width: 100%; height: auto; color: var(--ink); }
+  svg text { fill: currentColor; font-family: "Zen Kaku Gothic New","Hiragino Kaku Gothic ProN",system-ui,sans-serif; }
+  .t-b { font-size: 15.5px; font-weight: 700; }
+  .t-m { font-size: 14px; }
+  .t-s { font-size: 13px; fill: var(--ink-soft); }
+  .t-f { font-size: 12.5px; fill: var(--ink-faint); }
+  .t-c { font-size: 14px; fill: var(--crit); font-weight: 700; }
+  .t-o { font-size: 14px; fill: var(--ok); font-weight: 700; }
+  .t-a { font-size: 14px; fill: var(--accent); font-weight: 700; }
+  .t-q { font-size: 18px; fill: var(--crit); font-weight: 700; }
+  .bx  { fill: var(--surface); stroke: currentColor; stroke-width: 1.3; }
+  .bxa { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.6; }
+  .bxc { fill: var(--crit-soft); stroke: var(--crit); stroke-width: 1.5; }
+  .bxcd{ fill: var(--crit-soft); stroke: var(--crit); stroke-width: 1.6; stroke-dasharray: 6 4; }
+  .bxad{ fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 6 4; }
+  .bxo { fill: var(--ok-soft); stroke: var(--ok); stroke-width: 1.5; }
+  .bxn { fill: var(--surface-alt); stroke: var(--rule-strong); stroke-width: 1; }
+  .ln  { stroke: currentColor; stroke-width: 1.4; fill: none; }
+  .lna { stroke: var(--accent); stroke-width: 1.8; fill: none; }
+  .lnc { stroke: var(--crit); stroke-width: 1.8; fill: none; }
+  .lno { stroke: var(--ok); stroke-width: 1.8; fill: none; }
+  .lnf { stroke: var(--hint); stroke-width: 1.3; fill: none; stroke-dasharray: 5 4; }
+  .brk { stroke: var(--accent); stroke-width: 1.4; fill: none; }
+  .divi{ stroke: var(--rule-strong); stroke-width: 1; }
+  .dot { fill: var(--surface); stroke: currentColor; stroke-width: 1.6; }
+  .dota{ fill: var(--accent); stroke: none; }
+  .doto{ fill: var(--ok); stroke: none; }
+  #ar polygon  { fill: currentColor; }
+  #arA polygon { fill: var(--accent); }
+  #arC polygon { fill: var(--crit); }
+  #arO polygon { fill: var(--ok); }
+  #arF polygon { fill: var(--hint); }
+
+  .probs { display: grid; grid-template-columns: repeat(3,1fr); gap: 1px; background: var(--rule);
+    border: 1px solid var(--rule); border-radius: 7px; overflow: hidden; }
+  .prob { background: var(--surface); padding: 14px 16px; display: flex; flex-direction: column; gap: 5px; }
+  .prob .n { font-family:"IBM Plex Mono",ui-monospace,monospace; font-size: 12px; color: var(--crit); }
+  .prob .h { font-size: clamp(13.5px,1.4vw,15.5px); font-weight: 700; line-height: 1.45; }
+  .prob .s { font-size: 13px; color: var(--ink-faint); line-height: 1.55; }
+  .prob .chip { align-self: flex-start; margin-top: 3px; font-family:"IBM Plex Mono",ui-monospace,monospace;
+    font-size: 10.5px; letter-spacing: .06em; color: var(--accent); background: var(--accent-soft);
+    padding: 2px 8px; border-radius: 3px; }
+  .caps { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px,1fr)); gap: 14px 26px; }
+  .cap { display: grid; grid-template-columns: 22px 1fr; gap: 10px; align-items: start; }
+  .cap .i {
+    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 11px;
+    color: var(--accent); margin-top: 2px;
+  }
+  .cap p { margin: 0; font-size: clamp(14px,1.5vw,16.5px); line-height: 1.65; }
+  .cap b { font-weight: 700; }
+
+  .punch {
+    border-left: 4px solid var(--accent); background: var(--accent-soft);
+    padding: 15px 22px; border-radius: 0 5px 5px 0;
+    font-size: clamp(15px,1.8vw,20px); font-weight: 700; line-height: 1.55; text-wrap: balance;
+  }
+  .slide.ev .inner { gap: 18px; }
+  .slide.ev figure { max-width: min(100%, 120vh); }
+  .slide.ev.tight figure { max-width: min(100%, 105vh); }
+  .causes { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: stretch; }
+  .panel { display: flex; flex-direction: column; gap: 10px; justify-content: center;
+    border: 1px solid var(--rule-strong); border-radius: 8px; background: var(--surface); padding: 12px 16px 14px; }
+  .ptag { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 12.5px;
+    font-weight: 700; letter-spacing: .06em; color: var(--crit); }
+  .panel figure { max-width: 100%; }
+  .close { display: grid; grid-template-columns: 1.12fr .88fr; gap: 26px; align-items: center; }
+  .talk { display: flex; flex-direction: column; gap: 5px; }
+  .talk .lead { font-family:"IBM Plex Mono",ui-monospace,monospace;
+    letter-spacing: .14em; color: var(--hint); margin-bottom: 2px; font-size: 12px; }
+  .talk .row { display: flex; align-items: flex-start; gap: 9px; }
+  .talk .who { flex: 0 0 auto; margin-top: 4px; font-size: 12px; font-weight: 700;
+    padding: 1px 6px; border-radius: 3px; line-height: 1.5; }
+  .talk .who.p  { background: var(--crit-soft); color: var(--crit); }
+  .talk .who.ai { background: var(--surface-alt); color: var(--ink-soft); border: 1px solid var(--rule-strong); }
+  .talk .bub { position: relative; background: var(--surface); border: 1px solid var(--rule-strong);
+    border-radius: 4px 10px 10px 10px; padding: 4px 11px; font-size: 14.5px; line-height: 1.5; }
+  .talk .row.ai .bub { background: var(--surface-alt); }
+  .talk .row.last .bub { background: var(--accent-soft); border-color: var(--accent); font-weight: 700; }
+  .talk .bub::before, .talk .bub::after { content:""; position:absolute; top: 7px; width:0; height:0;
+    border: 6px solid transparent; border-left: 0; }
+  .talk .bub::before { left: -6px; border-right-color: var(--rule-strong); }
+  .talk .bub::after  { left: -5px; border-right-color: var(--surface); }
+  .talk .row.ai .bub::after   { border-right-color: var(--surface-alt); }
+  .talk .row.last .bub::before{ border-right-color: var(--accent); }
+  .talk .row.last .bub::after { border-right-color: var(--accent-soft); }
+  .cmp { display: flex; flex-direction: column; gap: 6px; }
+  .cmp-row { display: flex; flex-direction: column; gap: 1px;
+    border: 1px solid var(--rule-strong); border-left-width: 4px; border-radius: 4px;
+    background: var(--surface-alt); padding: 5px 11px; }
+  .cmp-row .k { font-size: 11.5px; color: var(--ink-soft); }
+  .cmp-row .v { font-size: 14px; }
+  .cmp-row.bad { background: var(--crit-soft); border-color: var(--crit); }
+  .cmp-note { margin: 2px 0 0; font-size: 12.5px; font-weight: 700; color: var(--crit); line-height: 1.5; }
+  .equiv { margin: 0; align-self: flex-start; font-size: clamp(14.5px,1.55vw,17.5px); line-height: 1.5;
+    background: var(--accent-soft); border-left: 4px solid var(--accent);
+    border-radius: 0 6px 6px 0; padding: 9px 18px; }
+  .equiv b { font-weight: 700; color: var(--accent); }
+  .equiv .tag { font-family:"IBM Plex Mono",ui-monospace,monospace; font-size: 11px; letter-spacing: .08em;
+    color: var(--ground); background: var(--accent); padding: 3px 9px; border-radius: 3px; margin-right: 12px; }
+  .gate { margin: 0; font-size: clamp(13px,1.35vw,15px); line-height: 1.6;
+    border-left: 3px solid var(--accent); padding-left: 13px; }
+  .gate b { font-weight: 700; }
+  .linkrow { display:flex; flex-wrap:wrap; align-items:baseline; gap:6px 14px; margin:0; }
+  a.lnk { display:inline-block; font-weight:700; font-size:clamp(13.5px,1.4vw,15.5px); color:var(--accent);
+    text-decoration:none; border-bottom:2px solid var(--accent); padding-bottom:2px; }
+  a.lnk:hover { background:var(--accent-soft); }
+  a.lnk:focus-visible { outline:2px solid var(--accent); outline-offset:3px; border-radius:2px; }
+  .linknote { font-size:13px; color:var(--ink-faint); }
+
+  @media (max-width: 700px) {
+    html { scroll-snap-type: none; }
+    .slide { min-height: auto; padding: 44px 20px 56px; }
+    .caps { grid-template-columns: 1fr; }
+    .probs { grid-template-columns: 1fr; }
+  }
+  /* --- まとめページ固有（EVM画像カード・KPI行） --- */
+  .evm { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .evmcard { display: flex; flex-direction: column; gap: 8px;
+    border: 1px solid var(--rule-strong); border-radius: 8px; background: var(--surface); padding: 10px 12px 12px; }
+  .evmcard h3 { margin: 0; font-size: clamp(14px,1.45vw,16px); font-weight: 700; line-height: 1.4; }
+  .evmcard h3 span { font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 11.5px; font-weight: 400; color: var(--ink-faint); margin-left: 8px; letter-spacing: .04em; }
+  .evmcard .shot { background: #ffffff; border: 1px solid var(--rule); border-radius: 4px; padding: 4px; }
+  .evmcard img { display: block; width: 100%; height: clamp(120px, 20vh, 210px); object-fit: contain; }
+  .cardnote { margin: 0; font-size: 13px; line-height: 1.55; color: var(--ink-soft); }
+  .cardnote b { font-weight: 700; color: var(--ink); }
+  .kpis { display: grid; grid-template-columns: repeat(4,1fr); gap: 1px; background: var(--rule);
+    border: 1px solid var(--rule); border-radius: 7px; overflow: hidden; }
+  .kpi { background: var(--surface); padding: 10px 14px 11px; display: flex; flex-direction: column; gap: 2px; }
+  .kpi .k { font-size: 12px; color: var(--ink-faint); }
+  .kpi .v { font-family: "IBM Plex Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums;
+    font-size: clamp(15px,1.9vw,21px); font-weight: 700; line-height: 1.35; }
+  .kpi .v .arrow { color: var(--hint); font-weight: 400; margin: 0 .35em; }
+  .kpi .n { font-size: 11.5px; color: var(--hint); }
+  .kpi.good .v { color: var(--ok); }
+  @media (max-width: 700px) {
+    .evm { grid-template-columns: 1fr; }
+    .kpis { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<!-- ============ 1 ============ -->
+<section class="slide ev tight">
+  <div class="inner">
+    <div class="eyebrow">まとめ ／ イテレーション1・2 の EVM</div>
+    <h1>見積もりが、実績に追いついてきた。</h1>
+
+    <div class="evm">
+      <div class="evmcard">
+        <h3>イテレーション1 <span>2026-05-22 → 07-14 ／ 画面・IF 139 行</span></h3>
+        <div class="shot"><img src="ite1.png" alt="イテレーション1のEVM。青の計画値と緑の出来高がほぼ重なって478h付近まで伸びる一方、橙の実コストは330h付近で止まり、最後まで下に離れている"></div>
+        <p class="cardnote">青＝計画(PV) ／ 緑＝出来高(EV) ／ 橙＝実コスト(AC)。<b>計画 474.1h / 実績 334.0h</b> ― 橙が離れたまま終わった。</p>
+      </div>
+      <div class="evmcard">
+        <h3>イテレーション2 <span>2026-07-14 → 08-31 ／ 69 タスク</span></h3>
+        <div class="shot"><img src="ite2.png" alt="イテレーション2のEVM。青の計画値・緑の出来高・橙の実コストが3本ともほぼ重なって334h付近まで伸びる"></div>
+        <p class="cardnote">同じ3本。<b>計画 334.3h / 実績 322.6h</b> ― 橙が緑にほぼ重なって終わった。</p>
+      </div>
+    </div>
+
+    <div class="kpis">
+      <div class="kpi good">
+        <span class="k">計画と実績の乖離</span>
+        <span class="v">29.6%<span class="arrow">→</span>3.5%</span>
+        <span class="n">140.1h の余り → 11.6h</span>
+      </div>
+      <div class="kpi good">
+        <span class="k">CPI（EV ÷ AC）</span>
+        <span class="v">1.42<span class="arrow">→</span>1.04</span>
+        <span class="n">1.00 に近いほど計画が現実的</span>
+      </div>
+      <div class="kpi good">
+        <span class="k">週次のブレ幅</span>
+        <span class="v">0.60<span class="arrow">→</span>0.11</span>
+        <span class="n">実績÷計画 の最大−最小（13回→7回）</span>
+      </div>
+      <div class="kpi">
+        <span class="k">予備枠を計画に明示</span>
+        <span class="v">なし<span class="arrow">→</span>23.0h</span>
+        <span class="n">計画の 6.9%。実消化 24.8h</span>
+      </div>
+    </div>
+
+    <div class="caps">
+      <div class="cap"><span class="i">01</span><p><b>乖離は「速い」の証拠でもあった。</b>どちらも実績 &lt; 計画。<b>イテ1はその差が3割残り</b>、計画が現実を映していなかった。</p></div>
+      <div class="cap"><span class="i">02</span><p><b>イテ2は最後まで重なった。</b>序盤 0.99 → 中盤 0.88 → 終盤 0.96。<b>途中で崩れず、振れも小さい</b>。単発の当たりではない。</p></div>
+      <div class="cap"><span class="i">03</span><p><b>スコープの性質は逆風だった。</b>イテ1は画面・IFの反復、イテ2は新規の基盤設計。<b>難しい側で精度が上がった</b>。</p></div>
+    </div>
+  </div>
+  <div class="pageno">1 / 2</div>
+</section>
+
+<!-- ============ 2 ============ -->
+<section class="slide ev">
+  <div class="inner">
+    <div class="eyebrow">分析 ／ 何が精度を上げたのか（まだ切り分けていない）</div>
+    <h1>「慣れ」だけではない。<br>物差しを実測に替えたことが大きい。</h1>
+
+    <figure>
+      <svg viewBox="0 0 940 296" role="img" aria-label="精度向上の要因候補4つ。見積もりの物差しを実測係数に替えたこと、予備枠と割り込みを計画に載せたこと、慣れ、実績の測り方の変更。前2つは根拠があり、後2つは分離できていない">
+        <defs>
+          <marker id="ar"  viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><polygon points="0,1 9,5 0,9"/></marker>
+          <marker id="arA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><polygon points="0,1 9,5 0,9"/></marker>
+        </defs>
+
+        <text class="t-o" x="14"  y="18">説明が付く ― 仕組みを変えた分</text>
+        <text class="t-c" x="482" y="18">説明が付かない ― 分離できていない分</text>
+        <line class="divi" x1="472" y1="8" x2="472" y2="214" stroke-dasharray="4 4"/>
+
+        <rect class="bxo" x="14"  y="28" width="452" height="82" rx="5"/>
+        <text class="t-b" x="28"  y="48">① 見積もりの物差しを実測係数に替えた</text>
+        <text class="t-f" x="28"  y="68">実装系は AsIs = 計画 × 5.45 ／ テスト = 実装系計画 × 0.168 ／</text>
+        <text class="t-f" x="28"  y="84">PR・レビュー = × 0.102。いずれも PW-229 の実測から作った係数</text>
+        <text class="t-o" x="28"  y="103">イテ1 は項目数から置いた固定値で、実測の裏付けが無かった</text>
+
+        <rect class="bxo" x="14"  y="118" width="452" height="82" rx="5"/>
+        <text class="t-b" x="28"  y="138">② 予備枠と割り込みを計画に載せた</text>
+        <text class="t-f" x="28"  y="158">予備工数 23.0h（計画の 6.9%）を人員別に確保。さらに割り込み作業を</text>
+        <text class="t-f" x="28"  y="174">後追いで項目化（マスタ整理 13.7h・エージェント整備 24.0h ほか）</text>
+        <text class="t-o" x="28"  y="193">計画外の作業が「乖離」として出てこなくなった</text>
+
+        <rect class="bxc" x="482" y="28" width="444" height="82" rx="5"/>
+        <text class="t-b" x="496" y="48">③ 慣れ（学習効果）</text>
+        <text class="t-f" x="496" y="68">同じ 2 名・同じ手順の 2 周目。見積もる側も作る側も、</text>
+        <text class="t-f" x="496" y="84">どこに時間が溶けるかを体で知っている</text>
+        <text class="t-c" x="496" y="103">効いている可能性は高いが、量が分からない</text>
+
+        <rect class="bxc" x="482" y="118" width="444" height="82" rx="5"/>
+        <text class="t-b" x="496" y="138">④ 実績（AC）の測り方が途中で変わった</text>
+        <text class="t-f" x="496" y="158">〜8/19 は band の人稼働、8/20 以降は band の AI稼働＋実績申告。</text>
+        <text class="t-f" x="496" y="174">band はサブエージェントを取り落とし、実態より小さく出る</text>
+        <text class="t-c" x="496" y="193">収束の一部が計測起因である可能性を消せない</text>
+
+        <text class="t-a" x="14" y="238">次のイテレーションで切り分ける ― この3つを守れば、①②の効果と③④の影響が分かれる</text>
+
+        <rect class="bxa" x="14"  y="248" width="298" height="44" rx="4"/>
+        <text class="t-m" x="26"  y="266">同じ係数を新規領域に当てる</text>
+        <text class="t-f" x="26"  y="282">維持できれば物差しの効果、崩れれば慣れの効果</text>
+
+        <rect class="bxa" x="322" y="248" width="298" height="44" rx="4"/>
+        <text class="t-m" x="334" y="266">AC の測り方を期中で変えない</text>
+        <text class="t-f" x="334" y="282">1 本に固定して、申告の補正量も残す</text>
+
+        <rect class="bxa" x="630" y="248" width="296" height="44" rx="4"/>
+        <text class="t-m" x="642" y="266">予備枠の消化率を別に記録</text>
+        <text class="t-f" x="642" y="282">枠が精度を作ったのか、吸収しただけか</text>
+      </svg>
+    </figure>
+
+    <div class="caps">
+      <div class="cap"><span class="i">01</span><p><b>順番としては ①→②→③ と見ている。</b>ただし<b>③慣れと④計測は分離できていない</b>ので、「精度が上がった理由」を今の時点で断定しない。</p></div>
+      <div class="cap"><span class="i">02</span><p><b>次の見積もりは、この係数で置いてよい。</b>イテ3 も同じ係数で組んである。<b>外れ方が分かることも成果</b>で、外れたら係数を更新する。</p></div>
+      <div class="cap"><span class="i">03</span><p><b>乖離ゼロを目標にはしない。</b>実績が計画を割るのは AI駆動が速いということ。見たいのは<b>計画が現実の形をしているか</b>だけ。</p></div>
+    </div>
+
+    <p class="linkrow">
+      <a class="lnk" href="workitems2.html">イテレーション2 タスク管理（EVM）→</a>
+      <a class="lnk" href="workitems.html">イテレーション1 タスク管理 →</a>
+      <a class="lnk" href="aidd_report2.html">AsIs / ToBe 工数比較 →</a>
+      <span class="linknote">数値の出どころ。EVM は各ページの記録スナップショット。</span>
+    </p>
+  </div>
+  <div class="pageno">2 / 2</div>
+</section>
+</body>
+</html>
