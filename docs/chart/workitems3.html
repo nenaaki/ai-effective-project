@@ -129,7 +129,7 @@
 </style>
 </head>
 <body>
-  <h1>イテレーション3 タスク管理 ― ①CSV出力(非同期帳票へ移植) / ②通知基盤 / <s style="color:#9ca3af;font-weight:normal;">③定期実行・監視</s> / ④監査ログ・操作履歴 / <s style="color:#9ca3af;font-weight:normal;">⑤タイムアウト・上限設計</s> / ⑥IVR連携(持ち越し) / ⑦メッセージ基盤</h1>
+  <h1>イテレーション3 タスク管理 ― ①CSV出力(非同期帳票へ移植) / ②通知基盤 / <s style="color:#9ca3af;font-weight:normal;">③定期実行・監視</s> / ④監査ログ・操作履歴 / <s style="color:#9ca3af;font-weight:normal;">⑤タイムアウト・上限設計</s> / ⑥IVR連携(持ち越し) / ⑦メッセージ基盤 / ⑧N社認証認可(エージェント調整)</h1>
   <div class="sub" id="sub"></div>
 
   <div class="tabs">
@@ -145,7 +145,11 @@
       <div style="display:flex;flex-direction:column;gap:10px;">
         <div style="display:flex;gap:10px;align-items:flex-start;">
           <span style="flex:0 0 22px;height:22px;border-radius:50%;background:#059669;color:#fff;font-weight:bold;font-size:12px;display:flex;align-items:center;justify-content:center;">1</span>
-          <div><b style="color:#14532d;font-size:13.5px;">他プロジェクトへ横展開できる汎用パーツか（展開性の価値）</b><span style="margin-left:6px;font-size:10.5px;font-weight:700;color:#fff;background:#059669;border-radius:10px;padding:1px 8px;vertical-align:1.5px;">最優先</span><div style="font-size:12px;color:#4b5563;margin-top:2px;">チームから上がってきた要望を受動的に並べない。PWで作る予定のものの中から、<b>他案件への貢献度が最も高いパーツを能動的につまみ上げる</b>。狙い目は、複数人で作ると出し方のルールや一貫性が漏れて小さなバグになりがちな<b>「みんなが間違える共通機能」</b>（メッセージ管理・共通バリデーション・一貫したエラー通知）。<span style="color:#9ca3af">― 2026-08-26 MTG で追加</span></div></div>
+          <div><b style="color:#14532d;font-size:13.5px;">他プロジェクトへ横展開できる汎用パーツか（展開性の価値）</b><span style="margin-left:6px;font-size:10.5px;font-weight:700;color:#fff;background:#059669;border-radius:10px;padding:1px 8px;vertical-align:1.5px;">最優先</span><ul style="font-size:12px;color:#4b5563;margin:2px 0 0;padding-left:18px;line-height:1.55;">
+            <li>チームの要望を受動的に並べず、<b>他案件への貢献度が最も高いパーツを能動的につまみ上げる</b></li>
+            <li>狙い目は<b>「みんなが間違える共通機能」</b>（メッセージ管理・共通バリデーション・一貫したエラー通知）</li>
+            <li>複数人で作ると、出し方のルールや一貫性が漏れて小さなバグになりやすい領域<span style="color:#9ca3af">― 2026-08-26 MTG で追加</span></li>
+          </ul></div>
         </div>
         <div style="display:flex;gap:10px;align-items:flex-start;">
           <span style="flex:0 0 22px;height:22px;border-radius:50%;background:#10b981;color:#fff;font-weight:bold;font-size:12px;display:flex;align-items:center;justify-content:center;">2</span>
@@ -165,16 +169,22 @@
       <span style="display:inline-block;padding:2px 10px;border-radius:12px;color:#fff;font-weight:700;font-size:11px;margin-right:6px;background:#2563eb">④ 監査ログ・操作履歴</span>
       <span style="display:inline-block;padding:2px 10px;border-radius:12px;color:#fff;font-weight:700;font-size:11px;background:#9ca3af;opacity:.55;text-decoration:line-through;">⑤ タイムアウト・上限設計</span>
       <span style="display:inline-block;padding:2px 10px;border-radius:12px;color:#fff;font-weight:700;font-size:11px;margin-left:6px;background:#0891b2">⑦ メッセージ基盤</span>
+      <span style="display:inline-block;padding:2px 10px;border-radius:12px;color:#fff;font-weight:700;font-size:11px;margin-left:6px;background:#e11d48">⑧ N社認証認可（エージェント調整）</span>
     </div>
     <div style="margin:6px 0 4px;font-size:11.5px;color:#6b7280;">
       ※ <s style="color:#9ca3af">③ 定期実行・監視</s>・<s style="color:#9ca3af">⑤ タイムアウト・上限設計</s> は基準1（展開性）で見直した結果、<b>今回スコープから除外</b>。<br>
-      ※ <b style="color:#a21caf">⑥ IVR連携</b> はイテレーション2からの<b>持ち越し</b>（仕様が直前まで来ず設計までで終了）。選定基準の対象外で、残りは実装以降のみ。
+      ※ <b style="color:#a21caf">⑥ IVR連携</b> はイテレーション2からの<b>持ち越し</b>（仕様が直前まで来ず設計までで終了）。選定基準の対象外で、残りは実装以降のみ。<br>
+      ※ <b style="color:#e11d48">⑧ N社認証認可（エージェント調整）</b> は 2026-09-03 MTG で<b>追加</b>。他案件への横展開そのもの（基準1）で、選定基準の対象外の<b>割り込み対応</b>。
     </div>
 
     <div style="margin-top:20px;">
-      <div style="font-size:13.5px;font-weight:bold;margin-bottom:2px;">① CSV出力 ― 同期その場生成をやめ、非同期帳票出力基盤へ移植する</div>
+      <div style="font-size:13.5px;font-weight:bold;margin-bottom:2px;">① CSV出力 ― CSVダウンロードを全画面で共通化</div>
       <div style="display:inline-block;font-size:11px;font-weight:700;color:#92400e;background:#fffbeb;border:1px solid #fcd34d;border-radius:6px;padding:2px 8px;margin-bottom:7px;">イテレーション2の非同期生成×状態管理 ＋ 出力定義型（定義1個＝1CSV）</div>
-      <div style="font-size:11.5px;color:#6b7280;margin-bottom:8px;">既存CSVは<b>リクエスト中に生成</b>するため件数が増えると<b>タイムアウト</b>する。PDF帳票で作った<b>非同期ジョブ＋生成状況テーブル＋S3</b>にそのまま載せ替え、<b>実装も1本化</b>する。</div>
+      <ul style="font-size:11.5px;color:#6b7280;margin:0 0 8px;padding-left:18px;line-height:1.6;">
+        <li><b>現状</b> ― リクエスト中に生成するため、件数が増えると<b>タイムアウト</b>する</li>
+        <li><b>対応</b> ― PDF帳票の<b>非同期ジョブ＋生成状況テーブル＋S3</b>へ載せ替え、実装も1本化</li>
+        <li><b>追加</b> ― <b>進捗（プログレス）表示</b>と<b>生成中のキャンセル</b></li>
+      </ul>
       <svg width="980" height="236" viewBox="0 0 980 236" style="max-width:100%;height:auto;font-family:inherit">
         <defs>
           <marker id="c1arr" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#d97706"/></marker>
@@ -213,7 +223,7 @@
         <g font-size="9.5" fill="#92400e" text-anchor="middle">
           <rect x="524" y="62" width="98" height="42" rx="6" fill="#fffbeb" stroke="#fcd34d"/><text x="573" y="79">画面</text><text x="573" y="93">CSVボタン</text>
           <rect x="654" y="46" width="140" height="42" rx="6" fill="#fef3c7" stroke="#d97706"/><text x="724" y="63" font-weight="700">帳票生成基盤</text><text x="724" y="77">（非同期・共通）</text>
-          <rect x="654" y="102" width="140" height="40" rx="6" fill="#fef3c7" stroke="#d97706"/><text x="724" y="118" font-weight="700">生成状況テーブル</text><text x="724" y="132">生成中→完了/エラー</text>
+          <rect x="654" y="102" width="140" height="40" rx="6" fill="#fef3c7" stroke="#d97706"/><text x="724" y="118" font-weight="700">生成状況テーブル</text><text x="724" y="132">生成中(進捗%)→完了/中止</text>
           <rect x="826" y="46" width="130" height="42" rx="6" fill="#fffbeb" stroke="#fcd34d"/><text x="891" y="63">S3</text><text x="891" y="77">CSV / PDF 成果物</text>
           <rect x="826" y="102" width="130" height="40" rx="6" fill="#f0fdf4" stroke="#86efac"/><text x="891" y="118" fill="#15803d">完了→URLでDL</text><text x="891" y="132" fill="#15803d">エラー→画面表示</text>
         </g>
@@ -227,17 +237,22 @@
         <text x="638" y="70" font-size="8" fill="#b45309" text-anchor="middle">依頼</text>
         <text x="600" y="112" font-size="8" fill="#b45309">状況ポーリング</text>
         <g font-size="10.5" fill="#15803d">
-          <text x="524" y="166">✓ 件数が増えてもタイムアウトしない</text>
-          <text x="524" y="184">✓ CSV定義1個＝1CSV（追加は定義だけ）</text>
-          <text x="524" y="202">✓ PDF帳票と同一I/F・実装1本化</text>
+          <text x="524" y="160">✓ 件数が増えてもタイムアウトしない</text>
+          <text x="524" y="176">✓ 進捗表示・生成中のキャンセルができる</text>
+          <text x="524" y="192">✓ CSV定義1個＝1CSV（追加は定義だけ）</text>
+          <text x="524" y="208">✓ PDF帳票と同一I/F・実装1本化</text>
         </g>
       </svg>
     </div>
 
     <div style="margin-top:20px;">
-      <div style="font-size:13.5px;font-weight:bold;margin-bottom:2px;">② 通知基盤 ― 業務イベントを1本の通知I/Fへ集約し、届け先はドライバーで差し替え</div>
+      <div style="font-size:13.5px;font-weight:bold;margin-bottom:2px;">② 通知基盤 ― お知らせを画面・メール・SMSで届ける</div>
       <div style="display:inline-block;font-size:11px;font-weight:700;color:#6d28d9;background:#f5f3ff;border:1px solid #ddd6fe;border-radius:6px;padding:2px 8px;margin-bottom:7px;">データ型×CRUD ＋ 通知I/F（種別・宛先・既読）×チャネルドライバー</div>
-      <div style="font-size:11.5px;color:#6b7280;margin-bottom:8px;">業務コードは<b>「通知を出す」1本</b>を呼ぶだけ。届け先（<b>アプリ内 / メール / SMS</b>）はドライバーで切替。SMSは<b>イテレーション2のSMSサービスI/F（IF008）を再利用</b>し重複実装しない。</div>
+      <ul style="font-size:11.5px;color:#6b7280;margin:0 0 8px;padding-left:18px;line-height:1.6;">
+        <li>業務コードは<b>「通知を出す」1本</b>を呼ぶだけ</li>
+        <li>届け先（<b>アプリ内 / メール / SMS</b>）はドライバーで切替</li>
+        <li>SMSは<b>イテレーション2のSMSサービスI/F（IF008）を再利用</b>し、重複実装しない</li>
+      </ul>
       <svg width="980" height="248" viewBox="0 0 980 248" style="max-width:100%;height:auto;font-family:inherit">
         <defs>
           <marker id="n2arr" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#94a3b8"/></marker>
@@ -309,10 +324,14 @@
     </div>
 
     <div style="margin-top:20px;">
-      <div style="font-size:13.5px;font-weight:bold;margin-bottom:2px;color:#6b7280;"><s>③ 定期実行・監視基盤 ― ジョブ定義＝データ。履歴・リトライ・失敗通報まで基盤で持つ</s><span style="margin-left:8px;font-size:10.5px;font-weight:700;color:#fff;background:#6b7280;border-radius:10px;padding:1px 8px;vertical-align:1.5px;">スコープから除外</span></div>
+      <div style="font-size:13.5px;font-weight:bold;margin-bottom:2px;color:#6b7280;"><s>③ 定期実行・監視基盤 ― 決まった時刻に処理を動かす</s><span style="margin-left:8px;font-size:10.5px;font-weight:700;color:#fff;background:#6b7280;border-radius:10px;padding:1px 8px;vertical-align:1.5px;">スコープから除外</span></div>
       <div style="opacity:.38;filter:grayscale(1);">
       <div style="display:inline-block;font-size:11px;font-weight:700;color:#0e7490;background:#ecfeff;border:1px solid #a5f3fc;border-radius:6px;padding:2px 8px;margin-bottom:7px;">イテレーション2のバッチ起動基盤 ＋ スケジュール定義型×実行履歴（状態管理）×監視</div>
-      <div style="font-size:11.5px;color:#6b7280;margin-bottom:8px;">イテレーション2の<b>バッチ起動基盤</b>を汎用スケジューラへ昇格。<b>ジョブ追加＝定義データの追加</b>にし、<b>実行履歴・リトライ・多重起動抑止</b>を基盤側で持つ。失敗は<b>②通知</b>へ通報して目視監視をやめる。</div>
+      <ul style="font-size:11.5px;color:#6b7280;margin:0 0 8px;padding-left:18px;line-height:1.6;">
+        <li>イテレーション2の<b>バッチ起動基盤</b>を汎用スケジューラへ昇格</li>
+        <li><b>ジョブ追加＝定義データの追加</b>。<b>実行履歴・リトライ・多重起動抑止</b>は基盤側で持つ</li>
+        <li>失敗は<b>②通知</b>へ通報し、目視監視をやめる</li>
+      </ul>
       <svg width="980" height="246" viewBox="0 0 980 246" style="max-width:100%;height:auto;font-family:inherit">
         <defs>
           <marker id="s3arr" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#0891b2"/></marker>
@@ -385,9 +404,13 @@
     </div>
 
     <div style="margin-top:20px;">
-      <div style="font-size:13.5px;font-weight:bold;margin-bottom:2px;">④ 監査ログ・操作履歴 ― 業務コードに書かせず、横串で自動記録する</div>
+      <div style="font-size:13.5px;font-weight:bold;margin-bottom:2px;">④ 監査ログ・操作履歴 ― 誰が何を変えたかを自動で記録</div>
       <div style="display:inline-block;font-size:11px;font-weight:700;color:#1d4ed8;background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:2px 8px;margin-bottom:7px;">データ型×CRUD ＋ 共通インターセプタ／ORM差分（記録は自動・追加実装ゼロ）</div>
-      <div style="font-size:11.5px;color:#6b7280;margin-bottom:8px;">「誰が・いつ・何を・どう変えたか」を<b>全APIを通る共通インターセプタ</b>と<b>ORM層の差分抽出</b>で自動記録。<b>テーブルが増えても追加実装が不要</b>。閲覧はイテレーション2の権限判定でロール制御。</div>
+      <ul style="font-size:11.5px;color:#6b7280;margin:0 0 8px;padding-left:18px;line-height:1.6;">
+        <li>「誰が・いつ・何を・どう変えたか」を<b>全APIを通る共通インターセプタ</b>と<b>ORM層の差分抽出</b>で自動記録</li>
+        <li><b>テーブルが増えても追加実装が不要</b></li>
+        <li>閲覧はイテレーション2の権限判定でロール制御</li>
+      </ul>
       <svg width="980" height="238" viewBox="0 0 980 238" style="max-width:100%;height:auto;font-family:inherit">
         <defs>
           <marker id="a4arr" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#2563eb"/></marker>
@@ -452,10 +475,14 @@
     </div>
 
     <div style="margin-top:20px;">
-      <div style="font-size:13.5px;font-weight:bold;margin-bottom:2px;color:#6b7280;"><s>⑤ タイムアウト・上限設計 ― 「どこまで待つか・どこまで受け付けるか」を数字で決める</s><span style="margin-left:8px;font-size:10.5px;font-weight:700;color:#fff;background:#6b7280;border-radius:10px;padding:1px 8px;vertical-align:1.5px;">スコープから除外</span></div>
+      <div style="font-size:13.5px;font-weight:bold;margin-bottom:2px;color:#6b7280;"><s>⑤ タイムアウト・上限設計 ― 待ち時間と件数の上限を統一</s><span style="margin-left:8px;font-size:10.5px;font-weight:700;color:#fff;background:#6b7280;border-radius:10px;padding:1px 8px;vertical-align:1.5px;">スコープから除外</span></div>
       <div style="opacity:.38;filter:grayscale(1);">
       <div style="display:inline-block;font-size:11px;font-weight:700;color:#9d174d;background:#fdf2f8;border:1px solid #fbcfe8;border-radius:6px;padding:2px 8px;margin-bottom:7px;">データ型×CRUD ＋ 共通の上限値（件数・サイズ・回数・時間）×共通の超過メッセージ</div>
-      <div style="font-size:11.5px;color:#6b7280;margin-bottom:8px;">待ち時間は<b>セッション／API・外部連携／DBの3層</b>、受付量は<b>件数・サイズ・同時実行数・リトライ回数</b>で上限を決める。<b>上限は基盤側に1箇所</b>で持ち、超過時は<b>共通メッセージ</b>。全画面・全APIに効くため<b>仕様精査を先に確定</b>させる。</div>
+      <ul style="font-size:11.5px;color:#6b7280;margin:0 0 8px;padding-left:18px;line-height:1.6;">
+        <li><b>待ち時間</b>の上限 ― セッション／API・外部連携／DBの3層で決める</li>
+        <li><b>受付量</b>の上限 ― 件数・サイズ・同時実行数・リトライ回数で決める</li>
+        <li><b>上限は基盤側に1箇所</b>。超過時は共通メッセージ。全画面・全APIに効くため<b>仕様精査を先に確定</b></li>
+      </ul>
       <svg width="980" height="244" viewBox="0 0 980 244" style="max-width:100%;height:auto;font-family:inherit">
         <defs>
           <marker id="l5arr" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#db2777"/></marker>
@@ -526,9 +553,13 @@
     </div>
 
     <div style="margin-top:20px;">
-      <div style="font-size:13.5px;font-weight:bold;margin-bottom:2px;">⑦ メッセージ基盤 ― 文言をコードから剥がし、あらゆるエラー・警告を1本の経路でユーザーへ届ける</div>
+      <div style="font-size:13.5px;font-weight:bold;margin-bottom:2px;">⑦ メッセージ基盤 ― 画面に出すメッセージを1か所で管理</div>
       <div style="display:inline-block;font-size:11px;font-weight:700;color:#0e7490;background:#ecfeff;border:1px solid #67e8f9;border-radius:6px;padding:2px 8px;margin-bottom:7px;">メッセージ定義（正本1本）× ビルド時カタログ同梱 ＋ APIエラーのID化 ＋ FE共通表示部品</div>
-      <div style="font-size:11.5px;color:#6b7280;margin-bottom:8px;">画面のValidation・APIのValidation・APIエラー・サービス障害を<b>同じ形（ID＋引数）</b>に揃え、表示は<b>共通部品1本</b>に寄せる。正本は<b>リポジトリ内の定義ファイル1本</b>とし、<b>ビルド時にFE/BE双方へライブラリとして同梱</b>する。<b>取得APIは作らない</b> ― サーバーが落ちている時こそメッセージが要るため、サーバーへ取りに行く構造にしない。</div>
+      <ul style="font-size:11.5px;color:#6b7280;margin:0 0 8px;padding-left:18px;line-height:1.6;">
+        <li><b>対象</b> ― ポップアップ・トースト・インライン警告・完了通知（ボタンラベル等の静的文言は今回対象外）</li>
+        <li><b>揃える</b> ― エラーも正常系も<b>同じ形（ID＋引数）</b>にし、表示は<b>共通部品1本</b></li>
+        <li><b>正本</b> ― <b>定義ファイル1本</b>をビルド時にFE/BEへ同梱。<b>取得APIは作らない</b>（サーバー停止時こそ要るため）</li>
+      </ul>
       <svg width="980" height="242" viewBox="0 0 980 242" style="max-width:100%;height:auto;font-family:inherit">
         <defs>
           <marker id="m7arr" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#0891b2"/></marker>
@@ -603,6 +634,16 @@
           <text x="742" y="212">✓ 他案件へそのまま横展開できる</text>
         </g>
       </svg>
+    </div>
+
+    <div style="margin-top:20px;">
+      <div style="font-size:13.5px;font-weight:bold;margin-bottom:2px;">⑧ N社認証認可（エージェント調整） ― 認証認可担当のAIエージェントをN社向けに調整</div>
+      <div style="display:inline-block;font-size:11px;font-weight:700;color:#9f1239;background:#fff1f2;border:1px solid #fda4af;border-radius:6px;padding:2px 8px;margin-bottom:7px;">PW案件のAIエージェント群（認証認可基盤の設計・実装・テスト担当）→ N社案件向け＝自社標準アーキへ調整（2026-09-03 MTG で追加）</div>
+      <ul style="font-size:11.5px;color:#6b7280;margin:0 0 8px;padding-left:18px;line-height:1.6;">
+        <li><b>① エージェント群の切り出し</b> ― 認証認可の設計・実装・テスト担当を抜き出す</li>
+        <li><b>② 自社標準アーキ向けの調整</b> ― N社の標準構成に合わせて手直し・引き渡し</li>
+        <li><b>位置づけ</b> ― 基準1（横展開）の実地検証。選定基準の対象外で、割り込み対応</li>
+      </ul>
     </div>
   </div>
 

@@ -14,7 +14,8 @@ const ITERATION3_DATA = {
   holidays: ["2026-09-21", "2026-09-22", "2026-09-23", "2026-10-12", "2026-11-03", "2026-11-23"],
   // 記録日→その時点の累積 EV/AC（h）。週1回くらい追記する。（着手前＝空）
   evmSnapshots: {
-    "2026-09-02": { "ev": 23.0, "ac": 17.8 }
+    "2026-09-02": { "ev": 23.0, "ac": 17.8 },
+    "2026-09-09": { "ev": 77.8, "ac": 71.5 }
   },
   // 予定休（人員別）。終日休はその人員の営業日から除外し、当該人員のタスクを後ろ倒しする。
   //   終日休 = "2026-09-01" ／ 半休 = "2026-09-01:0.5"（末尾の数値＝休む割合。0.25 等も可）。
@@ -29,25 +30,31 @@ const ITERATION3_DATA = {
     { key: "audit",   id: "④", name: "監査ログ・操作履歴",        color: "#2563eb" },
     { key: "ivr",     id: "⑥", name: "IVR連携(持ち越し)",         color: "#c026d3" },
     { key: "message", id: "⑦", name: "メッセージ基盤",             color: "#0891b2" },
+    { key: "nauth",   id: "⑧", name: "N社認証認可(エージェント調整)", color: "#e11d48" },
     { key: "other",   id: "他", name: "その他工数",               color: "#94a3b8" },
     { key: "reserve", id: "予", name: "予備工数",                 color: "#64748b" },
   ],
   tasks: [
     // ───────── 事前工数 ─────────
-    { name: "プランニング①・AI整備", base: "prep", person: 1, group: "事前工数", code: "P1", owner: "両", deps: [], asis: 7.2, plan: 7.2, tobe: 3.6, status: "着手中", progress: 0.5, desc: "人員1：イテレーション3初日の事前工数。プランニング（タスク分解・段取り・論点整理）＋AI環境整備（エージェント／worktree 等の準備）。" },
+    { name: "プランニング①・AI整備", base: "prep", person: 1, group: "事前工数", code: "P1", owner: "両", deps: [], asis: 7.2, plan: 7.2, tobe: 7.2, status: "完了", progress: 1, desc: "人員1：イテレーション3初日の事前工数。プランニング（タスク分解・段取り・論点整理）＋AI環境整備（エージェント／worktree 等の準備）。" },
     { name: "プランニング②・AI整備", base: "prep", person: 2, group: "事前工数", code: "P2", owner: "両", deps: [], asis: 7.2, plan: 7.2, tobe: 1.57, status: "着手中", progress: 0.2, desc: "人員2：イテレーション3初日の事前工数。プランニング（タスク分解・段取り・論点整理）＋AI環境整備（エージェント／worktree 等の準備）。／9/1-9/2分：起票候補の在庫確認・未完了チケットのステータス更新・②通知基盤/④監査ログの起票調査 1.57h（band AI稼働）。" },
     { name: "仕様反映の自動化(spec→リポジトリ)", base: "prep", person: 2, group: "事前工数", code: "P3", owner: "両", deps: [], asis: 7.2, plan: 7.2, tobe: 0, status: "予定", progress: 0, desc: "イテレーション2の課題対応。リポジトリ内の仕様反映が手作業で手戻りの原因になっていたため、spec からリポジトリへの反映を自動化する（AIインプットの正本を常に最新に保つ）。" },
 
     // ───────── ① CSV出力（既存CSV出力を非同期帳票出力基盤へ移植）─────────
-    { name: "仕様精査(CSV出力)～PM合意", base: "csv", person: 1, group: "仕様精査", code: "SP1", owner: "両", deps: [], asis: 21.6, plan: 14.4, tobe: 7.2, status: "着手中", progress: 0.5, desc: "既存CSV出力の棚卸し（対象一覧・列定義・文字コード・改行・件数上限）と、非同期帳票出力基盤へ寄せる際の論点整理〜PM合意。" },
-    { name: "CSV出力定義基盤", base: "csv", person: 1, group: "基盤", code: "C1", owner: "BE", deps: ["仕様精査(CSV出力)～PM合意"], asis: 22.9, plan: 4.2, tobe: 0, status: "予定", progress: 0, desc: "「定義1個＝1CSV」の出力定義型（列・並び・書式・文字コード）。イテレーション2のファイル定義基盤と同じ考え方を出力側へ適用。" },
-    { name: "CSV生成エンジン(非同期基盤へ移植)", base: "csv", person: 1, group: "基盤", code: "C2", owner: "BE", deps: ["CSV出力定義基盤"], asis: 30.5, plan: 5.6, tobe: 0, status: "予定", progress: 0, desc: "PDF帳票と同じ非同期ジョブ基盤・生成状況テーブル・S3成果物の上にCSV生成を載せる。同期・その場生成をやめ、大量件数でもタイムアウトしない構造へ。" },
-    { name: "生成/状況API拡張(CSV)", base: "csv", person: 1, group: "基盤", code: "C3", owner: "BE", deps: ["CSV生成エンジン(非同期基盤へ移植)"], asis: 15.3, plan: 2.8, tobe: 0, status: "予定", progress: 0, desc: "既存の生成/状況APIをCSV種別へ拡張（生成リクエスト・状況ポーリング・DL URL発行）。帳票と同一I/Fで扱う。" },
-    { name: "画面出力連携(FE・CSV)", base: "csv", person: 1, group: "適用", code: "C4", owner: "FE", deps: ["生成/状況API拡張(CSV)"], asis: 19.1, plan: 3.5, tobe: 0, status: "予定", progress: 0, desc: "各画面のCSVダウンロードを非同期方式へ差し替え（リクエスト→状況表示→完了でDL／エラー表示）。帳票出力のFE部品を再利用。" },
-    { name: "既存CSV出力の移行・廃止", base: "csv", person: 1, group: "適用", code: "C5", owner: "両", deps: ["画面出力連携(FE・CSV)"], asis: 22.9, plan: 4.2, tobe: 0, status: "予定", progress: 0, desc: "旧CSV出力経路を新基盤へ順次移行し、重複した実装を廃止。出力結果の同一性（列・並び・文字コード）を突合して切替。" },
-    { name: "CSV E2E", base: "csv", person: 1, group: "E2E", code: "C6", owner: "両", deps: ["既存CSV出力の移行・廃止"], asis: 11.4, plan: 2.1, tobe: 0, status: "予定", progress: 0, desc: "画面操作から非同期生成・S3配置・DLまでの一連を通す。大量件数／0件／エラーの3系統を確認。" },
-    { name: "テスト設計・実施(CSV)", base: "csv", person: 1, group: "テスト", code: "QA1", owner: "両", deps: ["CSV E2E"], asis: 20.5, plan: 3.8, tobe: 0, status: "予定", progress: 0, desc: "①実装系22.4hに対するテスト仕様設計＋テスト実施。係数0.168＝イテレーション2実測。" },
-    { name: "PR・レビュー対応(CSV)", base: "csv", person: 1, group: "PR", code: "PR1", owner: "両", deps: [], asis: 12.5, plan: 2.3, tobe: 0, status: "予定", progress: 0, desc: "①実装系22.4hに対するPR本文作成＋レビュー指摘対応。係数0.102＝イテレーション2実測。" },
+    { name: "仕様精査(CSV出力)～PM合意", base: "csv", person: 1, group: "仕様精査", code: "SP1", owner: "両", deps: [], asis: 21.6, plan: 14.4, tobe: 14.4, status: "完了", progress: 1, desc: "既存CSV出力の棚卸し（対象一覧・列定義・文字コード・改行・件数上限）と、非同期帳票出力基盤へ寄せる際の論点整理〜PM合意。" },
+    { name: "CSV出力定義基盤", base: "csv", person: 1, group: "基盤", code: "C1", owner: "BE", deps: ["仕様精査(CSV出力)～PM合意"], asis: 22.9, plan: 4.2, tobe: 4.2, status: "完了", progress: 1, desc: "「定義1個＝1CSV」の出力定義型（列・並び・書式・文字コード）。イテレーション2のファイル定義基盤と同じ考え方を出力側へ適用。" },
+    { name: "CSV生成エンジン(非同期基盤へ移植)", base: "csv", person: 1, group: "基盤", code: "C2", owner: "BE", deps: ["CSV出力定義基盤"], asis: 30.5, plan: 5.6, tobe: 5.6, status: "完了", progress: 1, desc: "PDF帳票と同じ非同期ジョブ基盤・生成状況テーブル・S3成果物の上にCSV生成を載せる。同期・その場生成をやめ、大量件数でもタイムアウトしない構造へ。" },
+    { name: "生成/状況API拡張(CSV)", base: "csv", person: 1, group: "基盤", code: "C3", owner: "BE", deps: ["CSV生成エンジン(非同期基盤へ移植)"], asis: 15.3, plan: 2.8, tobe: 2.8, status: "完了", progress: 1, desc: "既存の生成/状況APIをCSV種別へ拡張（生成リクエスト・状況ポーリング・進捗率返却・キャンセル・DL URL発行）。帳票と同一I/Fで扱う。" },
+    { name: "画面出力連携(FE・CSV)", base: "csv", person: 1, group: "適用", code: "C4", owner: "FE", deps: ["生成/状況API拡張(CSV)"], asis: 19.1, plan: 3.5, tobe: 3.5, status: "完了", progress: 1, desc: "各画面のCSVダウンロードを非同期方式へ差し替え（リクエスト→進捗（プログレス）表示→完了でDL／エラー表示／生成中のキャンセル）。帳票出力のFE部品を再利用。" },
+    { name: "既存CSV出力の移行・廃止", base: "csv", person: 1, group: "適用", code: "C5", owner: "両", deps: ["画面出力連携(FE・CSV)"], asis: 22.9, plan: 4.2, tobe: 4.2, status: "完了", progress: 1, desc: "旧CSV出力経路を新基盤へ順次移行し、重複した実装を廃止。出力結果の同一性（列・並び・文字コード）を突合して切替。" },
+    { name: "CSV E2E", base: "csv", person: 1, group: "E2E", code: "C6", owner: "両", deps: ["既存CSV出力の移行・廃止"], asis: 11.4, plan: 2.1, tobe: 2.1, status: "完了", progress: 1, desc: "画面操作から非同期生成・S3配置・DLまでの一連を通す。大量件数／0件／エラーの3系統を確認。" },
+    { name: "テスト設計・実施(CSV)", base: "csv", person: 1, group: "テスト", code: "QA1", owner: "両", deps: ["CSV E2E"], asis: 20.5, plan: 3.8, tobe: 3.8, status: "完了", progress: 1, desc: "①実装系22.4hに対するテスト仕様設計＋テスト実施。係数0.168＝イテレーション2実測。" },
+    { name: "PR・レビュー対応(CSV)", base: "csv", person: 1, group: "PR", code: "PR1", owner: "両", deps: [], asis: 12.5, plan: 2.3, tobe: 2.3, status: "完了", progress: 1, desc: "①実装系22.4hに対するPR本文作成＋レビュー指摘対応。係数0.102＝イテレーション2実測。" },
+
+    // ───────── ⑧ N社認証認可（PWのAIエージェント群のうち認証認可担当をN社向け＝自社標準アーキへ調整）─────────
+    //   2026-09-03 MTG で追加。合計4人日（28.8h）＝人員1・2へ2人日（14.4h）ずつ。
+    { name: "認証認可エージェント群の切り出し", base: "nauth", person: 2, group: "基盤", code: "NA1", owner: "両", deps: [], asis: 14.4, plan: 14.4, tobe: 0, status: "予定", progress: 0, desc: "人員2：2人日。PW案件のAIエージェント群のうち、認証認可基盤の設計・実装・テストに関わるエージェント・スキルを切り出す。" },
+    { name: "自社標準アーキ向け調整(N社)", base: "nauth", person: 1, group: "適用", code: "NA2", owner: "両", deps: ["認証認可エージェント群の切り出し"], asis: 14.4, plan: 14.4, tobe: 0, status: "予定", progress: 0, desc: "人員1：2人日。切り出したエージェントをN社案件向け（自社標準アーキテクチャ）に調整し、使い方を引き渡す。合わない場合は合わない理由を整理して返す。" },
 
     // ───────── ② 通知基盤（アプリ内通知＋既存SMS連携I/Fの再利用）─────────
     { name: "仕様精査(通知基盤)～PM合意", base: "notify", person: 2, group: "仕様精査", code: "SP2", owner: "両", deps: [], asis: 21.6, plan: 14.4, tobe: 0, status: "予定", progress: 0, desc: "通知の種別・宛先（ロール／デポ／個人）・チャネル（アプリ内・メール・SMS）・既読管理・再送方針の整理〜PM合意。業務イベントの棚卸しを含む。" },
@@ -91,11 +98,11 @@ const ITERATION3_DATA = {
     { name: "テスト設計・実施(メッセージ基盤)", base: "message", person: 2, group: "テスト", code: "QA7", owner: "両", deps: ["メッセージE2E"], asis: 19.9, plan: 3.6, tobe: 0, status: "予定", progress: 0, desc: "⑦実装系21.7hに対するテスト仕様設計＋テスト実施（未定義ID・引数不一致・多重エラー・サーバー無応答の境界値を含む）。係数0.168。" },
     { name: "PR・レビュー対応(メッセージ基盤)", base: "message", person: 2, group: "PR", code: "PR7", owner: "両", deps: [], asis: 12.1, plan: 2.2, tobe: 0, status: "予定", progress: 0, desc: "⑦実装系21.7hに対するPR本文作成＋レビュー指摘対応。係数0.102。" },
     // ───────── その他工数（イテレーション2の反省を反映した先取り枠）─────────
-    { name: "AIエージェント不備 調査・改修枠①", base: "other", person: 1, group: "その他工数", code: "O1", owner: "両", deps: [], asis: 10.0, plan: 10.0, tobe: 0, status: "予定", progress: 0, desc: "イテレーション2の課題対応。エージェントの不備の調査・改修は毎回発生するため、実績（デバッグ／設計エージェント計28h）を踏まえ人員1分を予め見積もる。" },
+    { name: "AIエージェント不備 調査・改修枠①", base: "other", person: 1, group: "その他工数", code: "O1", owner: "両", deps: [], asis: 10.0, plan: 10.0, tobe: 7.2, status: "着手中", progress: 0.75, desc: "イテレーション2の課題対応。エージェントの不備の調査・改修は毎回発生するため、実績（デバッグ／設計エージェント計28h）を踏まえ人員1分を予め見積もる。" },
     { name: "AIエージェント不備 調査・改修枠②", base: "other", person: 2, group: "その他工数", code: "O2", owner: "両", deps: [], asis: 10.0, plan: 10.0, tobe: 0, status: "予定", progress: 0, desc: "同上・人員2分。イテレーション2では見積外だったため実績が計画超過として現れた。今回は枠として明示する。" },
 
     // ───────── 予備工数 ─────────
-    { name: "予備工数1", base: "reserve", person: 1, group: "予備工数", code: "RS1", owner: "両", deps: [], asis: 20.0, plan: 20.0, tobe: 0, status: "予定", progress: 0, desc: "人員1の予備。仕様変更・割り込み・追加調査の吸収枠。" },
+    { name: "予備工数1", base: "reserve", person: 1, group: "予備工数", code: "RS1", owner: "両", deps: [], asis: 20.0, plan: 20.0, tobe: 7.2, status: "着手中", progress: 0.4, desc: "人員1の予備。仕様変更・割り込み・追加調査の吸収枠。" },
     { name: "予備工数2", base: "reserve", person: 2, group: "予備工数", code: "RS2", owner: "両", deps: [], asis: 20.0, plan: 20.0, tobe: 1.55, status: "着手中", progress: 0.08, desc: "人員2の予備。仕様変更・割り込み・追加調査の吸収枠。／9/1-9/2分 1.55h（band AI稼働）＝PW-287 緯度経度取得APIの方式選定 0.72h（イテレーション3の計画外・主要部分は9/3で次回計上）／コードレビュー・商品マスタのマスク確認など 0.53h／AWS費用（NAT Gateway課金）の確認 0.30h。" },
     { name: "AI改善工数①", base: "reserve", person: 1, group: "予備工数", code: "AI1", owner: "両", deps: [], asis: 20.0, plan: 20.0, tobe: 0, status: "予定", progress: 0, desc: "人員1：AI駆動そのものを良くするための枠。エージェント／スキル・プロンプト・インプット資料の改善、オーケストレーションの見直しなど。イテレーション2で計画外に発生した分を、今回は最初から枠として確保する。" },
     { name: "AI改善工数②", base: "reserve", person: 2, group: "予備工数", code: "AI2", owner: "両", deps: [], asis: 20.0, plan: 20.0, tobe: 0, status: "予定", progress: 0, desc: "人員2：同上。AI駆動の改善（エージェント整備・spec運用・レビュープロセス）に充てる枠。" },
