@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>議事まとめ 2026-09-08</title>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body {
+    font-family: -apple-system, "Hiragino Kaku Gothic ProN", "Yu Gothic", system-ui, sans-serif;
+    color: #1f2937;
+    background: #fafafa;
+    padding: 12px 28px 6px;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+  .page { max-width: 1240px; margin: 0 auto; height: 100%; display: flex; flex-direction: column; }
+  h1 { font-size: 18px; margin: 0; border-bottom: 3px solid #2563eb; padding-bottom: 5px; }
+  .sub { color: #6b7280; font-size: 11.5px; margin: 5px 0 8px; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1.08fr;
+    gap: 14px;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+  }
+  .panel {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 9px 11px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: auto;
+  }
+  h2 { font-size: 12px; margin: 0 0 5px; padding-left: 8px; border-left: 3px solid #2563eb; }
+  h2.amber { border-left-color: #f59e0b; }
+  h2.indigo { border-left-color: #4f46e5; }
+  h2.green { border-left-color: #10b981; }
+  h2.red { border-left-color: #dc2626; }
+
+  .items { display: flex; flex-direction: column; gap: 3px; }
+  .item {
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 10.5px;
+    line-height: 1.38;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .item .num {
+    background: #2563eb;
+    color: white;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 11px;
+    flex-shrink: 0;
+  }
+  .item.amber .num { background: #f59e0b; }
+  .item.indigo .num { background: #4f46e5; }
+  .item.green .num { background: #10b981; }
+  .item.red .num { background: #dc2626; }
+  .item .title { font-weight: 600; color: #1f2937; }
+  .item .desc { color: #4b5563; margin-top: 1px; font-size: 10px; }
+  .item .desc a, .ref-line a { color: #2563eb; text-decoration: none; }
+  .item .desc a:hover, .ref-line a:hover { text-decoration: underline; }
+
+  .item-detail {
+    margin-top: 3px;
+    background: #f9fafb;
+    border-left: 2px solid #2563eb;
+    border-radius: 3px;
+    padding: 3px 7px;
+    font-size: 10px;
+    line-height: 1.4;
+    color: #374151;
+  }
+  .item-detail .head {
+    font-size: 9.5px;
+    font-weight: 700;
+    color: #1e40af;
+    letter-spacing: 0.04em;
+    margin-bottom: 2px;
+  }
+  .item-detail ul { margin: 0; padding-left: 15px; }
+  .item-detail li { margin: 1px 0; }
+  .item-detail.amber { border-left-color: #f59e0b; }
+  .item-detail.amber .head { color: #b45309; }
+  .item-detail.red { border-left-color: #dc2626; }
+  .item-detail.red .head { color: #b91c1c; }
+
+  .ref-line { margin-top: 5px; font-size: 10.5px; color: #6b7280; padding-left: 4px; }
+
+  /* 下段: 決定事項（全幅・4カラム） */
+  .panel.bottom { margin-top: 7px; flex: none; overflow: visible; padding: 8px 12px 9px; }
+  .panel.bottom .decisions { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 7px; }
+  .panel.bottom .decision { padding: 5px 8px; font-size: 10px; line-height: 1.42; }
+  .panel.bottom .quote { margin-top: 6px; padding: 4px 8px; font-size: 9.5px; line-height: 1.45; }
+  .quote.info { background: #eef2ff; border-left-color: #4f46e5; color: #312e81; }
+  .quote.info .who { color: #4338ca; }
+
+  /* 決定事項・ネクストアクション */
+  .decisions { display: flex; flex-direction: column; gap: 6px; }
+  .decision {
+    background: #ecfdf5;
+    border-left: 3px solid #10b981;
+    border-radius: 4px;
+    padding: 8px 10px;
+    font-size: 11.5px;
+    line-height: 1.55;
+  }
+  .decision .tag {
+    display: inline-block;
+    background: #10b981;
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 3px;
+    margin-right: 6px;
+    vertical-align: 1px;
+  }
+  .decision .tag.action { background: #2563eb; }
+  .decision .tag.hold { background: #9ca3af; }
+
+  /* 最終メッセージ・補足 */
+  .quote {
+    background: #fef3c7;
+    border-left: 3px solid #f59e0b;
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 10.5px;
+    line-height: 1.55;
+    color: #78350f;
+    font-style: italic;
+  }
+  .quote .who { display: block; font-style: normal; font-weight: 700; font-size: 10px; color: #b45309; margin-bottom: 2px; letter-spacing: 0.04em; }
+  .quote a { color: #b45309; font-style: normal; }
+
+  .block { margin-bottom: 6px; }
+  .block:last-child { margin-bottom: 0; }
+  .panel .block h2 { margin-bottom: 5px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>議事まとめ 2026-09-08 ― 年内プランニングのすり合わせ／「仕事のやり方を変える手段」としてのAI駆動</h1>
+  <div class="sub">参加者: 金子社長・礼貴 ／ プランニングすり合わせMTG。前回: <a href="minutes_2026-08-26.html">議事まとめ 2026-08-26</a>／関連: <a href="workitems3.html">イテレーション3 タスク管理</a>／元メモ: <a href="../../.work/2026-09-08_議事録_プランニング.md">.work/2026-09-08_議事録_プランニング.md</a></div>
+
+  <div class="grid">
+
+    <!-- 左: ① 年内目標の提示と評価 / ② 開発基盤ではない / ③ 会社のステージ -->
+    <div class="panel">
+      <div class="block">
+        <h2 class="indigo">① 年内に成し遂げること（礼貴の提示）と、社長の評価</h2>
+        <div class="items">
+          <div class="item indigo">
+            <span class="num">案</span>
+            <div>
+              <div class="title">3つの目標を提示 ― 向いている方向と目標の距離感の確認が本日の目的</div>
+              <div class="item-detail">
+                <ul>
+                  <li><strong>①PW専用に作ったものをCCT標準の案件向けAI駆動開発基盤にする</strong> ― 標準機に乗れば多数の案件へ速やかに適用でき効果が高い。</li>
+                  <li><strong>②AI駆動でカバーできる範囲を増やす活動を継続</strong>する。</li>
+                  <li><strong>③12月の全社会議で部長陣向けにプレゼン</strong>する（開催可否は要確認）。</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="item indigo">
+            <span class="num">評</span>
+            <div>
+              <div class="title">方向性はOK。ただし価値は①に圧倒的に集中している</div>
+              <div class="desc"><strong>②は①に包含</strong>される話、<strong>③は①の認識共有</strong>のためで①とセット。よって<strong>「①の中身のすり合わせ」が本質</strong>であり、そこに社長の認識を伝えたい、という展開になった。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2 class="red">② 「開発基盤」ではない ― 仕事のやり方を変える手段である</h2>
+        <div class="items">
+          <div class="item red">
+            <span class="num">是</span>
+            <div>
+              <div class="title">物理的には開発基盤だが、正確には基盤を作りたいのではない</div>
+              <div class="desc"><strong>やり方そのものが変わるレベルの変化点</strong>であり、AI駆動は<strong>仕事のやり方を変えてもらう手段</strong>。工程自体が変わらざるを得ない、そのきっかけにすべき。</div>
+            </div>
+          </div>
+          <div class="item red">
+            <span class="num">職</span>
+            <div>
+              <div class="title">展開したいのはAI駆動開発ではなく「職種の切り替え」</div>
+              <div class="desc">メインフレーム→Web期は近かったが<strong>統合開発環境世代はやり方がガラッと変わる経験がない</strong>初体験の変革。本質は<strong>職種を切り替えるくらい新しいキャリア</strong>で、<strong>各エンジニアが適応できないと危ない</strong>というレベル。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2 class="amber">③ 会社のステージ ― 営業は近代化済み、次はデリバリー</h2>
+        <div class="items">
+          <div class="item amber">
+            <span class="num">営</span>
+            <div>
+              <div class="title">受注手前（営業プロセス）は既にアップデートを終えている</div>
+              <div class="desc">個別受注の平均は<strong>3,000万円 → 今は3〜4億円アベレージ</strong>、今年は<strong>10億超の粒</strong>も。<strong>受注規模がこの2年で約10倍</strong>。将軍採用でほぼ総入れ替えし<strong>職種としてアップデートした</strong>。</div>
+            </div>
+          </div>
+          <div class="item amber">
+            <span class="num">次</span>
+            <div>
+              <div class="title">今回メスを入れるのは受注→納品のデリバリープロセス・組織力・エンジニアの働き方</div>
+              <div class="desc">AIの潮流が<strong>仮になかったとしても</strong>、今のステージでは<strong>積み残してきた課題</strong>としてアップデートするタイミング。そこにAIが来たので<strong>避けて通れない良い機会</strong>として載せる。</div>
+            </div>
+          </div>
+          <div class="item amber">
+            <span class="num">線</span>
+            <div>
+              <div class="title">基本線は「今の組織を維持したままアップデート」</div>
+              <div class="desc"><strong>順応できない人材を切り捨てられる規模感ではない</strong>し、そうすると文化が変わる。<strong>今いる人材のマインドセットとスキルを順応</strong>させ、<strong>人は変えずとも仕事ぶりが変わる状況</strong>に持っていく。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右: ④ 総合職 / ⑤ 仮想部下 -->
+    <div class="panel">
+      <div class="block">
+        <h2>④ エンジニアは総合職になる ― 目的はお客様の競争力向上</h2>
+        <div class="items">
+          <div class="item">
+            <span class="num">客</span>
+            <div>
+              <div class="title">我々は開発会社ではない。エンタープライズのソリューションベンダーである</div>
+              <div class="item-detail">
+                <div class="head">ターゲット顧客の性質と、そこでの「課題」の意味</div>
+                <ul>
+                  <li>お客様は<strong>業務が普通に回っているレベルの事業会社</strong>で当面揺らがず資金の余力もあるが、<strong>上場会社として強いライバルと売上利益を比較される</strong>競争下にある。</li>
+                  <li>ゆえに課題とは<strong>競争力を引き上げられるところ</strong>。我々は開発内容ではなく<strong>相手方の業務をどう変えたいかを支援する</strong>立ち位置にしかなり得ない。</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="item">
+            <span class="num">手</span>
+            <div>
+              <div class="title">AIは手段。目的はお客様の競争力向上</div>
+              <div class="desc"><strong>原価構造を薄くする・開発工期を短くする</strong>のは、より多くのお客様に喜んでもらうための手段。<strong>「自分の作業を良くするためのAI駆動開発」にフォーカスすると、そこは今までと一緒</strong>。エンジニア自身が<strong>お客様に良い点を訴求できる</strong>ようになってほしい（＝総合職の務め）。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2 class="green">⑤ 裏コンセプト ― AIを「仮想部下」として使う働き方に変える</h2>
+        <div class="items">
+          <div class="item green">
+            <span class="num">工</span>
+            <div>
+              <div class="title">①でハッキリさせる工程 ― 要件定義（近い将来）と設計以降</div>
+              <div class="desc"><strong>要件定義</strong>はスコープを後回しにしたが、エンタープライズでは<strong>要求要件の整理から受注するケースが一番の仕事</strong>のため、段階的整備としていずれ入る。<strong>設計以降</strong>は「工数が減る」に加え、<strong>AIがプランを出し人間がレビューして指摘する</strong>業務の仕方に変わる ― この変化を価値として認識してもらう。</div>
+            </div>
+          </div>
+          <div class="item green">
+            <span class="num">形</span>
+            <div>
+              <div class="title">自分でプロンプトを書いてAIにやらせる、は狙いではない</div>
+              <div class="item-detail">
+                <ul>
+                  <li>それは<strong>AIを道具に自分がプレイヤー業務をやっている</strong>状態で、統合開発環境の便利機能の一つに近い。<strong>プレイヤーとしては何も変わっていない</strong>。</li>
+                  <li>狙いは<strong>依頼を渡す → 上がったアウトプットをレビュー → 指摘して突き返す → リバイスされて上がる</strong>ループ。<strong>作業するのはAI、判断するのは人間</strong>。</li>
+                  <li><strong>最後の一手（微修正）は自分でやってよい</strong>。95点まで部下に作らせ仕上げは自分、という分業は上司部下間でも常にある。</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="item green">
+            <span class="num">経</span>
+            <div>
+              <div class="title">プレイヤー優秀≠マネージャー優秀 ― その構造問題への処方</div>
+              <div class="desc">プレイヤー優秀な人がマネージャーに上がるが仕事のやり方が違い、<strong>指示を出せず自分でやってしまいボトルネックになる</strong>。<strong>仮想部下の経験はBPチームや部下をつけて働くための仮想経験</strong>で、AI駆動ならそれが日常になる。<strong>50人規模の案件で連携できない人材は撲滅が必要</strong>なステージ。</div>
+            </div>
+          </div>
+          <div class="item green">
+            <span class="num">補</span>
+            <div>
+              <div class="title">礼貴の補足 ― レビューサイクルが桁で短くなるので練度も上がる</div>
+              <div class="desc">人間相手なら1〜2日周期だった「依頼→アウトプット→指摘」が<strong>15〜30分周期</strong>で回り、同じことに集中できるため<strong>指示とレビューの練度そのものが上がる</strong>。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 下段: 決定事項・アクションアイテム -->
+  <div class="panel bottom">
+    <h2>決定事項・アクションアイテム</h2>
+    <div class="decisions">
+      <div class="decision"><span class="tag">決定</span><strong>年内目標は①に一本化</strong> — ②は①に包含、③は①の認識共有手段と位置づけ。①の狙いは基盤構築ではなく<strong>エンジニアの働き方を総合職型に変えること</strong>と再定義した。</div>
+      <div class="decision"><span class="tag">決定</span><strong>パーツは量産せず職人的に一個ずつ磨く</strong> — 中途半端なものを大量に作らず<strong>筋の通ったパーツを適切な期間かけて一個ずつ</strong>。半年〜1年で使える範囲が広がったら横展開する。</div>
+      <div class="decision"><span class="tag">決定</span><strong>アウトプット単位はスプリント区切り</strong> — 毎月納品ではなく<strong>スプリント2回でパーツが1個増える</strong>程度。PW機能を素材に作り、最後に磨く期間を設けて<strong>道具まで出す</strong>形が理想。</div>
+      <div class="decision"><span class="tag action">アクション</span><strong>本コンセプトを次回以降のMTGへ反映し水野氏と共有</strong> — PW案件の処理とAI駆動の仕組み作りは重なるが別の行為と意識し、<strong>実際のお題で一人PoCとして試しながら</strong>着地の構図にこだわって仕上げる。</div>
+    </div>
+    <div class="quote info">
+      <span class="who">③ 部長陣向けプレゼンの構図 ― 入り口は経済効果、中身はコンセプト</span>
+<strong>入り口は「生産性が上がる」「得られる経済効果」をハッキリ見せる</strong>。ここでマネージャーは興味を持つ。その上で<strong>中身の説明でコンセプトに触れる</strong> ―「プレイヤーの働き方を底上げするのではなく、<strong>AIを部下として使いこなすエンジニアの総合職としての働き方が自然と身につくよう組み立てた</strong>」。この形なら<strong>AIの進化をそのまま受けて伸びていける</strong>。
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>議事まとめ 2026-09-03</title>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body {
+    font-family: -apple-system, "Hiragino Kaku Gothic ProN", "Yu Gothic", system-ui, sans-serif;
+    color: #1f2937;
+    background: #fafafa;
+    padding: 12px 28px 6px;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+  .page { max-width: 1240px; margin: 0 auto; height: 100%; display: flex; flex-direction: column; }
+  h1 { font-size: 18px; margin: 0; border-bottom: 3px solid #2563eb; padding-bottom: 5px; }
+  .sub { color: #6b7280; font-size: 11.5px; margin: 5px 0 8px; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1.12fr;
+    gap: 14px;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+  }
+  .panel {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 9px 11px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: auto;
+  }
+  h2 { font-size: 12px; margin: 0 0 5px; padding-left: 8px; border-left: 3px solid #2563eb; }
+  h2.amber { border-left-color: #f59e0b; }
+  h2.indigo { border-left-color: #4f46e5; }
+  h2.green { border-left-color: #10b981; }
+  h2.red { border-left-color: #dc2626; }
+
+  .items { display: flex; flex-direction: column; gap: 3px; }
+  .item {
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 10.5px;
+    line-height: 1.38;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .item .num {
+    background: #2563eb;
+    color: white;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 11px;
+    flex-shrink: 0;
+  }
+  .item.amber .num { background: #f59e0b; }
+  .item.indigo .num { background: #4f46e5; }
+  .item.green .num { background: #10b981; }
+  .item.red .num { background: #dc2626; }
+  .item .title { font-weight: 600; color: #1f2937; }
+  .item .desc { color: #4b5563; margin-top: 1px; font-size: 10px; }
+  .item .desc a, .ref-line a { color: #2563eb; text-decoration: none; }
+  .item .desc a:hover, .ref-line a:hover { text-decoration: underline; }
+
+  .item-detail {
+    margin-top: 3px;
+    background: #f9fafb;
+    border-left: 2px solid #2563eb;
+    border-radius: 3px;
+    padding: 3px 7px;
+    font-size: 10px;
+    line-height: 1.4;
+    color: #374151;
+  }
+  .item-detail .head {
+    font-size: 9.5px;
+    font-weight: 700;
+    color: #1e40af;
+    letter-spacing: 0.04em;
+    margin-bottom: 2px;
+  }
+  .item-detail ul { margin: 0; padding-left: 15px; }
+  .item-detail li { margin: 1px 0; }
+  .item-detail.amber { border-left-color: #f59e0b; }
+  .item-detail.amber .head { color: #b45309; }
+  .item-detail.red { border-left-color: #dc2626; }
+  .item-detail.red .head { color: #b91c1c; }
+
+  /* 下段: 決定事項（全幅・4カラム） */
+  .panel.bottom { margin-top: 7px; flex: none; overflow: visible; padding: 8px 12px 9px; }
+  .panel.bottom .decisions { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 7px; }
+  .panel.bottom .decision { padding: 5px 8px; font-size: 10px; line-height: 1.42; }
+  .panel.bottom .quote { margin-top: 6px; padding: 4px 8px; font-size: 9.5px; line-height: 1.45; }
+  .quote.info { background: #eef2ff; border-left-color: #4f46e5; color: #312e81; }
+  .quote.info .who { color: #4338ca; }
+
+  /* 決定事項・ネクストアクション */
+  .decisions { display: flex; flex-direction: column; gap: 6px; }
+  .decision {
+    background: #ecfdf5;
+    border-left: 3px solid #10b981;
+    border-radius: 4px;
+    padding: 8px 10px;
+    font-size: 11.5px;
+    line-height: 1.55;
+  }
+  .decision .tag {
+    display: inline-block;
+    background: #10b981;
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 3px;
+    margin-right: 6px;
+    vertical-align: 1px;
+  }
+  .decision .tag.action { background: #2563eb; }
+  .decision .tag.hold { background: #9ca3af; }
+
+  /* 最終メッセージ・補足 */
+  .quote {
+    background: #fef3c7;
+    border-left: 3px solid #f59e0b;
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 10.5px;
+    line-height: 1.55;
+    color: #78350f;
+    font-style: italic;
+  }
+  .quote .who { display: block; font-style: normal; font-weight: 700; font-size: 10px; color: #b45309; margin-bottom: 2px; letter-spacing: 0.04em; }
+  .quote a { color: #b45309; font-style: normal; }
+
+  .block { margin-bottom: 6px; }
+  .block:last-child { margin-bottom: 0; }
+  .panel .block h2 { margin-bottom: 5px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>議事まとめ 2026-09-03 ― 循環ループの収束保証と、責務分割・箇条書きの徹底</h1>
+  <div class="sub">参加者: 金子社長・礼貴・水野 ／ 16:01〜 定期MTG。前回: <a href="minutes_2026-08-26.html">議事まとめ 2026-08-26</a>／関連: <a href="workitems2.html">イテレーション2</a>・<a href="workitems3.html">イテレーション3 タスク管理</a>／元メモ: <a href="../../.work/2026-09-03_議事録.md">.work/2026-09-03_議事録.md</a></div>
+
+  <div class="grid">
+
+    <!-- 左: ① イテレーション2/3 / ② 日東工業案件 / ③ 順方向と逆方向の実証 -->
+    <div class="panel">
+      <div class="block">
+        <h2 class="indigo">① イテレーション2の結果と、イテレーション3の計画</h2>
+        <div class="items">
+          <div class="item indigo">
+            <span class="num">完</span>
+            <div>
+              <div class="title">イテレーション2は8月31日で完了 ― 予実精度が大幅に向上</div>
+              <div class="desc">イテレーション1との比較で<strong>スケジュールの予実精度が大幅に改善</strong>。開発上の迷いが減り、<strong>難易度の高いタスクの実装も完了</strong>できている。</div>
+            </div>
+          </div>
+          <div class="item indigo">
+            <span class="num">3</span>
+            <div>
+              <div class="title">イテレーション3は前回指摘どおりスコープを組み替えて9月1日スタート</div>
+              <div class="desc">CSV実出力・通知基盤・監査ログの代わりに、<strong>メッセージ基盤など汎用性の高いタスク</strong>へ組み替え。<strong>チーム合意済み</strong>で、現時点の予実はほぼ計画通り。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2>② 日東工業案件への対応方針</h2>
+        <div class="items">
+          <div class="item">
+            <span class="num">案</span>
+            <div>
+              <div class="title">中原氏が仲介する新規開発案件 ― 認証認可まわりでAI駆動開発を使いたい要望</div>
+              <div class="desc">現在<strong>要件定義まで完了</strong>し、9月から開発フェーズ。<strong>今月中にAI駆動開発の採用を決めたい</strong>という状況。</div>
+            </div>
+          </div>
+          <div class="item">
+            <span class="num">対</span>
+            <div>
+              <div class="title">礼貴が2日ほど確保し、PW側の認証認可の仕組みが使えるかを判断</div>
+              <div class="item-detail">
+                <ul>
+                  <li>先方のやりたい内容を理解し、<strong>PW案件で作成した認証認可の仕組みがどの程度使えるか</strong>を判断。</li>
+                  <li>使えれば<strong>組み立て方・使い方を伝え</strong>、以降は相談で受ける。合わない場合も<strong>理由を説明できる</strong>見込み。</li>
+                  <li><strong>EVMの日程に影響を与えない割り込みタスク</strong>として対応する。</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2 class="amber">③ 順方向×逆方向（リバース）プロセスの実証結果</h2>
+        <div class="items">
+          <div class="item amber">
+            <span class="num">実</span>
+            <div>
+              <div class="title">設計通りに順方向で構築すると、やはり頭打ちになり逆方向の手が必要になった</div>
+              <div class="desc">設計上でDBの追加等を明確に指定していたにもかかわらず、AIが<strong>突合テーブルを勝手に新規作成</strong>したり、<strong>自動生成の型と重複する型を生成</strong>してCI上で実害のないエラーを吐き続ける不具合が確認された。</div>
+            </div>
+          </div>
+          <div class="item amber">
+            <span class="num">循</span>
+            <div>
+              <div class="title">循環型ループを2〜3周回して、本来あるべき設計へ着地させることに成功</div>
+              <div class="desc"><strong>実装されたコードからAIに設計図を逆算（リバース）させ → 問題箇所を特定 → 設計に再反映して作らせる</strong>ループ。前回議論した仮説は実証できた。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右: ④ 収束保証 / ⑤ 責務分割 / ⑥ コミュニケーション是正 -->
+    <div class="panel">
+      <div class="block">
+        <h2 class="amber">④ 社長の指摘 ― 段階的正常化に「収束の保証」はない</h2>
+        <div class="items">
+          <div class="item amber">
+            <span class="num">危</span>
+            <div>
+              <div class="title">部分的な整合を重ねた結果、全体の整合が取れずに破綻するリスクを頭に置く</div>
+              <div class="item-detail amber">
+                <div class="head">プロセス管理として組み込むべきこと</div>
+                <ul>
+                  <li>段階的正常化のプロセスは有効だが、<strong>必ずゴールにたどり着く（収束する）保証はない</strong>。</li>
+                  <li>延々とループを回し続け、<strong>破綻したものを完成した気になってしまう</strong>のが最大の危険。</li>
+                  <li>「<strong>収束できない時は既存の人手による設計開発プロセスで行う</strong>」という<strong>検出パスやルール</strong>を、エージェントのスキルに組み込んでおくべき。</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2 class="green">⑤ データモデル変更時のエージェント責務分割</h2>
+        <div class="items">
+          <div class="item green">
+            <span class="num">課</span>
+            <div>
+              <div class="title">住所の保持形式の変更が、複数領域へ横断して影響した</div>
+              <div class="desc">配送テーブル等で<strong>1文で持っていた住所を市区町村・番地に分割</strong>する修正が、<strong>出荷指示取り込みやドライバー画面のAPI修正</strong>まで波及。<strong>1エージェントに広範囲を一度に任せると、コンテキストと指示が大きくなりすぎて拡大解釈</strong>を起こしていた。</div>
+            </div>
+          </div>
+          <div class="item green">
+            <span class="num">効</span>
+            <div>
+              <div class="title">責務の範囲を分割・並列化 ― スピードとバグ影響の両方が改善</div>
+              <div class="desc"><strong>コンテキストが1箇所に集中しない計画</strong>を立て、責務範囲を分割・並列化。<strong>拡大解釈による他機能へのバグ影響が減少</strong>し、<strong>同一ファイルの重複参照も減って</strong>テストと修正のロス時間を大幅に削減できた。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2 class="red">⑥ 説明プロセスの是正 ― 箇条書きコミュニケーションの徹底</h2>
+        <div class="items">
+          <div class="item red">
+            <span class="num">問</span>
+            <div>
+              <div class="title">「何を変えたか」「なぜ変えたか」がないまま、改善効果だけを報告している</div>
+              <div class="desc">聞き手は<strong>内容が分からないのに効果だけを聞かされる</strong>ことになり、ストレスフルな状況を招く。<strong>「課題は何か → 対策は何か → どうしたか」</strong>という起承転結の論理的な思考順序（プロトコル）に沿って話す必要がある。</div>
+            </div>
+          </div>
+          <div class="item red">
+            <span class="num">箇</span>
+            <div>
+              <div class="title">手元に箇条書きを用意し、上から下にそのまま読み上げる</div>
+              <div class="item-detail red">
+                <div class="head">なぜ箇条書きで足りるのか</div>
+                <ul>
+                  <li>頭の中で議題をポンポンと飛ばさず、落ち着いて<strong>用意した箇条書きを読み上げるスタイル</strong>をベースにする。</li>
+                  <li><strong>人間の口は1つ</strong>であり、高等なコミュニケーションも<strong>1次元の箇条書きにしかならない</strong>。</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 下段: 決定事項・アクションアイテム -->
+  <div class="panel bottom">
+    <h2>決定事項・アクションアイテム</h2>
+    <div class="decisions">
+      <div class="decision"><span class="tag">決定</span><strong>イテレーション3はスコープ組み替えで進める</strong> — CSV実出力・通知基盤・監査ログに代えて、メッセージ基盤など汎用性の高いタスクを対象とする（チーム合意済み）。</div>
+      <div class="decision"><span class="tag action">アクション</span><strong>日東工業案件は礼貴が2日ほど確保して判断</strong> — PW案件側の認証認可の仕組みが使えるかを見極める。EVMの日程に影響を与えない割り込みタスクとして対応。</div>
+      <div class="decision"><span class="tag action">アクション</span><strong>収束しない場合の離脱ルールをスキルへ組み込む</strong> — 「収束できない時は既存の人手による設計開発プロセスで行う」検出パスやルールをエージェントのスキルに実装する。</div>
+      <div class="decision"><span class="tag action">アクション</span><strong>箇条書きでの説明を3日で定着させる</strong> — 水野は手元の箇条書きを上から読み上げる話し方に是正。礼貴は箇条書きで話すよう指示し、順序がおかしい場合はその場で指摘する。</div>
+    </div>
+    <div class="quote info">
+      <span class="who">説明の型 ― ピラミッドストラクチャー「1行＋最大3行」</span>
+箇条書きは万能で、<strong>綺麗なスライドでなくても十分に相手を説得できる</strong>。基本は<strong>結論1行＋根拠・具体例のボディ最大3行</strong>の計4行セット。<strong>一撃で100点を取ろうとせず</strong>、まずこの4行で会話を成立させ、詳細は質疑応答で処理する。これで<strong>人間のコミュニケーションのほぼ100%に対処可能</strong>。
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
