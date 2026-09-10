@@ -60,15 +60,17 @@
           <div class="body"><div class="desc">AsIs／ToBe計画／ToBe実績の工数比較。基盤別＋合計タブ。</div>
           <a class="path" href="aidd_report3.html">aidd_report3.html →</a></div>
         </details></li>
-        <li><details class="item issue">
-          <summary>議題⑮: N社案件へのAI駆動開発の関わり方（認証・認可）</summary>
-          <div class="body"><div class="desc">要件定義完了・開発着手前。工数短縮が目的。今回は概要を話してよいかの確認までで、展開の判断は扱わない。</div>
-          <a class="path" href="problem_ex_15.html">problem_ex_15.html →</a></div>
+        <li><details class="item issue" open>
+          <summary>議題⑮: N社案件</summary>
+          <div class="body">
+          <a class="path" href="policy_n_case.md">policy_n_case.md → 報告と方針確認（要素技術はそのまま使える／エージェント調整をこちらで担うか）</a><br>
+          <a class="path" href="problem_ex_15.html">problem_ex_15.html → AI駆動開発の関わり方（認証・認可、要件定義完了・開発着手前）</a></div>
         </details></li>
-        <li><details class="item issue">
-          <summary>課題事例⑭: AIエージェントリバース型（デバッグ2%課題：設計型の続き）</summary>
-          <div class="body"><div class="desc">PW-210 は順方向に詰めてもAIは正の実装に届かなかった。逆方向に起こすと誤解4件が設計カテゴリの穴として出た。台帳・昇格ルール・突合の常設化で仕組みに変える。</div>
-          <a class="path" href="problem_ex_14.html">problem_ex_14.html →</a></div>
+        <li><details class="item issue" open>
+          <summary>課題事例⑭: バグ2%問題の続き</summary>
+          <div class="body">
+          <a class="path" href="theme_bug2_and_design_timing.md">theme_bug2_and_design_timing.md → 設計をどこで詰めるか（実装前に詰める型／実装後に突き合わせる型）</a><br>
+          <a class="path" href="problem_ex_14.html">problem_ex_14.html → AIエージェントリバース型（逆方向で誤解4件を設計カテゴリの穴として抽出）</a></div>
         </details></li>
         <li><details class="item issue">
           <summary>課題事例⑦: サンプリングレビューの内部統制化検討</summary>
@@ -177,6 +179,11 @@
     <h2>議事まとめ</h2>
     <ul class="links">
       <li><details class="item" open>
+        <summary>議事まとめ 2026-09-09（実装前確認の質問を「主張」と「根拠」の2軸へ）</summary>
+        <div class="body">
+        <a class="path" href="minutes_2026-09-09.html">minutes_2026-09-09.html →</a></div>
+      </details></li>
+      <li><details class="item">
         <summary>議事まとめ 2026-09-08（年内プランニング / 「仕事のやり方を変える手段」としてのAI駆動）</summary>
         <div class="body">
         <a class="path" href="minutes_2026-09-08.html">minutes_2026-09-08.html →</a></div>
@@ -290,7 +297,10 @@ document.querySelectorAll('details.item').forEach(function(d){
   var body = d.querySelector('.body');
   if (body && href) {
     body.style.cursor = 'pointer';
-    body.addEventListener('click', function(){ location.href = href; });
+    body.addEventListener('click', function(e){
+      if (e.target.closest('a')) { return; } // 個別リンクはそのリンク先へ
+      location.href = href;
+    });
   }
 });
 </script>

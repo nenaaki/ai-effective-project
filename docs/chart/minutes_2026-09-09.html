@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>議事まとめ 2026-09-09</title>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body {
+    font-family: -apple-system, "Hiragino Kaku Gothic ProN", "Yu Gothic", system-ui, sans-serif;
+    color: #1f2937;
+    background: #fafafa;
+    padding: 12px 28px 6px;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+  .page { max-width: 1240px; margin: 0 auto; height: 100%; display: flex; flex-direction: column; }
+  h1 { font-size: 18px; margin: 0; border-bottom: 3px solid #2563eb; padding-bottom: 5px; }
+  .sub { color: #6b7280; font-size: 11.5px; margin: 5px 0 8px; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1.12fr;
+    gap: 14px;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+  }
+  .panel {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 9px 11px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: auto;
+  }
+  h2 { font-size: 12px; margin: 0 0 5px; padding-left: 8px; border-left: 3px solid #2563eb; }
+  h2.amber { border-left-color: #f59e0b; }
+  h2.indigo { border-left-color: #4f46e5; }
+  h2.green { border-left-color: #10b981; }
+  h2.red { border-left-color: #dc2626; }
+
+  .items { display: flex; flex-direction: column; gap: 3px; }
+  .item {
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 10.5px;
+    line-height: 1.38;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .item .num {
+    background: #2563eb;
+    color: white;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 11px;
+    flex-shrink: 0;
+  }
+  .item.amber .num { background: #f59e0b; }
+  .item.indigo .num { background: #4f46e5; }
+  .item.green .num { background: #10b981; }
+  .item.red .num { background: #dc2626; }
+  .item .title { font-weight: 600; color: #1f2937; }
+  .item .desc { color: #4b5563; margin-top: 1px; font-size: 10px; }
+  .item .desc a, .ref-line a { color: #2563eb; text-decoration: none; }
+  .item .desc a:hover, .ref-line a:hover { text-decoration: underline; }
+
+  .item-detail {
+    margin-top: 3px;
+    background: #f9fafb;
+    border-left: 2px solid #2563eb;
+    border-radius: 3px;
+    padding: 3px 7px;
+    font-size: 10px;
+    line-height: 1.4;
+    color: #374151;
+  }
+  .item-detail .head {
+    font-size: 9.5px;
+    font-weight: 700;
+    color: #1e40af;
+    letter-spacing: 0.04em;
+    margin-bottom: 2px;
+  }
+  .item-detail ul { margin: 0; padding-left: 15px; }
+  .item-detail li { margin: 1px 0; }
+  .item-detail.amber { border-left-color: #f59e0b; }
+  .item-detail.amber .head { color: #b45309; }
+  .item-detail.red { border-left-color: #dc2626; }
+  .item-detail.red .head { color: #b91c1c; }
+
+  /* 下段: 決定事項（全幅・4カラム） */
+  .panel.bottom { margin-top: 7px; flex: none; overflow: visible; padding: 8px 12px 9px; }
+  .panel.bottom .decisions { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 7px; }
+  .panel.bottom .decision { padding: 5px 8px; font-size: 10px; line-height: 1.42; }
+  .panel.bottom .quote { margin-top: 6px; padding: 4px 8px; font-size: 9.5px; line-height: 1.45; }
+  .quote.info { background: #eef2ff; border-left-color: #4f46e5; color: #312e81; }
+  .quote.info .who { color: #4338ca; }
+
+  /* 決定事項・ネクストアクション */
+  .decisions { display: flex; flex-direction: column; gap: 6px; }
+  .decision {
+    background: #ecfdf5;
+    border-left: 3px solid #10b981;
+    border-radius: 4px;
+    padding: 8px 10px;
+    font-size: 11.5px;
+    line-height: 1.55;
+  }
+  .decision .tag {
+    display: inline-block;
+    background: #10b981;
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 3px;
+    margin-right: 6px;
+    vertical-align: 1px;
+  }
+  .decision .tag.action { background: #2563eb; }
+  .decision .tag.hold { background: #9ca3af; }
+
+  /* 最終メッセージ・補足 */
+  .quote {
+    background: #fef3c7;
+    border-left: 3px solid #f59e0b;
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 10.5px;
+    line-height: 1.55;
+    color: #78350f;
+    font-style: italic;
+  }
+  .quote .who { display: block; font-style: normal; font-weight: 700; font-size: 10px; color: #b45309; margin-bottom: 2px; letter-spacing: 0.04em; }
+  .quote a { color: #b45309; font-style: normal; }
+
+  .block { margin-bottom: 6px; }
+  .block:last-child { margin-bottom: 0; }
+  .panel .block h2 { margin-bottom: 5px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>議事まとめ 2026-09-09 ― 実装前確認の質問は「主張」と「根拠」の2軸に集約する</h1>
+  <div class="sub">参加者: 社長・PM ／ レビュープロセス検討の壁打ち会議。前回: <a href="minutes_2026-09-08.html">議事まとめ 2026-09-08</a>／元メモ: <a href="../../.work/2026-09-09_議事録.md">.work/2026-09-09_議事録.md</a></div>
+
+  <div class="grid">
+
+    <!-- 左: ① 持参した案 / ② 指摘A: 重いプロセスにするな -->
+    <div class="panel">
+      <div class="block">
+        <h2 class="indigo">① 持参した案 ― 目的から逆算して質問を再検討した</h2>
+        <div class="items">
+          <div class="item indigo">
+            <span class="num">前</span>
+            <div>
+              <div class="title">前回「目的を見据えた質問になっていない」と指摘され、層別の設問を作り直した</div>
+              <div class="desc">プレゼンテーション層・ロジック層・データ層・非機能に分けて用意した質問群を、<strong>目的からの逆算</strong>で組み替えて持参した。</div>
+            </div>
+          </div>
+          <div class="item indigo">
+            <span class="num">状</span>
+            <div>
+              <div class="title">目指す状態の再定義 ― エンジニア側とPM側の2視点</div>
+              <div class="item-detail">
+                <div class="head">「任せてよい状態」の定義</div>
+                <ul>
+                  <li>エンジニア: <strong>機能開発を具体的な計画を持って進行できる</strong>状態。</li>
+                  <li>PM: 対象の機能開発を<strong>エンジニアに任せてよいかを判断できる</strong>状態。</li>
+                  <li>すなわち、要件定義・基本設計で決まった<strong>外堀を理解</strong>し、中身の<strong>タスク・工数・期日とその根拠を答えられる解像度</strong>にあること。</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="item indigo">
+            <span class="num">案</span>
+            <div>
+              <div class="title">中間ゴールを3段構えで提案（質問決定 9/11 → 判定基準 9/18 → 実機能検証 9月中）</div>
+              <div class="desc">質問事項の決定、レビュー会の判定基準の決定、実機能での検証という<strong>段階的なスケジュール</strong>を提示した。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2 class="red">② 指摘A ― これは「レビュー会」ではなく日常の仕事の受け渡し</h2>
+        <div class="items">
+          <div class="item red">
+            <span class="num">重</span>
+            <div>
+              <div class="title">定義変更を伴う重いプロセスに組み上げる必要はない</div>
+              <div class="desc">実体は、上司が部下に仕事をお願いする際の<strong>「お前分かっているか」の確認作業</strong>に過ぎない。総合職・上位役職者同士なら当たり前にやる内容であり、<strong>10〜15分のやり取り／2日程度の工数</strong>で終わる話。<strong>スケジュールや中間ゴールを重々しく積む対象ではない</strong>。</div>
+            </div>
+          </div>
+          <div class="item red">
+            <span class="num">簡</span>
+            <div>
+              <div class="title">自分流のフレームに落とし込まず、箇条書きで運用する</div>
+              <div class="desc">難しく考えすぎず、<strong>おかしいところを箇条書きで書き出す → フィードバックを受ける → WBSに落とす</strong>というシンプルな進め方で十分である。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右: ③ 指摘B: 本題の先出し / ④ 質問構造の再整理 -->
+    <div class="panel">
+      <div class="block">
+        <h2 class="red">③ 指摘B ― 「100点を出して間違いを指摘させる」は下の下</h2>
+        <div class="items">
+          <div class="item red">
+            <span class="num">否</span>
+            <div>
+              <div class="title">考え尽くした不完全な叩き台をぶつけ、「おかしいところがあったら言ってください」は成立しない</div>
+              <div class="desc">確認する側に<strong>大きな負荷を強いる</strong>コミュニケーションであり、この形では会話が成立しない。</div>
+            </div>
+          </div>
+          <div class="item red">
+            <span class="num">先</span>
+            <div>
+              <div class="title">冒頭に置くのは「前座」ではなく本題とその理由</div>
+              <div class="item-detail red">
+                <div class="head">報告の順序</div>
+                <ul>
+                  <li>目的・前提・中間ゴールを長々と話す<strong>前座を先に置かない</strong>。</li>
+                  <li><strong>何を聞きたいのか／どの内容を判断してほしいのか</strong>を最初に提示する。</li>
+                  <li>続けて<strong>その理由</strong>を示す。詳細は質疑で処理する。</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2 class="green">④ 質問構造の再整理 ― 4設問を「主張」と「根拠」の2軸へ</h2>
+        <div class="items">
+          <div class="item green">
+            <span class="num">2</span>
+            <div>
+              <div class="title">PMがエンジニアに確認すべきことは、本質的に2つしかない</div>
+              <div class="item-detail">
+                <div class="head">持参した4設問（タスク一覧・工数・期日／完了条件・テスト／リスク箇所／リスク対応方針）の集約先</div>
+                <ul>
+                  <li><strong>主張（What）</strong>: 依頼された機能を<strong>どのタスク並びで、どれくらいの工数・期日で完了させるか</strong>という計画の提示。</li>
+                  <li><strong>根拠（Why）</strong>: <strong>なぜそのタスク並び・工数（例: 1.5人日）になるのか</strong>、なぜその見積もり・進め方で大丈夫と言えるのかという論拠の説明。</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="item green">
+            <span class="num">別</span>
+            <div>
+              <div class="title">別紙の各層観点は、独立した質問ではなく「根拠を説明するための材料」</div>
+              <div class="desc">画面・API・データ・速度・テスト等の掘り下げ項目は、<strong>なぜその工数・タスク並びになるのかをつまびらかにする構成要素</strong>として機能させる。<strong>問われなくても根拠をセットで説明できる状態</strong>が、手戻りが最も少なく確実性の高いコミュニケーションになる。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 下段: 決定事項・アクションアイテム -->
+  <div class="panel bottom">
+    <h2>決定事項・アクションアイテム</h2>
+    <div class="decisions">
+      <div class="decision"><span class="tag">決定</span><strong>質問項目は2軸にシンプル化</strong> — 「対応する作業・工数・期日（主張）」と「その工数・タスク並びになる理由（根拠）」の2つに再整理する。</div>
+      <div class="decision"><span class="tag">決定</span><strong>重いプロセスは組まない</strong> — レビュー会・判定基準づくりとしての中間ゴールは撤回。箇条書き→フィードバック→WBSの流れで運用する。</div>
+      <div class="decision"><span class="tag action">アクション</span><strong>実案件1件で試行</strong> — バックログのタスクなど実際の1案件に、タスク・工数・期日とその根拠を提示させる形式を適用して試す。</div>
+      <div class="decision"><span class="tag action">アクション</span><strong>報告は本題から始める</strong> — 何を聞きたいか・何を判断してほしいかとその理由を冒頭に置く形へ是正する。</div>
+    </div>
+    <div class="quote info">
+      <span class="who">会議直後のPMメモ ― 重点は根拠（Why）</span>
+主張（タスク・工数・期日）は<strong>当然出てくるもので、強制する類のものではない</strong>。重点は<strong>根拠を抑えさせること</strong>にある。<strong>精度が高くないタスク並び・工数でも、根拠が説明できていればよい</strong>。精度そのものへの言及より、そう置いた論拠を添えることが求められている。
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
