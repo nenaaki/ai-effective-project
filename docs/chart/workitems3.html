@@ -1047,24 +1047,9 @@ function copyEvmSnap(btn){
     </div>
     <div style="color:#94a3b8; margin-top:6px;">この行を iteration3_data.js の <b>evmSnapshots</b> に貼り付けて週次スナップショットを記録（週1回）。progress／tobe（実績）を最新化してから算出すること。</div>
   </div>`;
-  const memo = `<div style="margin-top:12px; font-size:12px; border:1px solid #fcd34d; background:#fffbeb; border-radius:6px; padding:9px 11px; max-width:660px;">
-    <div style="font-weight:700; color:#92400e; margin-bottom:5px;">イテレーション3 計画の考え方</div>
-    <ul style="margin:0; padding-left:18px; line-height:1.7; color:#334155;">
-      <li>①CSV出力は<b>新規開発ではなく移植</b>。イテレーション2で作った非同期帳票出力基盤（非同期ジョブ＋生成状況テーブル＋S3）に載せ替える。</li>
-      <li>②〜⑤は<b>全機能に横串で効く非機能基盤</b>。個別機能を量産した後に足すと全画面・全APIの手戻りになるため、先に置く。</li>
-      <li>イテレーション2の反省を計画に反映
-        <ul style="margin:2px 0 0; padding-left:16px;">
-          <li><b>AIエージェント不備の調査・改修枠</b>を各人10hで先に確保。イテ2は<b>エージェント実装のバグ対応（改善作業を含む）にかなりの時間を要した</b>が、見積外だった</li>
-          <li><b>spec→リポジトリの仕様反映を自動化</b>（手作業が手戻りの原因だったため事前工数に計上）</li>
-          <li><b>仕様精査〜PM合意を各スコープ 2日（14.4h）で計上</b>（①〜⑤の5スコープ）。イテ2で仕様情報の収集と合意までの段取りに時間を要したため</li>
-        </ul>
-      </li>
-      <li>PW案件内にて現在担当しているものより<b>優先度が高いタスクが生じた際は、そのタスクを優先する</b>。</li>
-    </ul>
-  </div>`;
   document.getElementById("evm").innerHTML =
     `<div style="display:flex; gap:24px; align-items:flex-start; flex-wrap:wrap;">`+
-    `<div style="flex:0 0 auto;">${svg}${legend}${memo}</div>`+
+    `<div style="flex:0 0 auto;">${svg}${legend}</div>`+
     `<div style="flex:0 0 340px;">${table}${devbox}</div></div>`;
   document.getElementById("enote").textContent = hasSnap
     ? `基準日 ${baseISO}（最新の週次スナップショット・全${snapDates.length}件）。横軸＝営業日（週末・祝日は含めない）。PV=計画値（チーム全体のキャパシティ＝各営業日の稼働人日×${HPD}h を BAC まで累積。終日休=0／半休=0.5 人日。担当替えでは動かず、休みのある営業日だけ傾きが緩む）／EV・AC=記録スナップショット。SPI<1=遅れ / CPI<1=超過。EAC は現在効率(CPI×SPI)継続前提。スナップショットは週1回 iteration3_data.js の evmSnapshots に追記する。`
