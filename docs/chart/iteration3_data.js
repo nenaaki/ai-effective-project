@@ -17,7 +17,7 @@ const ITERATION3_DATA = {
   evmSnapshots: {
     "2026-09-02": { "ev": 23.0, "ac": 17.8 },
     "2026-09-09": { "ev": 151.8, "ac": 100.1 },
-    "2026-09-16": { "ev": 218.2, "ac": 168.0 }
+    "2026-09-16": { "ev": 254.1, "ac": 204.0 }
   },
   // 予定休（人員別）。終日休はその人員の営業日から除外し、当該人員のタスクを後ろ倒しする。
   //   終日休 = "2026-09-01" ／ 半休 = "2026-09-01:0.5"（末尾の数値＝休む割合。0.25 等も可）。
@@ -33,6 +33,8 @@ const ITERATION3_DATA = {
     { key: "ivr",     id: "⑥", name: "IVR連携(持ち越し)",         color: "#c026d3" },
     { key: "message", id: "⑦", name: "メッセージ基盤",             color: "#0891b2" },
     { key: "nauth",   id: "⑧", name: "N社認証認可(エージェント調整)", color: "#e11d48" },
+    { key: "batch",   id: "⑨", name: "月次バッチ処理(8種)",      color: "#65a30d" },
+    { key: "report",  id: "⑩", name: "PDF帳票追加・DLマネージャ", color: "#4f46e5" },
     { key: "other",   id: "他", name: "その他工数",               color: "#94a3b8" },
     { key: "reserve", id: "予", name: "予備工数",                 color: "#64748b" },
   ],
@@ -99,6 +101,18 @@ const ITERATION3_DATA = {
     { name: "メッセージE2E", base: "message", person: 2, group: "E2E", code: "M6", owner: "両", deps: ["画面・APIバリデーションのメッセージ統合"], asis: 11.4, plan: 2.1, tobe: 0, status: "予定", progress: 0, desc: "入力不備・業務エラー・外部サービス障害の3系統で、同じIDから同じ文言が同じ表示方法で出ることを通す。BEを停止させた状態でも通信断メッセージが出ることを確認する。" },
     { name: "テスト設計・実施(メッセージ基盤)", base: "message", person: 2, group: "テスト", code: "QA7", owner: "両", deps: ["メッセージE2E"], asis: 19.9, plan: 3.6, tobe: 0, status: "予定", progress: 0, desc: "⑦実装系21.7hに対するテスト仕様設計＋テスト実施（未定義ID・引数不一致・多重エラー・サーバー無応答の境界値を含む）。係数0.168。" },
     { name: "PR・レビュー対応(メッセージ基盤)", base: "message", person: 2, group: "PR", code: "PR7", owner: "両", deps: [], asis: 12.1, plan: 2.2, tobe: 0, status: "予定", progress: 0, desc: "⑦実装系21.7hに対するPR本文作成＋レビュー指摘対応。係数0.102。" },
+    // ───────── ⑨ 月次バッチ処理（8種）─────────
+    //   合計24h（人員1）。内訳＝仕様合意8h／実装8h（24h−仕様合意−テスト）／テスト8h。
+    { name: "仕様合意(月次バッチ8種)", base: "batch", person: 1, group: "仕様精査", code: "SB1", owner: "両", deps: [], asis: 12.0, plan: 8.0, tobe: 8.0, status: "完了", progress: 1, desc: "月次バッチ処理8種の棚卸し（対象・実行タイミング・入出力・締め日の扱い・リラン／失敗時の方針）と論点整理〜PM合意。" },
+    { name: "月次バッチ実装(8種)", base: "batch", person: 1, group: "適用", code: "SB2", owner: "BE", deps: ["仕様合意(月次バッチ8種)"], asis: 43.6, plan: 8.0, tobe: 8.0, status: "完了", progress: 1, desc: "8種のバッチ本体を定期実行基盤のジョブとして実装。ジョブ定義・スケジュール登録・失敗時の通報（②通知基盤）まで。合計24hから仕様合意8h・テスト8hを引いた残り。" },
+    { name: "テスト設計・実施(月次バッチ)", base: "batch", person: 1, group: "テスト", code: "QA9", owner: "両", deps: ["月次バッチ実装(8種)"], asis: 43.6, plan: 8.0, tobe: 0, status: "予定", progress: 0, desc: "8種それぞれのテスト仕様設計＋テスト実施（正常・0件・リラン・失敗時）。係数ではなく枠として8hを確保。" },
+
+    // ───────── ⑩ PDF帳票非同期出力2種追加・画面間横断ダウンロードマネージャ ─────────
+    //   合計24h（人員1）。内訳＝仕様合意8h／実装12h／テスト4h。
+    { name: "仕様合意(帳票2種・DLマネージャ)", base: "report", person: 1, group: "仕様精査", code: "RP1", owner: "両", deps: [], asis: 12.0, plan: 8.0, tobe: 8.0, status: "完了", progress: 1, desc: "追加するPDF帳票2種の様式・出力条件・件数上限の確認と、画面をまたいで生成中／完了の出力物を一覧・再取得できるダウンロードマネージャの仕様（常駐UI・保持期間・権限）の整理〜PM合意。" },
+    { name: "PDF帳票2種追加・DLマネージャ実装", base: "report", person: 1, group: "適用", code: "RP2", owner: "両", deps: ["仕様合意(帳票2種・DLマネージャ)"], asis: 65.4, plan: 12.0, tobe: 12.0, status: "完了", progress: 1, desc: "非同期帳票出力基盤に帳票2種を追加（定義・生成・S3配置）し、画面横断のダウンロードマネージャ（進捗表示・完了通知・再DL・キャンセル）をadmin共通レイアウトへ組み込む。①CSV出力の生成/状況APIとFE部品を再利用する。" },
+    { name: "テスト設計・実施(帳票2種・DLマネージャ)", base: "report", person: 1, group: "テスト", code: "QA10", owner: "両", deps: ["PDF帳票2種追加・DLマネージャ実装"], asis: 21.8, plan: 4.0, tobe: 0, status: "予定", progress: 0, desc: "帳票2種の出力内容と、画面遷移をまたいだ生成中／完了表示・再DL・エラーの確認。係数ではなく枠として4hを確保。" },
+
     // ───────── その他工数（イテレーション2の反省を反映した先取り枠）─────────
     { name: "AIエージェント不備 調査・改修枠①", base: "other", person: 1, group: "その他工数", code: "O1", owner: "両", deps: [], asis: 10.0, plan: 10.0, tobe: 8.0, status: "着手中", progress: 0.8, desc: "イテレーション2の課題対応。エージェントの不備の調査・改修は毎回発生するため、実績（デバッグ／設計エージェント計28h）を踏まえ人員1分を予め見積もる。" },
     { name: "AIエージェント不備 調査・改修枠②", base: "other", person: 2, group: "その他工数", code: "O2", owner: "両", deps: [], asis: 10.0, plan: 10.0, tobe: 0, status: "予定", progress: 0, desc: "同上・人員2分。イテレーション2では見積外だったため実績が計画超過として現れた。今回は枠として明示する。" },
