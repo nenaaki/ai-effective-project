@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>議事まとめ 2026-09-10</title>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body {
+    font-family: -apple-system, "Hiragino Kaku Gothic ProN", "Yu Gothic", system-ui, sans-serif;
+    color: #1f2937;
+    background: #fafafa;
+    padding: 12px 28px 6px;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+  .page { max-width: 1240px; margin: 0 auto; height: 100%; display: flex; flex-direction: column; }
+  h1 { font-size: 18px; margin: 0; border-bottom: 3px solid #2563eb; padding-bottom: 5px; }
+  .sub { color: #6b7280; font-size: 11.5px; margin: 5px 0 8px; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1.12fr;
+    gap: 14px;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+  }
+  .panel {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 9px 11px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: auto;
+  }
+  h2 { font-size: 12px; margin: 0 0 5px; padding-left: 8px; border-left: 3px solid #2563eb; }
+  h2.amber { border-left-color: #f59e0b; }
+  h2.indigo { border-left-color: #4f46e5; }
+  h2.green { border-left-color: #10b981; }
+  h2.red { border-left-color: #dc2626; }
+
+  .items { display: flex; flex-direction: column; gap: 3px; }
+  .item {
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 10.5px;
+    line-height: 1.38;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .item .num {
+    background: #2563eb;
+    color: white;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 11px;
+    flex-shrink: 0;
+  }
+  .item.amber .num { background: #f59e0b; }
+  .item.indigo .num { background: #4f46e5; }
+  .item.green .num { background: #10b981; }
+  .item.red .num { background: #dc2626; }
+  .item .title { font-weight: 600; color: #1f2937; }
+  .item .desc { color: #4b5563; margin-top: 1px; font-size: 10px; }
+  .item .desc a, .ref-line a { color: #2563eb; text-decoration: none; }
+  .item .desc a:hover, .ref-line a:hover { text-decoration: underline; }
+
+  .item-detail {
+    margin-top: 3px;
+    background: #f9fafb;
+    border-left: 2px solid #2563eb;
+    border-radius: 3px;
+    padding: 3px 7px;
+    font-size: 10px;
+    line-height: 1.4;
+    color: #374151;
+  }
+  .item-detail .head {
+    font-size: 9.5px;
+    font-weight: 700;
+    color: #1e40af;
+    letter-spacing: 0.04em;
+    margin-bottom: 2px;
+  }
+  .item-detail ul { margin: 0; padding-left: 15px; }
+  .item-detail li { margin: 1px 0; }
+  .item-detail.amber { border-left-color: #f59e0b; }
+  .item-detail.amber .head { color: #b45309; }
+  .item-detail.red { border-left-color: #dc2626; }
+  .item-detail.red .head { color: #b91c1c; }
+
+  /* 下段: 決定事項（全幅・4カラム） */
+  .panel.bottom { margin-top: 7px; flex: none; overflow: visible; padding: 8px 12px 9px; }
+  .panel.bottom .decisions { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 7px; }
+  .panel.bottom .decision { padding: 5px 8px; font-size: 10px; line-height: 1.42; }
+  .panel.bottom .quote { margin-top: 6px; padding: 4px 8px; font-size: 9.5px; line-height: 1.45; }
+  .quote.info { background: #eef2ff; border-left-color: #4f46e5; color: #312e81; }
+  .quote.info .who { color: #4338ca; }
+
+  /* 決定事項・ネクストアクション */
+  .decisions { display: flex; flex-direction: column; gap: 6px; }
+  .decision {
+    background: #ecfdf5;
+    border-left: 3px solid #10b981;
+    border-radius: 4px;
+    padding: 8px 10px;
+    font-size: 11.5px;
+    line-height: 1.55;
+  }
+  .decision .tag {
+    display: inline-block;
+    background: #10b981;
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 3px;
+    margin-right: 6px;
+    vertical-align: 1px;
+  }
+  .decision .tag.action { background: #2563eb; }
+  .decision .tag.hold { background: #9ca3af; }
+
+  /* 最終メッセージ・補足 */
+  .quote {
+    background: #fef3c7;
+    border-left: 3px solid #f59e0b;
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 10.5px;
+    line-height: 1.55;
+    color: #78350f;
+    font-style: italic;
+  }
+  .quote .who { display: block; font-style: normal; font-weight: 700; font-size: 10px; color: #b45309; margin-bottom: 2px; letter-spacing: 0.04em; }
+  .quote a { color: #b45309; font-style: normal; }
+
+  .block { margin-bottom: 6px; }
+  .block:last-child { margin-bottom: 0; }
+  .panel .block h2 { margin-bottom: 5px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>議事まとめ 2026-09-10 ― 夜間バッチで進捗が計画超過、ボトルネックはレビューへ移った</h1>
+  <div class="sub">参加者: 社長・リード・PM ／ 15:29〜 定期報告。前回: <a href="minutes_2026-09-08.html">議事まとめ 2026-09-08</a>／同日: <a href="minutes_2026-09-10_review.html">レビュープロセス壁打ち</a>／関連: <a href="workitems3.html">イテレーション3 タスク管理</a>／元メモ: <a href="../../.work/2026-09-10_議事録_定期報告.md">.work/2026-09-10_議事録_定期報告.md</a></div>
+
+  <div class="grid">
+
+    <!-- 左: ① 夜間バッチと予実 / ② N社案件 -->
+    <div class="panel">
+      <div class="block">
+        <h2 class="indigo">① 夜間バッチAI運用で、進捗が計画線を大きく上回った</h2>
+        <div class="items">
+          <div class="item indigo">
+            <span class="num">予</span>
+            <div>
+              <div class="title">実働時間は変わらないのに、成果物のラインだけが計画を超えている</div>
+              <div class="desc">人が関わる作業を終えた後、<strong>夜間にAIを走らせて完了させ、翌朝に結果を確認して続きを行う運用</strong>が増えたことが要因。<strong>現状は進捗が正確に測れていない</strong>ため、管理・記録方式の修正と課題出しを次週までに行う。</div>
+            </div>
+          </div>
+          <div class="item indigo">
+            <span class="num">移</span>
+            <div>
+              <div class="title">社長の指摘 ― 人のボトルネックは開発工程から上流へ移動した</div>
+              <div class="item-detail">
+                <div class="head">生産性の概念が変わる</div>
+                <ul>
+                  <li>人が詰まる場所が、実装から<strong>レビュー・確認・チェック（上流工程）</strong>へ移った。</li>
+                  <li><strong>24時間稼働や時差の活用</strong>、AIを<strong>デジタル従業員</strong>として組み込む組織では、生産性の測り方そのものが変わる。</li>
+                  <li>論点は<strong>滞留工程の解消</strong>に移る。</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2>② N社案件（認証認可）への対応状況</h2>
+        <div class="items">
+          <div class="item">
+            <span class="num">適</span>
+            <div>
+              <div class="title">案件チームと情報共有し、成果物が適用できることを確認</div>
+              <div class="desc"><strong>標準機（標準エージェント）に若干の調整を行って提供</strong>する方向で進めている。</div>
+            </div>
+          </div>
+          <div class="item">
+            <span class="num">懸</span>
+            <div>
+              <div class="title">先方の懸念はキャッチアップコストと、AIプランの契約規模</div>
+              <div class="desc">AI未導入チームのため、<strong>キャッチアップコストの規模感</strong>と、<strong>トークン消費量の増大に伴う高額AIプランの契約が必要か</strong>という懸念が示された。<strong>簡素化の説明資料を作成・共有</strong>し、返答待ち。</div>
+            </div>
+          </div>
+          <div class="item">
+            <span class="num">了</span>
+            <div>
+              <div class="title">現在の進め方で進行することを了承</div>
+              <div class="desc">方針・段取りは現状のまま継続する。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右: ③ 2%バグ問題 / ④ AI2段構え / ⑤ Playwright -->
+    <div class="panel">
+      <div class="block">
+        <h2 class="amber">③ 2%バグ問題 ― 事前設計を軽量化し、レビューを後ろへ倒した</h2>
+        <div class="items">
+          <div class="item amber">
+            <span class="num">課</span>
+            <div>
+              <div class="title">事前設計を詰め切ってリバース突合する形は、ループが終わらない</div>
+              <div class="desc">従来のやり方では<strong>循環ループが永遠に収束しない</strong>ケースが出た。</div>
+            </div>
+          </div>
+          <div class="item amber">
+            <span class="num">改</span>
+            <div>
+              <div class="title">仮実装と機能テストまで済ませてから、人が設計書でレビューする</div>
+              <div class="item-detail amber">
+                <div class="head">試行中のフロー</div>
+                <ul>
+                  <li><strong>事前設計を軽量化</strong>し、<strong>仮実装＋機能テスト</strong>まで進める。</li>
+                  <li>その後に<strong>人が設計書でレビュー</strong>する。</li>
+                  <li>残り工程は<strong>リファクタリングとして3周まで</strong>ループ。<strong>完了しなければ離脱してAIアシスト（手運用）へ切り替える</strong>。</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2 class="green">④ 社長提案 ― AI2段構え（合議制）とAI駆動開発のレベル定義</h2>
+        <div class="items">
+          <div class="item green">
+            <span class="num">2</span>
+            <div>
+              <div class="title">異なる観点を持つ別のAIに、チェックとレビューを代行させる</div>
+              <div class="desc">人の確認負荷（ボトルネック）を軽減するための<strong>合議制</strong>。上流に移ったレビュー工程そのものをAI側へ渡す発想。</div>
+            </div>
+          </div>
+          <div class="item green">
+            <span class="num">L</span>
+            <div>
+              <div class="title">レベル1＝作業のみ代行 / レベル2＝チェックまで代行</div>
+              <div class="item-detail">
+                <div class="head">AI駆動開発のレベル分け構想</div>
+                <ul>
+                  <li><strong>レベル1</strong>: 作業のみAIが代行し、<strong>チェックは人間</strong>が行う状態。</li>
+                  <li><strong>レベル2</strong>: <strong>チェック作業まで別のAIが代行</strong>し、人間は<strong>異常値の報告のみ</strong>を処理する状態（ソフトウェア工場の自動化）。</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2>⑤ テスト自動化の共通化と横展開</h2>
+        <div class="items">
+          <div class="item">
+            <span class="num">テ</span>
+            <div>
+              <div class="title">テストコードを使い捨てにせず共通化し、トークン消費を抑えて高精度に回す</div>
+              <div class="desc">修正時の<strong>波及・影響確認（回帰テスト）を自動実行</strong>し、人の手作業を排除。<strong>AI依存にせず、出力したテストスクリプトの実行で画面の動作確認</strong>ができる仕掛けを目指す。<strong>実効範囲を切って他プロジェクトへ横展開</strong>する。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 下段: 決定事項・アクションアイテム -->
+  <div class="panel bottom">
+    <h2>決定事項・アクションアイテム</h2>
+    <div class="decisions">
+      <div class="decision"><span class="tag">決定</span><strong>N社案件は現在の進め方で進行</strong> — 標準機に若干の調整を加えて提供する方向。キャッチアップコスト簡素化の資料を共有済みで、先方の返答待ち。</div>
+      <div class="decision"><span class="tag action">アクション</span><strong>進捗の測り方を次週までに見直す</strong> — 夜間バッチ運用で予実がずれているため、管理・記録方式の修正と課題出しを行う。</div>
+      <div class="decision"><span class="tag action">アクション</span><strong>AI2段構え（合議制）を検討する</strong> — 別観点のAIにチェック・レビューを代行させ、上流に移った人の確認負荷を下げる。</div>
+      <div class="decision"><span class="tag action">アクション</span><strong>テスト自動化のスコープを切って横展開</strong> — 共通化したテストスクリプトの実効範囲を定め、他プロジェクトへ展開する。</div>
+    </div>
+    <div class="quote info">
+      <span class="who">AI駆動開発のレベル定義 ― どこまでAIに渡すか</span>
+<strong>レベル1</strong>＝作業のみAIが代行し、チェックは人間。<strong>レベル2</strong>＝チェック作業まで別のAIが代行し、<strong>人間は異常値の報告だけを処理する</strong>（ソフトウェア工場の自動化）。人のボトルネックが実装からレビューへ移った以上、<strong>次に自動化すべきはレビュー工程</strong>である、という整理。
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

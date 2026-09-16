@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>議事まとめ 2026-09-10</title>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body {
+    font-family: -apple-system, "Hiragino Kaku Gothic ProN", "Yu Gothic", system-ui, sans-serif;
+    color: #1f2937;
+    background: #fafafa;
+    padding: 12px 28px 6px;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+  .page { max-width: 1240px; margin: 0 auto; height: 100%; display: flex; flex-direction: column; }
+  h1 { font-size: 18px; margin: 0; border-bottom: 3px solid #2563eb; padding-bottom: 5px; }
+  .sub { color: #6b7280; font-size: 11.5px; margin: 5px 0 8px; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1.12fr;
+    gap: 14px;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+  }
+  .panel {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 9px 11px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: auto;
+  }
+  h2 { font-size: 12px; margin: 0 0 5px; padding-left: 8px; border-left: 3px solid #2563eb; }
+  h2.amber { border-left-color: #f59e0b; }
+  h2.indigo { border-left-color: #4f46e5; }
+  h2.green { border-left-color: #10b981; }
+  h2.red { border-left-color: #dc2626; }
+
+  .items { display: flex; flex-direction: column; gap: 3px; }
+  .item {
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 10.5px;
+    line-height: 1.38;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .item .num {
+    background: #2563eb;
+    color: white;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 11px;
+    flex-shrink: 0;
+  }
+  .item.amber .num { background: #f59e0b; }
+  .item.indigo .num { background: #4f46e5; }
+  .item.green .num { background: #10b981; }
+  .item.red .num { background: #dc2626; }
+  .item .title { font-weight: 600; color: #1f2937; }
+  .item .desc { color: #4b5563; margin-top: 1px; font-size: 10px; }
+  .item .desc a, .ref-line a { color: #2563eb; text-decoration: none; }
+  .item .desc a:hover, .ref-line a:hover { text-decoration: underline; }
+
+  .item-detail {
+    margin-top: 3px;
+    background: #f9fafb;
+    border-left: 2px solid #2563eb;
+    border-radius: 3px;
+    padding: 3px 7px;
+    font-size: 10px;
+    line-height: 1.4;
+    color: #374151;
+  }
+  .item-detail .head {
+    font-size: 9.5px;
+    font-weight: 700;
+    color: #1e40af;
+    letter-spacing: 0.04em;
+    margin-bottom: 2px;
+  }
+  .item-detail ul { margin: 0; padding-left: 15px; }
+  .item-detail li { margin: 1px 0; }
+  .item-detail.amber { border-left-color: #f59e0b; }
+  .item-detail.amber .head { color: #b45309; }
+  .item-detail.red { border-left-color: #dc2626; }
+  .item-detail.red .head { color: #b91c1c; }
+
+  /* 下段: 決定事項（全幅・4カラム） */
+  .panel.bottom { margin-top: 7px; flex: none; overflow: visible; padding: 8px 12px 9px; }
+  .panel.bottom .decisions { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 7px; }
+  .panel.bottom .decision { padding: 5px 8px; font-size: 10px; line-height: 1.42; }
+  .panel.bottom .quote { margin-top: 6px; padding: 4px 8px; font-size: 9.5px; line-height: 1.45; }
+  .quote.info { background: #eef2ff; border-left-color: #4f46e5; color: #312e81; }
+  .quote.info .who { color: #4338ca; }
+
+  /* 決定事項・ネクストアクション */
+  .decisions { display: flex; flex-direction: column; gap: 6px; }
+  .decision {
+    background: #ecfdf5;
+    border-left: 3px solid #10b981;
+    border-radius: 4px;
+    padding: 8px 10px;
+    font-size: 11.5px;
+    line-height: 1.55;
+  }
+  .decision .tag {
+    display: inline-block;
+    background: #10b981;
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 3px;
+    margin-right: 6px;
+    vertical-align: 1px;
+  }
+  .decision .tag.action { background: #2563eb; }
+  .decision .tag.hold { background: #9ca3af; }
+
+  /* 最終メッセージ・補足 */
+  .quote {
+    background: #fef3c7;
+    border-left: 3px solid #f59e0b;
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 10.5px;
+    line-height: 1.55;
+    color: #78350f;
+    font-style: italic;
+  }
+  .quote .who { display: block; font-style: normal; font-weight: 700; font-size: 10px; color: #b45309; margin-bottom: 2px; letter-spacing: 0.04em; }
+  .quote a { color: #b45309; font-style: normal; }
+
+  .block { margin-bottom: 6px; }
+  .block:last-child { margin-bottom: 0; }
+  .panel .block h2 { margin-bottom: 5px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>議事まとめ 2026-09-10（レビュープロセス）― 論拠とは「完了の確認」であって、作業の分解ではない</h1>
+  <div class="sub">参加者: 社長・PM ／ レビュープロセス検討の壁打ち会議。前回: <a href="minutes_2026-09-09.html">議事まとめ 2026-09-09</a>／同日: <a href="minutes_2026-09-10.html">定期報告</a>／元メモ: <a href="../../.work/2026-09-10_議事録_レビュープロセス.md">.work/2026-09-10_議事録_レビュープロセス.md</a></div>
+
+  <div class="grid">
+
+    <!-- 左: ① 持参した案 / ② 指摘: 分解は論拠にならない -->
+    <div class="panel">
+      <div class="block">
+        <h2 class="indigo">① 持参した案 ― 「主張」と「内訳」の2軸に作り直した</h2>
+        <div class="items">
+          <div class="item indigo">
+            <span class="num">1</span>
+            <div>
+              <div class="title">質問1（主張 / What）― タスク・工数・期日に、タスク分類を足す</div>
+              <div class="desc">対応する作業タスク、工数、期日に加えて<strong>タスク分類（画面・ロジック・データ等）</strong>の記述を求める。分類を設けることで<strong>エンジニア自身の検討漏れを防ぎ、PMが抜け漏れを指摘しやすくする</strong>狙い。</div>
+            </div>
+          </div>
+          <div class="item indigo">
+            <span class="num">2</span>
+            <div>
+              <div class="title">質問2（論拠・内訳 / Why）― 作るものの内訳を挙げさせる</div>
+              <div class="desc">主張の裏付けとして<strong>各層の具体的な構成や手順（内訳）</strong>を挙げさせる。中堅以下には、前回の掘り下げ観点（画面・ロジック・データ・非機能・テスト）を<strong>ガイドとして参照できるよう補足</strong>する。</div>
+            </div>
+          </div>
+          <div class="item indigo">
+            <span class="num">想</span>
+            <div>
+              <div class="title">この2問に前段（要件定義・基本設計の理解確認）を足せば揃うと想定していた</div>
+              <div class="desc">PMとエンジニアの間で確認すべき内容は、これで網羅できるという見立てだった。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2 class="red">② 指摘 ― タスクの分解は論拠になっていない</h2>
+        <div class="items">
+          <div class="item red">
+            <span class="num">必</span>
+            <div>
+              <div class="title">分解（WBS化）は「必要条件（Do）」に過ぎない</div>
+              <div class="desc">作業を分解して内訳を列挙する行為は<strong>WBSを細分化する作業（Do）と同義</strong>で、「この作業が必要である」という必要条件を示しているだけ。<strong>「なぜその工数・期日で確実に終わるのか」という十分条件の証明にはならない</strong>。</div>
+            </div>
+          </div>
+          <div class="item red">
+            <span class="num">差</span>
+            <div>
+              <div class="title">分解をゴールに置くのはエンジニアの発想</div>
+              <div class="desc">マネージャーが取りたいのは<strong>「その進め方で本当にできそうか・できなさそうか」のコンセンサス</strong>であって、細かく分解された作業一覧ではない。<strong>内訳は論点にはなるが、工数やスケジュールの妥当性は担保しない</strong>。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右: ③ 論拠の本質＝Check / ④ 実務レベル感 -->
+    <div class="panel">
+      <div class="block">
+        <h2 class="green">③ 論拠の本質は PDCA の「C（完了の確認）」</h2>
+        <div class="items">
+          <div class="item green">
+            <span class="num">C</span>
+            <div>
+              <div class="title">問うべきは「どう作業するか（Do）」ではなく「何をもって完了と判断するか（Check）」</div>
+              <div class="item-detail">
+                <div class="head">提示させるのは "完了確認のWBS"</div>
+                <ul>
+                  <li>エンジニアは<strong>どういう作業をするか（Do）</strong>ばかり説明したがる。</li>
+                  <li>求めている論拠は<strong>確認基準と、確認のタイミング</strong>。</li>
+                  <li>「1日で終わる」と主張するなら、<strong>半日時点でどこまで進んでどう確認するか</strong>、<strong>夕方に何を確認・報告して完了とするか</strong>を出させる。</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="item green">
+            <span class="num">主</span>
+            <div>
+              <div class="title">主観の「終わりました」を排除する</div>
+              <div class="desc">本人の主観報告を鵜呑みにすると、<strong>PM会議で「順調です」と言っていたのに、後から「考慮漏れがあり2週間遅延」</strong>という致命的な事故につながる。<strong>客観的な完了確認のプロセスを事前に定義・約束させること</strong>が、手戻りと遅延を防ぐ真の論拠になる。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2 class="amber">④ 完了確認の実務レベル ― 大げさなテストは要らない</h2>
+        <div class="items">
+          <div class="item amber">
+            <span class="num">軽</span>
+            <div>
+              <div class="title">分解項目にテストを入れるだけでは不十分だが、毎回の重いテストも不要</div>
+              <div class="desc">テストでの確認は<strong>一部に過ぎない</strong>。大げさなテストを毎回義務付ける必要はなく、<strong>本人の思い込みによるミスを防ぐ枠組み</strong>があればよい。</div>
+            </div>
+          </div>
+          <div class="item amber">
+            <span class="num">実</span>
+            <div>
+              <div class="title">実務で機能する「客観的確認」の形</div>
+              <div class="item-detail amber">
+                <div class="head">この程度で十分</div>
+                <ul>
+                  <li><strong>夕方にチームリーダーに5分だけ画面の動きを見てもらい、共同責任で消し込む</strong>。</li>
+                  <li><strong>このデータで動かして期待通りの値が出ることを確認する</strong>。</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="item amber">
+            <span class="num">逆</span>
+            <div>
+              <div class="title">ゴール（完了状態）から逆算して説明させる</div>
+              <div class="desc">現在から未来へ作業を並べる<strong>Doの思考</strong>ではなく、<strong>「1日後に終わっている状態」を定義し、それをどう確認したか／確認するか</strong>を逆算させるのが、マネジメントにおける正解。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 下段: 決定事項・アクションアイテム -->
+  <div class="panel bottom">
+    <h2>決定事項・アクションアイテム</h2>
+    <div class="decisions">
+      <div class="decision"><span class="tag">決定</span><strong>設問は分けずにシンプル化</strong> — タスクと工数（主張）に対して、「作業終了時に何をもって終わったと確認するのか」をセットで答えさせる形式に整理する。</div>
+      <div class="decision"><span class="tag">決定</span><strong>語らせるのは作業ではなく確認</strong> — 「やりました（作業）」ではなく「終わったことの確認結果・確認方法」を出させる仕組みにする。</div>
+      <div class="decision"><span class="tag action">アクション</span><strong>実案件1件で試行する</strong> — 完了確認（Check）を組み込んだフレームを対象案件1件に適用して運用してみる。</div>
+      <div class="decision"><span class="tag action">アクション</span><strong>次回に結果を報告</strong> — 実際に運用・処理してみた結果を次回ミーティングで報告する。</div>
+    </div>
+    <div class="quote info">
+      <span class="who">前回からの移動 ― 「主張と根拠」の根拠が定義された</span>
+9/9 で「質問は<strong>主張（タスク・工数・期日）</strong>と<strong>根拠</strong>の2軸」と決めたが、その<strong>根拠の中身を作業の内訳（Do）と解釈したのが誤り</strong>だった。根拠とは<strong>完了をどう確認するか（Check）</strong>であり、<strong>ゴールから逆算した確認の約束</strong>を指す。分解は必要条件、確認は十分条件。
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
