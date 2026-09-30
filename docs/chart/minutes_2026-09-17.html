@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>議事まとめ 2026-09-17</title>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body {
+    font-family: -apple-system, "Hiragino Kaku Gothic ProN", "Yu Gothic", system-ui, sans-serif;
+    color: #1f2937;
+    background: #fafafa;
+    padding: 12px 28px 6px;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+  .page { max-width: 1240px; margin: 0 auto; height: 100%; display: flex; flex-direction: column; }
+  h1 { font-size: 18px; margin: 0; border-bottom: 3px solid #2563eb; padding-bottom: 5px; }
+  .sub { color: #6b7280; font-size: 11.5px; margin: 5px 0 8px; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1.12fr;
+    gap: 14px;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+  }
+  .panel {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 9px 11px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: auto;
+  }
+  h2 { font-size: 12px; margin: 0 0 5px; padding-left: 8px; border-left: 3px solid #2563eb; }
+  h2.amber { border-left-color: #f59e0b; }
+  h2.indigo { border-left-color: #4f46e5; }
+  h2.green { border-left-color: #10b981; }
+  h2.red { border-left-color: #dc2626; }
+
+  .items { display: flex; flex-direction: column; gap: 3px; }
+  .item {
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 10.5px;
+    line-height: 1.38;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .item .num {
+    background: #2563eb;
+    color: white;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 11px;
+    flex-shrink: 0;
+  }
+  .item.amber .num { background: #f59e0b; }
+  .item.indigo .num { background: #4f46e5; }
+  .item.green .num { background: #10b981; }
+  .item.red .num { background: #dc2626; }
+  .item .title { font-weight: 600; color: #1f2937; }
+  .item .desc { color: #4b5563; margin-top: 1px; font-size: 10px; }
+  .item .desc a, .ref-line a { color: #2563eb; text-decoration: none; }
+  .item .desc a:hover, .ref-line a:hover { text-decoration: underline; }
+
+  .item-detail {
+    margin-top: 3px;
+    background: #f9fafb;
+    border-left: 2px solid #2563eb;
+    border-radius: 3px;
+    padding: 3px 7px;
+    font-size: 10px;
+    line-height: 1.4;
+    color: #374151;
+  }
+  .item-detail .head {
+    font-size: 9.5px;
+    font-weight: 700;
+    color: #1e40af;
+    letter-spacing: 0.04em;
+    margin-bottom: 2px;
+  }
+  .item-detail ul { margin: 0; padding-left: 15px; }
+  .item-detail li { margin: 1px 0; }
+  .item-detail.amber { border-left-color: #f59e0b; }
+  .item-detail.amber .head { color: #b45309; }
+  .item-detail.red { border-left-color: #dc2626; }
+  .item-detail.red .head { color: #b91c1c; }
+
+  /* 下段: 決定事項（全幅・4カラム） */
+  .panel.bottom { margin-top: 7px; flex: none; overflow: visible; padding: 8px 12px 9px; }
+  .panel.bottom .decisions { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 7px; }
+  .panel.bottom .decision { padding: 5px 8px; font-size: 10px; line-height: 1.42; }
+  .panel.bottom .quote { margin-top: 6px; padding: 4px 8px; font-size: 9.5px; line-height: 1.45; }
+  .quote.info { background: #eef2ff; border-left-color: #4f46e5; color: #312e81; }
+  .quote.info .who { color: #4338ca; }
+
+  /* 決定事項・ネクストアクション */
+  .decisions { display: flex; flex-direction: column; gap: 6px; }
+  .decision {
+    background: #ecfdf5;
+    border-left: 3px solid #10b981;
+    border-radius: 4px;
+    padding: 8px 10px;
+    font-size: 11.5px;
+    line-height: 1.55;
+  }
+  .decision .tag {
+    display: inline-block;
+    background: #10b981;
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 3px;
+    margin-right: 6px;
+    vertical-align: 1px;
+  }
+  .decision .tag.action { background: #2563eb; }
+  .decision .tag.hold { background: #9ca3af; }
+
+  /* 最終メッセージ・補足 */
+  .quote {
+    background: #fef3c7;
+    border-left: 3px solid #f59e0b;
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 10.5px;
+    line-height: 1.55;
+    color: #78350f;
+    font-style: italic;
+  }
+  .quote .who { display: block; font-style: normal; font-weight: 700; font-size: 10px; color: #b45309; margin-bottom: 2px; letter-spacing: 0.04em; }
+  .quote a { color: #b45309; font-style: normal; }
+
+  .block { margin-bottom: 6px; }
+  .block:last-child { margin-bottom: 0; }
+  .panel .block h2 { margin-bottom: 5px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>議事まとめ 2026-09-17 ― 進捗は計画の約1.5倍、テストは「インプットの妥当性」から設計し直す</h1>
+  <div class="sub">参加者: 社長・リード・PM（PMの発言はほぼ無し）／12:30〜13:30 定期報告。前回: <a href="minutes_2026-09-10.html">議事まとめ 2026-09-10</a>／関連: <a href="workitems3.html">イテレーション3 タスク管理</a>・<a href="2026-09-17_結合テスト分析.md">結合テスト分析</a>／元メモ: <a href="../../.work/2026-09-17_議事録_定期報告.md">.work/2026-09-17_議事録_定期報告.md</a></div>
+
+  <div class="grid">
+
+    <!-- 左: ① EVM進捗とタスク引き取り / ② 2%バグ問題 / ⑤ N社案件 -->
+    <div class="panel">
+      <div class="block">
+        <h2 class="indigo">① EVMは計画比 約1.5倍で推移、PW案件の実装タスクを引き取った</h2>
+        <div class="items">
+          <div class="item indigo">
+            <span class="num">予</span>
+            <div>
+              <div class="title">計画を約1.5倍少々上回るペースを維持している</div>
+              <div class="desc">人がボトルネックになる部分は残るが、<strong>AIによる複数タスクの並列化・並行運用</strong>を強化して高いペースを保っている。計測方法は<strong>イテレーション2の方式を踏襲</strong>し、前回結果と比較して計画線を安定して上回ることを示す形をとった。</div>
+            </div>
+          </div>
+          <div class="item indigo">
+            <span class="num">取</span>
+            <div>
+              <div class="title">結合テストフェーズのPW案件から、急ぎの実装タスクを引き取った</div>
+              <div class="item-detail">
+                <div class="head">昼夜運用 ― 昼は人が要る作業、夜はAI単独で走らせる</div>
+                <ul>
+                  <li>生成<strong>PDF帳票2種の追加</strong>／<strong>ダウンロード通知（画面横断DLマネージャ）</strong>の追加。</li>
+                  <li><strong>月次処理系の定期バッチ8件</strong>の追加。</li>
+                  <li>ほか軽微な小規模タスク複数件。→ <a href="workitems3.html">イテレーション3 タスク管理</a>のスコープ⑨⑩に計上。</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2 class="amber">② 2%バグ問題 ― 設計資料のHTML入出力をやめてトークン枯渇を解消</h2>
+        <div class="items">
+          <div class="item amber">
+            <span class="num">課</span>
+            <div>
+              <div class="title">3周ほど回った段階でトークンが枯渇して停止（2回発生）</div>
+              <div class="desc">AIの分析による要因は2点。<strong>対象スコープが大きい</strong>こと（分割が必要）と、<strong>設計資料の入出力がHTML形式</strong>でそれ自体が大きなオーバーヘッドになっていること。</div>
+            </div>
+          </div>
+          <div class="item amber">
+            <span class="num">改</span>
+            <div>
+              <div class="title">テキスト／Markdown形式へ切り替え、ノンストップで完走した</div>
+              <div class="desc">AI間の情報交換と人のチェックの<strong>双方に適し、表現力を保ちつつ軽量な形式</strong>として選択。結果は<strong>表記揺れの軽微な確認のみで完了</strong>。この形で改善点に対応しながらデータ取りを継続することを承認。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2 class="amber">⑤ N社案件 ― 制約は固定値ではなく交渉の対象</h2>
+        <div class="items">
+          <div class="item amber">
+            <span class="num">交</span>
+            <div>
+              <div class="title">先方PMより導入見送り・延期の申し出。社長の指摘は「前提変数そのものに関与せよ」</div>
+              <div class="desc">理由は<strong>既存ソース中心で強みが出にくい／要件変化が激しい／短期案件でコスト・リスクを避けたい</strong>、代替策の提示はなし。これに対し、納期・体制を<strong>変えられない前提として受け止めるのが専門職</strong>、<strong>制約そのものを疑い調整・緩和して解決するのが総合職</strong>との指摘。<strong>「厳しいから効率化を見送る」は本末転倒</strong>で、原価低減と品質・効率のリターンを示して前提を交渉すべき。予算には予備枠が多く、<strong>困りごとを明確にして「叫ぶ」ことで引き出せる</strong>。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右: ③ 結合テスト前段 / ④ 後段マネジメント / ⑥ 総合職化 -->
+    <div class="panel">
+      <div class="block">
+        <h2 class="red">③ 結合テスト自動化 ― 「インプットは100%正しい」前提が誤り（スコープ1）</h2>
+        <div class="items">
+          <div class="item red">
+            <span class="num">現</span>
+            <div>
+              <div class="title">9画面125件を実行しているが、手順が残らず毎回同じ作業をやり直している</div>
+              <div class="desc"><strong>手順・ログが残らない</strong>ため2回目も同じ作業をやり直している。<strong>エビデンス・結果も手作業で台帳へ転記・集計してPMへ報告</strong>しており、実行のたびコストがかかる。</div>
+            </div>
+          </div>
+          <div class="item red">
+            <span class="num">指</span>
+            <div>
+              <div class="title">社長の指摘 ― シナリオの実際の精度は8〜9割、ノイズ込みで設計せよ</div>
+              <div class="desc"><strong>記載の曖昧さ・日本語の誤り・仕様との乖離</strong>が混じる。実例として<strong>65件中31件でシナリオ側の誤り</strong>を検出。</div>
+            </div>
+          </div>
+          <div class="item red">
+            <span class="num">前</span>
+            <div>
+              <div class="title">前段プロセスを3点で設計し直す</div>
+              <div class="item-detail red">
+                <div class="head">スコープ1 ― 自動実行の前に置く工程</div>
+                <ul>
+                  <li><strong>インプット精度の確認</strong>: シナリオ・データがAIに正しく認識できる状態かを評価する工程を置く。</li>
+                  <li><strong>サンプリングと手動確認</strong>: 人が画面を見ながらAIアシストで数件通し、前提情報の正しさを担保する。</li>
+                  <li><strong>成果物の定義</strong>: 「シナリオ・データに問題なし」の確認と「<strong>再利用可能なテストスクリプト（Playwright等）の出力・GitHub保存</strong>」。</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2>④ 後段 ― テストは実行代行ではなく「マネジメント競技」</h2>
+        <div class="items">
+          <div class="item">
+            <span class="num">密</span>
+            <div>
+              <div class="title">バグ密度・テスト密度を可視化し、開発側へ差し戻す回路を作る</div>
+              <div class="desc">本質は<strong>いかに品質を早く収束させるか</strong>の判断・戦略。<strong>バグ密度の高い機能・単体テスト不足のモジュール</strong>を特定し、やり直しや優先修正を差し戻す。</div>
+            </div>
+          </div>
+          <div class="item">
+            <span class="num">ナ</span>
+            <div>
+              <div class="title">ベテランの指揮・判断をナレッジ化する／ただし複雑にしない</div>
+              <div class="desc">「どのNGからどう対応するか」の判断をAIに組み込む。ただし<strong>「あんまり複雑にしないでほしい」</strong>との指導。<strong>精度確認 → スクリプト生成・実行 → NG時の妥当性チェック</strong>のシンプルな構成に整理し直す。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2 class="green">⑥ エンジニアの総合職化 ― 仕組みではなく心構え</h2>
+        <div class="items">
+          <div class="item green">
+            <span class="num">心</span>
+            <div>
+              <div class="title">トレーニングキットのような専用の仕組みは作らない</div>
+              <div class="desc"><strong>過度に親切な仕組みは依存を生み成長にならない</strong>。ワーカーか総合職かの<strong>危機感</strong>と、泥臭い環境で工夫する経験で育てる。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 下段: 決定事項・アクションアイテム -->
+  <div class="panel bottom">
+    <h2>決定事項・アクションアイテム</h2>
+    <div class="decisions">
+      <div class="decision"><span class="tag">決定</span><strong>PW案件へ集中する</strong> — N社案件は助けを求められれば対応するが、先方が遠慮・辞退した場合は無理に押し込まず、既定路線のPW案件の成功に全力を向ける。</div>
+      <div class="decision"><span class="tag action">アクション</span><strong>2%バグ問題はデータ取りを継続</strong> — トークン枯渇を解消したMarkdown／テキストの軽量化フローで、改善点に対応しながら実績を蓄積する。</div>
+      <div class="decision"><span class="tag action">アクション</span><strong>結合テストのプロセスを2段階で再整理</strong> — ①サンプリングによるインプット精度確認とスクリプト生成、②品質収束に向けたマネジメントフィードバック。様式はシンプルに保つ。</div>
+      <div class="decision"><span class="tag">決定</span><strong>総合職化は仕組みを作らず心構えで</strong> — 専用のトレーニング機構は用意せず、AIを部下として使いこなす危機感と経験で育てる。</div>
+    </div>
+    <div class="quote info">
+      <span class="who">目的と手段の分離 ― テストで達成したいことは何か</span>
+テストの真の目的は<strong>新しいテストを実行して挙動を確認し、直すべき不具合を直すこと</strong>であり、<strong>機械的にOK/NGを自動判定することは手段に過ぎない</strong>。だからこそ、インプット（シナリオ・テストデータ）が8〜9割の精度である前提に立ち、<strong>全自動で回す前に妥当性を確認する工程</strong>を置く。
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
