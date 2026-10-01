@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>イテレーション4 タスク管理（移行・インフラ・結合テスト ①②③④）</title>
+<title>イテレーション4 タスク管理（データ移行・IaC・結合テスト ①②③）</title>
 <style>
   body { font-family: "Yu Gothic UI", "Meiryo", sans-serif; margin: 24px; color:#222; line-height:1.5; max-width: 1880px; }
   h1 { font-size: 20px; margin: 0 0 4px; }
@@ -128,7 +128,7 @@
 </style>
 </head>
 <body>
-  <h1>イテレーション4 タスク管理 ― ①巨大データ移行(3億件想定) / ②インフラ4環境(dev/stg/prd) / ③結合テスト・シナリオテスト構築 / ④結合テストNG対応・AI原因分析</h1>
+  <h1>イテレーション4 タスク管理 ― ①旧システムからのデータ移行(巨大データ) / ②IaC基盤系(dev/stg/prd) / ③結合テストのAI駆動</h1>
   <div class="sub" id="sub"></div>
 
   <div class="tabs">
@@ -144,7 +144,7 @@
       <div style="display:flex;flex-direction:column;gap:10px;">
         <div style="display:flex;gap:10px;align-items:flex-start;">
           <span style="flex:0 0 22px;height:22px;border-radius:50%;background:#059669;color:#fff;font-weight:bold;font-size:12px;display:flex;align-items:center;justify-content:center;">1</span>
-          <div><b style="color:#14532d;font-size:13.5px;">結合テストが走っている「今」しか取れないもの（③④）</b><div style="font-size:12px;color:#4b5563;margin-top:2px;">PW本体は結合テストフェーズ。2026-09-17 MTG で合意した前段（インプット精度の確認・再利用可能なスクリプト出力）と後段（バグ密度・テスト密度による品質収束）を、実際のテストが回っている間に作る。</div></div>
+          <div><b style="color:#14532d;font-size:13.5px;">結合テストが走っている「今」しか取れないもの（③）</b><div style="font-size:12px;color:#4b5563;margin-top:2px;">PW本体は結合テストフェーズ。2026-09-17 MTG で合意した前段（インプット精度の確認・再利用可能なスクリプト出力）と後段（バグ密度・テスト密度による品質収束）を、実際のテストが回っている間に作る。</div></div>
         </div>
         <div style="display:flex;gap:10px;align-items:flex-start;">
           <span style="flex:0 0 22px;height:22px;border-radius:50%;background:#10b981;color:#fff;font-weight:bold;font-size:12px;display:flex;align-items:center;justify-content:center;">2</span>
@@ -152,26 +152,25 @@
         </div>
         <div style="display:flex;gap:10px;align-items:flex-start;">
           <span style="flex:0 0 22px;height:22px;border-radius:50%;background:#10b981;color:#fff;font-weight:bold;font-size:12px;display:flex;align-items:center;justify-content:center;">3</span>
-          <div><b style="color:#14532d;font-size:13.5px;">環境そのものをAIが扱える形にする（②）</b><div style="font-size:12px;color:#4b5563;margin-top:2px;">開発環境・dev・stg・prd の4環境を、正本と差分で「カチッと」管理する。他案件へそのまま持ち出せる形（横展開性）を狙う。</div></div>
+          <div><b style="color:#14532d;font-size:13.5px;">環境そのものをAIが扱える形にする（②）</b><div style="font-size:12px;color:#4b5563;margin-top:2px;">開発環境・dev・stg・prd の4環境を、正本と差分で「カチッと」管理する。本番環境向けの情報が整ってきたことと、他案件へそのまま持ち出せる形（横展開性）を狙えることが理由。</div></div>
         </div>
       </div>
     </div>
     <div style="margin:14px 0 4px;font-size:12px;color:#475569;">
       <b>選んだスコープ</b>：
-      <span style="display:inline-block;padding:2px 10px;border-radius:12px;color:#fff;font-weight:700;font-size:11px;margin-right:6px;background:#d97706">① 巨大データ移行（3億件想定）</span>
-      <span style="display:inline-block;padding:2px 10px;border-radius:12px;color:#fff;font-weight:700;font-size:11px;margin-right:6px;background:#4f46e5">② インフラ4環境（dev/stg/prd）</span>
-      <span style="display:inline-block;padding:2px 10px;border-radius:12px;color:#fff;font-weight:700;font-size:11px;margin-right:6px;background:#dc2626">③ 結合テスト・シナリオテスト構築</span>
-      <span style="display:inline-block;padding:2px 10px;border-radius:12px;color:#fff;font-weight:700;font-size:11px;background:#0891b2">④ 結合テストNG対応・AI原因分析</span>
+      <span style="display:inline-block;padding:2px 10px;border-radius:12px;color:#fff;font-weight:700;font-size:11px;margin-right:6px;background:#d97706">① 旧システムからのデータ移行（巨大データ）</span>
+      <span style="display:inline-block;padding:2px 10px;border-radius:12px;color:#fff;font-weight:700;font-size:11px;margin-right:6px;background:#4f46e5">② IaC基盤系（dev/stg/prd）</span>
+      <span style="display:inline-block;padding:2px 10px;border-radius:12px;color:#fff;font-weight:700;font-size:11px;background:#dc2626">③ 結合テストのAI駆動</span>
     </div>
     <div style="margin:6px 0 4px;font-size:11.5px;color:#6b7280;">
-      ※ 担当は <b>人員1＝①③</b>／<b>人員2＝②④</b>。③と④は同じ結合テスト領域だが、<b>前段（作る）と後段（回す）</b>で分けている。<br>
+      ※ 担当は <b>人員1＝①と③の前段</b>／<b>人員2＝②と③の後段</b>。③は前段（取込・ハーネス・網羅）と後段（NG対応・原因分析）を1スコープにまとめている。<br>
       ※ イテレーション3の未完了分（②通知基盤の残り・④監査ログ・⑥IVR・⑦メッセージのテスト等）は<b>このスコープに含めていない</b>。持ち越しを載せる場合は別途追加する。<br>
       ※ 工数は枠として置いた初期値。<b>着手前の計画値</b>であり、仕様精査の結果で組み替える前提。
     </div>
 
     <div class="crit-bases">
       <div style="border:1px solid #fcd34d;background:#fffbeb;border-radius:8px;padding:11px 13px;">
-        <div style="font-size:13px;font-weight:bold;margin-bottom:6px;color:#92400e;">① 巨大データ移行（3億件想定）</div>
+        <div style="font-size:13px;font-weight:bold;margin-bottom:6px;color:#92400e;">① 旧システムからのデータ移行（巨大データ）</div>
         <ul style="font-size:11.5px;color:#4b5563;margin:0;padding-left:18px;line-height:1.6;">
           <li><b>現状</b> ― 本番移行の方式が未設計。件数の桁が大きく、一括実行は成立しない見込み</li>
           <li><b>対応</b> ― 分割・並列・リランを前提にした方式設計と、抽出→変換→投入の基盤化</li>
@@ -180,7 +179,7 @@
         </ul>
       </div>
       <div style="border:1px solid #c7d2fe;background:#eef2ff;border-radius:8px;padding:11px 13px;">
-        <div style="font-size:13px;font-weight:bold;margin-bottom:6px;color:#3730a3;">② インフラ4環境（dev/stg/prd）</div>
+        <div style="font-size:13px;font-weight:bold;margin-bottom:6px;color:#3730a3;">② IaC基盤系（dev/stg/prd）</div>
         <ul style="font-size:11.5px;color:#4b5563;margin:0;padding-left:18px;line-height:1.6;">
           <li><b>現状</b> ― 4環境の構成が環境ごとに散っており、差分が追えていない</li>
           <li><b>対応</b> ― 構成の正本を1本にし、環境差分だけを差分として持つ</li>
@@ -189,20 +188,12 @@
         </ul>
       </div>
       <div style="border:1px solid #fecaca;background:#fef2f2;border-radius:8px;padding:11px 13px;">
-        <div style="font-size:13px;font-weight:bold;margin-bottom:6px;color:#b91c1c;">③ 結合テスト・シナリオテスト構築</div>
+        <div style="font-size:13px;font-weight:bold;margin-bottom:6px;color:#b91c1c;">③ 結合テストのAI駆動</div>
         <ul style="font-size:11.5px;color:#4b5563;margin:0;padding-left:18px;line-height:1.6;">
-          <li><b>現状</b> ― 手順・ログが残らず、2回目も同じ作業をやり直している（9画面125件）</li>
+          <li><b>現状</b> ― 手順・ログが残らず2回目も同じ作業をやり直し、結果は手作業で台帳へ転記している（9画面125件）</li>
           <li><b>前提</b> ― シナリオの精度は8〜9割。<b>インプットが正しい前提で自動化しない</b>（9/17合意）</li>
-          <li><b>対応</b> ― 精度の評価工程＋サンプリング手動確認を関門に置き、軽量ハーネスでスクリプトを生成・再実行</li>
-          <li><b>狙い</b> ― 仕様変更の<b>影響範囲</b>と<b>網羅範囲</b>を抽出し、毎回の全件実行をやめる</li>
-        </ul>
-      </div>
-      <div style="border:1px solid #a5f3fc;background:#ecfeff;border-radius:8px;padding:11px 13px;">
-        <div style="font-size:13px;font-weight:bold;margin-bottom:6px;color:#0e7490;">④ 結合テストNG対応・AI原因分析</div>
-        <ul style="font-size:11.5px;color:#4b5563;margin:0;padding-left:18px;line-height:1.6;">
-          <li><b>現状</b> ― エビデンス・結果を手作業で台帳へ転記・集計してPMへ報告している</li>
-          <li><b>対応</b> ― NGの取り込みと台帳化を自動化し、原因カテゴリ（実装／シナリオ／データ／環境）へ仕分ける</li>
-          <li><b>後段</b> ― バグ密度・テスト密度を集計し、単体テストのやり直しや優先修正を開発へ差し戻す</li>
+          <li><b>前段</b> ― 精度の評価工程とサンプリング手動確認を関門に置き、軽量ハーネスでスクリプトを生成・再実行。仕様変更の影響範囲と網羅範囲を抽出する</li>
+          <li><b>後段</b> ― NGの取り込み・台帳化を自動化し、原因カテゴリ（実装／シナリオ／データ／環境）へ仕分け、バグ密度・テスト密度を開発へ差し戻す</li>
           <li><b>狙い</b> ― NGを潰す作業ではなく、<b>品質を早く収束させるマネジメント</b>に寄せる</li>
         </ul>
       </div>
@@ -440,7 +431,7 @@ const laneRows = {1:1, 2:1};
   document.getElementById("gantt").innerHTML = html;
   const leaveSummary = [1,2].map(p=>{ const ls=[...LEAVE[p].entries()].sort((a,b)=>a[0]<b[0]?-1:1); return ls.length ? `人員${p}: ${ls.map(([s,off])=>{const d=parse(s);return `${d.getUTCMonth()+1}/${d.getUTCDate()}${off<1?'(半)':''}`;}).join('・')}` : null; }).filter(Boolean).join(' ／ ');
   document.getElementById("gnote").textContent =
-    `1行＝1週間（平日 月〜金のみ・土日非表示）。人員2名のレーン（担当は person で設定・現状 人員1=①③、人員2=②④）。タスクは作業日数分の幅（1日単位・端数切り上げ）で複数日にまたがり、同時進行は段組み表示。週またぎは「…」で継続。祝日（例 10/12）は作業なし。${leaveSummary?`予定休 → ${leaveSummary}（終日休は当該人員のタスクを翌営業日へ後ろ倒し。(半)＝半休はその日の工数だけ 0.5 人日に減る）。`:''}色は基盤（①アンバー/②藍/③赤/④シアン・予備=グレー）。完了タスクは緑＋✓で表示。全${numWeeks}週。`;
+    `1行＝1週間（平日 月〜金のみ・土日非表示）。人員2名のレーン（担当は person で設定・現状 人員1=①③前段、人員2=②③後段）。タスクは作業日数分の幅（1日単位・端数切り上げ）で複数日にまたがり、同時進行は段組み表示。週またぎは「…」で継続。祝日（例 10/12）は作業なし。${leaveSummary?`予定休 → ${leaveSummary}（終日休は当該人員のタスクを翌営業日へ後ろ倒し。(半)＝半休はその日の工数だけ 0.5 人日に減る）。`:''}色は基盤（①アンバー/②藍/③赤・予備=グレー）。完了タスクは緑＋✓で表示。全${numWeeks}週。`;
 })();
 
 
